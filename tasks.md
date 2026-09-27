@@ -471,13 +471,13 @@ All technical, product, and operational decisions must strictly respect the 10-t
 
 ## 11. PHASE 8: COMMERCIAL, FINANCIAL & RECONCILIATION ENGINE
 
-- [ ] **TASK-P8-01: Master Quote-to-Cash Workflow Pipeline**
+- [x] **TASK-P8-01: Master Quote-to-Cash Workflow Pipeline**
   - **Action:** Implement end-to-end commercial sales engine:
     - Lead -> Opportunity -> Proposal / Media Plan -> Contract Negotiation -> Signed Contract -> Deposit -> Operational Delivery -> Invoice -> Cash Collection -> Revenue Recognition.
   - **Deliverable:** Commercial workflow state machine and sales ledger.
   - **Acceptance Criteria:** Contracts require dual authorization (Sales Lead + Legal/Finance); milestone billing automatically triggered upon proof-of-performance.
 
-- [ ] **TASK-P8-02: Seven-Way Financial Data Separation Engine (R1.2A §283)**
+- [x] **TASK-P8-02: Seven-Way Financial Data Separation Engine (R1.2A §283)**
   - **Action:** Build the core financial ledger ensuring strict segregation of:
     1. **Contract Value:** Total legal committed figure.
     2. **Gross Merchandise Value (GMV):** Total transaction throughput across platforms.
@@ -489,14 +489,14 @@ All technical, product, and operational decisions must strictly respect the 10-t
   - **Deliverable:** Double-entry financial journal module and ledger reporting service.
   - **Acceptance Criteria:** Financial dashboard never conflates GMV with company revenue; reports reconcile to the kobo/cent.
 
-- [ ] **TASK-P8-03: Talent Payout & Withholding Tax Engine**
+- [x] **TASK-P8-03: Talent Payout & Withholding Tax Engine**
   - **Action:** Implement automated payout calculation and disbursement:
     - Computes net payouts after deducting platform fees, agency commissions, and statutory Nigerian withholding tax (WHT).
     - Generates downloadable payment advice slips and monthly WHT remittance schedules.
   - **Deliverable:** Payout processing worker and tax reporting generator.
   - **Acceptance Criteria:** Payout batches require Maker-Checker authorization from Finance Controller; bank payment files export in standard NIP/CSV format.
 
-- [ ] **TASK-P8-04: Bank & Payment Gateway Automated Reconciliation**
+- [x] **TASK-P8-04: Bank & Payment Gateway Automated Reconciliation**
   - **Action:** Build reconciliation engine ingesting bank statement MT940/CSV feeds and payment gateway webhooks (Paystack/Flutterwave).
   - **Deliverable:** Bank reconciliation parser and auto-matching rule engine.
   - **Acceptance Criteria:** Matches bank credits to outstanding customer invoices; flags unallocated deposits for manual review.
