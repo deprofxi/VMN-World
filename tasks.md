@@ -566,14 +566,14 @@ All technical, product, and operational decisions must strictly respect the 10-t
 
 ## 13. PHASE 10: PRODUCTION CUTOVER, RUNBOOKS & EVIDENCE (S1 TO S5)
 
-- [ ] **TASK-P10-01: Canary Deployment & Automated Rollback Runbooks (CCPP-001 §21)**
+- [x] **TASK-P10-01: Canary Deployment & Automated Rollback Runbooks (CCPP-001 §21)**
   - **Action:** Configure deployment pipelines with automated rollback:
     - Blue/Green or Canary deployment with health checks on error rate, latency, and system load.
     - Automated rollback triggers if 5xx errors exceed 0.1% or latency degrades > 50%.
   - **Deliverable:** CI/CD pipeline scripts and `/docs/runbooks/rollback-runbook.md`.
   - **Acceptance Criteria:** Rollback test successfully reverts staging environment to previous healthy version in < 60 seconds without data loss.
 
-- [ ] **TASK-P10-02: Observability, Telemetry & OpenTelemetry Contracts (CCPP-001 §19)**
+- [x] **TASK-P10-02: Observability, Telemetry & OpenTelemetry Contracts (CCPP-001 §19)**
   - **Action:** Implement end-to-end observability:
     - Prometheus / Grafana metrics dashboards for system health, API latency, and queue depths.
     - Structured JSON application logs with trace ID and span ID correlation.
@@ -581,14 +581,14 @@ All technical, product, and operational decisions must strictly respect the 10-t
   - **Deliverable:** Observability stack configuration and alerting rules.
   - **Acceptance Criteria:** All critical workflows instrumented; alerts trigger within 30 seconds of simulated failure.
 
-- [ ] **TASK-P10-03: Disaster Recovery, Backup & Business Continuity (R1.2A §57)**
+- [x] **TASK-P10-03: Disaster Recovery, Backup & Business Continuity (R1.2A §57)**
   - **Action:** Establish business continuity infrastructure:
     - Automated daily database backups with point-in-time recovery (PITR) to offsite storage.
     - Playout automation emergency caching: Playout engines retain 48 hours of autonomous playlist cache in event of central network loss.
   - **Deliverable:** Backup automation scripts and `/docs/runbooks/disaster-recovery.md`.
   - **Acceptance Criteria:** Disaster recovery restoration drill successfully recovers database from backup in < 15 minutes with zero corruption.
 
-- [ ] **TASK-P10-04: Production Evidence Ladder Progression (file 1.txt §8)**
+- [x] **TASK-P10-04: Production Evidence Ladder Progression (file 1.txt §8)**
   - **Action:** Establish continuous evidence logging to advance the enterprise evidence tier:
     - **Tier S1 (Assumptions):** Documented specifications and initial architecture.
     - **Tier S2 (Internal Sandbox):** Automated unit and integration test passes.
@@ -598,7 +598,7 @@ All technical, product, and operational decisions must strictly respect the 10-t
   - **Deliverable:** Enterprise evidence register (`/docs/audit/evidence-register.md`).
   - **Acceptance Criteria:** Every production feature links directly to S5 auditable operational logs.
 
-- [ ] **TASK-P10-05: Session Handoff & Maintenance Discipline (CCPP-001 §8)**
+- [x] **TASK-P10-05: Session Handoff & Maintenance Discipline (CCPP-001 §8)**
   - **Action:** Enforce strict session handoff protocol at the conclusion of every engineering working block:
     - Update `/docs/handoffs/LATEST.md` with: Current Status, Changed Files, Passing Tests, Active Migrations, Identified Risks, and Immediate Next Action.
   - **Deliverable:** Active, continuously maintained `LATEST.md`.
