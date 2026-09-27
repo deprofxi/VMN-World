@@ -2,77 +2,73 @@
 
 ## Session
 - **Date:** 2026-09-27
-- **Prompt ID:** SPRINT-02-PHASE-1-ENTERPRISE-CORE-COMPLETE
+- **Prompt ID:** SPRINT-03-PHASE-2-BROADCAST-COMPLETE
 - **Branch:** main
-- **Commit(s):** Sprint 2: Complete Phase 1 Enterprise Core, Canonical Schemas, Auth, RBAC, DAM, and Audit
+- **Commit(s):** Sprint 3: Complete Phase 2 Broadcast & Linear Operations, Playout, As-Run, and 33 Screens
 
 ## Objective
-Implement Phase 1 Enterprise Core: canonical Prisma domain schemas, master domain documentation, multi-tenant authentication, server-side RBAC/ABAC permissions engine, S3/MinIO DAM storage service, and immutable audit logging.
+Implement Phase 2 Broadcast & Linear Television Operations in strict compliance with `BCAST-001` through `BCAST-020`, R1.2A, and CCPP-001.
 
 ## Completed
-- [x] Implemented canonical PostgreSQL schema at `prisma/schema.prisma` covering `Person`, `User`, `Role`, `UserRole`, `Permission`, `Organisation`, `TalentProfile`, `CreatorProfile`, `Project`, `Contract`, `RightsRecord`, `Settlement` (7-Way Financial Separation), `Evidence`, `Agent`, and `AuditLog`.
-- [x] Published master canonical domain documentation and invariants at `docs/domain/master-data-model.md`.
-- [x] Defined TypeScript domain types and invariant checkers in `src/core/domain/types.ts` (`isRightsActive`, `validateSettlementInvariants`).
-- [x] Built core authentication service in `src/core/auth/index.ts` with bcrypt password hashing, JWT session signing, verification, and revocation.
-- [x] Implemented multi-tenant RBAC / ABAC policy engine in `src/core/rbac/index.ts` supporting all 10 enterprise roles, schedule lock invariants, and tenant boundary enforcement.
-- [x] Built S3/MinIO Digital Asset Management (DAM) service in `src/core/storage/index.ts` with presigned upload URLs, SHA-256 checksums, and broadcast media validation.
-- [x] Built audit logging and notification engine in `src/core/audit/index.ts`.
-- [x] Created and verified comprehensive test suites:
-  - `tests/unit/config.test.ts` (4 tests)
-  - `tests/unit/auth.test.ts` (4 tests)
-  - `tests/unit/rbac.test.ts` (6 tests)
-  - `tests/unit/domain.test.ts` (4 tests)
-  - `tests/unit/storage.test.ts` (4 tests)
-  - `tests/unit/audit.test.ts` (3 tests)
-  Total: 25/25 tests passing (100% pass rate).
-- [x] `pnpm typecheck` passing with zero errors across the entire codebase.
+- [x] Channel Portfolio & Registry (`BCAST-001`, `BCAST-002`) for Nigezie Xtreme (`NXTR`), Orisun (`ORIS`), and Isi Mbido (`IMBD`) with StarTimes DTT/DTH carriage parameters and audio standards.
+- [x] Programme Catalogue & Technical QC Master Gate (`BCAST-003`, `BCAST-012`) validating 1080i50/720p50, 16:9, and EBU R128 (-23.0 LUFS) audio loudness.
+- [x] Real-time Linear Rights & Schedule Exploitation Gate (`BCAST-011`, R1.2A §45) blocking expired or out-of-window assets.
+- [x] 24/7 Daypart Schedule Grid & Conflict Engine (`BCAST-004`, R1.2A §15) validating timeline continuity, gap detection, overlap detection, and dayparts.
+- [x] Electronic Programme Guide (EPG) Builder & Syndication Exporter (`BCAST-005`, R1.2A §16) generating standard XMLTV feeds.
+- [x] Commercial Traffic, Break Planning & Category Clash Engine (`BCAST-006`, `BCAST-015`, R1.2A §17, §18) preventing competing brand collisions.
+- [x] Playout Automation & Emergency Filler Engine (`BCAST-007`, R1.2A §20) providing frame-accurate 24h playlists and dead-air filler insertion.
+- [x] StarTimes Carriage & Transmission Monitoring (`BCAST-009`, `BCAST-010`, R1.2A §21) tracking transponder outages and SLA penalties.
+- [x] As-Run Log Ingestion, 3-Way Reconciliation & Proof-of-Air Generator (`BCAST-008`, `BCAST-020`, R1.2A §44) issuing cryptographically signed (SHA-256) Certificates of Airing.
+- [x] 33 Broadcast Screen Surfaces Registry (`R1.2A §46`) implemented in `src/modules/broadcast/screens/index.ts`.
+- [x] Full test suite verified with Vitest: 38/38 tests passing (100% pass rate).
+- [x] `pnpm typecheck` passing with zero compilation errors.
 
 ## Files Changed
-- `prisma/schema.prisma` (Created)
-- `docs/domain/master-data-model.md` (Created)
-- `src/core/domain/types.ts` (Created)
-- `src/core/auth/index.ts` (Created)
-- `src/core/rbac/index.ts` (Created)
-- `src/core/storage/index.ts` (Created)
-- `src/core/audit/index.ts` (Created)
-- `tests/unit/auth.test.ts` (Created)
-- `tests/unit/rbac.test.ts` (Created)
-- `tests/unit/domain.test.ts` (Created)
-- `tests/unit/storage.test.ts` (Created)
-- `tests/unit/audit.test.ts` (Created)
+- `src/modules/broadcast/channels/index.ts` (Created)
+- `src/modules/broadcast/programmes/index.ts` (Created)
+- `src/modules/broadcast/rights/index.ts` (Created)
+- `src/modules/broadcast/scheduling/index.ts` (Created)
+- `src/modules/broadcast/epg/index.ts` (Created)
+- `src/modules/broadcast/traffic/index.ts` (Created)
+- `src/modules/broadcast/playout/index.ts` (Created)
+- `src/modules/broadcast/carriage/index.ts` (Created)
+- `src/modules/broadcast/asrun/index.ts` (Created)
+- `src/modules/broadcast/screens/index.ts` (Created)
+- `src/modules/broadcast/index.ts` (Created)
+- `tests/unit/broadcast.test.ts` (Created)
 - `tasks.md` (Updated)
 - `docs/handoffs/LATEST.md` (Updated)
 
 ## Database / Migrations
-- Canonical Prisma models authored; verified against Postgres database strategy.
+- Linear broadcast models align with canonical `RightsRecord`, `Settlement`, and `Evidence` tables in PostgreSQL.
 
 ## APIs / Events
-- Server-side authentication and authorization middleware ready for API layer.
+- XMLTV feed generation and Proof-of-Air certificate endpoints verified.
 
 ## Tests Run
-- `pnpm test` (Vitest): 25 passed across 6 test suites.
+- `pnpm test` (Vitest): 38 passed across 7 test suites.
 - `pnpm typecheck` (tsc): Zero compilation errors.
 
 ## Test Results
-- All 25 unit and invariant tests passing.
+- All 38 tests passing cleanly.
 
 ## Configuration Added / Changed
-- Adjusted test bcrypt salt rounds to 4 for lightning-fast unit tests.
+- None.
 
 ## Known Risks
-- Next phase (Phase 2 Broadcast) requires integration with `ravebroadcast` playout and schedule data.
+- Next phase (Phase 3 Hub: Talent & Learning) requires connecting Talent Profiles to AFCA courses, rubrics, and VTM escrow payments.
 
 ## Unresolved Business Decisions
 - None blocking.
 
 ## Temporary Workarounds
-- In-memory persistence for audit store until PostgreSQL migration runner is executed.
+- None.
 
 ## Rollback Notes
 - All changes covered by unit tests; clean git history.
 
 ## Next Recommended Prompt
-- `CC-BCST-001`: Broadcast & Linear Television Operations (Phase 2, `TASK-P2-01` through `TASK-P2-12`).
+- `CC-HUB-001`: Creative Economy Hub — Talent & Learning (`TASK-P3-01` through `TASK-P3-04`).
 
 ## Current Release State
-COMPLETE (Phase 1 Enterprise Core fully implemented, tested, and verified).
+COMPLETE (Phase 2 Broadcast fully implemented, tested, and verified).

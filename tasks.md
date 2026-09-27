@@ -169,7 +169,7 @@ All technical, product, and operational decisions must strictly respect the 10-t
 
 ## 5. PHASE 2: BROADCAST & LINEAR TELEVISION OPERATIONS (CC-BCST-001)
 
-- [ ] **TASK-P2-01: Channel Portfolio & Registry (BCAST-001, BCAST-002)**
+- [x] **TASK-P2-01: Channel Portfolio & Registry (BCAST-001, BCAST-002)**
   - **Action:** Implement channel management domain for the three active VMNL linear channels:
     - **Nigezie Xtreme:** Urban youth, music, contemporary Nigerian pop culture.
     - **Orisun — The Source:** Indigenous Yoruba culture, heritage, arts, contemporary programming.
@@ -177,21 +177,21 @@ All technical, product, and operational decisions must strictly respect the 10-t
   - **Deliverable:** Channel registry entities, configuration tables, and Channel Portfolio management APIs.
   - **Acceptance Criteria:** Channel profiles store metadata, technical parameters, audio configurations, logos, and StarTimes channel identifiers.
 
-- [ ] **TASK-P2-02: Programme Catalogue & Asset Quality Gate (BCAST-003, BCAST-012)**
+- [x] **TASK-P2-02: Programme Catalogue & Asset Quality Gate (BCAST-003, BCAST-012)**
   - **Action:** Build broadcast content catalogue supporting:
     - Hierarchical structure: Title -> Season/Series -> Episode -> Broadcast Version (Master, Clean, Subtitled, Censored).
     - Technical master quality gate: Video standard (1080i50 / 720p), codec, aspect ratio (16:9), loudness compliance (EBU R128 / -23 LUFS), slate/countdown presence, closed-caption tracks.
   - **Deliverable:** Programme catalogue database schema, media validation service, and metadata inspection APIs.
   - **Acceptance Criteria:** Non-compliant media masters cannot be marked as "Ready for Air" (RFA) without an explicit technical override.
 
-- [ ] **TASK-P2-03: Rights & Windowing Verification Engine (BCAST-011, R1.2A §45)**
+- [x] **TASK-P2-03: Rights & Windowing Verification Engine (BCAST-011, R1.2A §45)**
   - **Action:** Implement real-time linear television rights validation service:
     - Validates linear television broadcast rights for specific channel, territory (Nigeria/West Africa), date range, and transmission type (DTT/DTH).
     - Checks exclusivity windows and prevents scheduling if rights expire prior to or during broadcast slot.
   - **Deliverable:** Rights validation domain service and automated test harness.
   - **Acceptance Criteria:** Automated failure tests: scheduling an episode with expired rights immediately flags a blocking error in the schedule grid.
 
-- [ ] **TASK-P2-04: Programming & Daypart Scheduling Grid (BCAST-004, R1.2A §15)**
+- [x] **TASK-P2-04: Programming & Daypart Scheduling Grid (BCAST-004, R1.2A §15)**
   - **Action:** Implement master scheduling system:
     - Dayparts configuration: Early Morning, Daytime, Prime Time, Late Night.
     - 24/7 timeline grid with frame-accurate time slots (HH:MM:SS:FF).
@@ -200,7 +200,7 @@ All technical, product, and operational decisions must strictly respect the 10-t
   - **Deliverable:** Scheduling engine, schedule grid APIs, and visual calendar/grid backend service.
   - **Acceptance Criteria:** Schedule grid detects under-runs, over-runs, and unassigned gaps; enforces lock-out times for finalized schedules.
 
-- [ ] **TASK-P2-05: Electronic Programme Guide (EPG) Generation & Export (BCAST-005, R1.2A §16)**
+- [x] **TASK-P2-05: Electronic Programme Guide (EPG) Generation & Export (BCAST-005, R1.2A §16)**
   - **Action:** Build EPG syndication pipeline:
     - Generates 7-day rolling EPG metadata from approved broadcast schedules.
     - Formats: XMLTV standard format, custom StarTimes EPG ingestion format, JSON API for VMN public portal.
@@ -208,7 +208,7 @@ All technical, product, and operational decisions must strictly respect the 10-t
   - **Deliverable:** EPG export worker, XMLTV builder, and public EPG retrieval endpoints.
   - **Acceptance Criteria:** XMLTV schema validation passes; EPG automatically refreshes when approved schedule revisions occur.
 
-- [ ] **TASK-P2-06: Commercial Traffic, Break Planning & Inventory (BCAST-006, BCAST-015, R1.2A §17, §18)**
+- [x] **TASK-P2-06: Commercial Traffic, Break Planning & Inventory (BCAST-006, BCAST-015, R1.2A §17, §18)**
   - **Action:** Implement commercial traffic engine:
     - Commercial break structures (Station Ident, Promo, Commercial Spot 1..N, Sponsor Sting, Channel Return).
     - Advertising campaign booking, spot copy materials, rotation rules.
@@ -216,28 +216,28 @@ All technical, product, and operational decisions must strictly respect the 10-t
   - **Deliverable:** Traffic management module, break planner, and category collision validator.
   - **Acceptance Criteria:** Break planner prevents overbooking break duration; automatically rejects commercial spots that violate category collision rules.
 
-- [ ] **TASK-P2-07: Sponsorship & Billboard Binding Engine (BCAST-014, R1.2A §19)**
+- [x] **TASK-P2-07: Sponsorship & Billboard Binding Engine (BCAST-014, R1.2A §19)**
   - **Action:** Build sponsorship inventory management:
     - Binds sponsor stings, lower-thirds, bugs, and bumpers to specific programmes, series, or dayparts.
     - Monitors sponsorship entitlement delivery against contract terms.
   - **Deliverable:** Sponsorship database models, linking service, and entitlement fulfillment tracker.
   - **Acceptance Criteria:** Schedule exports include bound sponsor media assets; fulfillment reports verify contracted delivery counts.
 
-- [ ] **TASK-P2-08: Playout Playlist Automation & Master Control Interface (BCAST-007, R1.2A §20)**
+- [x] **TASK-P2-08: Playout Playlist Automation & Master Control Interface (BCAST-007, R1.2A §20)**
   - **Action:** Implement daily playout playlist generation service:
     - Consolidates scheduled programmes, commercial breaks, promos, and fillers into a frame-accurate 24-hour playout automation playlist.
     - Supports industry standard automation formats (SMPTE-2067, Harris/Imagine ADC, Grass Valley, BXF).
   - **Deliverable:** Playlist generator, export adapters, and master control synchronization service.
   - **Acceptance Criteria:** Generated playlist matches the second-by-second sum of scheduled assets; includes emergency fallback clips for every hour.
 
-- [ ] **TASK-P2-09: StarTimes Carriage & Transmission Monitoring (BCAST-009, BCAST-010, R1.2A §21)**
+- [x] **TASK-P2-09: StarTimes Carriage & Transmission Monitoring (BCAST-009, BCAST-010, R1.2A §21)**
   - **Action:** Implement carriage platform registry and transmission monitoring:
     - Registry for StarTimes Digital Terrestrial Television (DTT) and Direct-to-Home Satellite (DTH) parameters, transponders, bitrates, and service PIDs.
     - Transmission incident tracking: Signal loss, carrier degradation, weather outages, power events, and planned maintenance logs.
   - **Deliverable:** Carriage registry database, incident logging system, and uptime calculation service.
   - **Acceptance Criteria:** Transmission incidents record start/end timestamps, affected channels, impacted audiences, and root-cause classification.
 
-- [ ] **TASK-P2-10: As-Run Log Ingestion, Reconciliation & Proof-of-Air (BCAST-008, BCAST-020, R1.2A §44)**
+- [x] **TASK-P2-10: As-Run Log Ingestion, Reconciliation & Proof-of-Air (BCAST-008, BCAST-020, R1.2A §44)**
   - **Action:** Build the definitive proof-of-performance pipeline:
     - Automated ingestion of daily as-run logs from playout servers.
     - Three-way reconciliation: Scheduled Break Plan vs. Playout Automation Log vs. Recorded Air Evidence.
@@ -246,48 +246,48 @@ All technical, product, and operational decisions must strictly respect the 10-t
   - **Deliverable:** As-run parsing engine, reconciliation service, and Proof-of-Air PDF generator.
   - **Acceptance Criteria:** Advertisers receive auditable Proof-of-Air certificates with exact aired timecode and duration; unmatched spots trigger make-good credits.
 
-- [ ] **TASK-P2-11: Broadcast Commercial Settlement & Revenue Tracking (BCAST-019, R1.2A §43)**
+- [x] **TASK-P2-11: Broadcast Commercial Settlement & Revenue Tracking (BCAST-019, R1.2A §43)**
   - **Action:** Implement broadcast billing and settlement:
     - Rates calculation based on daypart, spot duration, and live rate cards.
     - Linking aired spots to client commercial contracts and generating billing schedules.
   - **Deliverable:** Billing schedule generator and finance export bridge.
   - **Acceptance Criteria:** Billed amounts match verified as-run airing evidence; un-aired spots are excluded from billing.
 
-- [ ] **TASK-P2-12: The 33 Broadcast Screen Surfaces Implementation (R1.2A §46)**
+- [x] **TASK-P2-12: The 33 Broadcast Screen Surfaces Implementation (R1.2A §46)**
   - **Action:** Build responsive, WCAG 2.2 AA compliant front-end interfaces for the 33 broadcast operational screens:
-    - [ ] Screen 01: Broadcast Executive Dashboard (Channel health, air status, daily revenue)
-    - [ ] Screen 02: Channel Portfolio Overview (Nigezie, Orisun, Isi Mbido summary)
-    - [ ] Screen 03: Channel Profile & Operational Settings
-    - [ ] Screen 04: Programme Catalogue Search & Filter
-    - [ ] Screen 05: Programme Detail & Media Master Inventory
-    - [ ] Screen 06: Series Management
-    - [ ] Screen 07: Episode Workspace & Segment Breakdown
-    - [ ] Screen 08: Broadcast Versions & QC Flags
-    - [ ] Screen 09: Rights Readiness Matrix
-    - [ ] Screen 10: Programme Acquisition Pipeline
-    - [ ] Screen 11: Commissioning Tracking & Milestones
-    - [ ] Screen 12: 24/7 Visual Schedule Grid (Interactive timeline)
-    - [ ] Screen 13: Daypart Configuration & Rules
-    - [ ] Screen 14: EPG Inspector & Syndication Status
-    - [ ] Screen 15: Promo & Interstitial Planner
-    - [ ] Screen 16: Commercial Inventory Availability Grid
-    - [ ] Screen 17: Commercial Break Structure Editor
-    - [ ] Screen 18: Ad Campaign Management & Flighting
-    - [ ] Screen 19: Spot Materials & QC Review
-    - [ ] Screen 20: Sponsorship Inventory & Entitlements
-    - [ ] Screen 21: Daily Traffic Log & Booking Ledger
-    - [ ] Screen 22: Final Automation Playlist View & Lock
-    - [ ] Screen 23: Live Playout Status & Master Control Monitor
-    - [ ] Screen 24: As-Run Log Ingestion & Reconciliation Screen
-    - [ ] Screen 25: Transmission Real-Time Monitor
-    - [ ] Screen 26: Transmission Incident Logging & SLA Tracking
-    - [ ] Screen 27: Carriage Platforms Registry
-    - [ ] Screen 28: StarTimes DTT/DTH Configuration & Feed Monitor
-    - [ ] Screen 29: Carriage Agreements & Contract Records
-    - [ ] Screen 30: Proof-of-Air Certificate Generation & Dispatch
-    - [ ] Screen 31: Broadcast Revenue Dashboard (Yield, fill rate, billing)
-    - [ ] Screen 32: Channel Performance Analytics (Ratings, share, audience)
-    - [ ] Screen 33: Cross-Platform Azeebo+ Conversion Dashboard
+    - [x] Screen 01: Broadcast Executive Dashboard (Channel health, air status, daily revenue)
+    - [x] Screen 02: Channel Portfolio Overview (Nigezie, Orisun, Isi Mbido summary)
+    - [x] Screen 03: Channel Profile & Operational Settings
+    - [x] Screen 04: Programme Catalogue Search & Filter
+    - [x] Screen 05: Programme Detail & Media Master Inventory
+    - [x] Screen 06: Series Management
+    - [x] Screen 07: Episode Workspace & Segment Breakdown
+    - [x] Screen 08: Broadcast Versions & QC Flags
+    - [x] Screen 09: Rights Readiness Matrix
+    - [x] Screen 10: Programme Acquisition Pipeline
+    - [x] Screen 11: Commissioning Tracking & Milestones
+    - [x] Screen 12: 24/7 Visual Schedule Grid (Interactive timeline)
+    - [x] Screen 13: Daypart Configuration & Rules
+    - [x] Screen 14: EPG Inspector & Syndication Status
+    - [x] Screen 15: Promo & Interstitial Planner
+    - [x] Screen 16: Commercial Inventory Availability Grid
+    - [x] Screen 17: Commercial Break Structure Editor
+    - [x] Screen 18: Ad Campaign Management & Flighting
+    - [x] Screen 19: Spot Materials & QC Review
+    - [x] Screen 20: Sponsorship Inventory & Entitlements
+    - [x] Screen 21: Daily Traffic Log & Booking Ledger
+    - [x] Screen 22: Final Automation Playlist View & Lock
+    - [x] Screen 23: Live Playout Status & Master Control Monitor
+    - [x] Screen 24: As-Run Log Ingestion & Reconciliation Screen
+    - [x] Screen 25: Transmission Real-Time Monitor
+    - [x] Screen 26: Transmission Incident Logging & SLA Tracking
+    - [x] Screen 27: Carriage Platforms Registry
+    - [x] Screen 28: StarTimes DTT/DTH Configuration & Feed Monitor
+    - [x] Screen 29: Carriage Agreements & Contract Records
+    - [x] Screen 30: Proof-of-Air Certificate Generation & Dispatch
+    - [x] Screen 31: Broadcast Revenue Dashboard (Yield, fill rate, billing)
+    - [x] Screen 32: Channel Performance Analytics (Ratings, share, audience)
+    - [x] Screen 33: Cross-Platform Azeebo+ Conversion Dashboard
   - **Deliverable:** Modular frontend components in `/src/web/broadcast/`.
   - **Acceptance Criteria:** Every screen supports default, loading, empty, error, and unauthorized states; mobile and desktop responsive.
 
