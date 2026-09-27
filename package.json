@@ -8,6 +8,7 @@
   "scripts": {
     "start": "node dist/src/index.js",
     "cli": "node dist/src/cli/index.js",
+    "db:seed": "node dist/src/db/migrate-and-seed.js",
     "build": "tsc",
     "test": "vitest run",
     "test:watch": "vitest",

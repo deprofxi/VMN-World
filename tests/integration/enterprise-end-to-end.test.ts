@@ -78,6 +78,38 @@ describe("VMNL Enterprise End-to-End Platform Integration", () => {
     await app.stop();
   });
 
+  describe("0. Public Web Pages & Operator Dashboard", () => {
+    it("should serve the corporate overview HTML on GET /", async () => {
+      const res = await makeRequest(testPort, "/");
+      expect(res.statusCode).toBe(200);
+      expect(res.rawText).toContain("Powering the African Creative Economy");
+      expect(res.rawText).toContain("Virtual Media Network Limited");
+    });
+
+    it("should serve the channels showcase HTML on GET /channels", async () => {
+      const res = await makeRequest(testPort, "/channels");
+      expect(res.statusCode).toBe(200);
+      expect(res.rawText).toContain("Nigezie Xtreme");
+      expect(res.rawText).toContain("Orisun");
+      expect(res.rawText).toContain("Isi Mbido");
+    });
+
+    it("should serve the Hub verticals HTML on GET /hub", async () => {
+      const res = await makeRequest(testPort, "/hub");
+      expect(res.statusCode).toBe(200);
+      expect(res.rawText).toContain("Creative Economy Hub");
+      expect(res.rawText).toContain("African Film & Creative Arts Academy");
+    });
+
+    it("should serve the Broadcast Executive Dashboard on GET /broadcast/dashboard", async () => {
+      const res = await makeRequest(testPort, "/broadcast/dashboard");
+      expect(res.statusCode).toBe(200);
+      expect(res.rawText).toContain("Broadcast Executive Dashboard");
+      expect(res.rawText).toContain("SCR-BCST-01");
+      expect(res.rawText).toContain("StarTimes Carriage");
+    });
+  });
+
   describe("1. Observability, Health & Telemetry", () => {
     it("should respond to GET /healthz with healthy status and uptime", async () => {
       const res = await makeRequest(testPort, "/healthz");

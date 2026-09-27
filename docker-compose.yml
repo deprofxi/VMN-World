@@ -1,0 +1,101 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: vmnl-enterprise-app
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=production
+      - PORT=4000
+      - APP_NAME=VMNL Enterprise Orchestrator
+      - APP_URL=http://localhost:4000
+      - DATABASE_URL=postgresql://vmn_user:vmn_secret_pass@postgres:5432/vmn_enterprise?schema=public
+      - DATABASE_POOL_MIN=2
+      - DATABASE_POOL_MAX=20
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - JWT_SECRET=vmnl_production_enterprise_jwt_secret_must_be_32_chars_long
+      - JWT_EXPIRATION_SECONDS=86400
+      - STORAGE_DRIVER=minio
+      - STORAGE_ENDPOINT=http://minio:9000
+      - STORAGE_BUCKET=vmnl-assets
+      - STORAGE_ACCESS_KEY=minioadmin
+      - STORAGE_SECRET_KEY=minioadmin_secure_key
+      - AZEEBO_WEBHOOK_SECRET=azeebo_enterprise_webhook_secret_key_16_chars
+      - PROMETHEUS_METRICS_ENABLED=true
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    networks:
+      - vmnl-network
+
+  postgres:
+    image: postgres:18-alpine
+    container_name: vmnl-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=vmn_user
+      - POSTGRES_PASSWORD=vmn_secret_pass
+      - POSTGRES_DB=vmn_enterprise
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vmn_user -d vmn_enterprise"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - vmnl-network
+
+  minio:
+    image: minio/minio:latest
+    container_name: vmnl-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin_secure_key
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - miniodata:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - vmnl-network
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: vmnl-prometheus
+    restart: unless-stopped
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - promdata:/prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      - app
+    networks:
+      - vmnl-network
+
+networks:
+  vmnl-network:
+    driver: bridge
+
+volumes:
+  pgdata:
+  miniodata:
+  promdata:

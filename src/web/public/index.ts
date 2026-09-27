@@ -6,3 +6,4 @@
 export * from "./corporate.js";
 export * from "./channels.js";
 export * from "./hub.js";
+export * from "./dashboard.js";

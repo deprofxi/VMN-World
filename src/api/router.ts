@@ -23,6 +23,13 @@ import { QuoteToCashSalesEngine } from "../modules/finance/sales/index.js";
 import { TalentPayoutEngine } from "../modules/finance/payouts/index.js";
 import { BankReconciliationEngine } from "../modules/finance/reconciliation/index.js";
 import { ReleaseGatePipeline, ReleaseManifest } from "../modules/quality/gates.js";
+import {
+  renderMasterLayout,
+  renderHomePageHtml,
+  renderChannelsPageHtml,
+  renderHubPageHtml,
+  renderDashboardHtml,
+} from "../web/public/index.js";
 
 export interface RequestHandlerContext {
   telemetry: TelemetryService;
@@ -103,6 +110,31 @@ export async function handleApiRequest(
   }
 
   try {
+    // 0. Public Web Pages & Operator Dashboard
+    if (pathname === "/" && method === "GET") {
+      const html = renderMasterLayout("Home", renderHomePageHtml(), "/");
+      sendText(res, 200, html, "text/html; charset=utf-8");
+      return;
+    }
+
+    if (pathname === "/channels" && method === "GET") {
+      const html = renderMasterLayout("Linear Channels", renderChannelsPageHtml(), "/channels");
+      sendText(res, 200, html, "text/html; charset=utf-8");
+      return;
+    }
+
+    if (pathname === "/hub" && method === "GET") {
+      const html = renderMasterLayout("Creative Economy Hub", renderHubPageHtml(), "/hub");
+      sendText(res, 200, html, "text/html; charset=utf-8");
+      return;
+    }
+
+    if (pathname === "/broadcast/dashboard" && method === "GET") {
+      const html = renderMasterLayout("Broadcast Executive Dashboard", renderDashboardHtml(), "/broadcast/dashboard");
+      sendText(res, 200, html, "text/html; charset=utf-8");
+      return;
+    }
+
     // 1. Healthz & Readiness
     if (pathname === "/healthz" && method === "GET") {
       context.telemetry.recordMetric("http_requests_total", 1, { path: "/healthz", status: "200" });

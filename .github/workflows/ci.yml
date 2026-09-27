@@ -1,0 +1,79 @@
+name: VMNL Enterprise CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify-and-test:
+    name: Verification & Testing Pyramid
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: vmn_user
+          POSTGRES_PASSWORD: vmn_test_password
+          POSTGRES_DB: vmn_test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://vmn_user:vmn_test_password@localhost:5432/vmn_test_db
+      JWT_SECRET: vmnl_ci_test_jwt_secret_must_be_at_least_32_characters_long
+      AZEEBO_WEBHOOK_SECRET: azeebo_test_secret_16_chars
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile || pnpm install
+
+      - name: Static Typecheck (tsc --noEmit)
+        run: pnpm run typecheck
+
+      - name: Lint Check
+        run: pnpm run lint
+
+      - name: Run Test Pyramid & 20 UAT Drills
+        run: pnpm test
+
+      - name: Compile Production Build
+        run: pnpm run build
+
+      - name: Evaluate Four-Tier Release Gates
+        run: node dist/src/cli/index.js gates:check
