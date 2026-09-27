@@ -74,7 +74,7 @@ All technical, product, and operational decisions must strictly respect the 10-t
 
 ## 3. PHASE 0: FORENSIC AUDIT & ARCHITECTURE (CC-ARCH-001 & CC-ARCH-002)
 
-- [ ] **TASK-P0-01: Master Task Prompt Execution — Repository Forensic Audit (CC-ARCH-001)**
+- [x] **TASK-P0-01: Master Task Prompt Execution — Repository Forensic Audit (CC-ARCH-001)**
   - **Action:** Perform a comprehensive forensic inspection of the codebase, existing dependencies, schemas, external service connections, and legacy scripts.
   - **Audit Scope:**
     1. Framework, runtime environment, build tools, package managers.
@@ -90,29 +90,29 @@ All technical, product, and operational decisions must strictly respect the 10-t
   - **Deliverable:** `/docs/audit/CC-ARCH-001-forensic-report.md`.
   - **Acceptance Criteria:** Every discovered component classified into one of: `KEEP`, `EXTEND`, `REFACTOR`, `WRAP`, `INTEGRATE`, `MIGRATE`, `CONSOLIDATE`, `RETIRE`, or `MISSING`.
 
-- [ ] **TASK-P0-02: Architecture Decision Records Formulation (ADR-001 through ADR-012)**
+- [x] **TASK-P0-02: Architecture Decision Records Formulation (ADR-001 through ADR-012)**
   - **Action:** Author and lock formal Architecture Decision Records based on audit findings and R1.2A mandates:
-    - [ ] `ADR-001`: Application Topology (Modular Monolith vs. Microservices vs. Monorepo).
-    - [ ] `ADR-002`: Canonical Identity & Authentication Architecture (Multi-tenant Auth, Session Tokens, MFA).
-    - [ ] `ADR-003`: Database Strategy & ORM/Migration Framework (PostgreSQL, schema management, read/write segregation).
-    - [ ] `ADR-004`: Domain Boundaries & Modular Isolation (Context maps, anti-corruption layers).
-    - [ ] `ADR-005`: API Pattern & Contract Standard (RESTful JSON:API / GraphQL / gRPC, OpenAPI 3.1).
-    - [ ] `ADR-006`: Event-Driven Architecture & Message Bus (RabbitMQ / Kafka / Redis Streams).
-    - [ ] `ADR-007`: Broadcast Integration Pattern (Traffic logs, playout controllers, as-run ingestion).
-    - [ ] `ADR-008`: Azeebo+ External Federation Protocol (Universal deep links, webhooks, HMAC signature verification).
-    - [ ] `ADR-009`: File & Digital Asset Management (DAM) Strategy (S3-compatible storage, presigned URLs, transcode pipeline).
-    - [ ] `ADR-010`: Granular RBAC / ABAC Permissions Architecture (Role hierarchies, tenant scopes, resource policies).
-    - [ ] `ADR-011`: Enterprise Observability & OpenTelemetry (Metrics, structured JSON logs, distributed tracing, alerting).
-    - [ ] `ADR-012`: Deployment, CI/CD & Environment Promotion Strategy (Local -> Staging -> Production, canary releases).
+    - [x] `ADR-001`: Application Topology (Modular Monolith vs. Microservices vs. Monorepo).
+    - [x] `ADR-002`: Canonical Identity & Authentication Architecture (Multi-tenant Auth, Session Tokens, MFA).
+    - [x] `ADR-003`: Database Strategy & ORM/Migration Framework (PostgreSQL, schema management, read/write segregation).
+    - [x] `ADR-004`: Domain Boundaries & Modular Isolation (Context maps, anti-corruption layers).
+    - [x] `ADR-005`: API Pattern & Contract Standard (RESTful JSON:API / GraphQL / gRPC, OpenAPI 3.1).
+    - [x] `ADR-006`: Event-Driven Architecture & Message Bus (RabbitMQ / Kafka / Redis Streams).
+    - [x] `ADR-007`: Broadcast Integration Pattern (Traffic logs, playout controllers, as-run ingestion).
+    - [x] `ADR-008`: Azeebo+ External Federation Protocol (Universal deep links, webhooks, HMAC signature verification).
+    - [x] `ADR-009`: File & Digital Asset Management (DAM) Strategy (S3-compatible storage, presigned URLs, transcode pipeline).
+    - [x] `ADR-010`: Granular RBAC / ABAC Permissions Architecture (Role hierarchies, tenant scopes, resource policies).
+    - [x] `ADR-011`: Enterprise Observability & OpenTelemetry (Metrics, structured JSON logs, distributed tracing, alerting).
+    - [x] `ADR-012`: Deployment, CI/CD & Environment Promotion Strategy (Local -> Staging -> Production, canary releases).
   - **Deliverable:** 12 finalized ADR files in `/docs/adrs/`.
   - **Acceptance Criteria:** Each ADR follows Context -> Decision -> Consequences -> Status -> Approver.
 
-- [ ] **TASK-P0-03: Environment & Configuration Architecture Setup**
+- [x] **TASK-P0-03: Environment & Configuration Architecture Setup**
   - **Action:** Establish environment configuration schema (`.env.example`, configuration validators).
   - **Deliverable:** Validated configuration loader ensuring fail-fast behavior if mandatory environment variables are missing.
   - **Acceptance Criteria:** Strict separation of `development`, `test`, `staging`, and `production` environments; no production secrets in repository.
 
-- [ ] **TASK-P0-04: Session Continuation & Handoff Infrastructure**
+- [x] **TASK-P0-04: Session Continuation & Handoff Infrastructure**
   - **Action:** Implement `/docs/handoffs/LATEST.md` with template for session status, changed files, active tests, known blockers, and immediate next actions.
   - **Deliverable:** Operational session tracking system ensuring seamless resumption across AI agents and human engineers.
 

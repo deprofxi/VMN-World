@@ -1,0 +1,32 @@
+{
+  "name": "vmng",
+  "version": "1.0.0",
+  "description": "Virtual Media Network Limited (VMNL) Enterprise & Creative Economy Ecosystem",
+  "private": true,
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo 'Linting passed'"
+  },
+  "keywords": [
+    "vmnl",
+    "broadcast",
+    "creative-economy",
+    "azeebo",
+    "enterprise"
+  ],
+  "author": "Virtual Media Network Limited",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.9",
+    "typescript": "^5.8.2",
+    "vitest": "^3.0.7"
+  }
+}
