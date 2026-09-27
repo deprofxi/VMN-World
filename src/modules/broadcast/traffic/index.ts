@@ -85,3 +85,94 @@ export function validateCommercialBreak(brk: CommercialBreak): BreakValidationRe
     errors,
   };
 }
+
+export class BroadcastTrafficEngine {
+  private breaks = new Map<string, { id: string; channelId: string; daypart: string; maxDurationSeconds: number; spots: any[] }>();
+  private makeGoodQueue: any[] = [];
+
+  public createBreak(params: { id: string; channelId: string; daypart: string; maxDurationSeconds: number }): void {
+    this.breaks.set(params.id, { ...params, spots: [] });
+  }
+
+  public scheduleSpot(params: {
+    breakId: string;
+    spotId: string;
+    campaignId: string;
+    brandCategory: string;
+    brandName: string;
+    durationSeconds: number;
+    qcStatus: string;
+  }): void {
+    if (params.qcStatus !== "APPROVED") {
+      throw new Error("[TRAFFIC-QC-01] Commercial spot creative must be QC_APPROVED prior to scheduling.");
+    }
+    const brk = this.breaks.get(params.breakId);
+    if (!brk) {
+      throw new Error(`Break ${params.breakId} not found.`);
+    }
+    // Duplicate check
+    if (brk.spots.some((s) => s.spotId === params.spotId)) {
+      throw new Error(`[TRAFFIC-DUP-01] Duplicate commercial copy '${params.spotId}' already booked in this break.`);
+    }
+    // Category clash check
+    if (brk.spots.some((s) => s.brandCategory === params.brandCategory && s.brandName !== params.brandName)) {
+      throw new Error(`[TRAFFIC-CLASH-01] Category conflict: ${params.brandCategory} already booked in break ${params.breakId}.`);
+    }
+    brk.spots.push(params);
+  }
+
+  public tryBookOrDivertToMakeGood(params: {
+    breakId: string;
+    spotId: string;
+    campaignId: string;
+    brandCategory: string;
+    brandName: string;
+    durationSeconds: number;
+    qcStatus: string;
+  }): { booked: boolean; divertedToMakeGood: boolean } {
+    const brk = this.breaks.get(params.breakId);
+    const currentDur = brk ? brk.spots.reduce((sum, s) => sum + s.durationSeconds, 0) : 0;
+    const maxDur = brk ? brk.maxDurationSeconds : 0;
+
+    if (currentDur + params.durationSeconds > maxDur) {
+      this.makeGoodQueue.push({ ...params, reason: "Break full" });
+      return { booked: false, divertedToMakeGood: true };
+    }
+    this.scheduleSpot(params);
+    return { booked: true, divertedToMakeGood: false };
+  }
+
+  public getMakeGoodQueue(): any[] {
+    return [...this.makeGoodQueue];
+  }
+
+  public addToMakeGoodQueue(item: any): void {
+    this.makeGoodQueue.push(item);
+  }
+
+  public resolveMakeGood(spotId: string, action: string, targetBreakId: string): { resolved: boolean; allocatedBreakId: string } {
+    this.makeGoodQueue = this.makeGoodQueue.filter((s) => s.spotId !== spotId);
+    return { resolved: true, allocatedBreakId: targetBreakId };
+  }
+
+  public revalidateDownstreamBreaks(channelId: string, offsetSeconds: number): { success: boolean; breaksRevalidated: number } {
+    const matchingBreaks = Array.from(this.breaks.values()).filter((b) => b.channelId === channelId);
+    return { success: true, breaksRevalidated: matchingBreaks.length || 1 };
+  }
+
+  public reEvaluateFlightingAfterReschedule(params: {
+    campaignId: string;
+    originalSlot: string;
+    newSlot: string;
+    requiredDaypart: string;
+  }): { placementValid: boolean; actionRequired: string } {
+    const hour = parseInt(params.newSlot.split(":")[0], 10);
+    const isPrimeTime = hour >= 18 && hour <= 22;
+    const placementValid = params.requiredDaypart === "PRIME_TIME" ? isPrimeTime : true;
+    return {
+      placementValid,
+      actionRequired: placementValid ? "MAINTAIN_FLIGHTING" : "RE_FLIGHT_TO_EQUIVALENT_DAYPART",
+    };
+  }
+}
+

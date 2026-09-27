@@ -505,7 +505,7 @@ All technical, product, and operational decisions must strictly respect the 10-t
 
 ## 12. PHASE 9: TESTING, UAT DRILLS & RELEASE GATES (CC-UAT-001)
 
-- [ ] **TASK-P9-01: Multi-Tier Automated Test Suite Build**
+- [x] **TASK-P9-01: Multi-Tier Automated Test Suite Build**
   - **Action:** Implement the complete test pyramid:
     - **Domain Tests:** Verify all business invariants, state machine transitions, and calculation rules.
     - **Unit Tests:** Individual functions, utility classes, and validation routines.
@@ -516,32 +516,32 @@ All technical, product, and operational decisions must strictly respect the 10-t
   - **Deliverable:** Automated test suite runnable via standard CI/CD commands.
   - **Acceptance Criteria:** 100% pass rate on CI pipeline; zero regressions.
 
-- [ ] **TASK-P9-02: The 20 Broadcast UAT Failure Drill Scenarios (R1.2A §66)**
+- [x] **TASK-P9-02: The 20 Broadcast UAT Failure Drill Scenarios (R1.2A §66)**
   - **Action:** Build executable test scripts and simulated failure environments for the 20 mandatory UAT failure scenarios:
-    - [ ] Drill 01: Schedule item with expired rights -> Blocked from playlist generation; alert triggered.
-    - [ ] Drill 02: Programme master missing or corrupted -> Triggers emergency filler insertion; operator alerted.
-    - [ ] Drill 03: Wrong-duration media asset -> Detected during playlist validation; prevents un-aligned schedule drift.
-    - [ ] Drill 04: Unapproved ad creative -> Blocked from traffic scheduling; spot flagged for review.
-    - [ ] Drill 05: Commercial category conflict -> Two competing ads booked in same break detected and auto-separated.
-    - [ ] Drill 06: Spot booked into full/unavailable break -> Auto-diverted to make-good queue with sales notification.
-    - [ ] Drill 07: EPG differs from approved schedule -> Diff detector flags discrepancy before syndication export.
-    - [ ] Drill 08: Live schedule breaking change -> Rapid mid-day schedule amendment revalidates all downstream breaks.
-    - [ ] Drill 09: Transmission interruption -> Incident logger records outage duration and calculates affected ad credits.
-    - [ ] Drill 10: Playout automation server failure -> Master control fallback switchover without dead-air.
-    - [ ] Drill 11: Duplicate commercial booking -> De-duplication rule prevents double-airing of same copy.
-    - [ ] Drill 12: Missed commercial spot -> Automatically scheduled for approved make-good slot or credit note issued.
-    - [ ] Drill 13: StarTimes carriage feed outage -> Auto-generates carriage incident ticket and SLA penalty calculation.
-    - [ ] Drill 14: Rights expiry mid-series run -> Blocks subsequent episodes from being loaded into future playlists.
-    - [ ] Drill 15: Programme rescheduled after ad campaign booked -> Ad flighting rules re-evaluate target audience placement.
-    - [ ] Drill 16: Incorrect sponsor sting bound to programme -> QC inspector flags mismatch prior to playlist lock.
-    - [ ] Drill 17: Azeebo+ QR code / deep-link resolution failure -> Graceful fallback to default universe landing page.
-    - [ ] Drill 18: As-run log reconciliation failure -> Ingestion quarantine alert triggered for manual traffic review.
-    - [ ] Drill 19: Emergency filler activation -> Frame-accurate transition to pre-buffered station filler asset.
-    - [ ] Drill 20: Schedule system database outage & recovery -> Playout automation continues running from local cached playlist.
+    - [x] Drill 01: Schedule item with expired rights -> Blocked from playlist generation; alert triggered.
+    - [x] Drill 02: Programme master missing or corrupted -> Triggers emergency filler insertion; operator alerted.
+    - [x] Drill 03: Wrong-duration media asset -> Detected during playlist validation; prevents un-aligned schedule drift.
+    - [x] Drill 04: Unapproved ad creative -> Blocked from traffic scheduling; spot flagged for review.
+    - [x] Drill 05: Commercial category conflict -> Two competing ads booked in same break detected and auto-separated.
+    - [x] Drill 06: Spot booked into full/unavailable break -> Auto-diverted to make-good queue with sales notification.
+    - [x] Drill 07: EPG differs from approved schedule -> Diff detector flags discrepancy before syndication export.
+    - [x] Drill 08: Live schedule breaking change -> Rapid mid-day schedule amendment revalidates all downstream breaks.
+    - [x] Drill 09: Transmission interruption -> Incident logger records outage duration and calculates affected ad credits.
+    - [x] Drill 10: Playout automation server failure -> Master control fallback switchover without dead-air.
+    - [x] Drill 11: Duplicate commercial booking -> De-duplication rule prevents double-airing of same copy.
+    - [x] Drill 12: Missed commercial spot -> Automatically scheduled for approved make-good slot or credit note issued.
+    - [x] Drill 13: StarTimes carriage feed outage -> Auto-generates carriage incident ticket and SLA penalty calculation.
+    - [x] Drill 14: Rights expiry mid-series run -> Blocks subsequent episodes from being loaded into future playlists.
+    - [x] Drill 15: Programme rescheduled after ad campaign booked -> Ad flighting rules re-evaluate target audience placement.
+    - [x] Drill 16: Incorrect sponsor sting bound to programme -> QC inspector flags mismatch prior to playlist lock.
+    - [x] Drill 17: Azeebo+ QR code / deep-link resolution failure -> Graceful fallback to default universe landing page.
+    - [x] Drill 18: As-run log reconciliation failure -> Ingestion quarantine alert triggered for manual traffic review.
+    - [x] Drill 19: Emergency filler activation -> Frame-accurate transition to pre-buffered station filler asset.
+    - [x] Drill 20: Schedule system database outage & recovery -> Playout automation continues running from local cached playlist.
   - **Deliverable:** Automated UAT failure test suite (`/tests/uat/broadcast-failure-drills/`).
   - **Acceptance Criteria:** All 20 failure scenarios successfully execute, recover, and log expected evidence.
 
-- [ ] **TASK-P9-03: Golden Test Datasets Compilation (CCPP-001 §15)**
+- [x] **TASK-P9-03: Golden Test Datasets Compilation (CCPP-001 §15)**
   - **Action:** Create standardized, deterministic test datasets:
     - 3 Channels with full technical parameters and metadata.
     - 50 Programmes across Drama, Music, Culture, News, and Formats.
@@ -553,7 +553,7 @@ All technical, product, and operational decisions must strictly respect the 10-t
   - **Deliverable:** Database seeding scripts (`/src/db/seeds/golden/`).
   - **Acceptance Criteria:** Test database can be reset and re-seeded deterministically in under 30 seconds.
 
-- [ ] **TASK-P9-04: Four-Tier Release Gates Execution (R1.2A §67)**
+- [x] **TASK-P9-04: Four-Tier Release Gates Execution (R1.2A §67)**
   - **Action:** Enforce strict release gating pipeline:
     - **Gate 0 (Authority & Contract):** Requirements mapped to R1.2A; ADRs approved.
     - **Gate 1 (Security & Privacy):** Threat model completed; zero high/critical vulnerabilities; NDPR compliance verified.

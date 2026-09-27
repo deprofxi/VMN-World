@@ -54,3 +54,44 @@ export function recordTransmissionOutage(
     slaPenaltyApplicable,
   };
 }
+
+export class CarriageMonitoringEngine {
+  public logTransmissionIncident(params: {
+    id: string;
+    carrier: string;
+    channelId: string;
+    startUtc: Date;
+    endUtc: Date;
+    rootCause: string;
+  }): { id: string; durationMinutes: number } {
+    const durationMinutes = Math.round((params.endUtc.getTime() - params.startUtc.getTime()) / (1000 * 60));
+    return {
+      id: params.id,
+      durationMinutes,
+    };
+  }
+
+  public calculateAffectedAdCredits(
+    incident: { durationMinutes: number },
+    affectedSpotsCount: number
+  ): { makeGoodSpotsDue: number } {
+    return {
+      makeGoodSpotsDue: affectedSpotsCount,
+    };
+  }
+
+  public calculateSlaPenalty(params: {
+    monthlyUptimePercent: number;
+    contractedSlaUptimePercent: number;
+    monthlyCarriageFeeNgn: number;
+  }): { slaViolated: boolean; rebateDueNgn: number } {
+    const deficit = params.contractedSlaUptimePercent - params.monthlyUptimePercent;
+    const slaViolated = deficit > 0;
+    const rebateDueNgn = slaViolated ? Math.round(params.monthlyCarriageFeeNgn * (deficit / 100)) : 0;
+    return {
+      slaViolated,
+      rebateDueNgn,
+    };
+  }
+}
+

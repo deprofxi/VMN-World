@@ -88,3 +88,20 @@ export function reconcileAsRunLogs(
     makeGoodCreditsRequired,
   };
 }
+
+export class AsRunReconciliationEngine {
+  public reconcile(params: {
+    plannedBreakSpotCount: number;
+    airedSpotCount: number;
+    plannedAirTime: string;
+    actualAirTime: string;
+  }): { status: string; missingSpotsCount: number } {
+    const missingSpotsCount = Math.max(0, params.plannedBreakSpotCount - params.airedSpotCount);
+    const status = missingSpotsCount > 0 ? "DISCREPANCY_QUARANTINED" : "MATCHED";
+    return {
+      status,
+      missingSpotsCount,
+    };
+  }
+}
+

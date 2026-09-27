@@ -70,3 +70,23 @@ function escapeXml(unsafe: string): string {
     }
   });
 }
+
+export class XmlTvGenerator {
+  public detectDiscrepancy(
+    approvedSchedule: Array<{ id: string; title: string; start: string; end: string }>,
+    staleEpg: Array<{ id: string; title: string; start: string; end: string }>
+  ): { hasDiscrepancy: boolean; discrepancies: string[] } {
+    const discrepancies: string[] = [];
+    for (const app of approvedSchedule) {
+      const match = staleEpg.find((s) => s.start === app.start);
+      if (match && match.title !== app.title) {
+        discrepancies.push(`Title mismatch at ${app.start}: Approved '${app.title}' vs EPG '${match.title}'`);
+      }
+    }
+    return {
+      hasDiscrepancy: discrepancies.length > 0,
+      discrepancies,
+    };
+  }
+}
+

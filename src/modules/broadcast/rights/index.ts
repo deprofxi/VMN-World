@@ -70,3 +70,24 @@ export function validateScheduleRights(
     rightsExpiryDate: req.rightsRecord.expiryDate,
   };
 }
+
+export class BroadcastRightsGate {
+  public checkRightsReadiness(rightsRecord: RightsRecordEntity, checkDate: Date = new Date()): boolean {
+    try {
+      return isRightsActive(rightsRecord, checkDate);
+    } catch {
+      return false;
+    }
+  }
+
+  public assertRightsClearance(rightsRecord: RightsRecordEntity, checkDate: Date = new Date()): void {
+    if (!this.checkRightsReadiness(rightsRecord, checkDate)) {
+      throw new Error(`[RIGHTS-EXPIRED] Cannot exploit expired rights '${rightsRecord.id}'`);
+    }
+  }
+
+  public checkWindow(playDate: Date, start: Date, end: Date): boolean {
+    return playDate >= start && playDate <= end;
+  }
+}
+
