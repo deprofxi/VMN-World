@@ -123,4 +123,25 @@ export class TelemetryService {
   public getMetrics(): MetricPoint[] {
     return [...this.metrics];
   }
+
+  public exportPrometheusMetrics(): string {
+    const lines: string[] = [
+      "# HELP vmnl_system_metrics Prometheus metrics exporter for VMNL Enterprise Platform",
+      "# TYPE vmnl_system_metrics gauge",
+    ];
+    const grouped: Record<string, MetricPoint[]> = {};
+    for (const m of this.metrics) {
+      if (!grouped[m.name]) grouped[m.name] = [];
+      grouped[m.name].push(m);
+    }
+    for (const [name, points] of Object.entries(grouped)) {
+      lines.push(`# TYPE ${name} gauge`);
+      for (const p of points) {
+        const tagEntries = Object.entries(p.tags).map(([k, v]) => `${k}="${v}"`).join(",");
+        const formattedTags = tagEntries ? `{${tagEntries}}` : "";
+        lines.push(`${name}${formattedTags} ${p.value}`);
+      }
+    }
+    return lines.join("\n");
+  }
 }

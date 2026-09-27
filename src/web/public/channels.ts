@@ -55,7 +55,7 @@ export const PUBLIC_CHANNELS: PublicChannelInfo[] = [
   },
 ];
 
-export interface EpgProgramItem {
+export interface PublicEpgProgramItem {
   title: string;
   episodeTitle?: string;
   startTime: string; // e.g. "20:00"
@@ -78,8 +78,8 @@ export class PublicChannelsHub {
    */
   public static renderNowAndNextWidget(
     channelCode: "NXTR" | "ORIS" | "IMBD",
-    currentProgram: EpgProgramItem,
-    nextProgram: EpgProgramItem
+    currentProgram: PublicEpgProgramItem,
+    nextProgram: PublicEpgProgramItem
   ): string {
     const channel = this.getChannel(channelCode);
 
