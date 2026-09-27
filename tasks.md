@@ -369,7 +369,7 @@ All technical, product, and operational decisions must strictly respect the 10-t
 
 ## 8. PHASE 5: KNOWLEDGE, CREATIVE TECH & AGENTIC OS (AOS)
 
-- [ ] **TASK-P5-01: HeadspaceNG Knowledge Base & Media Intelligence (HSP-01..04, R1.2A §26, §54)**
+- [x] **TASK-P5-01: HeadspaceNG Knowledge Base & Media Intelligence (HSP-01..04, R1.2A §26, §54)**
   - **Action:** Build central enterprise intelligence and IP documentation system:
     - Enterprise IP repository: Bible/treatment archive, legal precedent library, rate card benchmarks.
     - Market intelligence: African media consumption trends, advertising spend benchmarks, regulatory compendium.
@@ -377,14 +377,14 @@ All technical, product, and operational decisions must strictly respect the 10-t
   - **Deliverable:** HeadspaceNG content repository and vector/semantic search indexing service.
   - **Acceptance Criteria:** Sub-second search response time; strict role-based document access controls.
 
-- [ ] **TASK-P5-02: Cr8TechNG Creative Toolkits & AI Workflows (CR8-01..04, R1.2A §158)**
+- [x] **TASK-P5-02: Cr8TechNG Creative Toolkits & AI Workflows (CR8-01..04, R1.2A §158)**
   - **Action:** Implement creative technology sandbox and automation toolkits:
     - Automated subtitling, transcription, and translation workflows (English, Yoruba, Igbo, Hausa, Nigerian Pidgin).
     - Automated social clipping tool: Extracts short promotional clips from long-form broadcast masters with burnt-in branding.
   - **Deliverable:** Cr8TechNG video processing pipeline and AI worker integrations.
   - **Acceptance Criteria:** Generated subtitles adhere to broadcast standard timing and formatting; clip exports include mandatory VMN watermarks.
 
-- [ ] **TASK-P5-03: Agentic Operating System (AOS) Governance & Supervisors (R1.2A §58)**
+- [x] **TASK-P5-03: Agentic Operating System (AOS) Governance & Supervisors (R1.2A §58)**
   - **Action:** Implement governed AI agent runtime environment:
     - Agent registry: Registered agent identities, allowed tools, bounded operational scopes.
     - Strict human-in-the-loop gates: Agents can draft, recommend, and alert, but cannot commit contracts, publish schedules, or disburse funds without explicit operator sign-off.
@@ -396,7 +396,7 @@ All technical, product, and operational decisions must strictly respect the 10-t
 
 ## 9. PHASE 6: AZEEBO+ DIRECT-TO-CONSUMER FEDERATION (CC-AZP-001)
 
-- [ ] **TASK-P6-01: Level 1 Federation — Universal Deep Links & QR Gateway (AZP-01, AZP-02, R1.2A §40, §41)**
+- [x] **TASK-P6-01: Level 1 Federation — Universal Deep Links & QR Gateway (AZP-01, AZP-02, R1.2A §40, §41)**
   - **Action:** Build cross-platform referral and deep-linking system:
     - Universal Link engine generating structured deep links into Azeebo+ 8 consumer universes (Vertical, Movies, Lifestyle, Comedy, Creator, Reality, Games, Sports).
     - On-screen broadcast QR code generator with dynamic UTM campaign attribution parameters.
@@ -404,14 +404,14 @@ All technical, product, and operational decisions must strictly respect the 10-t
   - **Deliverable:** Link generator service, dynamic QR builder, and redirect handler.
   - **Acceptance Criteria:** Generated links redirect to native Azeebo+ app if installed, or web fallback if not; campaign telemetry preserved.
 
-- [ ] **TASK-P6-02: Level 2 Federation — Content Catalog & Metadata Sync (AZP-03)**
+- [x] **TASK-P6-02: Level 2 Federation — Content Catalog & Metadata Sync (AZP-03)**
   - **Action:** Implement metadata syndication pipeline:
     - Exports approved VMN content metadata (trailers, synopses, cast, tags) to Azeebo+ catalogue APIs.
     - Synchronizes rights windowing so Azeebo+ streaming availability matches contracted windows.
   - **Deliverable:** Catalogue syndication worker and metadata reconciliation engine.
   - **Acceptance Criteria:** Content un-published or expired on VMN rights ledger immediately issues unpublish webhook to Azeebo+.
 
-- [ ] **TASK-P6-03: Level 3 Federation — Federated Identity & Conversion Attribution (AZP-04, AZP-05, R1.2A §71)**
+- [x] **TASK-P6-03: Level 3 Federation — Federated Identity & Conversion Attribution (AZP-04, AZP-05, R1.2A §71)**
   - **Action:** Implement cross-platform conversion tracking:
     - Six-stage attribution funnel:
       1. Promo aired on TV (timestamp + Proof-of-Air)
@@ -423,7 +423,7 @@ All technical, product, and operational decisions must strictly respect the 10-t
   - **Deliverable:** Attribution aggregation engine and conversion reporting pipeline.
   - **Acceptance Criteria:** Conversion reports accurately link on-air broadcast campaigns to registered Azeebo+ subscribers without violating NDPR/GDPR privacy.
 
-- [ ] **TASK-P6-04: Level 4 Federation — Shared Event Mesh & Failure Isolation (AZP-06)**
+- [x] **TASK-P6-04: Level 4 Federation — Shared Event Mesh & Failure Isolation (AZP-06)**
   - **Action:** Implement asynchronous event bridge with strict fault isolation:
     - Outbound and inbound webhooks secured by HMAC-SHA256 signatures.
     - Exponential backoff retry queue with dead-letter queue (DLQ) for failed deliveries.
