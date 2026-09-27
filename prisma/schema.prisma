@@ -1,0 +1,325 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum KycStatus {
+  PENDING
+  IN_REVIEW
+  VERIFIED
+  REJECTED
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  DEACTIVATED
+}
+
+enum OrgType {
+  CORPORATE
+  BROADCAST_PARTNER
+  PRODUCTION_HOUSE
+  ACADEMY_PARTNER
+  SPONSOR
+  ADVERTISER
+}
+
+enum TalentTier {
+  EMERGING
+  VERIFIED
+  PROFESSIONAL
+  MASTER
+}
+
+enum ProjectStatus {
+  PROPOSED
+  APPROVED
+  IN_PRODUCTION
+  COMPLETED
+  ARCHIVED
+}
+
+enum ContractStatus {
+  DRAFT
+  UNDER_REVIEW
+  APPROVED
+  SIGNED
+  EXPIRED
+  TERMINATED
+}
+
+enum RightsType {
+  BROADCAST_LINEAR
+  DIGITAL_STREAMING
+  SYNDICATION
+  DERIVATIVE
+}
+
+enum SettlementStatus {
+  PENDING
+  RECONCILED
+  DISPUTED
+  PAID
+}
+
+enum EvidenceType {
+  PROOF_OF_AIR
+  KYC_DOCUMENT
+  PAYMENT_RECEIPT
+  SIGNED_CONTRACT
+  AS_RUN_LOG
+}
+
+enum AgentStatus {
+  ACTIVE
+  PAUSED
+  TERMINATED
+}
+
+model Person {
+  id             String         @id @default(uuid())
+  email          String         @unique
+  phone          String?
+  firstName      String
+  lastName       String
+  kycStatus      KycStatus      @default(PENDING)
+  nationalId     String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  user           User?
+  talentProfile  TalentProfile?
+  creatorProfile CreatorProfile?
+  contracts      Contract[]
+}
+
+model User {
+  id             String         @id @default(uuid())
+  personId       String         @unique
+  email          String         @unique
+  passwordHash   String
+  status         UserStatus     @default(ACTIVE)
+  mfaEnabled     Boolean        @default(false)
+  mfaSecret      String?
+  lastLoginAt    DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  person         Person         @relation(fields: [personId], references: [id], onDelete: Cascade)
+  userRoles      UserRole[]
+  auditLogs      AuditLog[]
+}
+
+model Role {
+  id             String         @id @default(uuid())
+  name           String         @unique
+  description    String
+  isSystemRole   Boolean        @default(false)
+  createdAt      DateTime       @default(now())
+
+  userRoles      UserRole[]
+  rolePermissions RolePermission[]
+}
+
+model Permission {
+  id             String         @id @default(uuid())
+  action         String         // read, write, approve, execute, delete
+  resource       String         // broadcast, schedule, rights, contracts, finance, talent, academy, audit
+  description    String
+
+  rolePermissions RolePermission[]
+
+  @@unique([action, resource])
+}
+
+model RolePermission {
+  id             String         @id @default(uuid())
+  roleId         String
+  permissionId   String
+
+  role           Role           @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission     Permission     @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+}
+
+model UserRole {
+  id             String         @id @default(uuid())
+  userId         String
+  roleId         String
+  tenantId       String?        // Multi-tenant scope
+  grantedAt      DateTime       @default(now())
+  expiresAt      DateTime?
+
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role           Role           @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId, tenantId])
+}
+
+model Organisation {
+  id                 String       @id @default(uuid())
+  name               String
+  slug               String       @unique
+  registrationNumber String?
+  type               OrgType      @default(CORPORATE)
+  kycStatus          KycStatus    @default(PENDING)
+  tenantId           String       @unique
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  projects           Project[]
+  contracts          Contract[]
+}
+
+model TalentProfile {
+  id                 String       @id @default(uuid())
+  personId           String       @unique
+  stageName          String?
+  tier               TalentTier   @default(EMERGING)
+  bio                String?
+  skills             Json         @default("[]")
+  rateCardAmount     Decimal      @default(0) @db.Decimal(14, 2)
+  rateCardCurrency   String       @default("NGN")
+  verificationStatus KycStatus    @default(PENDING)
+  verifiedAt         DateTime?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  person             Person       @relation(fields: [personId], references: [id], onDelete: Cascade)
+}
+
+model CreatorProfile {
+  id                 String       @id @default(uuid())
+  personId           String       @unique
+  handle             String       @unique
+  primaryNiche       String
+  platforms          Json         @default("{}")
+  audienceMetrics    Json         @default("{}")
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  person             Person       @relation(fields: [personId], references: [id], onDelete: Cascade)
+}
+
+model Project {
+  id                 String        @id @default(uuid())
+  code               String        @unique // e.g. VMNL-PRJ-2026-0001
+  name               String
+  description        String?
+  organisationId     String?
+  status             ProjectStatus @default(PROPOSED)
+  budget             Decimal       @default(0) @db.Decimal(14, 2)
+  currency           String        @default("NGN")
+  startDate          DateTime?
+  endDate            DateTime?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  organisation       Organisation? @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+}
+
+model Contract {
+  id                 String         @id @default(uuid())
+  contractNumber     String         @unique
+  title              String
+  organisationId     String?
+  personId           String?
+  status             ContractStatus @default(DRAFT)
+  contractValue      Decimal        @default(0) @db.Decimal(14, 2)
+  currency           String         @default("NGN")
+  startDate          DateTime
+  endDate            DateTime
+  signedAt           DateTime?
+  signedDocumentUrl  String?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  organisation       Organisation?  @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  person             Person?        @relation(fields: [personId], references: [id], onDelete: SetNull)
+  settlements        Settlement[]
+}
+
+model RightsRecord {
+  id                 String         @id @default(uuid())
+  assetId            String
+  title              String
+  granterOrgId       String?
+  granteeOrgId       String?
+  rightsType         RightsType
+  territory          String         // e.g. "NG", "WEST_AFRICA", "GLOBAL"
+  mediaType          String         // "LINEAR_TV", "SVOD", "THEATRICAL"
+  exclusivity        Boolean        @default(false)
+  startDate          DateTime
+  expiryDate         DateTime
+  subLicensable      Boolean        @default(false)
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+}
+
+model Settlement {
+  id                  String           @id @default(uuid())
+  settlementNumber    String           @unique
+  contractId          String?
+  status              SettlementStatus @default(PENDING)
+  
+  // Mandatory 7-Way Financial Separation
+  contractValue       Decimal          @default(0) @db.Decimal(14, 2)
+  gmvAmount           Decimal          @default(0) @db.Decimal(14, 2)
+  invoicedAmount      Decimal          @default(0) @db.Decimal(14, 2)
+  recognizedAmount    Decimal          @default(0) @db.Decimal(14, 2)
+  cashCollectedAmount Decimal          @default(0) @db.Decimal(14, 2)
+  talentPayableAmount Decimal          @default(0) @db.Decimal(14, 2)
+  partnerShareAmount  Decimal          @default(0) @db.Decimal(14, 2)
+  currency            String           @default("NGN")
+  reconciledAt        DateTime?
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  contract            Contract?        @relation(fields: [contractId], references: [id], onDelete: SetNull)
+}
+
+model Evidence {
+  id                 String         @id @default(uuid())
+  type               EvidenceType
+  title              String
+  documentUrl        String
+  checksumSha256     String
+  verified           Boolean        @default(false)
+  verifiedBy         String?
+  metadata           Json           @default("{}")
+  createdAt          DateTime       @default(now())
+}
+
+model Agent {
+  id                 String         @id @default(uuid())
+  agentIdentifier    String         @unique
+  name               String
+  purpose            String
+  operationalScope   String
+  humanOwnerId       String
+  allowedTools       Json           @default("[]")
+  status             AgentStatus    @default(ACTIVE)
+  killSwitchEngaged  Boolean        @default(false)
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+}
+
+model AuditLog {
+  id                 String         @id @default(uuid())
+  userId             String?
+  action             String
+  resource           String
+  resourceId         String?
+  ipAddress          String?
+  userAgent          String?
+  changesJson        Json?
+  createdAt          DateTime       @default(now())
+
+  user               User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+}

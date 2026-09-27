@@ -120,7 +120,7 @@ All technical, product, and operational decisions must strictly respect the 10-t
 
 ## 4. PHASE 1: ENTERPRISE CORE & CANONICAL DATA MODEL (CC-DATA-001 & CC-SEC-001)
 
-- [ ] **TASK-P1-01: Canonical Domain Data Dictionary & Model (R1.2A §35, §36, §37)**
+- [x] **TASK-P1-01: Canonical Domain Data Dictionary & Model (R1.2A §35, §36, §37)**
   - **Action:** Formally model and implement canonical database schemas for enterprise core entities:
     - `Person`: Universal identity, contact info, KYC status, global user ID.
     - `Organisation`: Corporate clients, production partners, regulatory bodies, broadcast carriage partners.
@@ -135,7 +135,7 @@ All technical, product, and operational decisions must strictly respect the 10-t
   - **Deliverable:** Database migration files, ORM entities, and `/docs/domain/master-data-model.md`.
   - **Acceptance Criteria:** All foreign keys, unique constraints, and indexes defined; audit timestamps (`created_at`, `updated_at`, `created_by`, `updated_by`) on all tables.
 
-- [ ] **TASK-P1-02: Identity, Authentication & Session Security (CORE-01, CORE-02, SEC-01..07)**
+- [x] **TASK-P1-02: Identity, Authentication & Session Security (CORE-01, CORE-02, SEC-01..07)**
   - **Action:** Implement secure authentication system:
     - Multi-tenant authentication supporting email/password, SSO, and MFA.
     - JWT/Session token lifecycle with secure HTTP-only cookies, rotation, and revocation.
@@ -144,14 +144,14 @@ All technical, product, and operational decisions must strictly respect the 10-t
   - **Deliverable:** Auth service module and automated auth integration test suite.
   - **Acceptance Criteria:** 100% test coverage on authentication flows, brute-force protection verified, token revocation verified.
 
-- [ ] **TASK-P1-03: Multi-Tenant RBAC / ABAC Permissions Engine (R1.2A §48, §49)**
+- [x] **TASK-P1-03: Multi-Tenant RBAC / ABAC Permissions Engine (R1.2A §48, §49)**
   - **Action:** Build policy enforcement point (PEP) and policy decision point (PDP) supporting the enterprise role matrix:
     - Roles: `SuperAdmin`, `ExecutiveLeader`, `BroadcastDirector`, `TrafficManager`, `PlayoutOperator`, `RightsManager`, `TalentManager`, `AcademyDirector`, `FinanceController`, `Auditor`.
     - Contextual attributes: Resource tenant, approval limits, workflow state.
   - **Deliverable:** Permission middleware, authorization decorators, and policy test suite.
   - **Acceptance Criteria:** Passing tests for positive permission grants and negative unauthorized access (403 Forbidden) across all role permutations.
 
-- [ ] **TASK-P1-04: Digital Asset Management (DAM) & Storage Service (CORE-07, CORE-08)**
+- [x] **TASK-P1-04: Digital Asset Management (DAM) & Storage Service (CORE-07, CORE-08)**
   - **Action:** Implement enterprise storage abstraction layer:
     - S3-compatible object storage integration (MinIO for dev, AWS S3/Cloud Storage for prod).
     - Presigned URL generation for secure direct client uploads.
@@ -160,7 +160,7 @@ All technical, product, and operational decisions must strictly respect the 10-t
   - **Deliverable:** Storage adapter module, file upload handlers, and integrity verification workers.
   - **Acceptance Criteria:** Ingestion pipeline rejects tampered files; presigned URLs expire strictly according to policy.
 
-- [ ] **TASK-P1-05: Enterprise Notification & Audit Logging Engine (CORE-09, CORE-10)**
+- [x] **TASK-P1-05: Enterprise Notification & Audit Logging Engine (CORE-09, CORE-10)**
   - **Action:** Implement centralized notification service (Email, SMS, in-app push) and immutable audit log engine.
   - **Deliverable:** Notification workers and audit log database tables.
   - **Acceptance Criteria:** Every sensitive action (contract signing, rights modification, schedule publish, financial release) generates an immutable, tamper-evident audit record.
