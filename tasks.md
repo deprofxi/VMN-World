@@ -295,7 +295,7 @@ All technical, product, and operational decisions must strictly respect the 10-t
 
 ## 6. PHASE 3: CREATIVE ECONOMY HUB — TALENT & LEARNING
 
-- [ ] **TASK-P3-01: Talent Accelerator Platform / Network (ACC-01..06, R1.2A §27)**
+- [x] **TASK-P3-01: Talent Accelerator Platform / Network (ACC-01..06, R1.2A §27)**
   - **Action:** Build talent discovery, onboarding, and pathway architecture:
     - Multi-stage onboarding: Registration, portfolio submission, skills assessment, tier assignment (Emerging, Verified, Professional, Master).
     - National partner network directory: Creative hubs, regional academies, partner institutions across Nigeria.
@@ -303,7 +303,7 @@ All technical, product, and operational decisions must strictly respect the 10-t
   - **Deliverable:** Talent Accelerator module, verification workflow engine, and public/internal talent registry.
   - **Acceptance Criteria:** Talent profiles transition through validated states (`Draft` -> `Submitted` -> `Under_Review` -> `Verified`); verification badges displayed.
 
-- [ ] **TASK-P3-02: African Film & Creative Arts Academy (AFCA) (AFC-01..04, AFCOM-01..04, R1.2A §28)**
+- [x] **TASK-P3-02: African Film & Creative Arts Academy (AFCA) (AFC-01..04, AFCOM-01..04, R1.2A §28)**
   - **Action:** Implement academic course and competence management:
     - Curriculum and course registry: Modules, syllabus, instructors, prerequisites.
     - Cohort management: Application, screening, enrollment, attendance, gradebook.
@@ -312,14 +312,14 @@ All technical, product, and operational decisions must strictly respect the 10-t
   - **Deliverable:** AFCA learning management service and verifiable credentials generator.
   - **Acceptance Criteria:** Certificates cannot be generated until all required competency assessments have approved passing scores.
 
-- [ ] **TASK-P3-03: Afro-Fusion Creatives Co-Working & Community Hub (R1.2A §29)**
+- [x] **TASK-P3-03: Afro-Fusion Creatives Co-Working & Community Hub (R1.2A §29)**
   - **Action:** Implement community engagement and physical/virtual hub operations:
     - Member directory, creative collective workspaces, community forum/bulletin.
     - Physical desk/room booking system for creative hub locations.
   - **Deliverable:** Community management portal and space booking subsystem.
   - **Acceptance Criteria:** Booking conflicts prevented; member access tied to active hub subscription/membership.
 
-- [ ] **TASK-P3-04: Virtual Talent Management (VTM) Engine (VTM-01..04, R1.2A §30)**
+- [x] **TASK-P3-04: Virtual Talent Management (VTM) Engine (VTM-01..04, R1.2A §30)**
   - **Action:** Build talent representation, booking, and escrow payment infrastructure:
     - Verified Rate Cards: Standardized day rates, buyout tiers, overtime rules.
     - Opportunity Matching: Casting calls, crew briefs, automated matching based on verified skills.
@@ -332,7 +332,7 @@ All technical, product, and operational decisions must strictly respect the 10-t
 
 ## 7. PHASE 4: CREATIVE ECONOMY HUB — CREATOR, PRODUCTION & DISTRIBUTION
 
-- [ ] **TASK-P4-01: Virtual Content Fund (VCF) (VCF-01..04, R1.2A §31)**
+- [x] **TASK-P4-01: Virtual Content Fund (VCF) (VCF-01..04, R1.2A §31)**
   - **Action:** Implement creative slate and financing management:
     - Pitch submission pipeline: Logline, synopsis, budget, treatment, deck upload.
     - Investment evaluation rubric: Commercial viability, cultural relevance, cross-platform distribution potential.
@@ -341,7 +341,7 @@ All technical, product, and operational decisions must strictly respect the 10-t
   - **Deliverable:** VCF portfolio management system and revenue waterfall engine.
   - **Acceptance Criteria:** Waterfall engine accurately calculates investor recoupment, producer share, and net profit splits.
 
-- [ ] **TASK-P4-02: ONE Studios Production Facilities (ONE-01..04, R1.2A §32)**
+- [x] **TASK-P4-02: ONE Studios Production Facilities (ONE-01..04, R1.2A §32)**
   - **Action:** Build studio management and production resource allocation:
     - Physical asset registry: Soundstages, green rooms, camera packages, lighting kits, grip, audio gear.
     - Resource booking calendar with maintenance intervals and asset check-out/check-in tracking.
@@ -349,7 +349,7 @@ All technical, product, and operational decisions must strictly respect the 10-t
   - **Deliverable:** ONE Studios inventory and facility booking engine.
   - **Acceptance Criteria:** Double-booking of gear/studios prevented; damages and loss logged against production security deposits.
 
-- [ ] **TASK-P4-03: The Entertainment Network Distribution (TEND) (TEND-01..04, R1.2A §34)**
+- [x] **TASK-P4-03: The Entertainment Network Distribution (TEND) (TEND-01..04, R1.2A §34)**
   - **Action:** Implement external distribution and syndication marketplace:
     - Distribution catalogue: Completed films, series, formats, and documentaries available for licensing.
     - Avails engine: Computes available rights by territory, medium (Airline, VOD, Free TV, Pay TV), and window.
@@ -357,7 +357,7 @@ All technical, product, and operational decisions must strictly respect the 10-t
   - **Deliverable:** TEND syndication portal, rights avails calculator, and royalty statement parser.
   - **Acceptance Criteria:** Avails calculator prevents overlapping exclusive licenses in the same territory/medium.
 
-- [ ] **TASK-P4-04: Fusion Events Management (EVT-01..04, R1.2A §33)**
+- [x] **TASK-P4-04: Fusion Events Management (EVT-01..04, R1.2A §33)**
   - **Action:** Build physical live event management and ticketing system:
     - Event registry: Concerts, festivals, award shows (e.g., Nigerian music/film awards), industry conferences.
     - Ticketing engine: Tiered tickets (General, VIP, VVIP), digital ticket issuance with secure QR codes.
