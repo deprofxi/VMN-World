@@ -1,0 +1,3377 @@
+VMNL GROUP & AZEEBO+
+
+VMNL-AZP-VMN-BRD-PRD-001 — R1.2 / P1.2 / PA1.2
+
+VMN INTEGRATED BUSINESS REQUIREMENTS DOCUMENT + PRODUCT REQUIREMENTS DOCUMENT
+
+FINAL ENTERPRISE-MASTER-INHERITING, BROADCAST-AND-LINEAR-TELEVISION-INTEGRATED, CREATIVE-ECONOMY-CONFORMED, TALENT-ACCELERATOR-NETWORKED, BUSINESS-TO-REQUIREMENT-TRACEABLE, DOMAIN-JURISDICTIONALISED, CANONICAL-DATA-MODELLED, API-AND-EVENT-CONTRACTED, AZEEBO+-FEDERATED, COMMERCIAL-AND-FINANCIAL-RECONCILED, RIGHTS-AND-CARRIAGE-CONTROLLED, PRIVACY-AND-SECURITY-BY-DESIGN, AGENTIC-OS-INTEGRATED, SCREEN-RESOLVED, TESTABLE, RELEASE-GATED & ENGINEERING-HANDOFF MASTER BRD/PRD
+
+Corporate Owner: Virtual Media Network Limited — VMNL
+Enterprise/Public Shorthand: VMN
+Existing Linear Television Portfolio: Nigezie Xtreme · Orisun — The Source · Isi Mbido — The Beginning
+Current Linear Carriage: StarTimes Digital Terrestrial Television and Satellite Television platforms
+Creative Economy Orchestrator: VMN Creative Economy Hub
+Direct Consumer Platform: Azeebo+
+Primary Market: Nigeria
+Scale Path: Nigeria → selected African markets → diaspora/global
+Authority Status: FINAL PRE-IMPLEMENTATION BUSINESS / PRODUCT / ENGINEERING MASTER AUTHORITY
+
+
+---
+
+0. REBASE STATEMENT
+
+R1.1 established the correct Creative Economy and Azeebo+ architecture but materially underrepresented VMNL’s existing broadcast business.
+
+R1.2 corrects that omission.
+
+The canonical VMNL enterprise is not:
+
+> Creative Economy + Azeebo+.
+
+
+
+It is:
+
+> BROADCAST + CREATIVE ECONOMY + PRODUCTION + EVENTS + DISTRIBUTION + DIRECT-TO-CONSUMER + TECHNOLOGY + TALENT + PROPRIETARY IP.
+
+
+
+The three linear television channels are therefore not legacy footnotes.
+
+They are current VMNL audience businesses with their own:
+
+channel brands;
+
+programming;
+
+rights;
+
+scheduling;
+
+advertising inventory;
+
+sponsorship;
+
+traffic;
+
+playout;
+
+transmission;
+
+carriage;
+
+audience;
+
+commercial economics;
+
+cross-platform acquisition value.
+
+
+
+---
+
+1. AUTHORITY & PRECEDENCE
+
+Where requirements appear to conflict, precedence is:
+
+Level	Authority
+
+1	Applicable law, regulator direction, court order and binding contract
+2	VMNL Board resolutions and reserved matters
+3	VMNL enterprise master authorities
+4	VMNL-AZP-CEMP-MA-001 — R3.1
+5	VMNL Creative Economy Execution Playbook
+6	Current finance/commercial authorities
+7	Current Azeebo+ product/technical authorities
+8	Agentic Operating System authority
+9	This R1.2 BRD/PRD
+10	Technical specifications, ADRs, implementation plans and code
+
+
+No engineering team may resolve an authority contradiction silently.
+
+
+---
+
+2. EXECUTIVE BUSINESS THESIS
+
+VMNL is an established Nigerian media and entertainment institution operating across:
+
+linear television;
+creative-economy infrastructure;
+talent development;
+creator development;
+professional production;
+events;
+external distribution;
+technology;
+proprietary IP;
+and direct-to-consumer digital entertainment.
+
+The purpose of the digital operating architecture is to connect those capabilities without erasing their distinct jobs.
+
+The enterprise loop becomes:
+
+> DISCOVER → DEVELOP → VERIFY → CREATE → PRODUCE → PROGRAMME → BROADCAST → PUBLISH → DISTRIBUTE → PARTICIPATE → TRANSACT → MEASURE → LEARN → REINVEST
+
+
+
+
+---
+
+3. CANONICAL VMNL ENTERPRISE ARCHITECTURE
+
+VIRTUAL MEDIA NETWORK LIMITED — VMNL
+│
+├── CORPORATE CENTRE
+│   ├── Board / Governance
+│   ├── Strategy
+│   ├── Finance
+│   ├── Legal / IP / Risk
+│   ├── People
+│   ├── Data / Privacy
+│   └── Enterprise Technology
+│
+├── BROADCAST & LINEAR TELEVISION
+│   │
+│   ├── Nigezie Xtreme
+│   ├── Orisun — The Source
+│   └── Isi Mbido — The Beginning
+│
+│   CURRENT CARRIAGE
+│   └── StarTimes
+│       ├── Digital Terrestrial Television
+│       └── Satellite Television
+│
+├── VMN CREATIVE ECONOMY HUB
+│   │
+│   ├── HeadspaceNG
+│   ├── Cr8TechNG
+│   ├── VMN Talent Accelerator Platform / Network
+│   ├── AFCA
+│   ├── Afro-Fusion Creatives
+│   ├── VTM
+│   ├── VCF
+│   ├── ONE Studios
+│   ├── Fusion Events
+│   └── TEND
+│
+└── AZEEBO+
+    │
+    ├── AOU
+    ├── Cinemaxis
+    ├── Games 360
+    ├── 9TLIFE
+    └── Azeebo+ Live
+
+    EIGHT CONSUMER UNIVERSES
+    Vertical
+    Movies & Series
+    Lifestyle
+    Comedy
+    Creator
+    Reality
+    Games
+    Sports
+
+
+---
+
+4. THE FOUR VMNL AUDIENCE / DISTRIBUTION LAYERS
+
+VMNL now has four distinctly different audience/distribution mechanisms.
+
+Layer	Function
+
+Linear Broadcast	Scheduled TV through Nigezie Xtreme, Orisun and Isi Mbido
+Azeebo+	Direct digital consumer relationship
+Social / Third-Party Digital	Discovery and amplification
+TEND	External licensing, syndication and rights-market distribution
+
+
+These must not be conflated.
+
+Broadcast channels
+
+VMNL-owned or VMNL-operated scheduled audience destinations.
+
+Azeebo+
+
+Direct interactive digital relationship.
+
+TEND
+
+External rights/distribution capability.
+
+ONE Studios
+
+Production capability, not audience distribution.
+
+
+---
+
+5. ENTERPRISE VALUE LOOP
+
+HEADSPACENG
+Strategy / Insight
+      ↓
+TALENT ACCELERATOR + AFCA
+Capability Development
+      ↓
+AFRO-FUSION CREATIVES
+Community / Professional Identity
+      ↓
+VTM
+Verified Talent + Opportunity
+      ↓
+VCF
+Creator Development / Format Testing
+      ↓
+ONE STUDIOS
+Professional / Premium Production
+      ↓
+──────────────────────────────────
+│            │          │         │
+BROADCAST    AZEEBO+    TEND      CLIENT
+│            │          │         │
+Linear       Direct     External  Commissioned
+Audience     Digital    Markets   Delivery
+──────────────────────────────────
+      ↓
+FUSION EVENTS / LIVE EXPERIENCES
+      ↓
+AUDIENCE + CLIENT + TALENT + COMMERCIAL DATA
+      ↓
+HEADSPACENG / MANAGEMENT / PRODUCT
+      ↓
+LEARN → REINVEST → SCALE
+
+
+---
+
+6. BUSINESS OBJECTIVES
+
+VMNL’s integrated platform shall enable the Group to:
+
+1. preserve and modernise its linear television business;
+
+
+2. monetise broadcast audiences more efficiently;
+
+
+3. connect broadcast audiences into Azeebo+;
+
+
+4. create one commercial relationship across broadcast, digital, creator, talent and experiential offerings;
+
+
+5. create a national Talent Accelerator partner network;
+
+
+6. connect learning to verified paid opportunity;
+
+
+7. connect creators to professional production;
+
+
+8. improve rights integrity;
+
+
+9. increase content reuse;
+
+
+10. reduce production duplication;
+
+
+11. support multi-platform commissioning;
+
+
+12. improve advertising and sponsorship inventory utilisation;
+
+
+13. improve quote-to-cash;
+
+
+14. improve cash collection;
+
+
+15. separate revenue from GMV/pass-throughs;
+
+
+16. make talent economics transparent;
+
+
+17. manage carriage and transmission evidence;
+
+
+18. manage schedule and EPG integrity;
+
+
+19. integrate physical events with digital identity;
+
+
+20. create a direct consumer-data layer through Azeebo+;
+
+
+21. create a reusable knowledge system through HeadspaceNG;
+
+
+22. automate repetitive administrative processes;
+
+
+23. preserve human control over consequential decisions;
+
+
+24. make operating evidence investable and auditable;
+
+
+25. scale the organisation without duplicating infrastructure.
+
+
+
+
+---
+
+7. DOMAIN OWNERSHIP LOCK
+
+Domain	Owns	Supports	Must Not Become
+
+Broadcast Arm	channel portfolio, programming, schedule, transmission, advertising inventory	ONE, VCF, Commercial, TEND, Azeebo+	production company or digital platform
+Creative Economy Hub	orchestration and shared capability	all CE units	another operating business
+HeadspaceNG	insight, strategy, cultural intelligence	Commercial, channels, Azeebo+, properties	production house
+Cr8TechNG	enterprise technology/AI enablement	every unit	shadow Azeebo+ engineering
+Talent Accelerator	partner-led talent development network	AFCA, VTM, sponsors	second academy
+AFCA	structured learning and assessment	Accelerator, VTM, ONE, VCF	job marketplace
+Afro-Fusion Creatives	community, guilds, mentorship	AFCA, VTM, VCF	commercial booking engine
+VTM	verified talent + protected opportunity	all delivery units	automatic agency/employer
+VCF	creator development and creator-led formats	Broadcast, Azeebo+, ONE	premium studio
+ONE Studios	professional/premium production	Broadcast, AOU, Cinemaxis, VCF	rights owner by default
+Fusion Events	physical-event execution	Live, 9TLIFE, Broadcast	consumer platform
+TEND	external licensing/distribution	Broadcast, ONE, Azeebo+	linear channel operator
+Azeebo+	direct consumer relationship	all content/product sources	internal ERP
+Corporate Centre	capital, Finance, Legal, People, risk	whole Group	operational bottleneck
+
+
+
+---
+
+8. PRODUCT SURFACES
+
+VMNL requires five connected digital surfaces.
+
+Surface A — VMN Public Experience
+
+Corporate and commercial front door.
+
+Surface B — VMN Enterprise Operating Hub
+
+Internal operating environment.
+
+Surface C — Specialist Applications
+
+AFCA, VTM, VCF, Broadcast, Production, Events, TEND, etc.
+
+Surface D — Broadcast Operations Environment
+
+Linear-channel programming, traffic, schedule, playout and carriage management.
+
+Surface E — Azeebo+ Federation Layer
+
+Controlled bridge into the direct consumer platform.
+
+
+---
+
+9. PUBLIC INFORMATION ARCHITECTURE
+
+Top-level navigation should include:
+
+VMN
+
+TV & Broadcast
+
+Creative Economy
+
+Talent Accelerator
+
+Learn
+
+Creators & Talent
+
+Production
+
+Events
+
+Technology
+
+Distribution
+
+Partners
+
+Insights
+
+Careers
+
+Open Azeebo+
+
+
+---
+
+10. TV & BROADCAST PUBLIC AREA
+
+The VMN public site shall include a dedicated Broadcast area.
+
+It should explain:
+
+VMNL’s television heritage/current operations;
+
+channel portfolio;
+
+current carriage;
+
+programming highlights;
+
+programme enquiries;
+
+sponsorship;
+
+advertising;
+
+production partnerships;
+
+cross-platform opportunities.
+
+
+Channel pages:
+
+Nigezie Xtreme
+
+Channel profile, current positioning, schedule, programme highlights, advertising and Azeebo+ connections.
+
+Orisun — The Source
+
+Channel profile, approved editorial identity, programming, schedule, advertising and appropriate cross-platform experiences.
+
+Isi Mbido — The Beginning
+
+Channel profile, approved editorial identity, programming, schedule, advertising and appropriate cross-platform experiences.
+
+Final audience propositions, language profiles, channel positioning and editorial bibles shall be source-loaded from current Broadcast operations rather than inferred by the software team.
+
+
+---
+
+11. BROADCAST DOMAIN — MASTER BUSINESS REQUIREMENTS
+
+BR-BCAST-001 — Channel Registry
+
+The platform shall maintain canonical records for:
+
+Nigezie Xtreme;
+
+Orisun — The Source;
+
+Isi Mbido — The Beginning.
+
+
+BR-BCAST-002 — Channel Identity
+
+Each channel must have:
+
+Channel ID;
+
+brand name;
+
+editorial proposition;
+
+target audience;
+
+languages;
+
+genres;
+
+channel owner;
+
+carriage endpoints;
+
+scheduling timezone;
+
+technical parameters;
+
+active/inactive status.
+
+
+BR-BCAST-003 — Programme Catalogue
+
+The system shall maintain every broadcast programme and version.
+
+BR-BCAST-004 — Schedule Management
+
+Every scheduled programme must occupy a controlled schedule slot.
+
+BR-BCAST-005 — EPG
+
+The platform shall generate/manage Electronic Programme Guide metadata.
+
+BR-BCAST-006 — Commercial Traffic
+
+Advertising and sponsorship inventory shall be linked to schedules and campaigns.
+
+BR-BCAST-007 — Playlist / Playout
+
+Approved schedules must produce playout instructions/playlists compatible with the live broadcast workflow.
+
+BR-BCAST-008 — As-Run Evidence
+
+The system must retain evidence of what actually aired.
+
+BR-BCAST-009 — Transmission Monitoring
+
+Transmission failures must create operational incidents.
+
+BR-BCAST-010 — Carriage Management
+
+The system shall maintain StarTimes and future carriage relationships.
+
+BR-BCAST-011 — Rights Gate
+
+No programme enters broadcast schedule outside its permitted rights.
+
+BR-BCAST-012 — Technical Master Gate
+
+No file-based asset enters transmission without technical approval.
+
+BR-BCAST-013 — Compliance Gate
+
+Applicable broadcast/content/advertising compliance status must be visible.
+
+BR-BCAST-014 — Sponsorship
+
+Programme, segment, daypart and channel sponsorship must be supported.
+
+BR-BCAST-015 — Advertising Inventory
+
+The platform shall expose available and booked spot inventory.
+
+BR-BCAST-016 — Cross-Platform Campaigns
+
+Campaigns may span broadcast + Azeebo+ + creator + event + social.
+
+BR-BCAST-017 — Broadcast-to-Azeebo Acquisition
+
+Scheduled programmes may carry approved deep links, QR codes or calls to action into Azeebo+.
+
+BR-BCAST-018 — Content Reuse
+
+Broadcast content may route to Azeebo+, social or TEND only where rights permit.
+
+BR-BCAST-019 — Broadcast Revenue
+
+Advertising, sponsorship, carriage-related economics and other channel revenues shall reconcile through Finance.
+
+BR-BCAST-020 — Proof of Delivery
+
+Commercial airtime and sponsorship commitments require verifiable proof-of-air/delivery.
+
+
+---
+
+12. BROADCAST CONTENT SUPPLY CHAIN
+
+COMMISSION / ACQUIRE / RECEIVE
+        ↓
+RIGHTS & COMPLIANCE
+        ↓
+MEDIA INGEST
+        ↓
+TECHNICAL QC
+        ↓
+PROGRAMME CATALOGUE
+        ↓
+PROGRAMMING
+        ↓
+SCHEDULE GRID
+        ↓
+TRAFFIC / COMMERCIAL INVENTORY
+        ↓
+PLAYLIST / PLAYOUT
+        ↓
+CHANNEL OUTPUT
+        ↓
+STARTIMES DTT / SATELLITE CARRIAGE
+        ↓
+AS-RUN LOG
+        ↓
+PROOF-OF-AIR
+        ↓
+BILLING / REPORTING / ANALYTICS
+
+
+---
+
+13. BROADCAST CANONICAL DATA OBJECTS
+
+R1.2 adds the following objects:
+
+BroadcastChannel
+
+A linear VMNL television service.
+
+ChannelEditorialProfile
+
+Approved audience/editorial definition.
+
+Programme
+
+A broadcast programme/property.
+
+Series
+
+Multi-episode programme structure.
+
+Season
+
+Seasonal subdivision.
+
+Episode
+
+Individual programme unit.
+
+BroadcastVersion
+
+Technical/editorial version intended for linear transmission.
+
+Daypart
+
+Defined programming/commercial period.
+
+Schedule
+
+Channel programme grid.
+
+ScheduleSlot
+
+A specific timed placement.
+
+EPGEntry
+
+Metadata exported to platform/carriage EPG.
+
+PromoAsset
+
+Channel/programme promotional element.
+
+CommercialBreak
+
+Defined advertising break.
+
+AdSpot
+
+Commercial item.
+
+CampaignBooking
+
+Commercial booking against broadcast inventory.
+
+SponsorshipAsset
+
+Programme/channel sponsor entitlement.
+
+TrafficInstruction
+
+Instruction governing commercial/programme placement.
+
+Playlist
+
+Executable playout sequence.
+
+AsRunLog
+
+Actual transmitted sequence/time.
+
+TransmissionIncident
+
+Failure or deviation.
+
+CarriagePlatform
+
+External carriage system.
+
+CarriageEndpoint
+
+DTT, satellite or future delivery endpoint.
+
+CarriageAgreement
+
+Legal/commercial carriage relationship.
+
+BroadcastComplianceRecord
+
+Applicable classification/regulatory/advertising status.
+
+
+---
+
+14. BROADCAST PROGRAMME CATALOGUE
+
+Every programme record shall support:
+
+Programme ID;
+
+channel;
+
+title;
+
+series;
+
+season;
+
+episode;
+
+synopsis;
+
+runtime;
+
+genre;
+
+language;
+
+production year;
+
+producer;
+
+production company;
+
+origin;
+
+master asset;
+
+rights;
+
+permitted channels;
+
+permitted platforms;
+
+territory;
+
+term/window;
+
+rating/classification;
+
+sponsor restrictions;
+
+repeat restrictions;
+
+technical format;
+
+subtitle/caption status;
+
+metadata;
+
+archive state.
+
+
+
+---
+
+15. PROGRAMMING & SCHEDULING
+
+The scheduling service must support:
+
+24-hour grid;
+
+daypart;
+
+premiere;
+
+repeat;
+
+strip scheduling;
+
+weekly scheduling;
+
+block programming;
+
+special event;
+
+live programme;
+
+filler;
+
+promo;
+
+station ident;
+
+commercial breaks;
+
+emergency replacement content.
+
+
+Schedule states:
+
+DRAFT
+→ PROGRAMMING REVIEW
+→ RIGHTS CHECK
+→ TRAFFIC READY
+→ APPROVED
+→ PLAYLIST GENERATED
+→ ON AIR
+→ AS-RUN RECONCILED
+→ ARCHIVED
+
+
+---
+
+16. EPG REQUIREMENTS
+
+EPG records should support:
+
+title;
+
+episode title;
+
+synopsis;
+
+start time;
+
+end time;
+
+genre;
+
+language;
+
+rating/advisory;
+
+season number;
+
+episode number;
+
+premiere/repeat status;
+
+image where carriage platform supports it.
+
+
+EPG and schedule must not be manually maintained as unrelated truths.
+
+
+---
+
+17. BROADCAST TRAFFIC & ADVERTISING
+
+The platform must support:
+
+Advertiser
+
+Client/brand.
+
+Campaign
+
+Commercial objective.
+
+Booking
+
+Inventory purchased.
+
+Spot
+
+Individual commercial.
+
+Break
+
+Available commercial slot.
+
+Position
+
+First-in-break, last-in-break or other contracted position where sold.
+
+Sponsorship
+
+Programme/segment/channel entitlement.
+
+Proof-of-Air
+
+Evidence of transmission.
+
+Commercial workflow:
+
+CLIENT
+→ CAMPAIGN
+→ INVENTORY
+→ BOOKING
+→ MATERIAL
+→ COMPLIANCE
+→ TRAFFIC
+→ PLAYOUT
+→ AS-RUN
+→ PROOF
+→ INVOICE / RECONCILIATION
+→ REPORT
+
+
+---
+
+18. BROADCAST INVENTORY REQUIREMENTS
+
+Inventory shall be searchable by:
+
+channel;
+
+date;
+
+daypart;
+
+programme;
+
+break;
+
+duration;
+
+position;
+
+sponsor category;
+
+booked/available status.
+
+
+The commercial system must prevent:
+
+double booking;
+
+incompatible category exclusivity;
+
+airing outside campaign dates;
+
+unapproved material;
+
+unpriced inventory release outside authority.
+
+
+
+---
+
+19. SPONSORSHIP REQUIREMENTS
+
+The system shall support:
+
+title sponsorship;
+
+programme sponsorship;
+
+segment sponsorship;
+
+branded block;
+
+channel sponsorship;
+
+promo sponsorship;
+
+presenter integration where lawful/approved;
+
+event extension;
+
+digital/Azeebo+ extension;
+
+creator extension.
+
+
+One sponsorship may therefore become:
+
+LINEAR TV
++
+AZEEBO+
++
+VCF CREATORS
++
+FUSION EVENT
++
+SOCIAL
+
+but must remain one economic and rights-controlled commercial relationship.
+
+
+---
+
+20. PLAYOUT & MASTER CONTROL REQUIREMENTS
+
+The system must support or integrate with:
+
+playlist generation;
+
+asset availability;
+
+duration validation;
+
+format validation;
+
+black/freeze/missing-media alerts;
+
+live-source switching where applicable;
+
+station IDs;
+
+continuity;
+
+emergency content;
+
+transmission event logging;
+
+as-run output.
+
+
+R1.2 does not mandate building a proprietary broadcast automation system if current broadcast systems already perform these functions effectively.
+
+Integration is preferred over wasteful replacement.
+
+
+---
+
+21. STARTIMES CARRIAGE MODEL
+
+The existing StarTimes relationship must be represented through controlled records.
+
+Minimum fields:
+
+Carriage Agreement ID;
+
+channel;
+
+platform;
+
+DTT / satellite endpoint;
+
+territory;
+
+service commencement;
+
+agreement term;
+
+renewal date;
+
+technical delivery method;
+
+service-level contacts;
+
+technical contacts;
+
+commercial contacts;
+
+channel number/service identifiers where applicable;
+
+approved signal/specification;
+
+outage/escalation route;
+
+obligations;
+
+fees/economic terms where relevant;
+
+invoice/payment treatment where relevant.
+
+
+The platform should be extensible to future carriage operators without redesign.
+
+
+---
+
+22. BROADCAST COMPLIANCE
+
+The Broadcast domain must maintain an activity-specific compliance register including NBC broadcasting obligations applicable to VMNL’s services. NBC continues to publish the Nigeria Broadcasting Code and licensing/service-level materials for broadcasting services. 
+
+Where films/video works fall within NFVCB’s classification mandate, their classification/approval status should be attached to the asset before applicable exhibition/distribution. NFVCB states that films and video works intended for distribution/exhibition in Nigeria are subject to its classification framework. 
+
+The operating compliance register should also map applicable advertising, copyright, consumer, privacy, employment, tax and contractual requirements.
+
+
+---
+
+23. BROADCAST ↔ AZEEBO+ FLYWHEEL
+
+Linear television should become a major acquisition engine for Azeebo+.
+
+NIGEzie / ORISUN / ISI MBIDO
+          ↓
+SCHEDULED AUDIENCE
+          ↓
+ON-SCREEN PROMO / QR / URL / TALENT / PROGRAMME CTA
+          ↓
+AZEEBO+
+          ↓
+IDENTITY
+          ↓
+WATCH / FOLLOW / PLAY / PARTICIPATE / ATTEND / TRANSACT
+          ↓
+DIRECT FIRST-PARTY RELATIONSHIP
+          ↓
+AUDIENCE & CONTENT INTELLIGENCE
+          ↓
+BETTER LINEAR + DIGITAL PROGRAMMING
+
+The strategic value is:
+
+> linear reach + direct digital identity.
+
+
+
+
+---
+
+24. BROADCAST ↔ CREATIVE ECONOMY FLYWHEEL
+
+TALENT ACCELERATOR / AFCA
+        ↓
+VTM
+        ↓
+VCF
+        ↓
+ONE STUDIOS
+        ↓
+BROADCAST CHANNELS
+        ↓
+AZEEBO+
+        ↓
+TEND
+
+A format may begin cheaply in VCF, prove itself, receive professional production through ONE Studios, achieve linear exposure, build direct engagement on Azeebo+, and become externally licensable through TEND.
+
+
+---
+
+25. INTEGRATED COMMERCIAL PACKAGES
+
+The commercial system shall support cross-domain offers.
+
+Example product:
+
+Integrated Youth Entertainment Campaign
+
+Nigezie Xtreme airtime;
+
+programme sponsorship;
+
+VCF creators;
+
+VTM talent;
+
+Azeebo+ Creator activation;
+
+Games 360 participation;
+
+Fusion Events activation;
+
+social extensions;
+
+campaign reporting.
+
+
+The commercial system must price each economic component while presenting one client solution.
+
+
+---
+
+26. HEADSPACENG
+
+HeadspaceNG provides:
+
+audience research;
+
+broadcast programming intelligence;
+
+consumer research;
+
+brand/category insight;
+
+cultural intelligence;
+
+content opportunity mapping;
+
+sponsor strategy;
+
+channel positioning;
+
+Azeebo+ behaviour analysis;
+
+portfolio recommendations.
+
+
+It should receive data from both linear and digital operations without becoming the owner of those operations.
+
+
+---
+
+27. TALENT ACCELERATOR PLATFORM / NETWORK
+
+The Talent Accelerator remains a distributed partner ecosystem.
+
+Partner journey:
+
+DISCOVER
+→ VERIFY
+→ PROPOSE
+→ DESIGN
+→ FUND
+→ RECRUIT
+→ DELIVER
+→ ASSESS
+→ ROUTE
+→ REPORT
+→ RENEW / EXPAND / STOP
+
+Participants may progress into:
+
+AFCA;
+
+Afro-Fusion Creatives;
+
+VTM;
+
+VCF;
+
+ONE Studios;
+
+broadcast production;
+
+Fusion Events;
+
+Cr8TechNG;
+
+TEND;
+
+external opportunities.
+
+
+
+---
+
+28. AFCA
+
+AFCA must support both emerging digital/new-media skills and linear-broadcast skills where strategically relevant.
+
+Possible competency domains include:
+
+cinematography;
+
+editing;
+
+sound;
+
+production;
+
+broadcast production;
+
+studio operations;
+
+presenting;
+
+voice;
+
+content development;
+
+AI workflows;
+
+technical production;
+
+production management;
+
+creative technology.
+
+
+Certification remains competency-based.
+
+
+---
+
+29. AFRO-FUSION CREATIVES
+
+The community layer should expose:
+
+guilds;
+
+alumni;
+
+peer collaboration;
+
+mentorship;
+
+production communities;
+
+channel/programme communities;
+
+portfolio review;
+
+event participation.
+
+
+Commercial deployment still routes through appropriate controlled systems.
+
+
+---
+
+30. VTM
+
+VTM can now serve both:
+
+Creative Economy work
+
+VCF, ONE Studios, events, clients.
+
+Broadcast work
+
+presenters;
+
+hosts;
+
+voice talent;
+
+camera;
+
+editing;
+
+producers;
+
+researchers;
+
+production coordinators;
+
+technical talent.
+
+
+The talent profile should support work-domain tags.
+
+
+---
+
+31. VCF
+
+VCF can become a rapid-format laboratory for:
+
+broadcast pilots;
+
+short digital extensions;
+
+creator-led channel formats;
+
+social-first concepts;
+
+sponsor concepts;
+
+Azeebo+ Creator programming.
+
+
+Successful formats may escalate to professional linear/digital production through ONE Studios.
+
+
+---
+
+32. ONE STUDIOS
+
+ONE Studios becomes a shared production engine serving:
+
+broadcast channels;
+
+AOU;
+
+Cinemaxis;
+
+VCF;
+
+clients;
+
+Azeebo+ originals;
+
+TEND-ready masters.
+
+
+This materially improves utilisation economics.
+
+
+---
+
+33. FUSION EVENTS
+
+Fusion Events can execute:
+
+channel concerts;
+
+fan events;
+
+premieres;
+
+award/recognition events;
+
+Azeebo+ Live;
+
+9TLIFE activations;
+
+sponsor events;
+
+talent showcases.
+
+
+Broadcast and Azeebo+ may provide complementary distribution layers.
+
+
+---
+
+34. TEND
+
+TEND should support external exploitation of rights-complete:
+
+broadcast programmes;
+
+ONE Studios titles;
+
+AOU;
+
+approved VCF formats;
+
+other acquired/licensed assets.
+
+
+TEND does not distribute simply because an asset aired on a VMNL channel.
+
+External rights must separately exist.
+
+
+---
+
+35. MASTER IDENTITY MODEL
+
+One person may be:
+
+employee;
+
+learner;
+
+presenter;
+
+creator;
+
+VTM talent;
+
+broadcast talent;
+
+event performer;
+
+Azeebo+ consumer.
+
+
+One Person ID.
+
+Multiple roles.
+
+Multiple relationships.
+
+No unnecessary duplicate identities.
+
+
+---
+
+36. MASTER DATA MODEL — R1.2
+
+The canonical enterprise model now includes:
+
+Corporate
+
+Person
+User
+Organisation
+Role
+Permission
+Consent
+
+Commercial
+
+Lead
+Opportunity
+Proposal
+Quote
+Contract
+Project
+Invoice
+Receipt
+Settlement
+
+Talent
+
+TalentProfile
+CreatorProfile
+LearnerProfile
+Skill
+Portfolio
+Opportunity
+Engagement
+
+Learning
+
+Programme
+Cohort
+Module
+Assessment
+Certification
+
+Broadcast
+
+BroadcastChannel
+Programme
+Series
+Season
+Episode
+BroadcastVersion
+Daypart
+Schedule
+ScheduleSlot
+EPGEntry
+CommercialBreak
+AdSpot
+CampaignBooking
+SponsorshipAsset
+TrafficInstruction
+Playlist
+AsRunLog
+TransmissionIncident
+CarriagePlatform
+CarriageEndpoint
+CarriageAgreement
+
+Content / Production
+
+Property
+Production
+MasterAsset
+ContentAsset
+RightsRecord
+Release
+MusicClearance
+Location
+
+Digital
+
+AzeeboPublication
+ConsumerIdentity
+Entitlement
+Participation
+Reward
+
+Events
+
+Event
+Venue
+Ticket
+Vendor
+SponsorBenefit
+
+Distribution
+
+CatalogueItem
+Buyer
+Licence
+Delivery
+RoyaltyStatement
+
+Governance
+
+Risk
+Issue
+Incident
+Approval
+Decision
+Exception
+Evidence
+
+Agentic
+
+Agent
+AgentPermission
+AgentRun
+AgentEvaluation
+
+
+---
+
+37. SYSTEM-OF-RECORD MATRIX — R1.2
+
+Record	Canonical Source
+
+Corporate identity	Identity Service
+Employees	HRIS
+Organisations / Clients	CRM
+Commercial opportunities	CRM
+Projects	VMN Command Centre
+Contracts	CLM / Contract Repository
+Finance	ERP / Finance System
+Talent	VTM
+Learners	AFCA
+Creator Missions	VCF
+Programme Network	Talent Accelerator
+Broadcast Channel	Broadcast Management System
+Programme Catalogue	Broadcast CMS / Catalogue
+Schedule	Broadcast Scheduling
+EPG	Broadcast Metadata Service
+Advertising Traffic	Broadcast Traffic System
+Playlist / As-run	Playout/Broadcast Operations
+Carriage	Broadcast Distribution Register
+Production	ONE / Production System
+Masters	DAM
+Rights	Rights Ledger
+Events	Fusion Events
+Consumers	Azeebo+
+Distribution	TEND
+Privacy processing	ROPA / Privacy Register
+Risk	Risk Register
+Agent	Agent Registry
+Evidence	Evidence Graph
+
+
+
+---
+
+38. API / INTEGRATION CONTRACTS
+
+The platform must support explicit service contracts.
+
+Major interfaces include:
+
+Broadcast → Finance
+
+campaign bookings
+invoices
+proof-of-air
+revenue reconciliation
+
+Broadcast → DAM
+
+masters
+promos
+technical versions
+
+Broadcast → Rights
+
+schedule clearance
+expiry
+territory/platform restrictions
+
+Broadcast → Azeebo+
+
+programme deep links
+creator links
+live extensions
+promotional attribution
+
+ONE Studios → Broadcast
+
+delivery masters
+metadata
+QC
+rights reference
+
+VTM → Broadcast
+
+talent assignment
+contracts
+payments
+
+VCF → Broadcast
+
+approved pilot/format assets
+
+Broadcast → TEND
+
+rights-qualified external distribution candidates
+
+
+---
+
+39. CANONICAL BROADCAST EVENTS
+
+Examples:
+
+broadcast.channel.created
+broadcast.programme.ingested
+broadcast.asset.qc_passed
+broadcast.schedule.drafted
+broadcast.schedule.approved
+broadcast.epg.published
+broadcast.inventory.booked
+broadcast.adspot.approved
+broadcast.playlist.generated
+broadcast.programme.aired
+broadcast.adspot.aired
+broadcast.asrun.reconciled
+broadcast.transmission.incident
+broadcast.carriage.renewal_due
+broadcast.rights.expiring
+broadcast.azeebo_cta.triggered
+
+
+---
+
+40. AZEEBO+ FEDERATION CONTRACT
+
+Azeebo+ remains a separate governed application.
+
+Federation domains:
+
+Identity
+
+VMN Person ID ↔ Azeebo+ User ID where lawful and approved.
+
+Content
+
+Rights-cleared assets.
+
+Creator
+
+Approved creator profiles.
+
+Broadcast
+
+Programme/event/channel campaigns.
+
+Events
+
+Fusion Events / Live.
+
+Games
+
+Games 360.
+
+Lifestyle
+
+9TLIFE.
+
+Analytics
+
+Approved aggregated and user-level events according to lawful purpose and consent.
+
+
+---
+
+41. AZEEBO+ UNIVERSAL LINK
+
+The public VMN platform shall use one centrally managed configuration:
+
+AZEEBO_PLUS_UNIVERSAL_URL
+
+Supported destinations include:
+
+/content/{id}
+/creator/{id}
+/event/{id}
+/cinemaxis/{id}
+/aou/{id}
+/game/{id}
+/9tlife/{id}
+/live/{id}
+/broadcast/{channel-or-programme-id}
+
+The exact live production link should be injected through configuration before launch.
+
+
+---
+
+42. COMMERCIAL DATA MODEL
+
+The platform must separately store:
+
+contract value;
+
+booking value;
+
+broadcast gross billings;
+
+GMV;
+
+invoiced value;
+
+cash collected;
+
+recognised revenue;
+
+receivable;
+
+deferred revenue;
+
+talent payable;
+
+rights-holder share;
+
+platform/provider fee;
+
+direct cost;
+
+contribution.
+
+
+No dashboard may merge these into an undefined “revenue” metric.
+
+
+---
+
+43. BROADCAST REVENUE CATEGORIES
+
+Examples include:
+
+advertising airtime;
+
+sponsorship;
+
+branded programming;
+
+programme integrations;
+
+channel partnerships;
+
+production services where appropriate;
+
+cross-platform campaigns;
+
+other lawful broadcast-commercial arrangements.
+
+
+R1.2 does not hard-code accounting treatment; Finance determines principal/agent and recognition.
+
+
+---
+
+44. BROADCAST COMMERCIAL PROOF
+
+For a spot booking:
+
+CONTRACT
+→ BOOKING
+→ TRAFFIC
+→ PLAYLIST
+→ AS-RUN
+→ PROOF-OF-AIR
+→ INVOICE / REVENUE STATE
+→ CASH
+
+This closes a major current enterprise evidence gap.
+
+
+---
+
+45. RIGHTS & WINDOW ENGINE
+
+A single property may have:
+
+linear rights;
+
+on-demand rights;
+
+Azeebo+ rights;
+
+social promotional rights;
+
+TEND rights;
+
+territory windows;
+
+exclusivity;
+
+sponsor restrictions.
+
+
+Example:
+
+PROPERTY X
+│
+├── Nigezie Xtreme linear window
+├── Azeebo+ AVOD/SVOD/TVOD window
+├── Social promotional clips
+└── TEND external licence
+
+Each must be independently enforceable.
+
+
+---
+
+46. BROADCAST SCREEN INVENTORY
+
+The authenticated product now adds:
+
+1. Broadcast Executive Dashboard
+
+
+2. Channel Portfolio
+
+
+3. Channel Profile
+
+
+4. Programme Catalogue
+
+
+5. Programme Detail
+
+
+6. Series
+
+
+7. Episode
+
+
+8. Broadcast Versions
+
+
+9. Rights Readiness
+
+
+10. Programme Acquisition
+
+
+11. Commissioning
+
+
+12. Schedule Grid
+
+
+13. Dayparts
+
+
+14. EPG
+
+
+15. Promo Planner
+
+
+16. Commercial Inventory
+
+
+17. Break Planner
+
+
+18. Ad Campaigns
+
+
+19. Spot Materials
+
+
+20. Sponsorship Inventory
+
+
+21. Traffic Log
+
+
+22. Playlist
+
+
+23. Playout Status
+
+
+24. As-Run Log
+
+
+25. Transmission Monitor
+
+
+26. Transmission Incidents
+
+
+27. Carriage Platforms
+
+
+28. StarTimes Carriage
+
+
+29. Carriage Agreement
+
+
+30. Proof-of-Air
+
+
+31. Broadcast Revenue Dashboard
+
+
+32. Channel Performance
+
+
+33. Cross-Platform Azeebo+ Conversion
+
+
+
+
+---
+
+47. COMPLETE ENTERPRISE SCREEN DOMAINS
+
+Beyond Broadcast, R1.2 preserves all R1.1 screen families for:
+
+CRM;
+
+Commercial;
+
+Talent Accelerator;
+
+AFCA;
+
+Afro-Fusion;
+
+VTM;
+
+VCF;
+
+ONE Studios;
+
+Fusion Events;
+
+TEND;
+
+HeadspaceNG;
+
+Cr8TechNG;
+
+Rights;
+
+Finance;
+
+Privacy;
+
+Security;
+
+Agentic Operations;
+
+Governance.
+
+
+
+---
+
+48. BROADCAST USER ROLES
+
+Potential capability roles include:
+
+Head of Broadcast / Broadcast Portfolio Lead;
+
+Channel Manager;
+
+Head of Programming;
+
+Programme Scheduler;
+
+Acquisitions/Commissioning Manager;
+
+Traffic Manager;
+
+Commercial Traffic Officer;
+
+Broadcast Operations Manager;
+
+Playout/Master Control Operator;
+
+Broadcast Engineer;
+
+EPG/Metadata Coordinator;
+
+Promo Producer;
+
+Ad Sales / Broadcast Commercial Manager;
+
+Sponsorship Manager;
+
+Broadcast Rights Coordinator;
+
+Broadcast Finance/Revenue Assurance;
+
+Carriage / Platform Relationship Owner.
+
+
+These are capability accountabilities, not automatic headcount instructions.
+
+
+---
+
+49. BROADCAST PERMISSION MODEL
+
+Examples:
+
+Scheduler
+
+Can edit draft schedule.
+
+Cannot clear rights.
+
+Traffic Officer
+
+Can place approved ads.
+
+Cannot approve unvetted creative or change pricing.
+
+Playout Operator
+
+Can execute approved playlist and emergency continuity procedures.
+
+Cannot amend commercial contract.
+
+Channel Manager
+
+Can approve normal channel schedule within authority.
+
+Cannot override Legal/Rights Hold.
+
+Broadcast Commercial
+
+Can sell authorised inventory.
+
+Cannot create unavailable inventory or bypass booked category exclusivity.
+
+
+---
+
+50. PUBLIC BROADCAST ↔ DIGITAL UX
+
+Programme pages should be capable of showing:
+
+programme;
+
+channel;
+
+next linear transmission;
+
+description;
+
+talent;
+
+related content;
+
+approved clips;
+
+related Azeebo+ destination;
+
+event;
+
+sponsor where appropriate.
+
+
+This creates one consumer-facing bridge without turning the VMN site into a streaming service.
+
+
+---
+
+51. AUDIENCE ANALYTICS
+
+Where source data is available and contractually permitted, the business-intelligence layer should distinguish:
+
+Broadcast
+
+channel reach/audience data;
+
+programme performance;
+
+schedule performance;
+
+commercial delivery;
+
+promo conversion.
+
+
+Azeebo+
+
+registrations;
+
+WEP;
+
+retention;
+
+engagement;
+
+participation;
+
+conversion;
+
+transaction.
+
+
+Social
+
+reach;
+
+views;
+
+engagement;
+
+referral.
+
+
+Cross-platform identity must not be assumed where no lawful deterministic link exists.
+
+
+---
+
+52. BROADCAST KPIs
+
+Core channel metrics should include:
+
+scheduled-hours accuracy;
+
+programme delivery compliance;
+
+schedule changes;
+
+EPG accuracy;
+
+transmission uptime;
+
+transmission incidents;
+
+spot-delivery rate;
+
+sponsorship fulfilment;
+
+inventory utilisation;
+
+commercial fill rate;
+
+proof-of-air completeness;
+
+rights exceptions;
+
+expired-content incidents;
+
+content cost per usable hour;
+
+repeat ratio;
+
+original/acquired mix;
+
+cross-platform Azeebo+ conversion;
+
+broadcast revenue;
+
+collected cash;
+
+broadcast contribution.
+
+
+
+---
+
+53. CREATIVE ECONOMY KPIs
+
+Preserved from R1.1:
+
+Talent Accelerator
+
+partner quality
+applications
+completion
+progression
+paid opportunities
+sponsor renewal
+
+AFCA
+
+competency
+certification quality
+portfolio readiness
+deployment readiness
+
+VTM
+
+verified talent
+time-to-match
+earnings
+payments
+repeat booking
+
+VCF
+
+campaigns
+assets
+creator earnings
+contribution
+renewals
+
+ONE
+
+utilisation
+delivery
+master quality
+cost
+contribution
+
+Fusion
+
+event contribution
+safety
+sponsor delivery
+retained audience
+
+TEND
+
+licences
+collections
+rights integrity
+repeat buyers
+
+
+---
+
+54. HEADSPACENG + BROADCAST INTELLIGENCE
+
+HeadspaceNG should support:
+
+programming research;
+
+audience-segment analysis;
+
+channel-brand strategy;
+
+content white-space;
+
+sponsor/category intelligence;
+
+cultural trends;
+
+digital-to-linear insights;
+
+linear-to-digital attribution;
+
+portfolio cannibalisation analysis.
+
+
+
+---
+
+55. PRIVACY & DATA PROTECTION
+
+R1.2 retains the privacy-by-design architecture.
+
+Broadcast adds processing contexts such as:
+
+viewer competitions;
+
+SMS/online participation where used;
+
+event registrations;
+
+talent/casting;
+
+sponsor activations;
+
+audience research;
+
+on-screen user-generated content;
+
+Azeebo+ conversions.
+
+
+Each must have:
+
+purpose;
+
+lawful basis;
+
+notice;
+
+data minimisation;
+
+retention;
+
+access;
+
+transfer;
+
+rights handling.
+
+
+
+---
+
+56. SECURITY
+
+Broadcast introduces additional critical infrastructure:
+
+broadcast servers;
+
+playout;
+
+master-control systems;
+
+ingest;
+
+DAM;
+
+file transfer;
+
+carriage links;
+
+engineering access;
+
+remote support.
+
+
+Access must be segmented from ordinary office accounts where risk warrants.
+
+Broadcast-critical service accounts require:
+
+unique identity;
+
+least privilege;
+
+MFA where technically supported;
+
+credential rotation;
+
+restricted admin access;
+
+audit logging.
+
+
+
+---
+
+57. BUSINESS CONTINUITY — BROADCAST
+
+The continuity architecture shall include:
+
+Missing asset
+
+Trigger approved filler/replacement content.
+
+Corrupt master
+
+Switch to cleared alternative.
+
+Playout failure
+
+Invoke backup/secondary operational procedure.
+
+Signal/carriage disruption
+
+Escalate through Broadcast Operations and carriage contact.
+
+Power failure
+
+Activate protected broadcast-power chain and safe recovery.
+
+Schedule-system failure
+
+Use current approved emergency schedule copy.
+
+EPG failure
+
+Re-export from canonical schedule.
+
+Commercial-material failure
+
+Use approved alternate/filler; preserve campaign obligation.
+
+Cyber incident
+
+Isolate affected systems without unnecessarily terminating uncontaminated live continuity.
+
+
+---
+
+58. AI & BROADCAST
+
+Permitted AI-assisted use may include:
+
+metadata suggestions;
+
+synopsis generation;
+
+content tagging;
+
+schedule recommendations;
+
+archive search;
+
+QC anomaly detection;
+
+promo-copy drafts;
+
+audience analysis;
+
+transcript/caption assistance.
+
+
+AI may not autonomously:
+
+approve a programme for broadcast;
+
+clear rights;
+
+approve a regulated advertisement;
+
+replace traffic authority;
+
+alter final financial delivery evidence;
+
+issue a public crisis statement;
+
+schedule prohibited content against an active rights/compliance block.
+
+
+
+---
+
+59. BROADCAST API EXAMPLES
+
+GET /v1/broadcast/channels
+
+GET /v1/broadcast/channels/{id}/schedule
+
+POST /v1/broadcast/schedules
+
+POST /v1/broadcast/programmes
+
+GET /v1/broadcast/programmes/{id}/rights
+
+POST /v1/broadcast/campaigns
+
+POST /v1/broadcast/bookings
+
+GET /v1/broadcast/asrun/{date}
+
+POST /v1/broadcast/incidents
+
+GET /v1/broadcast/carriage
+
+POST /v1/broadcast/azeebo-links
+
+Actual implementation may integrate current broadcast management systems rather than replacing them.
+
+
+---
+
+60. ENGINEERING INTEGRATION POLICY
+
+Every legacy/current system will be classified:
+
+RETAIN
+
+INTEGRATE
+
+WRAP WITH API
+
+MIGRATE
+
+CONSOLIDATE
+
+RETIRE
+
+No broadcast tool should be replaced simply to satisfy architectural neatness.
+
+Operational continuity comes before software purity.
+
+
+---
+
+61. MIGRATION STRATEGY
+
+R1.2 requires a discovery and migration register for:
+
+existing channel programme catalogues;
+
+schedules;
+
+traffic records;
+
+advertiser/client data;
+
+rights documentation;
+
+masters;
+
+carriage contracts;
+
+talent records;
+
+finance history;
+
+broadcast logs.
+
+
+Migration must preserve source provenance.
+
+
+---
+
+62. USER STORY — BROADCAST SCHEDULING
+
+US-BCAST-001
+
+As a Programme Scheduler, I want the schedule system to warn me when a programme’s broadcast rights do not cover a planned slot so that I do not schedule unauthorised content.
+
+Acceptance criteria
+
+scheduled programme links to RightsRecord;
+
+system evaluates channel, territory and window;
+
+expired/not-permitted rights produce blocking state;
+
+authorised conditional override requires named approver;
+
+decision is logged.
+
+
+
+---
+
+63. USER STORY — COMMERCIAL TRAFFIC
+
+US-BCAST-002
+
+As a Traffic Manager, I want each contracted ad spot to map to an available break so that commercial delivery can be reconciled.
+
+Acceptance
+
+spot linked to campaign;
+
+duration validated;
+
+campaign dates validated;
+
+category conflict checked;
+
+material approved;
+
+scheduled slot generated;
+
+as-run reconciled;
+
+missing spot appears in exception queue.
+
+
+
+---
+
+64. USER STORY — BROADCAST TO AZEEBO+
+
+US-BCAST-003
+
+As a Channel Manager, I want an approved programme promotion to deep-link viewers to Azeebo+ so that linear audience can become a direct digital relationship.
+
+Acceptance
+
+approved Azeebo+ destination exists;
+
+attribution code generated;
+
+QR/URL asset generated;
+
+campaign dates observed;
+
+clicks/opens measured;
+
+personal identity is not inferred unless the consumer authenticates.
+
+
+
+---
+
+65. USER STORY — PROOF OF AIR
+
+US-BCAST-004
+
+As a client, I want evidence that my contracted spot or sponsorship element aired so that campaign delivery is verifiable.
+
+Acceptance
+
+contract inventory mapped to traffic booking;
+
+as-run log available;
+
+delivery status reconciled;
+
+missed items flagged;
+
+proof report generated;
+
+make-good workflow available if contract requires it.
+
+
+
+---
+
+66. BROADCAST UAT
+
+Critical tests must include:
+
+1. Schedule item with expired rights.
+
+
+2. Programme master missing.
+
+
+3. Wrong-duration asset.
+
+
+4. Ad creative not approved.
+
+
+5. Commercial category conflict.
+
+
+6. Spot booked into unavailable break.
+
+
+7. EPG differs from approved schedule.
+
+
+8. Live schedule change.
+
+
+9. Transmission interruption.
+
+
+10. Playout failure.
+
+
+11. Duplicate ad booking.
+
+
+12. Missed commercial spot.
+
+
+13. Carriage outage.
+
+
+14. Rights expiry mid-run.
+
+
+15. Programme moved after campaign booking.
+
+
+16. Incorrect sponsor sting.
+
+
+17. Azeebo+ QR/deep-link failure.
+
+
+18. As-run reconciliation failure.
+
+
+19. Emergency filler activation.
+
+
+20. Schedule-system outage/recovery.
+
+
+
+
+---
+
+67. BROADCAST RELEASE GATES
+
+BG0 — Channel authority
+
+Channel identity and ownership configured.
+
+BG1 — Catalogue
+
+Programme and master records imported.
+
+BG2 — Rights
+
+Broadcast rights linked.
+
+BG3 — Schedule
+
+Schedule workflow passes.
+
+BG4 — Traffic
+
+Advertising inventory and commercial workflow pass.
+
+BG5 — Playout
+
+Playlist/as-run integration passes.
+
+BG6 — Carriage
+
+StarTimes endpoints and contacts mapped.
+
+BG7 — Finance
+
+Commercial proof-to-invoice reconciliation works.
+
+BG8 — Azeebo+
+
+Linear-to-digital link works.
+
+BG9 — Continuity
+
+Broadcast failure drills pass.
+
+
+---
+
+68. OVERALL MVP — REBASED
+
+The MVP now must include enough Broadcast capability to prevent the corporate architecture from pretending the television business does not exist.
+
+Public MVP
+
+VMN Home
+
+TV & Broadcast
+
+Nigezie Xtreme
+
+Orisun
+
+Isi Mbido
+
+Creative Economy
+
+Talent Accelerator
+
+AFCA
+
+VTM
+
+VCF
+
+ONE Studios
+
+Partners
+
+Open Azeebo+
+
+
+Operating MVP
+
+identity;
+
+organisation;
+
+CRM;
+
+project;
+
+contract reference;
+
+Finance status;
+
+Talent Accelerator;
+
+AFCA;
+
+VTM;
+
+VCF;
+
+rights;
+
+Broadcast channel registry;
+
+programme catalogue;
+
+schedule import/view;
+
+carriage registry;
+
+commercial campaign/spot evidence;
+
+Azeebo+ universal links.
+
+
+Full playout replacement is not required for MVP if current operations can be integrated.
+
+
+---
+
+69. IMPLEMENTATION PHASES — REBASED
+
+Phase 0 — Authority & Discovery
+
+Inventory:
+
+current broadcast systems;
+
+programme databases;
+
+schedule workflows;
+
+ad traffic;
+
+playout;
+
+master control;
+
+DAM;
+
+finance;
+
+contracts;
+
+StarTimes carriage processes;
+
+Azeebo+ interfaces.
+
+
+Phase 1 — Enterprise Core
+
+Identity
+CRM
+Projects
+Evidence
+Rights
+Finance integration.
+
+Phase 2 — Broadcast Integration
+
+Channel registry
+Programme catalogue
+Schedule/EPG integration
+Commercial traffic
+Carriage registry
+As-run evidence.
+
+Phase 3 — Talent & Learning
+
+Talent Accelerator
+AFCA
+Afro-Fusion
+VTM.
+
+Phase 4 — Creator / Production
+
+VCF
+ONE Studios
+DAM / production.
+
+Phase 5 — Events / Distribution
+
+Fusion Events
+TEND.
+
+Phase 6 — Azeebo+ Federation
+
+Universal/deep links
+consumer conversion
+identity federation
+content/event federation.
+
+Phase 7 — Intelligence & Agentic Operations
+
+HeadspaceNG
+Cr8TechNG
+Agent OS.
+
+Phase 8 — Scale
+
+Nigeria-wide partner network
+multi-market extensions
+new carriage/distribution partners.
+
+
+---
+
+70. ENTERPRISE REPORTING
+
+The executive dashboard must now show:
+
+Group
+
+cash;
+
+recognised external revenue;
+
+contribution;
+
+receivables;
+
+liquidity.
+
+
+Broadcast
+
+revenue/cash;
+
+channel status;
+
+transmission uptime;
+
+ad/sponsorship delivery;
+
+programme utilisation;
+
+carriage issues.
+
+
+Creative Economy
+
+pipeline;
+
+Talent Accelerator;
+
+AFCA;
+
+VTM;
+
+VCF;
+
+ONE;
+
+Fusion;
+
+TEND.
+
+
+Azeebo+
+
+WEP;
+
+retention;
+
+conversion;
+
+contribution;
+
+cross-platform acquisition.
+
+
+Trust
+
+rights;
+
+privacy;
+
+security;
+
+safety;
+
+incidents.
+
+
+
+---
+
+71. BROADCAST / DIGITAL ATTRIBUTION
+
+Where technically possible:
+
+Channel / Programme / Promo
+→ campaign code
+→ QR / short URL
+→ Azeebo+ destination
+→ anonymous visit
+→ authenticated registration
+→ participation / watch / transaction.
+
+This enables attributable conversion without claiming identity where none exists.
+
+
+---
+
+72. PRODUCT PRINCIPLES — FINAL
+
+1. One enterprise truth.
+
+
+2. One person, multiple legitimate roles.
+
+
+3. One client history.
+
+
+4. One rights ledger.
+
+
+5. One external-revenue truth.
+
+
+6. Broadcast remains a first-class business.
+
+
+7. Azeebo+ remains the direct-consumer platform.
+
+
+8. TEND remains external distribution.
+
+
+9. ONE Studios produces; it does not automatically own.
+
+
+10. VTM protects opportunity transactions.
+
+
+11. AFCA develops competence.
+
+
+12. Talent Accelerator expands pathways.
+
+
+13. VCF tests and develops creator output.
+
+
+14. Fusion Events executes physical experiences.
+
+
+15. Cr8TechNG enables rather than duplicates.
+
+
+16. Agents augment rather than govern.
+
+
+17. Integrate before replacing working legacy systems.
+
+
+18. Rights before exploitation.
+
+
+19. Cash before scale.
+
+
+20. Evidence before claims.
+
+
+21. Proof before capital.
+
+
+
+
+---
+
+73. DEFINITION OF DONE
+
+Nothing is done merely because a screen or feature exists.
+
+A feature is Done when:
+
+requirement approved;
+
+owner exists;
+
+UX is approved;
+
+code/configuration complete;
+
+unit tests pass;
+
+integration/event tests pass;
+
+security/privacy checks pass;
+
+relevant rights/compliance checks pass;
+
+analytics are instrumented;
+
+documentation exists;
+
+operator is trained;
+
+UAT passes;
+
+rollback exists;
+
+production monitoring is live;
+
+evidence is retained.
+
+
+
+---
+
+74. ENGINEERING HANDOFF PACK
+
+R1.2 must decompose downstream into:
+
+1. Enterprise domain model.
+
+
+2. Broadcast domain specification.
+
+
+3. Logical data model.
+
+
+4. Physical data model.
+
+
+5. Broadcast system integration assessment.
+
+
+6. API catalogue.
+
+
+7. Event catalogue.
+
+
+8. Azeebo+ federation contract.
+
+
+9. Rights-engine specification.
+
+
+10. Broadcast scheduling/traffic integration specification.
+
+
+11. StarTimes carriage register/specification.
+
+
+12. Finance integration specification.
+
+
+13. RBAC/ABAC matrix.
+
+
+14. Privacy-processing matrix.
+
+
+15. Threat model.
+
+
+16. Screen inventory.
+
+
+17. UX flows.
+
+
+18. Wireframes/design specification.
+
+
+19. Epics.
+
+
+20. User stories.
+
+
+21. Acceptance criteria.
+
+
+22. UAT catalogue.
+
+
+23. Failure-drill catalogue.
+
+
+24. Migration plan.
+
+
+25. Cutover plan.
+
+
+26. Hypercare plan.
+
+
+27. Operational runbooks.
+
+
+28. Observability/SLO plan.
+
+
+
+
+---
+
+75. FINAL ENTERPRISE ARCHITECTURE LOCK
+
+VMNL should now be represented as:
+
+> AN INTEGRATED MEDIA, ENTERTAINMENT AND CREATIVE-ECONOMY INSTITUTION OPERATING ACROSS LINEAR TELEVISION, TALENT AND CREATOR DEVELOPMENT, PROFESSIONAL PRODUCTION, PHYSICAL EXPERIENCES, EXTERNAL DISTRIBUTION, PROPRIETARY IP AND THE AZEEBO+ DIRECT-CONSUMER PLATFORM.
+
+
+
+The company should not abandon the advantages of linear television merely because direct-to-consumer technology is growing.
+
+Nor should it treat linear TV as the whole future.
+
+The strategic architecture connects them.
+
+
+---
+
+76. FINAL OPERATING MODEL
+
+> VMNL GOVERNS.
+
+
+
+> THE BROADCAST ARM PROGRAMMES AND MONETISES LINEAR AUDIENCES THROUGH NIGEZIE XTREME, ORISUN — THE SOURCE AND ISI MBIDO — THE BEGINNING.
+
+
+
+> THE CREATIVE ECONOMY HUB ORCHESTRATES SHARED CAPABILITY.
+
+
+
+> HEADSPACENG CREATES INTELLIGENCE.
+
+
+
+> THE TALENT ACCELERATOR EXPANDS DEVELOPMENT PATHWAYS.
+
+
+
+> AFCA DEVELOPS COMPETENCE.
+
+
+
+> AFRO-FUSION CREATIVES SUSTAINS COMMUNITY.
+
+
+
+> VTM CONNECTS VERIFIED TALENT TO PROTECTED COMMERCIAL OPPORTUNITY.
+
+
+
+> VCF DEVELOPS CREATORS AND TESTS CREATOR-LED FORMATS.
+
+
+
+> ONE STUDIOS DELIVERS PROFESSIONAL AND PREMIUM PRODUCTION.
+
+
+
+> FUSION EVENTS EXECUTES PHYSICAL ACTIVATION.
+
+
+
+> CR8TECHNG ENABLES TECHNOLOGY, DATA, AUTOMATION AND AI.
+
+
+
+> TEND EXTENDS RIGHTS-COMPLETE ASSETS INTO EXTERNAL MARKETS.
+
+
+
+> AZEEBO+ OWNS AND COMPOUNDS THE DIRECT DIGITAL CONSUMER RELATIONSHIP.
+
+
+
+
+---
+
+77. FINAL PRODUCT LAW
+
+ONE INSTITUTION.
+
+THREE LINEAR CHANNELS.
+
+ONE CREATIVE-ECONOMY OPERATING SYSTEM.
+
+ONE TALENT-TO-OPPORTUNITY PIPELINE.
+
+ONE PROFESSIONAL PRODUCTION ENGINE.
+
+ONE EXTERNAL DISTRIBUTION CAPABILITY.
+
+ONE DIRECT-CONSUMER PLATFORM.
+
+ONE RIGHTS TRUTH.
+
+ONE ECONOMIC TRUTH.
+
+ONE EVIDENCE GRAPH.
+
+MANY AUDIENCE, TALENT, CONTENT AND COMMERCIAL PATHWAYS.
+
+
+---
+
+FINAL STATUS
+
+VMNL-AZP-VMN-BRD-PRD-001 — R1.2 / P1.2 / PA1.2
+
+FINAL ENTERPRISE-MASTER-INHERITING, BROADCAST-AND-LINEAR-TELEVISION-INTEGRATED, BUSINESS-TO-REQUIREMENT-TRACEABLE, DOMAIN-JURISDICTIONALISED, CANONICAL-DATA-MODELLED, API-AND-EVENT-CONTRACTED, AZEEBO+-FEDERATED, COMMERCIAL-AND-FINANCIAL-RECONCILED, RIGHTS-AND-CARRIAGE-CONTROLLED, PRIVACY-AND-SECURITY-BY-DESIGN, AGENTIC-OS-INTEGRATED, SCREEN-RESOLVED, TESTABLE, RELEASE-GATED & ENGINEERING-HANDOFF MASTER BRD/PRD
+
+This is now at the maximum useful master-design level for the BRD/PRD.
+
+The correct next move is not another enlargement of the master document. It is technical decomposition into the downstream engineering authorities: Canonical Domain & Data Specification → Broadcast Operations & Integration Specification → API/Event Catalogue → Azeebo+ Federation Contract → Screen/UX Functional Specification → RBAC/Privacy/Security Matrix → Epic/User Story Backlog → UAT & Release Pack.
