@@ -189,6 +189,7 @@ export function renderMasterLayout(title: string, bodyContent: string, activeNav
       <a href="/" class="${activeNav === "/" ? "active" : ""}">Overview</a>
       <a href="/channels" class="${activeNav === "/channels" ? "active" : ""}">Channels</a>
       <a href="/hub" class="${activeNav === "/hub" ? "active" : ""}">Creative Hub</a>
+      <a href="/broadcast/screens" class="${activeNav.startsWith("/broadcast/screens") ? "active" : ""}">33 Screens</a>
       <a href="/broadcast/dashboard" class="${activeNav === "/broadcast/dashboard" ? "active" : ""}">Operator Console</a>
     </nav>
   </header>
@@ -434,8 +435,9 @@ export function renderDashboardHtml(): string {
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
           ${screenCardsHtml}
         </div>
-        <div style="margin-top: 16px; text-align: center;">
-          <a href="/api/v1/broadcast/screens" class="btn btn-outline" target="_blank">View All 33 Screen Surfaces JSON Schema &rarr;</a>
+        <div style="margin-top: 16px; text-align: center; display: flex; justify-content: center; gap: 12px;">
+          <a href="/broadcast/screens" class="btn btn-primary">Browse All 33 Operational Screen Surfaces &rarr;</a>
+          <a href="/api/v1/broadcast/screens" class="btn btn-outline" target="_blank">View JSON Schema</a>
         </div>
       </div>
     </section>

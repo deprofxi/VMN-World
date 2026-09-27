@@ -29,6 +29,8 @@ import {
   renderChannelsPageHtml,
   renderHubPageHtml,
   renderDashboardHtml,
+  renderScreensCatalogHtml,
+  renderScreenDetailHtml,
 } from "../web/public/index.js";
 
 export interface RequestHandlerContext {
@@ -131,6 +133,20 @@ export async function handleApiRequest(
 
     if (pathname === "/broadcast/dashboard" && method === "GET") {
       const html = renderMasterLayout("Broadcast Executive Dashboard", renderDashboardHtml(), "/broadcast/dashboard");
+      sendText(res, 200, html, "text/html; charset=utf-8");
+      return;
+    }
+
+    if (pathname === "/broadcast/screens" && method === "GET") {
+      const roleFilter = parsedUrl.searchParams.get("role") || undefined;
+      const html = renderMasterLayout("Operational Screen Surfaces", renderScreensCatalogHtml(roleFilter), "/broadcast/screens");
+      sendText(res, 200, html, "text/html; charset=utf-8");
+      return;
+    }
+
+    if (pathname.startsWith("/broadcast/screens/") && method === "GET") {
+      const screenId = pathname.replace("/broadcast/screens/", "").trim();
+      const html = renderMasterLayout(`Screen Surface ${screenId}`, renderScreenDetailHtml(screenId), "/broadcast/screens");
       sendText(res, 200, html, "text/html; charset=utf-8");
       return;
     }

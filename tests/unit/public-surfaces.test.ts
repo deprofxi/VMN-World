@@ -8,6 +8,8 @@ import {
   CorporatePortalService,
   PublicChannelsHub,
   HubShowcaseService,
+  renderScreensCatalogHtml,
+  renderScreenDetailHtml,
 } from "../../src/web/public/index.js";
 
 describe("Phase 7: Public Digital Surfaces & User Experience", () => {
@@ -173,6 +175,38 @@ describe("Phase 7: Public Digital Surfaces & User Experience", () => {
       expect(inquiry.status).toBe("ROUTED_TO_CRM");
       expect(inquiry.acknowledgmentMessage).toContain("A representative will contact you within 24 business hours.");
       expect(hubService.getInquiries().length).toBe(1);
+    });
+  });
+
+  describe("Broadcast Operational Screen Surfaces (SCR-BCST-01 to 33)", () => {
+    it("renders the 33-screen operational surface catalog with filters and badges", () => {
+      const allScreensHtml = renderScreensCatalogHtml();
+      expect(allScreensHtml).toContain("Broadcast Operational Screen Inventory");
+      expect(allScreensHtml).toContain("SCR-BCST-01");
+      expect(allScreensHtml).toContain("SCR-BCST-33");
+      expect(allScreensHtml).toContain("33 of 33 Screens Ready");
+      expect(allScreensHtml).toContain("All (33)");
+
+      // Filter by role
+      const playoutScreensHtml = renderScreensCatalogHtml("PlayoutOperator");
+      expect(playoutScreensHtml).toContain("SCR-BCST-22");
+      expect(playoutScreensHtml).toContain("SCR-BCST-23");
+      expect(playoutScreensHtml).not.toContain("SCR-BCST-01"); // ExecutiveLeader
+    });
+
+    it("renders individual screen detail view with RBAC, routes, and navigation", () => {
+      const detailHtml = renderScreenDetailHtml("SCR-BCST-23");
+      expect(detailHtml).toContain("Live Playout Status Monitor");
+      expect(detailHtml).toContain("PlayoutOperator");
+      expect(detailHtml).toContain("/broadcast/playout/live");
+      expect(detailHtml).toContain("trigger_filler");
+      expect(detailHtml).toContain("manual_override");
+      expect(detailHtml).toContain("Screen #23 of 33");
+
+      // Invalid screen ID
+      const notFoundHtml = renderScreenDetailHtml("SCR-UNKNOWN-99");
+      expect(notFoundHtml).toContain("Screen Surface Not Found");
+      expect(notFoundHtml).toContain("SCR-UNKNOWN-99");
     });
   });
 });

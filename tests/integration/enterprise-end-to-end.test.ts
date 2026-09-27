@@ -108,6 +108,36 @@ describe("VMNL Enterprise End-to-End Platform Integration", () => {
       expect(res.rawText).toContain("SCR-BCST-01");
       expect(res.rawText).toContain("StarTimes Carriage");
     });
+
+    it("should serve the 33 Broadcast Screen Surfaces Catalog on GET /broadcast/screens", async () => {
+      const res = await makeRequest(testPort, "/broadcast/screens");
+      expect(res.statusCode).toBe(200);
+      expect(res.rawText).toContain("Broadcast Operational Screen Inventory");
+      expect(res.rawText).toContain("SCR-BCST-01");
+      expect(res.rawText).toContain("SCR-BCST-33");
+      expect(res.rawText).toContain("33 of 33 Screens Ready");
+    });
+
+    it("should filter the 33 Screens Catalog by role on GET /broadcast/screens?role=PlayoutOperator", async () => {
+      const res = await makeRequest(testPort, "/broadcast/screens?role=PlayoutOperator");
+      expect(res.statusCode).toBe(200);
+      expect(res.rawText).toContain("SCR-BCST-22");
+      expect(res.rawText).toContain("SCR-BCST-23");
+    });
+
+    it("should serve individual screen detail view on GET /broadcast/screens/:id", async () => {
+      const res = await makeRequest(testPort, "/broadcast/screens/SCR-BCST-14");
+      expect(res.statusCode).toBe(200);
+      expect(res.rawText).toContain("EPG Inspector & Syndication");
+      expect(res.rawText).toContain("TrafficManager");
+      expect(res.rawText).toContain("push_startimes");
+    });
+
+    it("should return friendly error on GET /broadcast/screens/:id for invalid screen", async () => {
+      const res = await makeRequest(testPort, "/broadcast/screens/SCR-INVALID-99");
+      expect(res.statusCode).toBe(200);
+      expect(res.rawText).toContain("Screen Surface Not Found");
+    });
   });
 
   describe("1. Observability, Health & Telemetry", () => {

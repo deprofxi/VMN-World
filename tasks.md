@@ -467,6 +467,14 @@ All technical, product, and operational decisions must strictly respect the 10-t
   - **Deliverable:** Reusable component library (`/src/web/components/`).
   - **Acceptance Criteria:** Zero accessibility violations detected by automated audit tools (axe-core / Lighthouse).
 
+- [x] **TASK-P7-05: 33 Broadcast Operational Screen Surfaces Catalog & Detail Views (R1.2A §46)**
+  - **Action:** Implement web surfaces for the 33 operational screens:
+    - Dynamic visual grid catalog at `/broadcast/screens` with filter tabs for all 6 operational roles.
+    - Dedicated screen detail view at `/broadcast/screens/:id` displaying route mapping, RBAC permissions, and simulated action controls.
+    - Integrated with master layout and WCAG 2.2 AA responsive design tokens.
+  - **Deliverable:** `src/web/public/screens-view.ts` and router bindings in `src/api/router.ts`.
+  - **Acceptance Criteria:** All 33 operational screens navigable with verified route mappings, RBAC badge styling, and passing integration tests.
+
 ---
 
 ## 11. PHASE 8: COMMERCIAL, FINANCIAL & RECONCILIATION ENGINE

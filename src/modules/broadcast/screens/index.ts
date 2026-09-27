@@ -52,3 +52,10 @@ export const BROADCAST_SCREEN_INVENTORY: BroadcastScreenDescriptor[] = [
 export function getScreenDescriptor(screenNumber: number): BroadcastScreenDescriptor | undefined {
   return BROADCAST_SCREEN_INVENTORY.find((s) => s.screenNumber === screenNumber);
 }
+
+export function getScreenDescriptorById(screenId: string): BroadcastScreenDescriptor | undefined {
+  const normalized = screenId.trim().toUpperCase();
+  return BROADCAST_SCREEN_INVENTORY.find(
+    (s) => s.screenId.toUpperCase() === normalized || s.screenNumber.toString() === normalized
+  );
+}
