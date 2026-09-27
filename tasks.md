@@ -435,7 +435,7 @@ All technical, product, and operational decisions must strictly respect the 10-t
 
 ## 10. PHASE 7: PUBLIC DIGITAL SURFACES & USER EXPERIENCE (CC-UI-001)
 
-- [ ] **TASK-P7-01: Public VMN Corporate Portal (R1.2A §9)**
+- [x] **TASK-P7-01: Public VMN Corporate Portal (R1.2A §9)**
   - **Action:** Build public-facing corporate website:
     - Executive leadership, corporate governance, investor relations, press releases.
     - Interactive overview of the three enterprise pillars: Broadcast, Creative Economy Hub, Azeebo+.
@@ -443,7 +443,7 @@ All technical, product, and operational decisions must strictly respect the 10-t
   - **Deliverable:** Public portal pages in `/src/web/public/`.
   - **Acceptance Criteria:** 100/100 Lighthouse performance, SEO structured metadata, mobile responsive.
 
-- [ ] **TASK-P7-02: Linear Television Public Channels Hub (R1.2A §10)**
+- [x] **TASK-P7-02: Linear Television Public Channels Hub (R1.2A §10)**
   - **Action:** Implement dedicated public micro-sites for the linear channels:
     - **Nigezie Xtreme:** Live now, coming next, programme guide, featured music videos, show clips.
     - **Orisun:** Cultural showcase, Yoruba programming highlights, schedule, presenter bios.
@@ -452,14 +452,14 @@ All technical, product, and operational decisions must strictly respect the 10-t
   - **Deliverable:** Public channel frontends and live EPG consumer components.
   - **Acceptance Criteria:** Schedule displays adjust dynamically to viewer timezone; shows valid programme descriptions and posters.
 
-- [ ] **TASK-P7-03: Creative Economy Hub Public Showcases & Inquiries**
+- [x] **TASK-P7-03: Creative Economy Hub Public Showcases & Inquiries**
   - **Action:** Build public landing pages for Hub verticals:
     - HeadspaceNG, Cr8TechNG, Talent Accelerator, AFCA, Afro-Fusion Creatives, VTM, VCF, ONE Studios, Fusion Events, TEND.
     - Controlled enquiry pathways: Application forms, partnership pitches, booking requests.
   - **Deliverable:** Hub showcase screens and inquiry capture pipeline.
   - **Acceptance Criteria:** Inquiries route directly into internal CRM queues; automated acknowledgment emails dispatched.
 
-- [ ] **TASK-P7-04: UI/UX Component System & Accessibility Conformance**
+- [x] **TASK-P7-04: UI/UX Component System & Accessibility Conformance**
   - **Action:** Implement atomic design system satisfying frontend standards:
     - 4px/8px design token grid, semantic color system with high-contrast ratios (WCAG 2.2 AA >= 4.5:1).
     - Complete component state matrix: Default, hover, pressed, focus-visible, disabled, loading skeleton, error, empty.
