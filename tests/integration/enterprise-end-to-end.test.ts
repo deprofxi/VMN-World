@@ -156,6 +156,98 @@ describe("VMNL Enterprise End-to-End Platform Integration", () => {
       expect(res.body.paths["/api/v1/broadcast/asrun/reconcile"]).toBeDefined();
       expect(res.body.paths["/api/v1/quality/gates"]).toBeDefined();
     });
+
+    // Surface A Tests
+    it("should serve linear channel pages (NXTR, ORIS, IMBD) and public programme detail", async () => {
+      const nxtrRes = await makeRequest(testPort, "/channels/nxtr");
+      expect(nxtrRes.statusCode).toBe(200);
+      expect(nxtrRes.rawText).toContain("Nigezie Xtreme");
+      expect(nxtrRes.rawText).toContain("ON AIR LIVE");
+
+      const orisRes = await makeRequest(testPort, "/channels/orisun");
+      expect(orisRes.statusCode).toBe(200);
+      expect(orisRes.rawText).toContain("Orisun");
+
+      const imbdRes = await makeRequest(testPort, "/channels/isimbido");
+      expect(imbdRes.statusCode).toBe(200);
+      expect(imbdRes.rawText).toContain("Isi Mbido");
+
+      const prgRes = await makeRequest(testPort, "/programmes/PRG-001");
+      expect(prgRes.statusCode).toBe(200);
+      expect(prgRes.rawText).toContain("Urban Beats Live Prime");
+    });
+
+    it("should serve all Surface A Creative Hub verticals and public pages", async () => {
+      const talentRes = await makeRequest(testPort, "/hub/talent");
+      expect(talentRes.statusCode).toBe(200);
+      expect(talentRes.rawText).toContain("Talent Accelerator Network");
+
+      const afcaRes = await makeRequest(testPort, "/hub/afca");
+      expect(afcaRes.statusCode).toBe(200);
+      expect(afcaRes.rawText).toContain("African Film & Creative Arts Academy");
+
+      const partnersRes = await makeRequest(testPort, "/partners");
+      expect(partnersRes.statusCode).toBe(200);
+      expect(partnersRes.rawText).toContain("Commercial Partnerships");
+
+      const insightsRes = await makeRequest(testPort, "/insights");
+      expect(insightsRes.statusCode).toBe(200);
+      expect(insightsRes.rawText).toContain("HeadspaceNG Strategic Intelligence");
+
+      const careersRes = await makeRequest(testPort, "/careers");
+      expect(careersRes.statusCode).toBe(200);
+      expect(careersRes.rawText).toContain("Careers at VMNL");
+
+      const azeeboRes = await makeRequest(testPort, "/azeebo");
+      expect(azeeboRes.statusCode).toBe(200);
+      expect(azeeboRes.rawText).toContain("Azeebo+ Streaming & Creator App");
+    });
+
+    // Surface B & C Tests
+    it("should serve Surface B & C Enterprise Workspaces directory and desk pages", async () => {
+      const dirRes = await makeRequest(testPort, "/workspace");
+      expect(dirRes.statusCode).toBe(200);
+      expect(dirRes.rawText).toContain("Enterprise Operating Hub & Specialist Desks");
+      expect(dirRes.rawText).toContain("23 of 23 Desks Operational");
+
+      const execRes = await makeRequest(testPort, "/workspace/executive");
+      expect(execRes.statusCode).toBe(200);
+      expect(execRes.rawText).toContain("Enterprise Executive Command Dashboard");
+      expect(execRes.rawText).toContain("ExecutiveLeader");
+
+      const finRes = await makeRequest(testPort, "/workspace/finance");
+      expect(finRes.statusCode).toBe(200);
+      expect(finRes.rawText).toContain("Consolidated Finance & Settlement Dashboard");
+
+      const aosRes = await makeRequest(testPort, "/workspace/aos");
+      expect(aosRes.statusCode).toBe(200);
+      expect(aosRes.rawText).toContain("Agentic OS Registry & Evaluation Desk");
+
+      const invalidDesk = await makeRequest(testPort, "/workspace/unknown-desk");
+      expect(invalidDesk.statusCode).toBe(200);
+      expect(invalidDesk.rawText).toContain("Workspace Desk Not Found");
+    });
+
+    // Surface E Tests
+    it("should serve Surface E Azeebo+ Federation gateway, attribution, and universe resolvers", async () => {
+      const gwRes = await makeRequest(testPort, "/azeebo/gateway");
+      expect(gwRes.statusCode).toBe(200);
+      expect(gwRes.rawText).toContain("Azeebo+ Federation & Universal Gateway");
+
+      const attrRes = await makeRequest(testPort, "/azeebo/attribution");
+      expect(attrRes.statusCode).toBe(200);
+      expect(attrRes.rawText).toContain("Linear-to-Digital Attribution Tracker");
+
+      const contentRes = await makeRequest(testPort, "/content/mov-123");
+      expect(contentRes.statusCode).toBe(200);
+      expect(contentRes.rawText).toContain("Content Referral Gateway");
+      expect(contentRes.rawText).toContain("mov-123");
+
+      const cnmRes = await makeRequest(testPort, "/cinemaxis/cnm-789");
+      expect(cnmRes.statusCode).toBe(200);
+      expect(cnmRes.rawText).toContain("Cinemaxis Universe");
+      expect(cnmRes.rawText).toContain("cnm-789");
+    });
   });
 
   describe("1. Observability, Health & Telemetry", () => {

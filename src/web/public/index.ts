@@ -8,3 +8,4 @@ export * from "./channels.js";
 export * from "./hub.js";
 export * from "./dashboard.js";
 export * from "./screens-view.js";
+export * from "./surface-a.js";

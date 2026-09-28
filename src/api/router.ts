@@ -31,7 +31,27 @@ import {
   renderDashboardHtml,
   renderScreensCatalogHtml,
   renderScreenDetailHtml,
-} from "../web/public/index.js";
+  renderChannelDetailPageHtml,
+  renderPublicProgrammeDetailHtml,
+  renderTalentAcceleratorPageHtml,
+  renderAfcaAcademyPageHtml,
+  renderCreatorsGatewayPageHtml,
+  renderCommunityPresencePageHtml,
+  renderVtmMarketplacePageHtml,
+  renderProductionPageHtml,
+  renderEventsPageHtml,
+  renderTechnologyPageHtml,
+  renderDistributionPageHtml,
+  renderPartnersPageHtml,
+  renderInsightsPageHtml,
+  renderCareersPageHtml,
+  renderAzeeboGatewayPageHtml,
+  renderWorkspaceDirectoryHtml,
+  renderWorkspaceDeskHtml,
+  renderFederationGatewayHtml,
+  renderUniverseResolverHtml,
+  renderAttributionConsoleHtml,
+} from "../web/index.js";
 import { OPENAPI_SPEC, renderDocsHtml } from "./docs.js";
 
 export interface RequestHandlerContext {
@@ -126,8 +146,158 @@ export async function handleApiRequest(
       return;
     }
 
+    // Surface A: Channel Pages
+    if (pathname === "/channels/nxtr" && method === "GET") {
+      const html = renderMasterLayout("Nigezie Xtreme (NXTR)", renderChannelDetailPageHtml("NXTR"), "/channels");
+      sendText(res, 200, html, "text/html; charset=utf-8");
+      return;
+    }
+
+    if (pathname === "/channels/orisun" && method === "GET") {
+      const html = renderMasterLayout("Orisun (ORIS)", renderChannelDetailPageHtml("ORIS"), "/channels");
+      sendText(res, 200, html, "text/html; charset=utf-8");
+      return;
+    }
+
+    if (pathname === "/channels/isimbido" && method === "GET") {
+      const html = renderMasterLayout("Isi Mbido (IMBD)", renderChannelDetailPageHtml("IMBD"), "/channels");
+      sendText(res, 200, html, "text/html; charset=utf-8");
+      return;
+    }
+
+    if (pathname.startsWith("/programmes/") && method === "GET") {
+      const programmeId = pathname.replace("/programmes/", "").trim();
+      const html = renderMasterLayout(`Programme ${programmeId}`, renderPublicProgrammeDetailHtml(programmeId), "/channels");
+      sendText(res, 200, html, "text/html; charset=utf-8");
+      return;
+    }
+
+    // Surface A: Hub Verticals & Public Pages
     if (pathname === "/hub" && method === "GET") {
       const html = renderMasterLayout("Creative Economy Hub", renderHubPageHtml(), "/hub");
+      sendText(res, 200, html, "text/html; charset=utf-8");
+      return;
+    }
+
+    if (pathname === "/hub/talent" && method === "GET") {
+      const html = renderMasterLayout("Talent Accelerator", renderTalentAcceleratorPageHtml(), "/hub");
+      sendText(res, 200, html, "text/html; charset=utf-8");
+      return;
+    }
+
+    if ((pathname === "/hub/afca" || pathname === "/learn") && method === "GET") {
+      const html = renderMasterLayout("AFCA Academy", renderAfcaAcademyPageHtml(), "/hub");
+      sendText(res, 200, html, "text/html; charset=utf-8");
+      return;
+    }
+
+    if (pathname === "/hub/creators" && method === "GET") {
+      const html = renderMasterLayout("Creators & Talent Gateway", renderCreatorsGatewayPageHtml(), "/hub");
+      sendText(res, 200, html, "text/html; charset=utf-8");
+      return;
+    }
+
+    if (pathname === "/hub/community" && method === "GET") {
+      const html = renderMasterLayout("Afro-Fusion Creatives Community", renderCommunityPresencePageHtml(), "/hub");
+      sendText(res, 200, html, "text/html; charset=utf-8");
+      return;
+    }
+
+    if (pathname === "/hub/vtm" && method === "GET") {
+      const html = renderMasterLayout("Verified Talent Marketplace (VTM)", renderVtmMarketplacePageHtml(), "/hub");
+      sendText(res, 200, html, "text/html; charset=utf-8");
+      return;
+    }
+
+    if (pathname === "/hub/production" && method === "GET") {
+      const html = renderMasterLayout("Production: ONE Studios & VCF", renderProductionPageHtml(), "/hub");
+      sendText(res, 200, html, "text/html; charset=utf-8");
+      return;
+    }
+
+    if (pathname === "/hub/events" && method === "GET") {
+      const html = renderMasterLayout("Fusion Events", renderEventsPageHtml(), "/hub");
+      sendText(res, 200, html, "text/html; charset=utf-8");
+      return;
+    }
+
+    if (pathname === "/hub/technology" && method === "GET") {
+      const html = renderMasterLayout("Cr8TechNG Technology", renderTechnologyPageHtml(), "/hub");
+      sendText(res, 200, html, "text/html; charset=utf-8");
+      return;
+    }
+
+    if (pathname === "/hub/distribution" && method === "GET") {
+      const html = renderMasterLayout("TEND Rights & Distribution", renderDistributionPageHtml(), "/hub");
+      sendText(res, 200, html, "text/html; charset=utf-8");
+      return;
+    }
+
+    if (pathname === "/partners" && method === "GET") {
+      const html = renderMasterLayout("Commercial Partners & Sponsors", renderPartnersPageHtml(), "/partners");
+      sendText(res, 200, html, "text/html; charset=utf-8");
+      return;
+    }
+
+    if (pathname === "/insights" && method === "GET") {
+      const html = renderMasterLayout("Insights & Research", renderInsightsPageHtml(), "/insights");
+      sendText(res, 200, html, "text/html; charset=utf-8");
+      return;
+    }
+
+    if (pathname === "/careers" && method === "GET") {
+      const html = renderMasterLayout("Careers at VMNL", renderCareersPageHtml(), "/careers");
+      sendText(res, 200, html, "text/html; charset=utf-8");
+      return;
+    }
+
+    if (pathname === "/azeebo" && method === "GET") {
+      const html = renderMasterLayout("Open Azeebo+", renderAzeeboGatewayPageHtml(), "/azeebo");
+      sendText(res, 200, html, "text/html; charset=utf-8");
+      return;
+    }
+
+    // Surface B & C: Enterprise Workspaces
+    if (pathname === "/workspace" && method === "GET") {
+      const html = renderMasterLayout("Enterprise Workspaces", renderWorkspaceDirectoryHtml(), "/workspace");
+      sendText(res, 200, html, "text/html; charset=utf-8");
+      return;
+    }
+
+    if (pathname.startsWith("/workspace/") && method === "GET") {
+      const deskKey = pathname.replace("/workspace/", "").trim();
+      const html = renderMasterLayout(`Workspace / ${deskKey}`, renderWorkspaceDeskHtml(deskKey), "/workspace");
+      sendText(res, 200, html, "text/html; charset=utf-8");
+      return;
+    }
+
+    // Surface E: Azeebo+ Federation & Gateway
+    if (pathname === "/azeebo/gateway" && method === "GET") {
+      const html = renderMasterLayout("Azeebo+ Federation Gateway", renderFederationGatewayHtml(), "/azeebo/gateway");
+      sendText(res, 200, html, "text/html; charset=utf-8");
+      return;
+    }
+
+    if (pathname === "/azeebo/attribution" && method === "GET") {
+      const html = renderMasterLayout("Linear Attribution Tracker", renderAttributionConsoleHtml(), "/azeebo/attribution");
+      sendText(res, 200, html, "text/html; charset=utf-8");
+      return;
+    }
+
+    // Surface E: Universe Deep-Link Resolvers
+    const universePrefixes = ["content", "creator", "event", "cinemaxis", "aou", "game", "9tlife", "live"];
+    for (const uni of universePrefixes) {
+      if ((pathname.startsWith(`/${uni}/`) || pathname.startsWith(`/azeebo/${uni}/`)) && method === "GET") {
+        const itemId = pathname.replace(new RegExp(`^/(?:azeebo/)?${uni}/`), "").trim();
+        const html = renderMasterLayout(`Azeebo+ / ${uni}`, renderUniverseResolverHtml(uni, itemId), "/azeebo/gateway");
+        sendText(res, 200, html, "text/html; charset=utf-8");
+        return;
+      }
+    }
+
+    if ((pathname.startsWith("/azeebo/broadcast/") || pathname.startsWith("/broadcast/bridge/")) && method === "GET") {
+      const itemId = pathname.replace(new RegExp(`^/(?:azeebo/broadcast|broadcast/bridge)/`), "").trim();
+      const html = renderMasterLayout("Azeebo+ / Broadcast Bridge", renderUniverseResolverHtml("broadcast", itemId), "/azeebo/gateway");
       sendText(res, 200, html, "text/html; charset=utf-8");
       return;
     }

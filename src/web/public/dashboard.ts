@@ -187,10 +187,11 @@ export function renderMasterLayout(title: string, bodyContent: string, activeNav
     </a>
     <nav class="vmn-nav-links" aria-label="Main Navigation">
       <a href="/" class="${activeNav === "/" ? "active" : ""}">Overview</a>
-      <a href="/channels" class="${activeNav === "/channels" ? "active" : ""}">Channels</a>
-      <a href="/hub" class="${activeNav === "/hub" ? "active" : ""}">Creative Hub</a>
-      <a href="/broadcast/screens" class="${activeNav.startsWith("/broadcast/screens") ? "active" : ""}">33 Screens</a>
-      <a href="/broadcast/dashboard" class="${activeNav === "/broadcast/dashboard" ? "active" : ""}">Operator Console</a>
+      <a href="/channels" class="${activeNav.startsWith("/channels") ? "active" : ""}">Channels</a>
+      <a href="/hub" class="${activeNav.startsWith("/hub") ? "active" : ""}">Hub</a>
+      <a href="/workspace" class="${activeNav.startsWith("/workspace") ? "active" : ""}">Workspaces</a>
+      <a href="/broadcast/screens" class="${activeNav.startsWith("/broadcast") ? "active" : ""}">33 Screens</a>
+      <a href="/azeebo/gateway" class="${activeNav.startsWith("/azeebo") ? "active" : ""}">Azeebo+</a>
       <a href="/docs" class="${activeNav.startsWith("/docs") ? "active" : ""}">API Docs</a>
     </nav>
   </header>
