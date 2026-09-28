@@ -111,38 +111,148 @@ export function parseAsRunLogText(rawText: string): AsRunLogItem[] {
   return items;
 }
 
+// Proof-of-Air In-Memory Registry for Public Verification
+const proofOfAirRegistry = new Map<string, ProofOfAirCertificate>();
+
+export function registerProofOfAirCertificate(cert: ProofOfAirCertificate): void {
+  proofOfAirRegistry.set(cert.certificateId, cert);
+}
+
+export function getProofOfAirCertificate(certificateId: string): ProofOfAirCertificate | undefined {
+  return proofOfAirRegistry.get(certificateId);
+}
+
+export function getAllProofOfAirCertificates(): ProofOfAirCertificate[] {
+  return Array.from(proofOfAirRegistry.values());
+}
+
+function escapePdfText(str: string): string {
+  return str.replace(/\\/g, "\\\\").replace(/\(/g, "\\(").replace(/\)/g, "\\)");
+}
+
+/**
+ * Builds a strict, standards-compliant PDF-1.4 binary document for Proof-of-Air performance certification.
+ * Follows ISO 32000-1 specification without unverified third-party dependencies.
+ */
+export function buildBinaryProofOfAirPdf(cert: {
+  certificateId: string;
+  channelCode: string;
+  clientName: string;
+  campaignId: string;
+  spotId: string;
+  airedTimestamp: Date;
+  durationSeconds: number;
+  cryptographicSignature: string;
+  carrierLockVerified?: boolean;
+  generatedAt: Date;
+  verificationUrl: string;
+}): Buffer {
+  const contentOps = [
+    "q",
+    "0.059 0.09 0.165 rg",
+    "40 730 532 32 re f",
+    "1 1 1 rg",
+    "BT",
+    "/F2 12 Tf",
+    "52 742 Td",
+    "(VIRTUAL MEDIA NETWORK LIMITED - BROADCAST REVENUE ASSURANCE) Tj",
+    "ET",
+    "0 0 0 rg",
+    "BT",
+    "/F2 16 Tf",
+    "50 684 Td",
+    "(CERTIFICATE OF BROADCAST PERFORMANCE & PROOF-OF-AIR) Tj",
+    "/F1 10 Tf",
+    "0 -28 Td",
+    `(${escapePdfText(`Certificate ID:       ${cert.certificateId}`)}) Tj`,
+    "0 -18 Td",
+    `(${escapePdfText(`Channel Network:      ${cert.channelCode}`)}) Tj`,
+    "0 -18 Td",
+    `(${escapePdfText(`Commercial Client:    ${cert.clientName}`)}) Tj`,
+    "0 -18 Td",
+    `(${escapePdfText(`Campaign ID:          ${cert.campaignId}`)}) Tj`,
+    "0 -18 Td",
+    `(${escapePdfText(`Commercial Spot ID:   ${cert.spotId}`)}) Tj`,
+    "0 -18 Td",
+    `(${escapePdfText(`Actual Air Time:      ${cert.airedTimestamp.toISOString()}`)}) Tj`,
+    "0 -18 Td",
+    `(${escapePdfText(`Aired Duration:       ${cert.durationSeconds} seconds`)}) Tj`,
+    "0 -18 Td",
+    `(${escapePdfText(`Transmission Carrier: ${cert.carrierLockVerified !== false ? "VERIFIED CARRIER LOCK (StarTimes DTT/DTH Uplink)" : "PENDING RECONCILIATION"}`)}) Tj`,
+    "0 -18 Td",
+    `(${escapePdfText(`Verification URL:     ${cert.verificationUrl}`)}) Tj`,
+    "0 -18 Td",
+    `(${escapePdfText(`Timestamp Generated:  ${cert.generatedAt.toISOString()}`)}) Tj`,
+    "0 -28 Td",
+    "/F2 10 Tf",
+    "(Tamper-Evident Playout SHA-256 Digest:) Tj",
+    "0 -16 Td",
+    "/F1 8 Tf",
+    `(${escapePdfText(cert.cryptographicSignature)}) Tj`,
+    "0 -32 Td",
+    "/F1 9 Tf",
+    "(Issued under authority of VMNL Master Control Playout & Revenue Assurance Operations (CCPP-001 §19).) Tj",
+    "ET",
+    "0.8 0.8 0.8 RG",
+    "1 w",
+    "40 180 532 582 re S",
+    "Q",
+  ].join("\n");
+
+  const streamLength = Buffer.byteLength(contentOps, "utf-8");
+
+  const obj1 = "1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n";
+  const obj2 = "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
+  const obj3 =
+    "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>\nendobj\n";
+  const obj4 = `4 0 obj\n<< /Length ${streamLength} >>\nstream\n${contentOps}\nendstream\nendobj\n`;
+  const obj5 = "5 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>\nendobj\n";
+  const obj6 = "6 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>\nendobj\n";
+  const obj7 = `7 0 obj\n<< /Title (${escapePdfText(cert.certificateId)}) /Author (VMNL Master Control) /Creator (VMNL Broadcast Assurance Engine) /Producer (VMNL Native PDF 1.4 Generator) /CreationDate (D:${cert.generatedAt.toISOString().replace(/[-:TZ.]/g, "").slice(0, 14)}Z) >>\nendobj\n`;
+
+  const header = "%PDF-1.4\n%\xE2\xE3\xCF\xD3\n";
+  const objects = [obj1, obj2, obj3, obj4, obj5, obj6, obj7];
+
+  let offset = Buffer.byteLength(header, "utf-8");
+  const offsets: number[] = [];
+
+  for (const obj of objects) {
+    offsets.push(offset);
+    offset += Buffer.byteLength(obj, "utf-8");
+  }
+
+  const startXref = offset;
+  let xref = `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
+  for (const off of offsets) {
+    xref += `${off.toString().padStart(10, "0")} 00000 n \n`;
+  }
+
+  const trailer = `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R /Info 7 0 R >>\nstartxref\n${startXref}\n%%EOF\n`;
+
+  const fullPdf = header + objects.join("") + xref + trailer;
+  return Buffer.from(fullPdf, "binary");
+}
+
 /**
  * Generates an audit-grade Base64-encoded PDF/document payload for a Proof-of-Air certificate.
  */
 export function generateProofOfAirDocument(cert: Omit<ProofOfAirCertificate, "documentBase64" | "verificationUrl">): {
   documentBase64: string;
   verificationUrl: string;
+  pdfBuffer: Buffer;
 } {
   const config = getConfig();
   const baseUrl = config.APP_URL || "http://localhost:4000";
   const verificationUrl = `${baseUrl}/verify/poa/${cert.certificateId}`;
 
-  const documentContent = [
-    `%PDF-1.4 (Simulated Broadcast Audit Certificate)`,
-    `CERTIFICATE OF BROADCAST PERFORMANCE & PROOF-OF-AIR`,
-    `====================================================`,
-    `Certificate Number: ${cert.certificateId}`,
-    `Channel:            ${cert.channelCode}`,
-    `Client Name:        ${cert.clientName}`,
-    `Campaign ID:        ${cert.campaignId}`,
-    `Spot ID:            ${cert.spotId}`,
-    `Actual Air Time:    ${cert.airedTimestamp.toISOString()}`,
-    `Aired Duration:     ${cert.durationSeconds} seconds`,
-    `Carrier Return:     VERIFIED CARRIER LOCK (StarTimes Uplink)`,
-    `Digital Signature:  ${cert.cryptographicSignature}`,
-    `Issued By:          VMNL Master Control & Revenue Assurance`,
-    `Verification URL:   ${verificationUrl}`,
-    `Timestamp:          ${cert.generatedAt.toISOString()}`,
-  ].join("\n");
+  const pdfBuffer = buildBinaryProofOfAirPdf({
+    ...cert,
+    verificationUrl,
+  });
 
-  const documentBase64 = Buffer.from(documentContent, "utf-8").toString("base64");
+  const documentBase64 = pdfBuffer.toString("base64");
 
-  return { documentBase64, verificationUrl };
+  return { documentBase64, verificationUrl, pdfBuffer };
 }
 
 /**
@@ -205,11 +315,13 @@ export function performThreeWayMatch(
 
     const doc = generateProofOfAirDocument(certData);
 
-    certificates.push({
+    const fullCert: ProofOfAirCertificate = {
       ...certData,
       documentBase64: doc.documentBase64,
       verificationUrl: doc.verificationUrl,
-    });
+    };
+    registerProofOfAirCertificate(fullCert);
+    certificates.push(fullCert);
   }
 
   const status = discrepancies === 0 ? "VERIFIED_ALL_MATCHED" : preempted > 0 ? "PARTIAL_DISCREPANCY" : "CRITICAL_AIRING_FAILURE";
@@ -264,11 +376,13 @@ export function reconcileAsRunLogs(
 
       const doc = generateProofOfAirDocument(certData);
 
-      certificates.push({
+      const fullCert: ProofOfAirCertificate = {
         ...certData,
         documentBase64: doc.documentBase64,
         verificationUrl: doc.verificationUrl,
-      });
+      };
+      registerProofOfAirCertificate(fullCert);
+      certificates.push(fullCert);
     } else {
       totalDiscrepancies++;
       if (item.status === "PREEMPTED" || item.status === "TECHNICAL_ERROR") {

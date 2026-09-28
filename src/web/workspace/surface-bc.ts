@@ -1,37 +1,70 @@
 /**
  * Surface B & C — Enterprise Operating Hub & Specialist Workspaces
- * Authority: VMNL-AZP-VMN-BRD-PRD-001 — R1.2A / VMNL-AZP-VMN-CCPP-001 (§8, §11–§40)
+ * Authority: VMNL-AZP-VMN-BRD-PRD-001 — R1.2A §46 / VMNL-AZP-VMN-CCPP-001 (§8–§25)
  *
- * Implements the 23 Enterprise Operating Desks & Specialist Workspaces:
- * 1. Enterprise Executive Command Dashboard
- * 2. Identity & Access Management (One Person / Multiple Roles)
- * 3. Organisation & Counterparty Registry
- * 4. CRM, Leads & Sales Opportunities
- * 5. Commercial Proposals & Quotes
- * 6. Project Command Centre
- * 7. CLM / Master Contract Ledger
- * 8. Consolidated Finance, Invoicing & Settlement Dashboard
- * 9. Talent Accelerator Partner Network Desk
- * 10. AFCA Learning, Competency & Assessment Hub
- * 11. Afro-Fusion Guilds, Mentorship & Community Workspace
- * 12. VTM Talent Deal Desk & Protected Engagements
- * 13. VCF Rapid Format Lab & Creator Missions
- * 14. ONE Studios Production Tracker & QC Management
- * 15. Fusion Events Operations & Venue Management
- * 16. TEND B2B Rights Catalogue & Licence Manager
- * 17. HeadspaceNG Strategic Intelligence & Cultural Analytics Desk
- * 18. Cr8TechNG Technology & Workflow Integration Console
- * 19. Governed Rights Ledger & Exploitation Window Engine
- * 20. Data Privacy, Consent & ROPA Register
- * 21. Security, Audit Logging & Role Management (RBAC/ABAC)
- * 22. Agentic OS Registry, Permissioning & Evaluation Desk
- * 23. Enterprise Risk, Issue & Incident Register
+ * Implements all 48 Enterprise Operating Desks & Specialist Workspaces:
+ *
+ * Pillar 1: Executive, Operations & Core Governance (Desks 1–12)
+ * 1.  executive      - Enterprise Executive Command Dashboard
+ * 2.  iam            - Identity & Access Management (One Person / Multiple Roles)
+ * 3.  organisations  - Organisation & Counterparty Registry
+ * 4.  projects       - Project Command Centre
+ * 5.  risk           - Enterprise Risk, Issue & Incident Register
+ * 6.  board          - Board of Directors & Investor Relations Desk
+ * 7.  procurement    - Strategic Procurement & Vendor Registry
+ * 8.  audit          - Enterprise Regulatory & Internal Audit Desk
+ * 9.  esg            - Sustainability & Corporate Social Responsibility (ESG)
+ * 10. comms          - Corporate Communications & Public Relations
+ * 11. hr             - Enterprise People, Culture & Payroll Operations
+ * 12. legal          - General Counsel & Legal Affairs Chamber
+ *
+ * Pillar 2: Broadcast Linear Operations & Master Control (Desks 13–24)
+ * 13. mcr            - Master Control Room (MCR) Live Playout Supervisor
+ * 14. traffic        - Linear Broadcast Traffic & Spot Placement Desk
+ * 15. epg            - EPG Programming, Dayparting & Schedule Manager
+ * 16. asrun          - As-Run Log Ingestion & Proof-of-Air Desk
+ * 17. uplink         - StarTimes DTT/DTH Satellite Uplink & Carrier Telemetry
+ * 18. ingest         - Broadcast Media Ingest, Transcode & QC Slating
+ * 19. graphics       - Broadcast Channel Branding & Lower-Third Graphics
+ * 20. scte           - SCTE-35 Digital Ad Insertion & Dynamic Cue Desk
+ * 21. disaster       - Disaster Recovery & Playout Automation Failover
+ * 22. audio          - Audio Loudness & EBU R128 Compliance Console
+ * 23. interstitial   - Promo & Filler Inventory Optimization Desk
+ * 24. transmission   - Transmission Telemetry & Signal Quality Hub
+ *
+ * Pillar 3: Creative Hub, Talent & Production (Desks 25–36)
+ * 25. talent         - Talent Accelerator Partner Network Desk
+ * 26. afca           - AFCA Learning, Competency & Assessment Hub
+ * 27. community      - Afro-Fusion Guilds & Mentorship Workspace
+ * 28. vtm            - VTM Talent Deal Desk & Protected Engagements
+ * 29. vcf            - VCF Rapid Format Lab & Creator Missions
+ * 30. onestudios     - ONE Studios Production Tracker & QC Management
+ * 31. events         - Fusion Events & Experiential Operations Desk
+ * 32. tend           - TEND B2B Rights Catalogue & Licence Manager
+ * 33. soundstage     - Studio Soundstage, Acoustical & Set Operations
+ * 34. gear           - Film Camera & Grip Equipment Gear Locker
+ * 35. postproduction - Post-Production & Color Grading Pipeline Desk
+ * 36. alumni         - AFCA Alumni Career Placement & Guild Registry
+ *
+ * Pillar 4: Commercial, Finance, Tech & Governance (Desks 37–48)
+ * 37. crm            - CRM, Leads & Sales Opportunities
+ * 38. quotes         - Commercial Proposals & Media Quotes
+ * 39. contracts      - CLM / Master Contract Ledger
+ * 40. finance        - Consolidated Finance & Settlement Dashboard (7-Way Split)
+ * 41. payouts        - Talent Payout Batching & Nigerian WHT Ledger
+ * 42. bankrecon      - Bank Statement Automated Reconciliation (MT940/NIP)
+ * 43. headspace      - HeadspaceNG Strategic Intelligence Desk
+ * 44. cr8tech        - Cr8TechNG Technology & Workflow Console
+ * 45. rights         - Governed Rights Ledger & Exploitation Windows
+ * 46. privacy        - Data Privacy, Consent & ROPA Register (NDPR)
+ * 47. security       - Security, Audit Logging & RBAC/ABAC Console
+ * 48. aos            - Agentic OS Registry & Evaluation Desk
  */
 
 export interface WorkspaceDeskDescriptor {
   key: string;
   name: string;
-  category: "Executive & Core" | "Commercial & Finance" | "Hub Specialist" | "Tech & Governance";
+  category: "Executive & Core" | "Broadcast Operations" | "Hub Specialist" | "Commercial & Finance" | "Tech & Governance";
   primaryRole: string;
   authorityCitation: string;
   description: string;
@@ -39,6 +72,9 @@ export interface WorkspaceDeskDescriptor {
 }
 
 export const ENTERPRISE_WORKSPACES: WorkspaceDeskDescriptor[] = [
+  // ==========================================
+  // Pillar 1: Executive, Operations & Core Governance (Desks 1–12)
+  // ==========================================
   {
     key: "executive",
     name: "Enterprise Executive Command Dashboard",
@@ -67,24 +103,6 @@ export const ENTERPRISE_WORKSPACES: WorkspaceDeskDescriptor[] = [
     activeWorkflows: ["CAC Corporate Verification", "TIN & Tax Compliance Check", "Bank Account NIP Validation"],
   },
   {
-    key: "crm",
-    name: "CRM, Leads & Sales Opportunities",
-    category: "Commercial & Finance",
-    primaryRole: "CommercialLead",
-    authorityCitation: "R1.2A §14, §42 / CCPP-001 §11",
-    description: "Inbound brand partnership opportunities, media agency flighting requests, and broadcast advertising pipeline.",
-    activeWorkflows: ["Opportunity Staging", "Agency Discount Matrix", "Media Plan Pipeline Forecast"],
-  },
-  {
-    key: "quotes",
-    name: "Commercial Proposals & Media Quotes",
-    category: "Commercial & Finance",
-    primaryRole: "CommercialLead",
-    authorityCitation: "R1.2A §14, §42",
-    description: "Automated spot rate calculations per daypart (Early Morning, Daytime, Prime Time, Late Night) with dual-authorization approval.",
-    activeWorkflows: ["Dual Sign-Off Trigger", "Spot Inventory Hold", "Client Pro-Forma Generation"],
-  },
-  {
     key: "projects",
     name: "Project Command Centre",
     category: "Executive & Core",
@@ -94,23 +112,193 @@ export const ENTERPRISE_WORKSPACES: WorkspaceDeskDescriptor[] = [
     activeWorkflows: ["Milestone Delivery Tracking", "Cross-Functional Dependencies", "Resource Utilization Heatmap"],
   },
   {
-    key: "contracts",
-    name: "CLM / Master Contract Ledger",
-    category: "Commercial & Finance",
-    primaryRole: "LegalCounsel",
-    authorityCitation: "CCPP-001 §12",
-    description: "Tamper-evident legal contracts repository binding media agreements, talent releases, and NDPR data processing agreements.",
-    activeWorkflows: ["Versioned Redlining", "Digital Signature Execution", "Auto-Renewal & Expiry Watcher"],
+    key: "risk",
+    name: "Enterprise Risk, Issue & Incident Register",
+    category: "Executive & Core",
+    primaryRole: "RiskManager",
+    authorityCitation: "CC-OPS-001",
+    description: "StarTimes satellite transponder outages, transmission carrier drops, and commercial breach incident resolution.",
+    activeWorkflows: ["Incident Sev-1 Triage", "Post-Mortem Runbook Execution", "SLA Penalty Credit Ledger"],
   },
   {
-    key: "finance",
-    name: "Consolidated Finance & Settlement Dashboard",
-    category: "Commercial & Finance",
-    primaryRole: "FinanceController",
-    authorityCitation: "R1.2A §14, §42, §70",
-    description: "7-way financial data separation, balanced double-entry general ledger, Nigerian WHT remittances, and MT940 bank reconciliation.",
-    activeWorkflows: ["7-Way Financial Split Ledger", "Talent NIP CSV Payouts", "Bank Statement Automated Match"],
+    key: "board",
+    name: "Board of Directors & Investor Relations Desk",
+    category: "Executive & Core",
+    primaryRole: "ExecutiveLeader",
+    authorityCitation: "R1.2A §46 / Governance",
+    description: "Quarterly board governance packets, cap table analytics, shareholding registries, and investor briefing archives.",
+    activeWorkflows: ["Board Resolution Sign-Off", "Investor KPI Dashboard", "Governance Audit Briefing"],
   },
+  {
+    key: "procurement",
+    name: "Strategic Procurement & Vendor Registry",
+    category: "Executive & Core",
+    primaryRole: "ProcurementManager",
+    authorityCitation: "CCPP-001 §10",
+    description: "Supplier rate benchmarking, technical RFPs, broadcast hardware procurement, and vendor scorecards.",
+    activeWorkflows: ["Vendor Evaluation Scoring", "Purchase Order Sign-Off", "Commercial Terms Review"],
+  },
+  {
+    key: "audit",
+    name: "Enterprise Regulatory & Internal Audit Desk",
+    category: "Executive & Core",
+    primaryRole: "InternalAuditor",
+    authorityCitation: "CC-AUD-001 / CCPP-001 §22",
+    description: "Statutory audit trails, Nigerian NBC broadcast compliance logs, and ISO 27001 evidence vaults.",
+    activeWorkflows: ["Compliance Gap Analysis", "NBC Regulatory Filing", "Immutable Ledger Verification"],
+  },
+  {
+    key: "esg",
+    name: "Sustainability & Corporate Social Responsibility (ESG)",
+    category: "Executive & Core",
+    primaryRole: "SustainabilityOfficer",
+    authorityCitation: "R1.2A §46",
+    description: "Solar production energy audits, youth talent inclusion ratios, and regional community empowerment metrics.",
+    activeWorkflows: ["Carbon Footprint Auditing", "Community Empowerment Scorecard", "Renewable Studio Metrics"],
+  },
+  {
+    key: "comms",
+    name: "Corporate Communications & Public Relations",
+    category: "Executive & Core",
+    primaryRole: "CommunicationsDirector",
+    authorityCitation: "R1.2A §46",
+    description: "Press release dissemination, brand media kits, crisis messaging playbooks, and PR agency liaisons.",
+    activeWorkflows: ["Media Kit Syndication", "Press Release Approval", "Brand Reputation Monitoring"],
+  },
+  {
+    key: "hr",
+    name: "Enterprise People, Culture & Payroll Operations",
+    category: "Executive & Core",
+    primaryRole: "HRDirector",
+    authorityCitation: "CCPP-001 §9",
+    description: "Employee lifecycle management, broadcast crew shift rostering, PAYE tax withholding, and pension compliance.",
+    activeWorkflows: ["Roster Shift Scheduling", "PAYE Calculation Matrix", "Employee Benefits Ledger"],
+  },
+  {
+    key: "legal",
+    name: "General Counsel & Legal Affairs Chamber",
+    category: "Executive & Core",
+    primaryRole: "GeneralCounsel",
+    authorityCitation: "CCPP-001 §10, §12",
+    description: "Litigation tracking, intellectual property protection, trademark filings, and regulatory representation.",
+    activeWorkflows: ["IP Trademark Filing", "Litigation Risk Matrix", "Regulatory Representation Log"],
+  },
+
+  // ==========================================
+  // Pillar 2: Broadcast Linear Operations & Master Control (Desks 13–24)
+  // ==========================================
+  {
+    key: "mcr",
+    name: "Master Control Room (MCR) Playout Supervisor",
+    category: "Broadcast Operations",
+    primaryRole: "MCRSupervisor",
+    authorityCitation: "R1.2A §46 / CCPP-001 §19",
+    description: "24/7 real-time monitoring of Nigezie Xtreme, Orisun, and Isi Mbido linear channels with frame-accurate failover.",
+    activeWorkflows: ["Emergency Manual Override", "Linear Stream Bitrate Gauge", "Automated Playout Handover"],
+  },
+  {
+    key: "traffic",
+    name: "Linear Broadcast Traffic & Spot Placement Desk",
+    category: "Broadcast Operations",
+    primaryRole: "TrafficManager",
+    authorityCitation: "R1.2A §14 / CCPP-001 §19",
+    description: "Flighting commercial ad schedules, daypart spot spacing, competitive separation, and break optimization.",
+    activeWorkflows: ["Break Structure Optimization", "Competitive Separation Validation", "Daily Traffic Log Lock"],
+  },
+  {
+    key: "epg",
+    name: "EPG Programming, Dayparting & Schedule Manager",
+    category: "Broadcast Operations",
+    primaryRole: "TrafficScheduler",
+    authorityCitation: "R1.2A §19 / XMLTV",
+    description: "7-day forward EPG schedule authoring, StarTimes XMLTV ingestion, and live program metadata enrichment.",
+    activeWorkflows: ["XMLTV Feed Generator", "Daypart Grid Scheduling", "Catch-Up Metadata Tagging"],
+  },
+  {
+    key: "asrun",
+    name: "As-Run Log Ingestion & Proof-of-Air Desk",
+    category: "Broadcast Operations",
+    primaryRole: "BroadcastReconciliationLead",
+    authorityCitation: "CCPP-001 §19",
+    description: "Frame-accurate as-run log reconciliation against scheduled traffic bookings with tamper-evident SHA-256 PoA creation.",
+    activeWorkflows: ["3-Way Telemetry Match", "Proof-of-Air Certificate Generation", "Make-Good Credit Creation"],
+  },
+  {
+    key: "uplink",
+    name: "StarTimes DTT/DTH Uplink & Carrier Telemetry",
+    category: "Broadcast Operations",
+    primaryRole: "BroadcastTransmissionEngineer",
+    authorityCitation: "R1.2A §19",
+    description: "StarTimes DTT (Ch 428/430/432) and DTH (Ch 312/315/318) satellite transponder telemetry, SNR, and BER monitoring.",
+    activeWorkflows: ["Carrier Lock Health Polling", "Transponder Rain Fade Alarm", "Carrier Uplink SLA Verification"],
+  },
+  {
+    key: "ingest",
+    name: "Broadcast Media Ingest, Transcode & QC Slating",
+    category: "Broadcast Operations",
+    primaryRole: "IngestOperator",
+    authorityCitation: "SMPTE-2067 / BXF",
+    description: "Broadcast-grade MXF/ProRes file ingestion, audio normalisation, frame-rate conversions, and QC slating.",
+    activeWorkflows: ["Automated QC File Inspection", "Loudness Normalisation Pass", "Media Asset Metadata Binding"],
+  },
+  {
+    key: "graphics",
+    name: "Broadcast Channel Branding & Lower-Third Graphics",
+    category: "Broadcast Operations",
+    primaryRole: "GraphicsCoordinator",
+    authorityCitation: "R1.2A §19",
+    description: "Dynamic channel bugs, automated 'Next Up' lower-thirds, sponsor logo bugs, and breaking-news crawls.",
+    activeWorkflows: ["Channel Bug Scheduling", "Lower-Third Cue Sequencing", "Automated Ticker Update"],
+  },
+  {
+    key: "scte",
+    name: "SCTE-35 Digital Ad Insertion & Dynamic Cue Desk",
+    category: "Broadcast Operations",
+    primaryRole: "AutomationEngineer",
+    authorityCitation: "SCTE-35 / CCPP-001 §19",
+    description: "Frame-accurate SCTE-35 splice cue insertion into linear transport streams for targeted ad replacement.",
+    activeWorkflows: ["Splice Cue Trigger Testing", "Digital Break Insertion Audit", "Transport Stream Stream-ID Binding"],
+  },
+  {
+    key: "disaster",
+    name: "Disaster Recovery & Playout Automation Failover",
+    category: "Broadcast Operations",
+    primaryRole: "SiteReliabilityEngineer",
+    authorityCitation: "CC-OPS-001",
+    description: "Secondary playout mirror synchronization, hot-standby automation, and redundant optical route switching.",
+    activeWorkflows: ["Hot-Standby Playout Failover", "Redundant Optical Route Health", "Disaster Recovery Dry Run"],
+  },
+  {
+    key: "audio",
+    name: "Audio Loudness & EBU R128 Compliance Console",
+    category: "Broadcast Operations",
+    primaryRole: "AudioComplianceOfficer",
+    authorityCitation: "EBU R128 / ITU-R BS.1770",
+    description: "Real-time measurement of Integrated Loudness (-23 LUFS ±0.5), Maximum True Peak, and loudness range logging.",
+    activeWorkflows: ["Real-Time Loudness Metering", "True-Peak Violation Quarantine", "EBU R128 Compliance Certificate"],
+  },
+  {
+    key: "interstitial",
+    name: "Promo & Filler Inventory Optimization Desk",
+    category: "Broadcast Operations",
+    primaryRole: "InterstitialProducer",
+    authorityCitation: "R1.2A §19",
+    description: "Short-form filler clips, channel cross-promotions, station IDs, and emergency dead-air prevention pads.",
+    activeWorkflows: ["Filler Duration Bucket Optimization", "Cross-Channel Promo Rotation", "Station ID Frequency Audit"],
+  },
+  {
+    key: "transmission",
+    name: "Transmission Telemetry & Signal Quality Hub",
+    category: "Broadcast Operations",
+    primaryRole: "TransmissionLead",
+    authorityCitation: "CCPP-001 §19",
+    description: "Head-end distribution telemetry, optical link levels, transport stream packet error rates, and NOC alarms.",
+    activeWorkflows: ["Packet Error Rate Monitoring", "Head-End Optical Level Check", "NOC Alarm Escalation Runbook"],
+  },
+
+  // ==========================================
+  // Pillar 3: Creative Hub, Talent & Production (Desks 25–36)
+  // ==========================================
   {
     key: "talent",
     name: "Talent Accelerator Partner Network Desk",
@@ -158,7 +346,7 @@ export const ENTERPRISE_WORKSPACES: WorkspaceDeskDescriptor[] = [
   },
   {
     key: "onestudios",
-    name: "ONE Studios Production Tracker & QC",
+    name: "ONE Studios Production Tracker & QC Management",
     category: "Hub Specialist",
     primaryRole: "ProductionDirector",
     authorityCitation: "CCPP-001 §14",
@@ -167,7 +355,7 @@ export const ENTERPRISE_WORKSPACES: WorkspaceDeskDescriptor[] = [
   },
   {
     key: "events",
-    name: "Fusion Events & Venue Operations",
+    name: "Fusion Events & Experiential Operations Desk",
     category: "Hub Specialist",
     primaryRole: "EventsProducer",
     authorityCitation: "CCPP-001 §16",
@@ -182,6 +370,100 @@ export const ENTERPRISE_WORKSPACES: WorkspaceDeskDescriptor[] = [
     authorityCitation: "CCPP-001 §17",
     description: "Territorial window licensing, international broadcast avails, and withholding tax net remittance calculator.",
     activeWorkflows: ["Territorial Window Cleared Filter", "International Deal Invoicing", "Syndication Master Package Download"],
+  },
+  {
+    key: "soundstage",
+    name: "Studio Soundstage, Acoustical & Set Operations",
+    category: "Hub Specialist",
+    primaryRole: "StudioManager",
+    authorityCitation: "CCPP-001 §14",
+    description: "Acoustic stage isolation testing, LED virtual production volume calibration, and power grid generators.",
+    activeWorkflows: ["Acoustic Soundstage Inspection", "Virtual Volume Calibration", "Generator Fuel & Load Monitoring"],
+  },
+  {
+    key: "gear",
+    name: "Film Camera & Grip Equipment Gear Locker",
+    category: "Hub Specialist",
+    primaryRole: "EquipmentCoordinator",
+    authorityCitation: "CCPP-001 §14",
+    description: "Cinematography camera lenses, wireless audio kits, lighting rigs, and insurance-bonded equipment checkouts.",
+    activeWorkflows: ["Barcode Asset Check-Out", "Equipment Maintenance Schedule", "Insurance Damage Claim Log"],
+  },
+  {
+    key: "postproduction",
+    name: "Post-Production & Color Grading Pipeline Desk",
+    category: "Hub Specialist",
+    primaryRole: "PostProductionSupervisor",
+    authorityCitation: "CCPP-001 §14",
+    description: "DaVinci Resolve color pipelines, Dolby Atmos audio mixes, visual effects passes, and mastering conform.",
+    activeWorkflows: ["ACES Color Pipeline Verification", "Dolby Atmos Mastering Pass", "VFX Delivery Milestone Tracker"],
+  },
+  {
+    key: "alumni",
+    name: "AFCA Alumni Career Placement & Guild Registry",
+    category: "Hub Specialist",
+    primaryRole: "AlumniRelationsLead",
+    authorityCitation: "CCPP-001 §12",
+    description: "Graduate job placement tracking, industry guild memberships, employer sponsor partnerships, and mentorship.",
+    activeWorkflows: ["Alumni Placement Verification", "Employer Matching Feed", "Guild Certification Tracking"],
+  },
+
+  // ==========================================
+  // Pillar 4: Commercial, Finance, Tech & Governance (Desks 37–48)
+  // ==========================================
+  {
+    key: "crm",
+    name: "CRM, Leads & Sales Opportunities",
+    category: "Commercial & Finance",
+    primaryRole: "CommercialLead",
+    authorityCitation: "R1.2A §14, §42 / CCPP-001 §11",
+    description: "Inbound brand partnership opportunities, media agency flighting requests, and broadcast advertising pipeline.",
+    activeWorkflows: ["Opportunity Staging", "Agency Discount Matrix", "Media Plan Pipeline Forecast"],
+  },
+  {
+    key: "quotes",
+    name: "Commercial Proposals & Spot Rate Quotations",
+    category: "Commercial & Finance",
+    primaryRole: "CommercialLead",
+    authorityCitation: "R1.2A §14, §42",
+    description: "Automated spot rate calculations per daypart (Early Morning, Daytime, Prime Time, Late Night) with dual-authorization approval.",
+    activeWorkflows: ["Dual Sign-Off Trigger", "Spot Inventory Hold", "Client Pro-Forma Generation"],
+  },
+  {
+    key: "contracts",
+    name: "CLM / Master Contract Ledger",
+    category: "Commercial & Finance",
+    primaryRole: "LegalCounsel",
+    authorityCitation: "CCPP-001 §12",
+    description: "Tamper-evident legal contracts repository binding media agreements, talent releases, and NDPR data processing agreements.",
+    activeWorkflows: ["Versioned Redlining", "Digital Signature Execution", "Auto-Renewal & Expiry Watcher"],
+  },
+  {
+    key: "finance",
+    name: "Consolidated Finance & Settlement Dashboard",
+    category: "Commercial & Finance",
+    primaryRole: "FinanceController",
+    authorityCitation: "R1.2A §14, §42, §70",
+    description: "7-way financial data separation, balanced double-entry general ledger, Nigerian WHT remittances, and MT940 bank reconciliation.",
+    activeWorkflows: ["7-Way Financial Split Ledger", "Talent NIP CSV Payouts", "Bank Statement Automated Match"],
+  },
+  {
+    key: "payouts",
+    name: "Talent Payout Batching & Nigerian WHT Ledger",
+    category: "Commercial & Finance",
+    primaryRole: "DisbursementOfficer",
+    authorityCitation: "CCPP-001 §18",
+    description: "Automated Nigerian Withholding Tax (WHT 5%/10%) deductions, NIP bulk payout batching, and remittance receipts.",
+    activeWorkflows: ["NIP Direct Credit Batching", "WHT Deduction Calculation", "Remittance Tax Credit Receipt"],
+  },
+  {
+    key: "bankrecon",
+    name: "Bank Statement Automated Reconciliation (MT940/NIP)",
+    category: "Commercial & Finance",
+    primaryRole: "TreasuryManager",
+    authorityCitation: "CCPP-001 §18",
+    description: "SWIFT MT940 statement parsing, NIP electronic settlement matching, and invoice unapplied cash reconciliation.",
+    activeWorkflows: ["MT940 Parser Execution", "Automated Invoice Matching", "Unapplied Cash Resolution"],
   },
   {
     key: "headspace",
@@ -221,7 +503,7 @@ export const ENTERPRISE_WORKSPACES: WorkspaceDeskDescriptor[] = [
   },
   {
     key: "security",
-    name: "Security, Audit Logging & RBAC/ABAC",
+    name: "Security, Audit Logging & RBAC/ABAC Console",
     category: "Tech & Governance",
     primaryRole: "SecOpsLead",
     authorityCitation: "CC-SEC-001 / CC-AUD-001",
@@ -237,36 +519,30 @@ export const ENTERPRISE_WORKSPACES: WorkspaceDeskDescriptor[] = [
     description: "Autonomous AI agent permissions, Human-in-the-Loop review queues, token budgets, and emergency kill switches.",
     activeWorkflows: ["Agent Execution Quarantine", "Human Review Task Dispatch", "Agent Token Consumption Gauge"],
   },
-  {
-    key: "risk",
-    name: "Enterprise Risk, Issue & Incident Register",
-    category: "Executive & Core",
-    primaryRole: "RiskManager",
-    authorityCitation: "CC-OPS-001",
-    description: "StarTimes satellite transponder outages, transmission carrier drops, and commercial breach incident resolution.",
-    activeWorkflows: ["Incident Sev-1 Triage", "Post-Mortem Runbook Execution", "SLA Penalty Credit Ledger"],
-  },
 ];
 
 export function renderWorkspaceDirectoryHtml(): string {
   const categories: Array<WorkspaceDeskDescriptor["category"]> = [
     "Executive & Core",
-    "Commercial & Finance",
+    "Broadcast Operations",
     "Hub Specialist",
+    "Commercial & Finance",
     "Tech & Governance",
   ];
 
   const categorySections = categories
     .map((cat) => {
       const desks = ENTERPRISE_WORKSPACES.filter((w) => w.category === cat);
+      if (desks.length === 0) return "";
+
       const cardsHtml = desks
         .map(
           (d) => `
-        <article class="card" style="display:flex; flex-direction:column; justify-content:space-between; border-left:4px solid var(--vmn-secondary);">
+        <article class="card" style="display:flex; flex-direction:column; justify-content:space-between;">
           <div>
-            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
-              <span style="font-family:monospace; font-weight:700; color:#0284C7; background:#E0F2FE; padding:3px 8px; border-radius:4px; font-size:0.75rem;">
-                /${d.key}
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+              <span style="font-family:monospace; font-size:0.85rem; font-weight:700; color:#0284C7; background:#E0F2FE; padding:2px 8px; border-radius:4px;">
+                /workspace/${d.key}
               </span>
               <span class="vmn-badge badge-ready">Active</span>
             </div>
@@ -308,13 +584,13 @@ export function renderWorkspaceDirectoryHtml(): string {
           <a href="/" style="color:var(--vmn-secondary); text-decoration:none;">Home</a> &gt; 
           <span>Enterprise Workspaces</span>
         </nav>
-        <h1 style="font-size:2rem; font-weight:800; color:var(--vmn-primary);">Enterprise Operating Hub & Specialist Desks</h1>
+        <h1 style="font-size:2rem; font-weight:800; color:var(--vmn-primary);">Enterprise Operating Hub &amp; Specialist Desks</h1>
         <p style="color:var(--vmn-text-muted); margin-top:4px;">
-          Surface B & C: Internal operating environment and specialist user workflows mandated by <strong>VMNL-AZP-VMN-CCPP-001</strong>.
+          Surface B &amp; C: Complete 48-desk internal operating environment and specialist workflows mandated by <strong>VMNL-AZP-VMN-CCPP-001 / R1.2A §46</strong>.
         </p>
       </div>
       <div style="display:flex; gap:12px; align-items:center;">
-        <span class="vmn-badge badge-ready">23 of 23 Desks Operational</span>
+        <span class="vmn-badge badge-ready">${ENTERPRISE_WORKSPACES.length} of ${ENTERPRISE_WORKSPACES.length} Desks Operational</span>
         <a href="/broadcast/screens" class="btn btn-primary">Surface D (33 Broadcast Screens) &rarr;</a>
       </div>
     </div>
@@ -322,12 +598,12 @@ export function renderWorkspaceDirectoryHtml(): string {
     <!-- Summary Statistics Grid -->
     <div class="grid-3" style="margin-top:0;">
       <div class="card stat-box">
-        <span class="stat-val">23</span>
+        <span class="stat-val">${ENTERPRISE_WORKSPACES.length}</span>
         <span class="stat-lbl">Enterprise Operating Desks</span>
       </div>
       <div class="card stat-box">
-        <span class="stat-val">4</span>
-        <span class="stat-lbl">Operating Domains</span>
+        <span class="stat-val">5</span>
+        <span class="stat-lbl">Specialist Domains</span>
       </div>
       <div class="card stat-box">
         <span class="stat-val">100%</span>
@@ -403,7 +679,7 @@ export function renderWorkspaceDeskHtml(deskKey: string): string {
           </h2>
           <div style="background:var(--vmn-surface-alt); padding:16px; border-radius:8px; border:1px solid var(--vmn-surface-border);">
             <p style="font-size:0.95rem;"><strong>Primary Lead:</strong> ${desk.primaryRole}</p>
-            <p style="font-size:0.85rem; color:var(--vmn-text-muted); margin-top:4px;">Enforced via RBAC Policy Enforcement Point (`+ "`src/core/rbac/`" + `).</p>
+            <p style="font-size:0.85rem; color:var(--vmn-text-muted); margin-top:4px;">Enforced via RBAC Policy Enforcement Point (<code>src/core/rbac/</code>).</p>
           </div>
         </div>
 
@@ -412,7 +688,7 @@ export function renderWorkspaceDeskHtml(deskKey: string): string {
             Desk Operating State
           </h2>
           <div style="background:#F0FDF4; padding:16px; border-radius:8px; border:1px solid #BBF7D0;">
-            <p style="font-size:0.95rem; color:#166534; font-weight:700;">Online & Gated</p>
+            <p style="font-size:0.95rem; color:#166534; font-weight:700;">Online &amp; Gated</p>
             <p style="font-size:0.85rem; color:#15803D; margin-top:4px;">Audit trail logging active with SHA-256 HMAC integrity assurance.</p>
           </div>
         </div>

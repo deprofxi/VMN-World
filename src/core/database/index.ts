@@ -29,26 +29,43 @@ export function getPrismaClient(): PrismaClient {
   return prismaInstance;
 }
 
-export async function checkDatabaseConnection(): Promise<{ connected: boolean; latencyMs?: number; error?: string }> {
+let cachedStatus: { connected: boolean; latencyMs?: number; error?: string; timestamp: number } | null = null;
+const CACHE_TTL_MS = 10_000;
+
+export async function checkDatabaseConnection(forceRefresh = false): Promise<{ connected: boolean; latencyMs?: number; error?: string }> {
+  const now = Date.now();
+  if (!forceRefresh && cachedStatus && now - cachedStatus.timestamp < CACHE_TTL_MS) {
+    return {
+      connected: cachedStatus.connected,
+      latencyMs: cachedStatus.latencyMs,
+      error: cachedStatus.error,
+    };
+  }
+
   const start = Date.now();
   try {
     const client = getPrismaClient();
     // Test database roundtrip with a lightweight query
     await client.$queryRawUnsafe("SELECT 1");
-    return {
+    cachedStatus = {
       connected: true,
       latencyMs: Date.now() - start,
+      timestamp: now,
     };
+    return cachedStatus;
   } catch (err: any) {
-    return {
+    cachedStatus = {
       connected: false,
       error: err?.message || String(err),
       latencyMs: Date.now() - start,
+      timestamp: now,
     };
+    return cachedStatus;
   }
 }
 
 export async function disconnectDatabase(): Promise<void> {
+  cachedStatus = null;
   if (prismaInstance) {
     await prismaInstance.$disconnect();
     prismaInstance = null;
@@ -60,3 +77,4 @@ export async function disconnectDatabase(): Promise<void> {
 }
 
 export { PrismaClient };
+export * from "./repositories/index.js";

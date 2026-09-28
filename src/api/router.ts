@@ -9,7 +9,7 @@ import { TelemetryService } from "../core/observability/index.js";
 import { getAllActiveChannels, getChannelByCode } from "../modules/broadcast/channels/index.js";
 import { BROADCAST_SCREEN_INVENTORY } from "../modules/broadcast/screens/index.js";
 import { generateXmltvFeed } from "../modules/broadcast/epg/index.js";
-import { reconcileAsRunLogs } from "../modules/broadcast/asrun/index.js";
+import { reconcileAsRunLogs, getProofOfAirCertificate } from "../modules/broadcast/asrun/index.js";
 import { TalentAcceleratorRegistry } from "../modules/hub/talent/index.js";
 import { AfcaAcademyService } from "../modules/hub/afca/index.js";
 import { FusionEventsEngine } from "../modules/hub/events/index.js";
@@ -22,6 +22,7 @@ import { AzeeboLinkGateway } from "../modules/federation/azeebo/links.js";
 import { QuoteToCashSalesEngine } from "../modules/finance/sales/index.js";
 import { TalentPayoutEngine } from "../modules/finance/payouts/index.js";
 import { BankReconciliationEngine } from "../modules/finance/reconciliation/index.js";
+import { PaymentGatewayWebhookValidator } from "../modules/finance/reconciliation/mt940.js";
 import { ReleaseGatePipeline } from "../modules/quality/gates.js";
 import {
   signSessionToken,
@@ -64,6 +65,8 @@ import {
   renderFederationGatewayHtml,
   renderUniverseResolverHtml,
   renderAttributionConsoleHtml,
+  renderAfcaVerificationHtml,
+  renderPoaVerificationHtml,
 } from "../web/index.js";
 import { OPENAPI_SPEC, renderDocsHtml } from "./docs.js";
 
@@ -81,6 +84,19 @@ export interface RequestHandlerContext {
   salesEngine: QuoteToCashSalesEngine;
   payoutEngine: TalentPayoutEngine;
   bankRecon: BankReconciliationEngine;
+}
+
+export async function parseRawBody(req: IncomingMessage): Promise<string> {
+  return new Promise((resolve, reject) => {
+    let body = "";
+    req.on("data", (chunk) => {
+      body += chunk.toString();
+    });
+    req.on("end", () => {
+      resolve(body);
+    });
+    req.on("error", (err) => reject(err));
+  });
 }
 
 export async function parseJsonBody(req: IncomingMessage): Promise<any> {
@@ -349,6 +365,56 @@ export async function handleApiRequest(
     if (pathname === "/azeebo" && method === "GET") {
       const html = renderMasterLayout("Open Azeebo+", renderAzeeboGatewayPageHtml(), "/azeebo");
       sendText(res, 200, html, "text/html; charset=utf-8");
+      return;
+    }
+
+    // Public Verification Surfaces: AFCA Academy & Proof-of-Air
+    if (pathname.startsWith("/verify/afca/") && method === "GET") {
+      const certId = pathname.replace("/verify/afca/", "").trim();
+      const verification = context.afcaService.verifyCertificate(certId);
+      const acceptsJson = (req.headers["accept"] || "").includes("application/json") || parsedUrl.searchParams.get("format") === "json";
+      if (acceptsJson) {
+        sendJson(res, verification.valid ? 200 : 404, {
+          certificateId: certId,
+          ...verification,
+        });
+        return;
+      }
+      const html = renderMasterLayout(
+        "AFCA Certificate Verification",
+        renderAfcaVerificationHtml({
+          valid: verification.valid,
+          certificate: verification.certificate,
+          id: certId,
+        }),
+        "/hub"
+      );
+      sendText(res, verification.valid ? 200 : 404, html, "text/html; charset=utf-8");
+      return;
+    }
+
+    if (pathname.startsWith("/verify/poa/") && method === "GET") {
+      const certId = pathname.replace("/verify/poa/", "").trim();
+      const cert = getProofOfAirCertificate(certId);
+      const acceptsJson = (req.headers["accept"] || "").includes("application/json") || parsedUrl.searchParams.get("format") === "json";
+      if (acceptsJson) {
+        sendJson(res, cert ? 200 : 404, {
+          certificateId: certId,
+          valid: Boolean(cert),
+          certificate: cert,
+        });
+        return;
+      }
+      const html = renderMasterLayout(
+        "Proof-of-Air Performance Verification",
+        renderPoaVerificationHtml({
+          valid: Boolean(cert),
+          certificate: cert,
+          id: certId,
+        }),
+        "/channels"
+      );
+      sendText(res, cert ? 200 : 404, html, "text/html; charset=utf-8");
       return;
     }
 
@@ -713,6 +779,95 @@ export async function handleApiRequest(
       context.bankRecon.ingestBankTransactions(body.transactions || []);
       const results = context.bankRecon.reconcileAgainstInvoices(body.invoices || []);
       sendJson(res, 200, { results, count: results.length });
+      return;
+    }
+
+    // 7.5 Payment Gateway Webhook Receivers (Paystack & Flutterwave)
+    if (pathname === "/api/v1/webhooks/paystack" && method === "POST") {
+      const signatureHeader = (req.headers["x-paystack-signature"] as string) || "";
+      const rawBody = await parseRawBody(req);
+      const secretKey = process.env.PAYSTACK_SECRET_KEY || "sk_test_paystack_secret_key";
+
+      if (signatureHeader || process.env.NODE_ENV === "production") {
+        const isValid = PaymentGatewayWebhookValidator.verifyPaystackSignature(rawBody, signatureHeader, secretKey);
+        if (!isValid) {
+          sendJson(res, 401, { error: "Unauthorized", message: "Invalid Paystack signature" });
+          return;
+        }
+      }
+
+      let payload: any = {};
+      try {
+        payload = rawBody ? JSON.parse(rawBody) : {};
+      } catch {
+        sendJson(res, 400, { error: "Bad Request", message: "Invalid JSON body" });
+        return;
+      }
+
+      const event = payload.event || "charge.success";
+      const data = payload.data || {};
+
+      if (event === "charge.success" || event === "transfer.success") {
+        const amountNgn = typeof data.amount === "number" ? data.amount / 100 : 0;
+        const ref = data.reference || `PSK-${Date.now()}`;
+        context.bankRecon.ingestBankTransactions([
+          {
+            id: `PAYSTACK-${ref}`,
+            source: "PAYSTACK",
+            transactionReference: ref,
+            bankNarration: `Paystack: ${data.customer?.email || "Direct"} - ${data.gateway_response || event}`,
+            amountNgn,
+            valueDate: data.paid_at ? new Date(data.paid_at) : new Date(),
+          },
+        ]);
+      }
+
+      context.telemetry.recordMetric("webhook_paystack_received_total", 1, { event });
+      sendJson(res, 200, { status: "success", message: "Paystack webhook processed", event });
+      return;
+    }
+
+    if (pathname === "/api/v1/webhooks/flutterwave" && method === "POST") {
+      const secretHashHeader = (req.headers["verif-hash"] as string) || "";
+      const rawBody = await parseRawBody(req);
+      const configuredHash = process.env.FLUTTERWAVE_SECRET_HASH || "flw_test_secret_hash";
+
+      if (secretHashHeader || process.env.NODE_ENV === "production") {
+        const isValid = PaymentGatewayWebhookValidator.verifyFlutterwaveSignature(secretHashHeader, configuredHash);
+        if (!isValid) {
+          sendJson(res, 401, { error: "Unauthorized", message: "Invalid Flutterwave verification hash" });
+          return;
+        }
+      }
+
+      let payload: any = {};
+      try {
+        payload = rawBody ? JSON.parse(rawBody) : {};
+      } catch {
+        sendJson(res, 400, { error: "Bad Request", message: "Invalid JSON body" });
+        return;
+      }
+
+      const event = payload.event || "charge.completed";
+      const data = payload.data || {};
+
+      if (event === "charge.completed" || event === "transfer.completed") {
+        const amountNgn = typeof data.amount === "number" ? data.amount : 0;
+        const ref = data.tx_ref || data.flw_ref || `FLW-${Date.now()}`;
+        context.bankRecon.ingestBankTransactions([
+          {
+            id: `FLUTTERWAVE-${ref}`,
+            source: "FLUTTERWAVE",
+            transactionReference: ref,
+            bankNarration: `Flutterwave: ${data.customer?.email || "Direct"} - ${data.status || event}`,
+            amountNgn,
+            valueDate: data.created_at ? new Date(data.created_at) : new Date(),
+          },
+        ]);
+      }
+
+      context.telemetry.recordMetric("webhook_flutterwave_received_total", 1, { event });
+      sendJson(res, 200, { status: "success", message: "Flutterwave webhook processed", event });
       return;
     }
 

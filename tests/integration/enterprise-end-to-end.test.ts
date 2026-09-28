@@ -13,6 +13,7 @@
 
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import http from "node:http";
+import crypto from "node:crypto";
 import { createApiServer, ApiServerInstance } from "../../src/api/server.js";
 
 function makeRequest(
@@ -207,13 +208,22 @@ describe("VMNL Enterprise End-to-End Platform Integration", () => {
     it("should serve Surface B & C Enterprise Workspaces directory and desk pages", async () => {
       const dirRes = await makeRequest(testPort, "/workspace");
       expect(dirRes.statusCode).toBe(200);
-      expect(dirRes.rawText).toContain("Enterprise Operating Hub & Specialist Desks");
-      expect(dirRes.rawText).toContain("23 of 23 Desks Operational");
+      expect(dirRes.rawText).toContain("Enterprise Operating Hub");
+      expect(dirRes.rawText).toContain("48 of 48 Desks Operational");
 
       const execRes = await makeRequest(testPort, "/workspace/executive");
       expect(execRes.statusCode).toBe(200);
       expect(execRes.rawText).toContain("Enterprise Executive Command Dashboard");
       expect(execRes.rawText).toContain("ExecutiveLeader");
+
+      const mcrRes = await makeRequest(testPort, "/workspace/mcr");
+      expect(mcrRes.statusCode).toBe(200);
+      expect(mcrRes.rawText).toContain("Master Control Room (MCR) Playout Supervisor");
+      expect(mcrRes.rawText).toContain("MCRSupervisor");
+
+      const soundstageRes = await makeRequest(testPort, "/workspace/soundstage");
+      expect(soundstageRes.statusCode).toBe(200);
+      expect(soundstageRes.rawText).toContain("Studio Soundstage, Acoustical & Set Operations");
 
       const finRes = await makeRequest(testPort, "/workspace/finance");
       expect(finRes.statusCode).toBe(200);
@@ -326,6 +336,22 @@ describe("VMNL Enterprise End-to-End Platform Integration", () => {
       expect(cert.spotId).toBe("spt-001");
       expect(cert.cryptographicSignature).toBeDefined();
       expect(cert.cryptographicSignature.length).toBe(64);
+
+      // Public Verification Route: Proof-of-Air
+      const poaHtmlRes = await makeRequest(testPort, `/verify/poa/${cert.certificateId}`);
+      expect(poaHtmlRes.statusCode).toBe(200);
+      expect(poaHtmlRes.rawText).toContain("Certificate of Commercial Performance (Proof-of-Air)");
+      expect(poaHtmlRes.rawText).toContain("Zenith Bank Plc");
+      expect(poaHtmlRes.rawText).toContain("Download PDF Certificate");
+
+      const poaJsonRes = await makeRequest(testPort, `/verify/poa/${cert.certificateId}?format=json`);
+      expect(poaJsonRes.statusCode).toBe(200);
+      expect(poaJsonRes.body.valid).toBe(true);
+      expect(poaJsonRes.body.certificate.certificateId).toBe(cert.certificateId);
+
+      const invalidPoaRes = await makeRequest(testPort, "/verify/poa/non-existent-poa-id");
+      expect(invalidPoaRes.statusCode).toBe(404);
+      expect(invalidPoaRes.rawText).toContain("Proof-of-Air Performance Not Found");
     });
   });
 
@@ -414,6 +440,22 @@ describe("VMNL Enterprise End-to-End Platform Integration", () => {
       expect(cert.verificationTokenSha256.length).toBe(64);
       expect(cert.verificationUrl).toContain("/verify/afca/");
       expect(cert.qrPayload).toContain("AFCA-CERT-2026");
+
+      // Public Verification Route: AFCA Academy Certificate
+      const certHtmlRes = await makeRequest(testPort, `/verify/afca/${cert.certificateId}`);
+      expect(certHtmlRes.statusCode).toBe(200);
+      expect(certHtmlRes.rawText).toContain("Official AFCA Graduation Credential");
+      expect(certHtmlRes.rawText).toContain("stu-101");
+      expect(certHtmlRes.rawText).toContain(cert.verificationTokenSha256);
+
+      const certJsonRes = await makeRequest(testPort, `/verify/afca/${cert.certificateId}?format=json`);
+      expect(certJsonRes.statusCode).toBe(200);
+      expect(certJsonRes.body.valid).toBe(true);
+      expect(certJsonRes.body.certificate.certificateId).toBe(cert.certificateId);
+
+      const invalidCertRes = await makeRequest(testPort, "/verify/afca/non-existent-afca-id");
+      expect(invalidCertRes.statusCode).toBe(404);
+      expect(invalidCertRes.rawText).toContain("Certificate Not Found");
     });
 
     it("should verify event tickets and prevent double entry (UAT Drill 18)", async () => {
@@ -628,6 +670,56 @@ describe("VMNL Enterprise End-to-End Platform Integration", () => {
       expect(res.statusCode).toBe(200);
       expect(res.body.canDeploy).toBe(true);
       expect(res.body.failingGates.length).toBe(0);
+    });
+
+    it("should process Paystack and Flutterwave incoming webhook payloads and ingest transactions", async () => {
+      // 1. Paystack Webhook
+      const paystackPayload = {
+        event: "charge.success",
+        data: {
+          id: 99887766,
+          reference: "PSK-E2E-REF-001",
+          amount: 25000000, // 250,000 NGN in kobo
+          currency: "NGN",
+          paid_at: new Date().toISOString(),
+          customer: { email: "agency@brandmedia.ng" },
+          gateway_response: "Successful",
+        },
+      };
+      const rawPaystack = JSON.stringify(paystackPayload);
+      const paystackSecret = process.env.PAYSTACK_SECRET_KEY || "sk_test_paystack_secret_key";
+      const paystackSig = crypto.createHmac("sha512", paystackSecret).update(rawPaystack).digest("hex");
+
+      const paystackRes = await makeRequest(testPort, "/api/v1/webhooks/paystack", {
+        method: "POST",
+        headers: { "x-paystack-signature": paystackSig },
+        body: paystackPayload,
+      });
+      expect(paystackRes.statusCode).toBe(200);
+      expect(paystackRes.body.status).toBe("success");
+
+      // 2. Flutterwave Webhook
+      const flwPayload = {
+        event: "charge.completed",
+        data: {
+          id: 55443322,
+          tx_ref: "FLW-E2E-REF-002",
+          amount: 500000,
+          currency: "NGN",
+          status: "successful",
+          created_at: new Date().toISOString(),
+          customer: { email: "sponsor@telco.ng" },
+        },
+      };
+      const flwSecretHash = process.env.FLUTTERWAVE_SECRET_HASH || "flw_test_secret_hash";
+
+      const flwRes = await makeRequest(testPort, "/api/v1/webhooks/flutterwave", {
+        method: "POST",
+        headers: { "verif-hash": flwSecretHash },
+        body: flwPayload,
+      });
+      expect(flwRes.statusCode).toBe(200);
+      expect(flwRes.body.status).toBe("success");
     });
   });
 });
