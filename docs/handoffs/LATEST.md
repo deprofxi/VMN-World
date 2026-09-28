@@ -16,7 +16,7 @@ Deliver complete, audit-grade verification of Virtual Media Network Limited (VMN
 - [x] **A-1 (StarTimes Carriage Provenance):** Channel assignments (428/430/432), PIDs (1042/1044/1046), and RC 642819 are clearly marked `isProvisional: true` pending live StarTimes carriage agreement and NBC confirmation.
 - [x] **A-2 (Configured Endpoints):** Replaced hard-coded URLs with validated environment variables (`AZEEBO_PLUS_UNIVERSAL_URL`, `AZEEBO_API_BASE_URL`, `AZEEBO_APP_SCHEME`, `CDN_BASE_URL`, `APP_URL`).
 - [x] **A-3 (Secrets Hygiene):** Removed hard-coded fallback secrets from `AzeeboFederationBridge` and `FusionEventsEngine`. Secrets must be supplied via validated configuration or explicit constructor options.
-- [x] **A-4 (Legacy Systems Integration):** Implemented `RaveBroadcastAdapter` (`src/modules/broadcast/adapters/ravebroadcast.ts`) wrapping Go microservices, and legacy data migration adapters for `vmnl_control` (43 tables with 7-way finance) and `vmnltalentaccelerator`.
+- [x] **A-4 (Legacy Systems Integration):** Implemented legacy data migration adapters for `vmnl_control` (43 tables with 7-way finance) and `vmnltalentaccelerator`, with linear broadcast playout standardized natively on BXF, SMPTE-2067, Harris, and Grass Valley specifications.
 
 ### Category B — Runtime & Status Alignment
 - [x] **B-5 (Database & Migration Layer):** Prisma 7 client integrated (`src/core/database/index.ts`), complete SQL migration DDL generated (`prisma/migrations/0_init/migration.sql`), and schema expanded with Broadcast, Hub, and Finance domain models.

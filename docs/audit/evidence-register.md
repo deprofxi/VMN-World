@@ -18,7 +18,7 @@ Virtual Media Network Limited enforces continuous evidence progression from conc
    └── 140+ Automated unit and integration tests passing; 21 test suites; zero typecheck errors;
        domain invariants, 3-way reconciliation algorithms, and failure drills verified in code. (CURRENT ACTIVE TIER)
 [Tier S3: Operational Staging] 
-   └── Live staging deployment with Postgres container, ravebroadcast Go service integration,
+   └── Live staging deployment with Postgres container, playout integration,
        and multi-party operator rehearsal. (IN PROGRESS / TARGET)
 [Tier S4: Independent Verification] 
    └── External security penetration audit, NDPR data privacy clearance, WCAG 2.2 AA automated Lighthouse/axe audits.
@@ -36,7 +36,7 @@ Virtual Media Network Limited enforces continuous evidence progression from conc
 | `EVD-01-ARCH` | Architecture Authority | S1 | **S1** | `docs/adrs/` (12 ADRs with EAB approval), `CLAUDE.md` | **VERIFIED** |
 | `EVD-02-CORE` | Canonical Data & Auth | S2 | **S2** | `tests/unit/domain.test.ts`, `tests/unit/auth.test.ts`, Prisma Schema | **VERIFIED (Sandbox)** |
 | `EVD-03-RBAC` | Multi-Tenant PEP/PDP | S2 | **S2** | `tests/unit/rbac.test.ts` (10 enterprise roles + 17 R1.2A §48 broadcast roles) | **VERIFIED (Sandbox)** |
-| `EVD-04-BCST` | Linear Broadcast Systems | S3 | **S2** | `tests/unit/broadcast.test.ts`, `src/modules/broadcast/adapters/ravebroadcast.ts` | **VERIFIED (Prototype)** |
+| `EVD-04-BCST` | Linear Broadcast Systems | S3 | **S2** | `tests/unit/broadcast.test.ts`, `src/modules/broadcast/playout/index.ts`, `src/modules/broadcast/export/index.ts` | **VERIFIED (Prototype)** |
 | `EVD-05-DRIL` | 20 UAT Failure Drills | S3 | **S2** | `tests/unit/uat-broadcast-failure-drills.test.ts` (20/20 green) | **VERIFIED (Sandbox)** |
 | `EVD-06-TLNT` | Talent & AFCA Academy | S2 | **S2** | `tests/unit/hub-talent.test.ts` (rubrics, certificates, rate cards) | **VERIFIED (Sandbox)** |
 | `EVD-07-PROD` | VCF, ONE Studios, TEND | S2 | **S2** | `tests/unit/hub-production.test.ts` (waterfalls, avails, tickets) | **VERIFIED (Sandbox)** |
@@ -54,5 +54,5 @@ The VMNL enterprise repository (`vmng`) is currently certified at **Tier S2 (Int
 - **What is verified:** 140+ automated tests across 21 test suites passing 100%; clean TypeScript compilation; all business invariants (7-way financial separation, rights window gates, 20/20 broadcast failure drills, 3-way reconciliation logic, MT940 SWIFT parsing) verified by automated execution in sandbox conditions.
 - **What is provisional / pending operational staging (S3) and production (S5):**
   - StarTimes carriage channel assignments (Ch 428/430/432) and service PIDs are marked provisional pending final execution of StarTimes carriage contracts and NBC frequency allocations.
-  - Playout automation relies on the `RaveBroadcastAdapter` integration bridge wrapping existing Go microservices, pending live network deployment.
+  - Playout automation relies on native standard playout engines (SMPTE-2067, BXF, Harris CSV, Grass Valley) pending live master control network deployment.
   - Live bank feeds and Paystack/Flutterwave production webhooks require operational deployment and live API secrets.

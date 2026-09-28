@@ -96,7 +96,7 @@ export async function runCli(args: string[] = process.argv.slice(2)): Promise<nu
             name: "Playout",
             description: "Playlist/as-run integration passes",
             status: "PASS" as const,
-            evidenceRef: "src/modules/broadcast/adapters/ravebroadcast.ts",
+            evidenceRef: "src/modules/broadcast/playout/index.ts",
             evaluatedAt: new Date(),
             verifiedBy: "BroadcastEngineer",
           },

@@ -7,13 +7,13 @@
 **Parent Master:** `VMNL-AZP-VMN-BRD-PRD-001 — R1.2A`
 
 ## Context
-The forensic audit confirmed ravebroadcast contains working Go scheduling and FFmpeg/Liquidsoap playout services. We must integrate these rather than rebuilding playout from scratch.
+Linear broadcast playout automation requires strict schedule execution, frame-accurate timing, emergency filler insertion, and seamless failover. We must standardize playout integration on industry-standard automation specifications rather than proprietary single-vendor dependencies.
 
 ## Decision
-The vmng Broadcast domain acts as the master authority for Channels, Programmes, Rights Verification, and Approved Daypart Schedules. vmng exports approved 24-hour playout playlists to the ravebroadcast scheduler service via an adapter API. ravebroadcast returns raw as-run logs to vmng for three-way reconciliation and Proof-of-Air generation.
+The vmng Broadcast domain acts as the master authority for Channels, Programmes, Rights Verification, and Approved Daypart Schedules. vmng exports approved 24-hour playout playlists natively in industry-standard broadcast formats: SMPTE-2067, Broadcast eXchange Format (BXF), Harris Automation CSV, and Grass Valley automation schedules. Playout automation engines return raw as-run logs to vmng for three-way reconciliation (Traffic vs Playout vs Carrier Telemetry) and Proof-of-Air generation.
 
 ## Consequences
-Positive: Preserves functioning broadcast playout infrastructure while establishing rights and commercial governance. Negative: Requires maintaining API contract between Node.js orchestrator and Go playout service.
+Positive: Ensures vendor-agnostic playout compatibility across multiple master control automation systems; enforces rights gates and daypart rate rules before playlist compilation; guarantees standardized 3-way reconciliation. Negative: Requires maintaining serializers and parsers for multiple broadcast automation formats.
 
 ## Compliance & Verification
 - Verified against VMNL 10 Immutable Engineering Laws.

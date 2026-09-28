@@ -33,10 +33,6 @@ const configSchema = z.object({
   STORAGE_SECRET_KEY: z.string().default("minioadmin"),
   STORAGE_REGION: z.string().default("us-east-1"),
 
-  // Broadcast Integration
-  RAVE_BROADCAST_API_URL: z.string().url().default("http://localhost:8080/api/v1"),
-  RAVE_BROADCAST_API_KEY: z.string().default("test-broadcast-key"),
-
   // Azeebo+ Federation
   AZEEBO_PLUS_UNIVERSAL_URL: z.string().url().default("https://azeebo.plus"),
   AZEEBO_API_BASE_URL: z.string().url().default("https://api.azeebo.plus/v1"),

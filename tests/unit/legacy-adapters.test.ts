@@ -1,44 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { RaveBroadcastAdapter } from "../../src/modules/broadcast/adapters/ravebroadcast.js";
 import { VmnlControlMigrationAdapter, VmnlTalentAcceleratorAdapter } from "../../src/core/legacy/index.js";
 
-describe("Legacy Systems Integration & Adapters (A-4 / CC-ARCH-001)", () => {
-  it("should initialize RaveBroadcastAdapter and handle health queries gracefully", async () => {
-    const adapter = new RaveBroadcastAdapter({
-      apiUrl: "http://localhost:8080/api/v1",
-      apiKey: "test-broadcast-key",
-      timeoutMs: 100,
-    });
-
-    const health = await adapter.getHealthStatus();
-    expect(health.service).toBe("ravebroadcast-go");
-    expect(health.activeChannels).toContain("NXTR");
-  });
-
-  it("should export approved playlist to ravebroadcast adapter format", async () => {
-    const adapter = new RaveBroadcastAdapter({
-      apiUrl: "http://localhost:8080/api/v1",
-      apiKey: "test-broadcast-key",
-      timeoutMs: 100,
-    });
-
-    const playlist = [
-      {
-        id: "PL-001",
-        itemType: "PROGRAMME" as const,
-        title: "Morning Dawn Live",
-        assetUrl: "http://localhost:9000/vmnl-assets/prog-01.mp4",
-        durationSeconds: 1800,
-        expectedStartTime: new Date("2026-09-28T06:00:00Z"),
-        isFiller: false,
-      },
-    ];
-
-    const result = await adapter.exportApprovedPlaylist("NXTR", "2026-09-28", playlist);
-    expect(result.transmissionId).toContain("TX-RAVE-NXTR");
-    expect(result.itemCount).toBe(1);
-    expect(result.totalDurationSeconds).toBe(1800);
-  });
+describe("Legacy Systems Migration & Adapters (CC-ARCH-001)", () => {
 
   it("should normalize legacy vmnl_control invoice with strict 7-way finance separation", () => {
     const legacyInvoice = {

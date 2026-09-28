@@ -37,14 +37,14 @@ describe("Configuration Loader & Validator (TASK-P0-03)", () => {
     expect(() => loadConfig(invalidEnv)).toThrowError(/JWT_SECRET must be at least 32 characters/);
   });
 
-  it("should reject invalid URLs for RAVE_BROADCAST_API_URL", () => {
+  it("should reject invalid URLs for AZEEBO_API_BASE_URL", () => {
     const invalidEnv = {
       DATABASE_URL: "postgresql://localhost:5432/test",
       JWT_SECRET: "12345678901234567890123456789012",
       AZEEBO_WEBHOOK_SECRET: "azeebo_secret_16chars_min",
-      RAVE_BROADCAST_API_URL: "not-a-valid-url",
+      AZEEBO_API_BASE_URL: "not-a-valid-url",
     };
 
-    expect(() => loadConfig(invalidEnv)).toThrowError(/RAVE_BROADCAST_API_URL/);
+    expect(() => loadConfig(invalidEnv)).toThrowError(/AZEEBO_API_BASE_URL/);
   });
 });
