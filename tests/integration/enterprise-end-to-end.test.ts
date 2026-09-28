@@ -16,6 +16,8 @@ import http from "node:http";
 import crypto from "node:crypto";
 import { createApiServer, ApiServerInstance } from "../../src/api/server.js";
 
+let sharedAuthToken: string | undefined;
+
 function makeRequest(
   port: number,
   path: string,
@@ -35,6 +37,7 @@ function makeRequest(
         method: options.method || "GET",
         headers: {
           "Content-Type": "application/json",
+          ...(sharedAuthToken ? { Authorization: `Bearer ${sharedAuthToken}` } : {}),
           ...(payload ? { "Content-Length": Buffer.byteLength(payload) } : {}),
           ...options.headers,
         },
@@ -73,6 +76,16 @@ describe("VMNL Enterprise End-to-End Platform Integration", () => {
   beforeAll(async () => {
     app = createApiServer(testPort);
     await app.start();
+
+    // Authenticate with seeded Admin credentials to obtain real session token (CR-1, CR-2)
+    const loginRes = await makeRequest(testPort, "/api/v1/auth/login", {
+      method: "POST",
+      body: {
+        email: "admin@vmnl.ng",
+        password: "AdminPassword123!",
+      },
+    });
+    sharedAuthToken = loginRes.body.accessToken;
   });
 
   afterAll(async () => {

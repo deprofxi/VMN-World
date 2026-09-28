@@ -18,27 +18,32 @@ import {
   AsRunLogItem,
 } from "../../src/modules/broadcast/index.js";
 import { RightsRecordEntity } from "../../src/core/domain/types.js";
+import { getConfig } from "../../src/core/config/index.js";
 
 describe("Phase 2: Broadcast & Linear Television Operations", () => {
   describe("Channel Registry (TASK-P2-01)", () => {
-    it("should retrieve all 3 active linear channels with StarTimes metadata", () => {
+    it("should retrieve all 3 active linear channels with StarTimes metadata (provisional)", () => {
+      const config = getConfig();
       const channels = getAllActiveChannels();
       expect(channels.length).toBe(3);
 
       const nigezie = getChannelByCode("NXTR");
       expect(nigezie).toBeDefined();
       expect(nigezie?.name).toBe("Nigezie Xtreme");
-      expect(nigezie?.starTimesCarriage.dttChannelNumber).toBe(428);
+      expect(nigezie?.starTimesCarriage.isProvisional).toBe(true);
+      expect(nigezie?.starTimesCarriage.dttChannelNumber).toBe(config.NXTR_DTT_CHANNEL);
 
       const orisun = getChannelByCode("ORIS");
       expect(orisun).toBeDefined();
       expect(orisun?.name).toBe("Orisun — The Source");
-      expect(orisun?.starTimesCarriage.dttChannelNumber).toBe(430);
+      expect(orisun?.starTimesCarriage.isProvisional).toBe(true);
+      expect(orisun?.starTimesCarriage.dttChannelNumber).toBe(config.ORIS_DTT_CHANNEL);
 
       const isiMbido = getChannelByCode("IMBD");
       expect(isiMbido).toBeDefined();
       expect(isiMbido?.name).toBe("Isi Mbido — The Beginning");
-      expect(isiMbido?.starTimesCarriage.dttChannelNumber).toBe(432);
+      expect(isiMbido?.starTimesCarriage.isProvisional).toBe(true);
+      expect(isiMbido?.starTimesCarriage.dttChannelNumber).toBe(config.IMBD_DTT_CHANNEL);
     });
   });
 

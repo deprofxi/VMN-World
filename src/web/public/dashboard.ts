@@ -15,6 +15,7 @@ import { BROADCAST_SCREEN_INVENTORY } from "../../modules/broadcast/screens/inde
 import { PUBLIC_CHANNELS, PublicChannelsHub } from "./channels.js";
 import { VMN_ENTERPRISE_PILLARS, VMN_LEADERSHIP } from "./corporate.js";
 import { HUB_SHOWCASES } from "./hub.js";
+import { getConfig } from "../../core/config/index.js";
 
 export function renderMasterLayout(title: string, bodyContent: string, activeNav = "/"): string {
   return `<!DOCTYPE html>
@@ -201,7 +202,7 @@ export function renderMasterLayout(title: string, bodyContent: string, activeNav
   </main>
 
   <footer class="vmn-footer">
-    <p>&copy; 2026 Virtual Media Network Limited (VMNL). All rights reserved. Registered in Nigeria (RC 642819).</p>
+    <p>&copy; 2026 Virtual Media Network Limited (VMNL). All rights reserved. ${getConfig().COMPANY_RC_NUMBER}.</p>
     <p style="margin-top: 8px; font-size: 0.75rem;">Operates Nigezie Xtreme, Orisun, Isi Mbido on StarTimes DTT/DTH | Compliant with NBC 7th Edition & WCAG 2.2 AA</p>
   </footer>
 </body>

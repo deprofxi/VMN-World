@@ -9,6 +9,7 @@ import {
   TrafficSpotBooking,
   CarrierTelemetryRecord,
 } from "../../src/modules/broadcast/asrun/index.js";
+import { getConfig } from "../../src/core/config/index.js";
 
 describe("Broadcast Advanced Operations (B-10, B-11, B-12, B-13, B-14)", () => {
   it("should calculate spot price and generate commercial billing schedules (B-11)", () => {
@@ -146,7 +147,7 @@ SPT-001,NXTR,"Nestle Milo Morning Energy",COMMERCIAL_SPOT,30,06:15:00:00,MILO-30
       {
         carrierId: "STARTIMES_DTT",
         rfFrequencyMhz: 522.0,
-        servicePid: 1042,
+        servicePid: getConfig().NXTR_SERVICE_PID,
         timestamp: new Date("2026-10-01T06:15:10.000Z"),
         signalStrengthDbm: -55,
         carrierLock: true,

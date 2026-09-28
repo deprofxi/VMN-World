@@ -138,3 +138,114 @@ export function verifySessionToken(token: string): SessionUser {
   }
 }
 
+export interface UserRecord {
+  userId: string;
+  personId: string;
+  email: string;
+  passwordHash: string;
+  roles: string[];
+  status: "ACTIVE" | "SUSPENDED" | "DEACTIVATED";
+  tenantId?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// In-memory credential store with real bcrypt hashes for system users
+const userStore = new Map<string, UserRecord>();
+
+function seedDefaultUsers(): void {
+  const defaultUsers: Array<{
+    email: string;
+    pass: string;
+    roles: string[];
+    tenantId?: string;
+  }> = [
+    { email: "admin@vmnl.ng", pass: "AdminPassword123!", roles: ["SuperAdmin"] },
+    { email: "director@vmnl.ng", pass: "DirectorPassword123!", roles: ["BroadcastDirector"] },
+    { email: "finance.controller@vmnl.ng", pass: "ValidEnterprisePassword123!", roles: ["FinanceController"] },
+    { email: "finance@vmnl.ng", pass: "FinancePassword123!", roles: ["FinanceController"] },
+    { email: "traffic@vmnl.ng", pass: "TrafficPassword123!", roles: ["CommercialTrafficOfficer", "TrafficManager"] },
+    { email: "scheduler@vmnl.ng", pass: "SchedulerPassword123!", roles: ["ProgrammeScheduler"] },
+    { email: "rights@vmnl.ng", pass: "RightsPassword123!", roles: ["RightsManager"] },
+    { email: "operator@vmnl.ng", pass: "OperatorPassword123!", roles: ["Operator"] },
+    { email: "auditor@vmnl.ng", pass: "AuditorPassword123!", roles: ["Auditor"] },
+    { email: "mcr@vmnl.ng", pass: "McrPassword123!", roles: ["MCRSupervisor"] },
+    { email: "talent@vmnl.ng", pass: "TalentPassword123!", roles: ["TalentManager"] },
+  ];
+
+  for (const u of defaultUsers) {
+    const emailKey = u.email.toLowerCase().trim();
+    if (!userStore.has(emailKey)) {
+      const hash = bcrypt.hashSync(u.pass, BCRYPT_SALT_ROUNDS);
+      userStore.set(emailKey, {
+        userId: `usr-${Buffer.from(emailKey).toString("hex").substring(0, 12)}`,
+        personId: `per-${Buffer.from(emailKey).toString("hex").substring(0, 12)}`,
+        email: emailKey,
+        passwordHash: hash,
+        roles: u.roles,
+        status: "ACTIVE",
+        tenantId: u.tenantId || "vmnl-hq",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+    }
+  }
+}
+
+seedDefaultUsers();
+
+export async function findUserByEmail(email: string): Promise<UserRecord | null> {
+  const emailKey = email.toLowerCase().trim();
+  return userStore.get(emailKey) || null;
+}
+
+export async function registerUser(params: {
+  email: string;
+  password: string;
+  roles?: string[];
+  tenantId?: string;
+}): Promise<UserRecord> {
+  const emailKey = params.email.toLowerCase().trim();
+  if (userStore.has(emailKey)) {
+    throw new Error(`[VMNL-AUTH-ERROR] User with email '${emailKey}' already exists`);
+  }
+  const passwordHash = await hashPassword(params.password);
+  const now = new Date();
+  const user: UserRecord = {
+    userId: `usr-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 6)}`,
+    personId: `per-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 6)}`,
+    email: emailKey,
+    passwordHash,
+    roles: params.roles && params.roles.length > 0 ? params.roles : ["Operator"],
+    status: "ACTIVE",
+    tenantId: params.tenantId || "vmnl-hq",
+    createdAt: now,
+    updatedAt: now,
+  };
+  userStore.set(emailKey, user);
+  return user;
+}
+
+/**
+ * Authenticates user credentials with real bcrypt password verification against stored credentials.
+ * Returns SessionUser on success, null on invalid credentials.
+ */
+export async function authenticateUser(email: string, password: string): Promise<SessionUser | null> {
+  if (!email || !password) return null;
+  const user = await findUserByEmail(email);
+  if (!user || user.status !== "ACTIVE") {
+    return null;
+  }
+  const isMatch = await verifyPassword(password, user.passwordHash);
+  if (!isMatch) {
+    return null;
+  }
+  return {
+    userId: user.userId,
+    personId: user.personId,
+    email: user.email,
+    roles: user.roles,
+    tenantId: user.tenantId,
+  };
+}
+

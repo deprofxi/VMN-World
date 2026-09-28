@@ -22,9 +22,7 @@ export default tseslint.config(
         "warn",
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
       ],
-      "no-undef": "off",
-      "no-useless-escape": "off",
-      "prefer-const": "warn",
+      "prefer-const": "error",
     },
   }
 );

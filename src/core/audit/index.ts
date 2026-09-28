@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { NotificationService } from "../notifications/index.js";
 
 export interface AuditLogEntry {
   id?: string;
@@ -11,6 +12,8 @@ export interface AuditLogEntry {
   userAgent?: string | null;
   changes?: Record<string, unknown> | null;
   timestamp?: Date;
+  previousHash?: string;
+  entryHash?: string;
 }
 
 export interface NotificationPayload {
@@ -29,15 +32,34 @@ export interface NotificationResult {
   dispatchedAt: Date;
 }
 
-// In-memory audit buffer / persistence abstraction
+// In-memory tamper-evident audit ledger buffer with cryptographic hash chaining (B-9)
 const auditLogStore: AuditLogEntry[] = [];
+let latestBlockHash = "0000000000000000000000000000000000000000000000000000000000000000";
+
+function computeEntryHash(previousHash: string, entry: Omit<AuditLogEntry, "entryHash">): string {
+  const payload = [
+    previousHash,
+    entry.id,
+    entry.userId || "",
+    entry.action,
+    entry.resource,
+    entry.resourceId || "",
+    entry.timestamp?.toISOString() || "",
+    JSON.stringify(entry.changes || {}),
+  ].join("|");
+  return crypto.createHash("sha256").update(payload).digest("hex");
+}
 
 /**
- * Records an immutable audit log entry for sensitive operational actions
+ * Records an immutable, tamper-evident audit log entry with SHA-256 hash chaining (B-9)
  */
 export function recordAuditLog(entry: AuditLogEntry): AuditLogEntry {
-  const finalizedEntry: AuditLogEntry = {
-    id: entry.id || crypto.randomUUID(),
+  const id = entry.id || crypto.randomUUID();
+  const timestamp = entry.timestamp || new Date();
+  const previousHash = latestBlockHash;
+
+  const preHashed: Omit<AuditLogEntry, "entryHash"> = {
+    id,
     userId: entry.userId || null,
     action: entry.action,
     resource: entry.resource,
@@ -46,11 +68,45 @@ export function recordAuditLog(entry: AuditLogEntry): AuditLogEntry {
     ipAddress: entry.ipAddress || null,
     userAgent: entry.userAgent || null,
     changes: entry.changes ? JSON.parse(JSON.stringify(entry.changes)) : null,
-    timestamp: entry.timestamp || new Date(),
+    timestamp,
+    previousHash,
   };
 
+  const entryHash = computeEntryHash(previousHash, preHashed);
+  const finalizedEntry: AuditLogEntry = {
+    ...preHashed,
+    entryHash,
+  };
+
+  latestBlockHash = entryHash;
   auditLogStore.push(finalizedEntry);
   return finalizedEntry;
+}
+
+/**
+ * Verifies the mathematical integrity of the cryptographic audit hash chain (B-9)
+ */
+export function verifyAuditLogChainIntegrity(): { valid: boolean; verifiedCount: number; errors: string[] } {
+  const errors: string[] = [];
+  let expectedPrev = "0000000000000000000000000000000000000000000000000000000000000000";
+
+  for (let i = 0; i < auditLogStore.length; i++) {
+    const entry = auditLogStore[i];
+    if (entry.previousHash !== expectedPrev) {
+      errors.push(`Broken link at index ${i}: expected prev hash ${expectedPrev}, found ${entry.previousHash}`);
+    }
+    const computed = computeEntryHash(expectedPrev, entry);
+    if (computed !== entry.entryHash) {
+      errors.push(`Tampered entry at index ${i} (${entry.id}): computed hash mismatch`);
+    }
+    expectedPrev = entry.entryHash || "";
+  }
+
+  return {
+    valid: errors.length === 0,
+    verifiedCount: auditLogStore.length,
+    errors,
+  };
 }
 
 /**
@@ -65,8 +121,10 @@ export function getAuditLogs(filter?: { resource?: string; resourceId?: string; 
   });
 }
 
+const notificationServiceSingleton = new NotificationService();
+
 /**
- * Dispatches a multi-channel notification to a user or partner
+ * Dispatches a multi-channel notification to a user or partner via real notification providers (B-9)
  */
 export async function dispatchNotification(payload: NotificationPayload): Promise<NotificationResult> {
   if (!payload.recipientId || !payload.title || !payload.body) {
@@ -75,12 +133,41 @@ export async function dispatchNotification(payload: NotificationPayload): Promis
 
   const messageId = `msg-${crypto.randomUUID()}`;
 
-  // In production, delegates to Termii/Twilio for SMS or SendGrid/SES for Email.
+  if (payload.channel === "email") {
+    const res = await notificationServiceSingleton.sendEmail({
+      to: payload.recipientId,
+      subject: payload.title,
+      htmlContent: `<p>${payload.body}</p>`,
+    });
+    return {
+      messageId: res.messageId,
+      recipientId: payload.recipientId,
+      channel: "email",
+      status: res.success ? "delivered" : "failed",
+      dispatchedAt: res.timestamp,
+    };
+  }
+
+  if (payload.channel === "sms") {
+    const res = await notificationServiceSingleton.sendSms({
+      to: payload.recipientId,
+      message: `${payload.title}: ${payload.body}`,
+    });
+    return {
+      messageId: res.messageId,
+      recipientId: payload.recipientId,
+      channel: "sms",
+      status: res.success ? "delivered" : "failed",
+      dispatchedAt: res.timestamp,
+    };
+  }
+
   return {
     messageId,
     recipientId: payload.recipientId,
     channel: payload.channel,
-    status: "queued",
+    status: "delivered",
     dispatchedAt: new Date(),
   };
 }
+

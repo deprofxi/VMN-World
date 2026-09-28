@@ -29,12 +29,22 @@ export interface ApiServerInstance {
 }
 
 export function createApiServer(port?: number, envOverrides: Record<string, string> = {}): ApiServerInstance {
-  const testDefaults: Record<string, string> = {
-    DATABASE_URL: process.env.DATABASE_URL || "postgresql://vmn_user:vmn_password@localhost:5432/vmn_db",
-    JWT_SECRET: process.env.JWT_SECRET || "vmnl-secure-jwt-secret-with-at-least-32-chars-long",
-    AZEEBO_WEBHOOK_SECRET: process.env.AZEEBO_WEBHOOK_SECRET || "azeebo-secret-minimum-16-chars",
-  };
-  const config = loadConfig({ ...testDefaults, ...process.env, ...envOverrides });
+  const isProductionOrStaging =
+    (envOverrides.NODE_ENV || process.env.NODE_ENV) === "production" ||
+    (envOverrides.NODE_ENV || process.env.NODE_ENV) === "staging";
+
+  let config;
+  if (isProductionOrStaging) {
+    // In production or staging, strictly fail fast without fallback secrets (CR-6)
+    config = loadConfig({ ...process.env, ...envOverrides });
+  } else {
+    const testDefaults: Record<string, string> = {
+      DATABASE_URL: process.env.DATABASE_URL || "postgresql://vmn_user:vmn_password@localhost:5432/vmn_db",
+      JWT_SECRET: process.env.JWT_SECRET || "vmnl-secure-jwt-secret-with-at-least-32-chars-long",
+      AZEEBO_WEBHOOK_SECRET: process.env.AZEEBO_WEBHOOK_SECRET || "azeebo-secret-minimum-16-chars",
+    };
+    config = loadConfig({ ...testDefaults, ...process.env, ...envOverrides });
+  }
   const serverPort = port || config.PORT || 4000;
   const telemetry = new TelemetryService();
   const azeeboBridge = new AzeeboFederationBridge(config.AZEEBO_WEBHOOK_SECRET);

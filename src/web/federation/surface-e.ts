@@ -16,6 +16,8 @@
  * 11. Linear-to-Digital Attribution Tracker & Outbound Click Console (/azeebo/attribution)
  */
 
+import { getConfig } from "../../core/config/index.js";
+
 export interface UniverseRouteDescriptor {
   key: string;
   name: string;
@@ -24,17 +26,22 @@ export interface UniverseRouteDescriptor {
   fallbackUrl: string;
 }
 
-export const AZEEBO_UNIVERSES: UniverseRouteDescriptor[] = [
-  { key: "content", name: "Content Referral Gateway", targetPath: "/content/:id", description: "Direct video and episode deep-linking", fallbackUrl: "https://azeebo.plus/watch" },
-  { key: "creator", name: "Creator Profile Universe", targetPath: "/creator/:id", description: "Verified creator hubs and tipping channels", fallbackUrl: "https://azeebo.plus/creators" },
-  { key: "event", name: "Live Event Universe", targetPath: "/event/:id", description: "Live streams and concert ticketing bridge", fallbackUrl: "https://azeebo.plus/events" },
-  { key: "cinemaxis", name: "Cinemaxis Universe", targetPath: "/cinemaxis/:id", description: "Nollywood features and premium episodic series", fallbackUrl: "https://azeebo.plus/cinemaxis" },
-  { key: "aou", name: "AOU Universe", targetPath: "/aou/:id", description: "Afro-Urban culture and music video streams", fallbackUrl: "https://azeebo.plus/aou" },
-  { key: "game", name: "Games 360 Universe", targetPath: "/game/:id", description: "African esports and interactive mobile gaming", fallbackUrl: "https://azeebo.plus/games360" },
-  { key: "9tlife", name: "9TLIFE Lifestyle Universe", targetPath: "/9tlife/:id", description: "Culinary, fashion, nightlife, and travel", fallbackUrl: "https://azeebo.plus/9tlife" },
-  { key: "live", name: "Azeebo+ Live Universe", targetPath: "/live/:id", description: "Interactive 24/7 linear and creator live feeds", fallbackUrl: "https://azeebo.plus/live" },
-  { key: "broadcast", name: "Broadcast Bridge Route", targetPath: "/broadcast/:id", description: "Linear TV to on-demand catch-up bridge", fallbackUrl: "https://azeebo.plus/broadcast" },
-];
+export function getAzeeboUniverses(): UniverseRouteDescriptor[] {
+  const base = getConfig().AZEEBO_PLUS_UNIVERSAL_URL.replace(/\/+$/, "");
+  return [
+    { key: "content", name: "Content Referral Gateway", targetPath: "/content/:id", description: "Direct video and episode deep-linking", fallbackUrl: `${base}/watch` },
+    { key: "creator", name: "Creator Profile Universe", targetPath: "/creator/:id", description: "Verified creator hubs and tipping channels", fallbackUrl: `${base}/creators` },
+    { key: "event", name: "Live Event Universe", targetPath: "/event/:id", description: "Live streams and concert ticketing bridge", fallbackUrl: `${base}/events` },
+    { key: "cinemaxis", name: "Cinemaxis Universe", targetPath: "/cinemaxis/:id", description: "Nollywood features and premium episodic series", fallbackUrl: `${base}/cinemaxis` },
+    { key: "aou", name: "AOU Universe", targetPath: "/aou/:id", description: "Afro-Urban culture and music video streams", fallbackUrl: `${base}/aou` },
+    { key: "game", name: "Games 360 Universe", targetPath: "/game/:id", description: "African esports and interactive mobile gaming", fallbackUrl: `${base}/games360` },
+    { key: "9tlife", name: "9TLIFE Lifestyle Universe", targetPath: "/9tlife/:id", description: "Culinary, fashion, nightlife, and travel", fallbackUrl: `${base}/9tlife` },
+    { key: "live", name: "Azeebo+ Live Universe", targetPath: "/live/:id", description: "Interactive 24/7 linear and creator live feeds", fallbackUrl: `${base}/live` },
+    { key: "broadcast", name: "Broadcast Bridge Route", targetPath: "/broadcast/:id", description: "Linear TV to on-demand catch-up bridge", fallbackUrl: `${base}/broadcast` },
+  ];
+}
+
+export const AZEEBO_UNIVERSES: UniverseRouteDescriptor[] = getAzeeboUniverses();
 
 export function renderFederationGatewayHtml(): string {
   const routesHtml = AZEEBO_UNIVERSES.map(

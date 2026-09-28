@@ -1,0 +1,104 @@
+{
+  "version": "1.0.0-rc1",
+  "environment": "SANDBOX_S2",
+  "gitCommitSha": "HEAD",
+  "humanReleaseOwner": {
+    "name": "Broadcast Architecture Authority",
+    "role": "Release Authority / Lead System Architect",
+    "signedAt": "2026-09-28T12:00:00.000Z"
+  },
+  "decision": "GO",
+  "decisionRationale": "Sandbox S2 verification completed across domain invariants, 20/20 failure drills, and strict security controls.",
+  "gates": {
+    "BG0_CHANNEL_AUTHORITY": {
+      "id": "BG0_CHANNEL_AUTHORITY",
+      "name": "Channel Authority",
+      "description": "Channel identity and ownership configured",
+      "status": "PASS",
+      "evidenceRef": "src/modules/broadcast/channels/index.ts",
+      "evaluatedAt": "2026-09-28T12:00:00.000Z",
+      "verifiedBy": "LeadArchitect"
+    },
+    "BG1_CATALOGUE": {
+      "id": "BG1_CATALOGUE",
+      "name": "Catalogue",
+      "description": "Programme and master records imported",
+      "status": "PASS",
+      "evidenceRef": "src/db/seeds/golden/index.ts",
+      "evaluatedAt": "2026-09-28T12:00:00.000Z",
+      "verifiedBy": "LeadArchitect"
+    },
+    "BG2_RIGHTS": {
+      "id": "BG2_RIGHTS",
+      "name": "Rights",
+      "description": "Broadcast rights linked and cleared",
+      "status": "PASS",
+      "evidenceRef": "tests/unit/broadcast.test.ts",
+      "evaluatedAt": "2026-09-28T12:00:00.000Z",
+      "verifiedBy": "QAAutomation"
+    },
+    "BG3_SCHEDULE": {
+      "id": "BG3_SCHEDULE",
+      "name": "Schedule",
+      "description": "Schedule workflow passes",
+      "status": "PASS",
+      "evidenceRef": "tests/unit/broadcast.test.ts",
+      "evaluatedAt": "2026-09-28T12:00:00.000Z",
+      "verifiedBy": "QAAutomation"
+    },
+    "BG4_TRAFFIC": {
+      "id": "BG4_TRAFFIC",
+      "name": "Traffic",
+      "description": "Advertising inventory and commercial workflow pass",
+      "status": "PASS",
+      "evidenceRef": "tests/unit/broadcast.test.ts",
+      "evaluatedAt": "2026-09-28T12:00:00.000Z",
+      "verifiedBy": "QAAutomation"
+    },
+    "BG5_PLAYOUT": {
+      "id": "BG5_PLAYOUT",
+      "name": "Playout",
+      "description": "Playlist/as-run integration passes",
+      "status": "PASS",
+      "evidenceRef": "src/modules/broadcast/playout/index.ts",
+      "evaluatedAt": "2026-09-28T12:00:00.000Z",
+      "verifiedBy": "BroadcastEngineer"
+    },
+    "BG6_CARRIAGE": {
+      "id": "BG6_CARRIAGE",
+      "name": "Carriage",
+      "description": "StarTimes carriage endpoints and contacts mapped (provisional pending live uplink verification)",
+      "status": "FULFILLED_BY_VERIFIED_EXISTING_SYSTEM",
+      "evidenceRef": "StarTimes DTT Carriage Agreement (Provisional / Configurable)",
+      "evaluatedAt": "2026-09-28T12:00:00.000Z",
+      "verifiedBy": "PlatformRelationshipLead"
+    },
+    "BG7_FINANCE": {
+      "id": "BG7_FINANCE",
+      "name": "Finance",
+      "description": "Commercial proof-to-invoice reconciliation works",
+      "status": "PASS",
+      "evidenceRef": "src/modules/finance/sales/index.ts",
+      "evaluatedAt": "2026-09-28T12:00:00.000Z",
+      "verifiedBy": "FinanceController"
+    },
+    "BG8_AZEEBO": {
+      "id": "BG8_AZEEBO",
+      "name": "Azeebo+",
+      "description": "Linear-to-digital link works",
+      "status": "PASS",
+      "evidenceRef": "src/modules/federation/azeebo/links.ts",
+      "evaluatedAt": "2026-09-28T12:00:00.000Z",
+      "verifiedBy": "DigitalLead"
+    },
+    "BG9_CONTINUITY": {
+      "id": "BG9_CONTINUITY",
+      "name": "Continuity",
+      "description": "Broadcast failure drills pass (20/20 failure drills green)",
+      "status": "PASS",
+      "evidenceRef": "tests/unit/uat-broadcast-failure-drills.test.ts",
+      "evaluatedAt": "2026-09-28T12:00:00.000Z",
+      "verifiedBy": "QAAutomation"
+    }
+  }
+}

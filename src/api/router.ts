@@ -30,8 +30,10 @@ import {
   revokeToken,
   checkRateLimit,
   createSessionCookie,
+  authenticateUser,
   SessionUser,
 } from "../core/auth/index.js";
+import { getConfig } from "../core/config/index.js";
 import {
   canPerform,
   EnterpriseAction,
@@ -156,7 +158,8 @@ export function resolveSessionUser(req: IncomingMessage): SessionUser | null {
     }
   }
 
-  if (req.headers["x-test-role"]) {
+  // Test role override strictly allowed ONLY in test environment (CR-2)
+  if (process.env.NODE_ENV === "test" && req.headers["x-test-role"]) {
     const roles = (req.headers["x-test-role"] as string).split(",").map((r) => r.trim());
     return {
       userId: "test-user-id",
@@ -166,7 +169,8 @@ export function resolveSessionUser(req: IncomingMessage): SessionUser | null {
     };
   }
 
-  if (process.env.NODE_ENV !== "production" && !req.headers["x-require-auth"]) {
+  // Developer bypass permitted ONLY when explicitly enabled via AUTH_BYPASS_ENABLED=true in development environment (CR-2)
+  if (process.env.NODE_ENV === "development" && process.env.AUTH_BYPASS_ENABLED === "true") {
     return {
       userId: "dev-sandbox-superadmin",
       personId: "per-sandbox-superadmin",
@@ -547,27 +551,22 @@ export async function handleApiRequest(
         return;
       }
 
-      let roles: string[] = ["Operator"];
-      if (body.email.includes("admin")) roles = ["SuperAdmin"];
-      else if (body.email.includes("director")) roles = ["BroadcastDirector"];
-      else if (body.email.includes("finance")) roles = ["FinanceController"];
-      else if (body.email.includes("traffic")) roles = ["TrafficManager"];
-      else if (body.email.includes("rights")) roles = ["RightsManager"];
-      else if (body.email.includes("talent")) roles = ["TalentManager"];
-      else if (body.roles && Array.isArray(body.roles)) roles = body.roles;
+      // Authentic credential verification with real bcrypt password verification against stored credentials (CR-1)
+      const user = await authenticateUser(body.email, body.password);
+      if (!user) {
+        sendJson(res, 401, {
+          error: "Unauthorized",
+          message: "Invalid email or password",
+          code: "INVALID_CREDENTIALS",
+        });
+        return;
+      }
 
-      const sessionUser: SessionUser = {
-        userId: `usr-${Date.now().toString(36)}`,
-        personId: `per-${Date.now().toString(36)}`,
-        email: body.email.toLowerCase().trim(),
-        roles,
-      };
-
-      const tokens = signSessionToken(sessionUser);
+      const tokens = signSessionToken(user);
       res.setHeader("Set-Cookie", createSessionCookie(tokens.accessToken));
       sendJson(res, 200, {
         success: true,
-        user: sessionUser,
+        user,
         accessToken: tokens.accessToken,
         expiresIn: tokens.expiresIn,
       });
@@ -732,7 +731,7 @@ export async function handleApiRequest(
 
     // 6. Azeebo+ Federation
     if (pathname === "/api/v1/federation/azeebo/webhook" && method === "POST") {
-      const defaultEndpoint = `${(process.env.AZEEBO_API_BASE_URL || "https://api.azeebo.plus/v1").replace(/\/+$/, "")}/webhooks`;
+      const defaultEndpoint = `${getConfig().AZEEBO_API_BASE_URL.replace(/\/+$/, "")}/webhooks`;
       const body = await parseJsonBody(req);
       const webhook = context.azeeboBridge.dispatchWebhook(
         body.eventType || "CONTENT_SYNDICATED",

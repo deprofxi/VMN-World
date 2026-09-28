@@ -561,13 +561,20 @@ All technical, product, and operational decisions must strictly respect the 10-t
   - **Deliverable:** Database seeding scripts (`/src/db/seeds/golden/`).
   - **Acceptance Criteria:** Test database can be reset and re-seeded deterministically in under 30 seconds.
 
-- [x] **TASK-P9-04: Four-Tier Release Gates Execution (R1.2A §67)**
-  - **Action:** Enforce strict release gating pipeline:
-    - **Gate 0 (Authority & Contract):** Requirements mapped to R1.2A; ADRs approved.
-    - **Gate 1 (Security & Privacy):** Threat model completed; zero high/critical vulnerabilities; NDPR compliance verified.
-    - **Gate 2 (Operational & Engineering):** Multi-tier test suite passes; performance budgets satisfied.
-    - **Gate 3 (Operator & UAT Sign-off):** Broadcast director, traffic manager, and finance controller sign-offs recorded.
-  - **Deliverable:** Release gate checklist automation and digital sign-off manifest.
+- [x] **TASK-P9-04: Broadcast Release Gates (BG0–BG9) Execution (R1.2A §67)**
+  - **Action:** Enforce strict release gating pipeline across the 10 governing R1.2A §67 gates:
+    - **BG0 (Channel Authority):** Channel identity and ownership configured.
+    - **BG1 (Catalogue):** Programme and master records imported.
+    - **BG2 (Rights):** Broadcast rights linked and cleared.
+    - **BG3 (Schedule):** Schedule workflow passes.
+    - **BG4 (Traffic):** Advertising inventory and commercial workflow pass.
+    - **BG5 (Playout):** Playlist/as-run integration passes.
+    - **BG6 (Carriage):** StarTimes endpoints and contacts mapped (or verified existing carriage).
+    - **BG7 (Finance):** Commercial proof-to-invoice reconciliation works (7-way separation).
+    - **BG8 (Azeebo+):** Linear-to-digital universal link works.
+    - **BG9 (Continuity):** Broadcast failure drills pass (20/20 failure drills green).
+    - Invariant: NOT_TESTED is never represented as PASS; requires authorized human release owner decision.
+  - **Deliverable:** Release gate checklist automation and versioned digital sign-off manifest (`release-manifest.json`).
   - **Acceptance Criteria:** Deployment pipeline halts automatically if any release gate fails.
 
 ---

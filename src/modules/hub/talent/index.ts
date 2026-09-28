@@ -9,6 +9,7 @@
 
 import { createHash } from "node:crypto";
 import { KycStatus, TalentTier } from "../../../core/domain/types.js";
+import { getConfig } from "../../../core/config/index.js";
 
 export type TalentOnboardingStatus = "DRAFT" | "SUBMITTED" | "UNDER_REVIEW" | "VERIFIED" | "REJECTED" | "SUSPENDED";
 
@@ -292,12 +293,13 @@ export class TalentAcceleratorRegistry {
     const checksumSha256 = createHash("sha256").update(tokenPayload).digest("hex");
     const tokenId = `BADGE-${checksumSha256.substring(0, 16).toUpperCase()}`;
 
+    const config = getConfig();
     const badge: TalentVerificationBadge = {
       tokenId,
       tier: assignedTier,
       issuedAt,
       checksumSha256,
-      verificationUrl: `https://vmnl.ng/verify/talent/${tokenId}`,
+      verificationUrl: `${config.APP_URL}/verify/talent/${tokenId}`,
     };
 
     profile.tier = assignedTier;

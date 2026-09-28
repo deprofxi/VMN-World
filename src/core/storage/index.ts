@@ -98,7 +98,17 @@ export function scanBufferForThreats(buffer: Buffer): VirusScanResult {
 }
 
 /**
- * Generates an AWS S3 / MinIO SigV4 compliant presigned asset upload URL.
+ * Derives the AWS SigV4 signing key (kSigning) from the secret key and request scope.
+ */
+function getSignatureKey(key: string, dateStamp: string, regionName: string, serviceName: string): Buffer {
+  const kDate = crypto.createHmac("sha256", "AWS4" + key).update(dateStamp).digest();
+  const kRegion = crypto.createHmac("sha256", kDate).update(regionName).digest();
+  const kService = crypto.createHmac("sha256", kRegion).update(serviceName).digest();
+  return crypto.createHmac("sha256", kService).update("aws4_request").digest();
+}
+
+/**
+ * Generates an AWS S3 / MinIO SigV4 compliant presigned asset upload URL following canonical AWS specification.
  */
 export function generatePresignedUploadUrl(
   req: PresignedUploadRequest,
@@ -119,24 +129,52 @@ export function generatePresignedUploadUrl(
   const prefix = req.tenantId ? `tenants/${req.tenantId}/` : "enterprise/";
   const assetKey = `${prefix}${uniqueId}_${sanitizedName}`;
 
-  // AWS SigV4 / MinIO presigned URL signature
+  // AWS SigV4 Canonical Signing Algorithm (Finding B-8)
   const now = new Date();
   const dateStr = now.toISOString().slice(0, 10).replace(/-/g, "");
-  const credential = `${config.STORAGE_ACCESS_KEY}/${dateStr}/${config.STORAGE_REGION}/s3/aws4_request`;
+  const amzDate = `${dateStr}T000000Z`;
+  const credentialScope = `${dateStr}/${config.STORAGE_REGION}/s3/aws4_request`;
+  const credential = `${config.STORAGE_ACCESS_KEY}/${credentialScope}`;
+
+  const endpointUrl = new URL(config.STORAGE_ENDPOINT);
+  const host = endpointUrl.host;
 
   const canonicalQuery = [
     `X-Amz-Algorithm=AWS4-HMAC-SHA256`,
     `X-Amz-Credential=${encodeURIComponent(credential)}`,
-    `X-Amz-Date=${dateStr}T000000Z`,
+    `X-Amz-Date=${amzDate}`,
     `X-Amz-Expires=${expiresInSeconds}`,
     `X-Amz-SignedHeaders=host`,
   ].join("&");
 
-  const stringToSign = `AWS4-HMAC-SHA256\n${dateStr}T000000Z\n${credential}\n${crypto.createHash("sha256").update(canonicalQuery).digest("hex")}`;
-  const signature = crypto
-    .createHmac("sha256", config.STORAGE_SECRET_KEY)
-    .update(stringToSign)
-    .digest("hex");
+  // Canonical Request: Method, URI, Query, Headers, SignedHeaders, Payload Hash
+  const canonicalUri = `/${config.STORAGE_BUCKET}/${assetKey}`;
+  const canonicalHeaders = `host:${host}\n`;
+  const signedHeaders = "host";
+  const payloadHash = "UNSIGNED-PAYLOAD";
+
+  const canonicalRequest = [
+    "PUT",
+    canonicalUri,
+    canonicalQuery,
+    canonicalHeaders,
+    signedHeaders,
+    payloadHash,
+  ].join("\n");
+
+  const hashedCanonicalRequest = crypto.createHash("sha256").update(canonicalRequest).digest("hex");
+
+  // String to Sign
+  const stringToSign = [
+    "AWS4-HMAC-SHA256",
+    amzDate,
+    credentialScope,
+    hashedCanonicalRequest,
+  ].join("\n");
+
+  // Derive kSigning and calculate signature
+  const signingKey = getSignatureKey(config.STORAGE_SECRET_KEY, dateStr, config.STORAGE_REGION, "s3");
+  const signature = crypto.createHmac("sha256", signingKey).update(stringToSign).digest("hex");
 
   const uploadUrl = `${config.STORAGE_ENDPOINT}/${config.STORAGE_BUCKET}/${assetKey}?${canonicalQuery}&X-Amz-Signature=${signature}`;
   const downloadUrl = `${config.STORAGE_ENDPOINT}/${config.STORAGE_BUCKET}/${assetKey}`;

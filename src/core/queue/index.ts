@@ -64,11 +64,49 @@ export class EnterpriseQueueWorker {
   private isRunning = false;
   private processingPromise: Promise<void> | null = null;
   private concurrency: number;
+  private recurringTimers = new Set<NodeJS.Timeout>();
   private telemetry?: TelemetryService;
 
   constructor(options?: { concurrency?: number; telemetry?: TelemetryService }) {
     this.concurrency = options?.concurrency || 5;
     this.telemetry = options?.telemetry;
+  }
+
+  /**
+   * Schedules a recurring job with a defined interval (e.g. rolling 7-day EPG syndication).
+   */
+  public scheduleRecurring<T>(
+    type: JobType,
+    intervalMs: number,
+    payloadGenerator: () => T,
+    options?: JobEnqueueOptions
+  ): NodeJS.Timeout {
+    this.enqueue(type, payloadGenerator(), options);
+
+    const timer = setInterval(() => {
+      this.enqueue(type, payloadGenerator(), options);
+    }, intervalMs);
+
+    this.recurringTimers.add(timer);
+    return timer;
+  }
+
+  /**
+   * Stops a scheduled recurring job timer.
+   */
+  public stopRecurring(timer: NodeJS.Timeout): void {
+    clearInterval(timer);
+    this.recurringTimers.delete(timer);
+  }
+
+  /**
+   * Stops all scheduled recurring timers.
+   */
+  public stopAllRecurring(): void {
+    for (const timer of this.recurringTimers) {
+      clearInterval(timer);
+    }
+    this.recurringTimers.clear();
   }
 
   /**
@@ -160,8 +198,8 @@ export class EnterpriseQueueWorker {
 
   /**
    * Stops background processing gracefully.
-   */
   public async stop(): Promise<void> {
+    this.stopAllRecurring();
     this.isRunning = false;
     if (this.processingPromise) {
       await this.processingPromise;
@@ -219,4 +257,22 @@ export class EnterpriseQueueWorker {
       }
     }
   }
+}
+
+/**
+ * Configures automated 7-day rolling EPG syndication schedule (B-14).
+ */
+export function configureRollingEpgScheduler(
+  worker: EnterpriseQueueWorker,
+  intervalMs: number = 86_400_000 // 24 hours daily rolling
+): NodeJS.Timeout {
+  return worker.scheduleRecurring(
+    "EPG_GENERATION",
+    intervalMs,
+    () => ({
+      channelCodes: ["NXTR", "ORIS", "IMBD"],
+      rollingDays: 7,
+      generatedAt: new Date().toISOString(),
+    })
+  );
 }

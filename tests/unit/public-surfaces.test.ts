@@ -10,6 +10,7 @@ import {
   renderScreensCatalogHtml,
   renderScreenDetailHtml,
 } from "../../src/web/public/index.js";
+import { getConfig } from "../../src/core/config/index.js";
 
 describe("Phase 7: Public Digital Surfaces & User Experience", () => {
   describe("TASK-P7-04: UI/UX Component System & Accessibility Conformance", () => {
@@ -96,15 +97,19 @@ describe("Phase 7: Public Digital Surfaces & User Experience", () => {
 
   describe("TASK-P7-02: Linear Television Public Channels Hub", () => {
     it("retrieves channel parameters and renders live On-Air-Now and Up-Next EPG widgets", () => {
+      const config = getConfig();
       const nxtr = PublicChannelsHub.getChannel("NXTR");
-      expect(nxtr.dttChannel).toBe(428);
-      expect(nxtr.dthChannel).toBe(312);
+      expect(nxtr.dttChannel).toBe(config.NXTR_DTT_CHANNEL);
+      expect(nxtr.dthChannel).toBe(config.NXTR_DTH_CHANNEL);
+      expect(nxtr.isProvisional).toBe(true);
 
       const orisun = PublicChannelsHub.getChannel("ORIS");
-      expect(orisun.dttChannel).toBe(430);
+      expect(orisun.dttChannel).toBe(config.ORIS_DTT_CHANNEL);
+      expect(orisun.isProvisional).toBe(true);
 
       const imbd = PublicChannelsHub.getChannel("IMBD");
-      expect(imbd.dttChannel).toBe(432);
+      expect(imbd.dttChannel).toBe(config.IMBD_DTT_CHANNEL);
+      expect(imbd.isProvisional).toBe(true);
 
       // Render On Air Now Widget
       const widgetHtml = PublicChannelsHub.renderNowAndNextWidget(

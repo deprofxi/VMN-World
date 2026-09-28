@@ -80,14 +80,20 @@ let configInstance: AppConfig | null = null;
 
 export function getConfig(): AppConfig {
   if (!configInstance) {
-    // Provide safe defaults for testing if DATABASE_URL is not set
-    const fallbackEnv = {
-      ...process.env,
-      DATABASE_URL: process.env.DATABASE_URL || "postgresql://root@localhost:5432/vmnl_enterprise?schema=public",
-      JWT_SECRET: process.env.JWT_SECRET || "default_test_jwt_secret_must_be_32_chars_long!!",
-      AZEEBO_WEBHOOK_SECRET: process.env.AZEEBO_WEBHOOK_SECRET || "default_azeebo_webhook_secret_key_32chars"
-    };
-    configInstance = loadConfig(fallbackEnv);
+    const isProductionOrStaging = process.env.NODE_ENV === "production" || process.env.NODE_ENV === "staging";
+    if (isProductionOrStaging) {
+      // In production or staging, strictly fail-fast with zero in-code secret fallbacks (A-3, CR-6)
+      configInstance = loadConfig(process.env);
+    } else {
+      // Safe non-production testing sandbox defaults
+      const fallbackEnv = {
+        ...process.env,
+        DATABASE_URL: process.env.DATABASE_URL || "postgresql://root@localhost:5432/vmnl_enterprise?schema=public",
+        JWT_SECRET: process.env.JWT_SECRET || "default_test_jwt_secret_must_be_32_chars_long!!",
+        AZEEBO_WEBHOOK_SECRET: process.env.AZEEBO_WEBHOOK_SECRET || "default_azeebo_webhook_secret_key_32chars",
+      };
+      configInstance = loadConfig(fallbackEnv);
+    }
   }
   return configInstance;
 }

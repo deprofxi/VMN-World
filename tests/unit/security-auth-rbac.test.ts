@@ -79,6 +79,30 @@ describe("Security, RBAC Enforcement & Authentication Suite (B-6, B-7, B-8)", ()
     expect(res.body.user.roles).toContain("FinanceController");
   });
 
+  it("should reject login with 401 on incorrect password or non-existent user (CR-1)", async () => {
+    // 1. Wrong password
+    const wrongPassRes = await makeRequest(testPort, "/api/v1/auth/login", {
+      method: "POST",
+      body: {
+        email: "finance.controller@vmnl.ng",
+        password: "IncorrectPassword999!",
+      },
+    });
+    expect(wrongPassRes.statusCode).toBe(401);
+    expect(wrongPassRes.body.code).toBe("INVALID_CREDENTIALS");
+
+    // 2. Non-existent email
+    const nonExistentRes = await makeRequest(testPort, "/api/v1/auth/login", {
+      method: "POST",
+      body: {
+        email: "unknown.intruder@vmnl.ng",
+        password: "AnyPassword123!",
+      },
+    });
+    expect(nonExistentRes.statusCode).toBe(401);
+    expect(nonExistentRes.body.code).toBe("INVALID_CREDENTIALS");
+  });
+
   it("should revoke tokens and prevent re-use via POST /api/v1/auth/revoke", async () => {
     // 1. Login
     const loginRes = await makeRequest(testPort, "/api/v1/auth/login", {

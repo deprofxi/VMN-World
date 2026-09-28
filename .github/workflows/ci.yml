@@ -69,11 +69,15 @@ jobs:
       - name: Lint Check
         run: pnpm run lint
 
+      - name: Apply Database Migrations (Prisma)
+        run: pnpm exec prisma migrate deploy
+
       - name: Run Test Pyramid & 20 UAT Drills
         run: pnpm test
 
       - name: Compile Production Build
         run: pnpm run build
 
-      - name: Evaluate Four-Tier Release Gates
+      - name: Evaluate BG0-BG9 Broadcast Release Gates (R1.2A §67)
         run: node dist/src/cli/index.js gates:check
+

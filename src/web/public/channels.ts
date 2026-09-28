@@ -7,6 +7,8 @@
  * Real-time "On Air Now" and "Up Next" consumer widgets driven directly by approved EPG data.
  */
 
+import { getConfig } from "../../core/config/index.js";
+
 export interface PublicChannelInfo {
   code: "NXTR" | "ORIS" | "IMBD";
   name: string;
@@ -17,43 +19,52 @@ export interface PublicChannelInfo {
   primaryLanguage: string;
   targetAudience: string;
   accentColor: string;
+  isProvisional: boolean;
 }
 
-export const PUBLIC_CHANNELS: PublicChannelInfo[] = [
-  {
-    code: "NXTR",
-    name: "Nigezie Xtreme",
-    tagline: "The Pulse of African Youth Culture",
-    dttChannel: 428,
-    dthChannel: 312,
-    genre: "Urban Youth, Music, Street Lifestyle",
-    primaryLanguage: "English / Nigerian Pidgin",
-    targetAudience: "Ages 16-32 Urban Trendsetters",
-    accentColor: "#E50914",
-  },
-  {
-    code: "ORIS",
-    name: "Orisun",
-    tagline: "The True Source of Yoruba Heritage & Culture",
-    dttChannel: 430,
-    dthChannel: 315,
-    genre: "Yoruba Cultural Entertainment, Drama, Lifestyle",
-    primaryLanguage: "Yoruba",
-    targetAudience: "Yoruba speakers and cultural enthusiasts worldwide",
-    accentColor: "#FFB800",
-  },
-  {
-    code: "IMBD",
-    name: "Isi Mbido",
-    tagline: "Roots of the Igbo Heritage",
-    dttChannel: 432,
-    dthChannel: 318,
-    genre: "Igbo Cultural Programming, Film, Folklore",
-    primaryLanguage: "Igbo",
-    targetAudience: "Igbo speakers, Eastern cultural diaspora",
-    accentColor: "#00875A",
-  },
-];
+export function getPublicChannels(): PublicChannelInfo[] {
+  const config = getConfig();
+  return [
+    {
+      code: "NXTR",
+      name: "Nigezie Xtreme",
+      tagline: "The Pulse of African Youth Culture",
+      dttChannel: config.NXTR_DTT_CHANNEL,
+      dthChannel: config.NXTR_DTH_CHANNEL,
+      genre: "Urban Youth, Music, Street Lifestyle",
+      primaryLanguage: "English / Nigerian Pidgin",
+      targetAudience: "Ages 16-32 Urban Trendsetters",
+      accentColor: "#E50914",
+      isProvisional: !config.STARTIMES_CARRIAGE_VERIFIED,
+    },
+    {
+      code: "ORIS",
+      name: "Orisun",
+      tagline: "The True Source of Yoruba Heritage & Culture",
+      dttChannel: config.ORIS_DTT_CHANNEL,
+      dthChannel: config.ORIS_DTH_CHANNEL,
+      genre: "Yoruba Cultural Entertainment, Drama, Lifestyle",
+      primaryLanguage: "Yoruba",
+      targetAudience: "Yoruba speakers and cultural enthusiasts worldwide",
+      accentColor: "#FFB800",
+      isProvisional: !config.STARTIMES_CARRIAGE_VERIFIED,
+    },
+    {
+      code: "IMBD",
+      name: "Isi Mbido",
+      tagline: "Roots of the Igbo Heritage",
+      dttChannel: config.IMBD_DTT_CHANNEL,
+      dthChannel: config.IMBD_DTH_CHANNEL,
+      genre: "Igbo Cultural Programming, Film, Folklore",
+      primaryLanguage: "Igbo",
+      targetAudience: "Igbo speakers, Eastern cultural diaspora",
+      accentColor: "#00875A",
+      isProvisional: !config.STARTIMES_CARRIAGE_VERIFIED,
+    },
+  ];
+}
+
+export const PUBLIC_CHANNELS: PublicChannelInfo[] = getPublicChannels();
 
 export interface PublicEpgProgramItem {
   title: string;

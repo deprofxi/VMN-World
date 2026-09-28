@@ -4,6 +4,8 @@
  * Authority: VMNL-AZP-VMN-BRD-PRD-001 — R1.2A / VMNL-AZP-VMN-CCPP-001 §21
  */
 
+import fs from "node:fs";
+import path from "node:path";
 import { generateGoldenDataset } from "../db/seeds/golden/index.js";
 import { ReleaseGatePipeline } from "../modules/quality/gates.js";
 import { getChannelByCode } from "../modules/broadcast/channels/index.js";
@@ -34,110 +36,43 @@ export async function runCli(args: string[] = process.argv.slice(2)): Promise<nu
 
     case "gates:check": {
       console.log("[VMNL-CLI] Evaluating R1.2A §67 Broadcast Release Gates (BG0 to BG9)...");
+      let manifestPath = "release-manifest.json";
+      const manifestIndex = args.indexOf("--manifest");
+      if (manifestIndex !== -1 && args[manifestIndex + 1]) {
+        manifestPath = args[manifestIndex + 1];
+      }
+
+      const resolvedPath = path.resolve(process.cwd(), manifestPath);
+      if (!fs.existsSync(resolvedPath)) {
+        console.error(`[VMNL-CLI] Manifest file not found at: ${resolvedPath}`);
+        console.error("Provide a valid manifest via --manifest <path> or ensure release-manifest.json exists.");
+        return 1;
+      }
+
+      let parsedJson: any;
+      try {
+        const fileContent = fs.readFileSync(resolvedPath, "utf-8");
+        parsedJson = JSON.parse(fileContent);
+      } catch (err: any) {
+        console.error(`[VMNL-CLI] Failed to read or parse release manifest: ${err.message}`);
+        return 1;
+      }
+
+      // Convert dates
       const broadcastManifest = {
-        version: "1.0.0-rc1",
-        environment: "SANDBOX_S2" as const,
-        gitCommitSha: "HEAD",
+        ...parsedJson,
         humanReleaseOwner: {
-          name: "Broadcast Architecture Authority",
-          role: "Release Authority / Lead System Architect",
-          signedAt: new Date(),
+          ...parsedJson.humanReleaseOwner,
+          signedAt: new Date(parsedJson.humanReleaseOwner.signedAt),
         },
-        decision: "GO" as const,
-        decisionRationale: "Sandbox S2 verification completed across domain invariants and failure drills.",
-        gates: {
-          BG0_CHANNEL_AUTHORITY: {
-            id: "BG0_CHANNEL_AUTHORITY" as const,
-            name: "Channel Authority",
-            description: "Channel identity and ownership configured",
-            status: "PASS" as const,
-            evidenceRef: "src/modules/broadcast/channels/index.ts",
-            evaluatedAt: new Date(),
-            verifiedBy: "LeadArchitect",
-          },
-          BG1_CATALOGUE: {
-            id: "BG1_CATALOGUE" as const,
-            name: "Catalogue",
-            description: "Programme and master records imported",
-            status: "PASS" as const,
-            evidenceRef: "src/db/seeds/golden/index.ts",
-            evaluatedAt: new Date(),
-            verifiedBy: "LeadArchitect",
-          },
-          BG2_RIGHTS: {
-            id: "BG2_RIGHTS" as const,
-            name: "Rights",
-            description: "Broadcast rights linked and cleared",
-            status: "PASS" as const,
-            evidenceRef: "tests/unit/broadcast.test.ts",
-            evaluatedAt: new Date(),
-            verifiedBy: "QAAutomation",
-          },
-          BG3_SCHEDULE: {
-            id: "BG3_SCHEDULE" as const,
-            name: "Schedule",
-            description: "Schedule workflow passes",
-            status: "PASS" as const,
-            evidenceRef: "tests/unit/broadcast.test.ts",
-            evaluatedAt: new Date(),
-            verifiedBy: "QAAutomation",
-          },
-          BG4_TRAFFIC: {
-            id: "BG4_TRAFFIC" as const,
-            name: "Traffic",
-            description: "Advertising inventory and commercial workflow pass",
-            status: "PASS" as const,
-            evidenceRef: "tests/unit/broadcast.test.ts",
-            evaluatedAt: new Date(),
-            verifiedBy: "QAAutomation",
-          },
-          BG5_PLAYOUT: {
-            id: "BG5_PLAYOUT" as const,
-            name: "Playout",
-            description: "Playlist/as-run integration passes",
-            status: "PASS" as const,
-            evidenceRef: "src/modules/broadcast/playout/index.ts",
-            evaluatedAt: new Date(),
-            verifiedBy: "BroadcastEngineer",
-          },
-          BG6_CARRIAGE: {
-            id: "BG6_CARRIAGE" as const,
-            name: "Carriage",
-            description: "StarTimes carriage endpoints and contacts mapped (provisional pending live uplink verification)",
-            status: "FULFILLED_BY_VERIFIED_EXISTING_SYSTEM" as const,
-            evidenceRef: "StarTimes DTT Carriage Agreement (Provisional / Configurable)",
-            evaluatedAt: new Date(),
-            verifiedBy: "PlatformRelationshipLead",
-          },
-          BG7_FINANCE: {
-            id: "BG7_FINANCE" as const,
-            name: "Finance",
-            description: "Commercial proof-to-invoice reconciliation works",
-            status: "PASS" as const,
-            evidenceRef: "src/modules/finance/sales/index.ts",
-            evaluatedAt: new Date(),
-            verifiedBy: "FinanceController",
-          },
-          BG8_AZEEBO: {
-            id: "BG8_AZEEBO" as const,
-            name: "Azeebo+",
-            description: "Linear-to-digital link works",
-            status: "PASS" as const,
-            evidenceRef: "src/modules/federation/azeebo/links.ts",
-            evaluatedAt: new Date(),
-            verifiedBy: "DigitalLead",
-          },
-          BG9_CONTINUITY: {
-            id: "BG9_CONTINUITY" as const,
-            name: "Continuity",
-            description: "Broadcast failure drills pass (20/20 failure drills green)",
-            status: "PASS" as const,
-            evidenceRef: "tests/unit/uat-broadcast-failure-drills.test.ts",
-            evaluatedAt: new Date(),
-            verifiedBy: "QAAutomation",
-          },
-        },
+        gates: Object.fromEntries(
+          Object.entries(parsedJson.gates).map(([id, gate]: [string, any]) => [
+            id,
+            { ...gate, evaluatedAt: new Date(gate.evaluatedAt) },
+          ])
+        ),
       };
+
 
       const result = ReleaseGatePipeline.evaluateBroadcastRelease(broadcastManifest);
       if (result.canDeploy) {

@@ -103,11 +103,142 @@ export async function runDatabaseSeed(): Promise<{ success: boolean; stats: Reco
         });
       }
 
+      // 4. Seed Programmes
+      for (const prog of dataset.programmes) {
+        const channelCode = prog.genre.includes("Yoruba") ? "ORIS" : prog.genre.includes("Igbo") ? "IMBD" : "NXTR";
+        await prisma.programme.upsert({
+          where: { code: prog.id },
+          update: { title: prog.title, category: prog.genre },
+          create: {
+            id: prog.id,
+            code: prog.id,
+            title: prog.title,
+            channelCode,
+            category: prog.genre,
+            targetDemographic: "General / Youth",
+            synopsis: `Standard golden programme for ${prog.title}`,
+            totalEpisodes: prog.totalEpisodes,
+          },
+        });
+      }
+
+      // 5. Seed Broadcast Episodes
+      for (const ep of dataset.episodes) {
+        await prisma.broadcastEpisode.upsert({
+          where: { episodeCode: ep.id },
+          update: { durationSeconds: ep.durationSeconds },
+          create: {
+            id: ep.id,
+            episodeCode: ep.id,
+            programmeCode: ep.programmeId,
+            episodeNumber: ep.episodeNumber,
+            title: `Episode ${ep.episodeNumber}`,
+            durationSeconds: ep.durationSeconds,
+            segmentCount: 4,
+          },
+        });
+      }
+
+      // 6. Seed Talent Profiles & Persons
+      for (const tal of dataset.talentProfiles) {
+        const personEmail = `${tal.id.toLowerCase()}@talent.vmnl.ng`;
+        const person = await prisma.person.upsert({
+          where: { email: personEmail },
+          update: { firstName: tal.fullName.split(" ")[0] || "Artist", lastName: tal.fullName.split(" ")[1] || "Talent" },
+          create: {
+            id: `per-${tal.id}`,
+            email: personEmail,
+            firstName: tal.fullName.split(" ")[0] || "Artist",
+            lastName: tal.fullName.split(" ")[1] || "Talent",
+            kycStatus: "VERIFIED",
+          },
+        });
+
+        await prisma.talentProfile.upsert({
+          where: { personId: person.id },
+          update: { tier: tal.tier as any },
+          create: {
+            id: tal.id,
+            personId: person.id,
+            stageName: tal.fullName,
+            tier: tal.tier as any,
+            bio: `Verified talent artist specializing in ${tal.primarySkill}`,
+            skills: [tal.primarySkill],
+            rateCardAmount: 150000.0,
+            verificationStatus: "VERIFIED",
+          },
+        });
+      }
+
+      // 7. Seed As-Run Logs
+      for (const asrun of dataset.asRunLogs) {
+        const chCode = asrun.channelId.includes("NXTR") ? "NXTR" : asrun.channelId.includes("ORIS") ? "ORIS" : "IMBD";
+        await prisma.asRunLogRecord.upsert({
+          where: { id: asrun.id },
+          update: { matchedSpots: Math.floor(60 * (asrun.matchRatePercent / 100)) },
+          create: {
+            id: asrun.id,
+            channelCode: chCode,
+            transmissionDate: new Date(asrun.date),
+            totalPlannedSpots: 60,
+            totalAiredSpots: 60,
+            matchedSpots: Math.floor(60 * (asrun.matchRatePercent / 100)),
+            discrepancyCount: asrun.matchRatePercent === 100 ? 0 : 2,
+            reconciliationStatus: asrun.matchRatePercent === 100 ? "MATCHED_CLEAN" : "DISCREPANCY_FLAGGED",
+          },
+        });
+      }
+
+      // 8. Seed VCF Slates (Projects)
+      for (const slate of dataset.vcfSlates) {
+        await prisma.project.upsert({
+          where: { code: slate.id },
+          update: { budget: slate.budgetNgn },
+          create: {
+            id: slate.id,
+            code: slate.id,
+            name: slate.title,
+            description: `VCF Project Slate: ${slate.title}`,
+            status: "APPROVED",
+            budget: slate.budgetNgn,
+            currency: "NGN",
+          },
+        });
+      }
+
+      // 9. Seed TEND Distribution Deals (Contracts)
+      for (const deal of dataset.tendDeals) {
+        await prisma.contract.upsert({
+          where: { contractNumber: deal.id },
+          update: { contractValue: deal.feeUsd },
+          create: {
+            id: deal.id,
+            contractNumber: deal.id,
+            title: `TEND Distribution: ${deal.title} (${deal.territory})`,
+            status: "SIGNED",
+            contractValue: deal.feeUsd,
+            currency: "USD",
+            startDate: new Date("2026-06-01"),
+            endDate: new Date("2027-05-31"),
+          },
+        });
+      }
+
       persistenceMode = "POSTGRESQL_PERSISTED";
-      console.log("[VMNL-DB-SEED] Prisma persistence operations completed successfully.");
+      console.log("[VMNL-DB-SEED] Prisma persistence operations completed successfully for all entity families.");
     } catch (dbErr: any) {
+      const allowSandboxFallback = process.argv.includes("--allow-sandbox-fallback") || process.env.ALLOW_SANDBOX_FALLBACK === "true";
+      if (!allowSandboxFallback) {
+        console.error(`[VMNL-DB-SEED-FATAL] Database persistence failed: ${dbErr.message}`);
+        await disconnectDatabase();
+        throw new Error(`[VMNL-DB-SEED-FATAL] Database persistence failed: ${dbErr.message}`, {
+          cause: dbErr,
+        });
+      }
       console.warn(`[VMNL-DB-SEED-WARNING] Prisma upsert error, falling back to sandbox mode: ${dbErr.message}`);
       persistenceMode = "SANDBOX_DEGRADED";
+      await disconnectDatabase();
+      return { success: false, stats, persistenceMode };
     } finally {
       await disconnectDatabase();
     }
