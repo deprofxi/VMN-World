@@ -4,3 +4,4 @@
 
 export * from "./router.js";
 export * from "./server.js";
+export * from "./docs.js";

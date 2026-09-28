@@ -138,6 +138,24 @@ describe("VMNL Enterprise End-to-End Platform Integration", () => {
       expect(res.statusCode).toBe(200);
       expect(res.rawText).toContain("Screen Surface Not Found");
     });
+
+    it("should serve the interactive API Documentation on GET /docs", async () => {
+      const res = await makeRequest(testPort, "/docs");
+      expect(res.statusCode).toBe(200);
+      expect(res.rawText).toContain("VMNL Enterprise API Reference");
+      expect(res.rawText).toContain("OpenAPI 3.1");
+      expect(res.rawText).toContain("/api/v1/broadcast/channels");
+      expect(res.rawText).toContain("/api/v1/finance/payouts/batch");
+    });
+
+    it("should serve standard OpenAPI 3.1.0 JSON specification on GET /api/v1/openapi.json", async () => {
+      const res = await makeRequest(testPort, "/api/v1/openapi.json");
+      expect(res.statusCode).toBe(200);
+      expect(res.body.openapi).toBe("3.1.0");
+      expect(res.body.info.title).toContain("Virtual Media Network Limited");
+      expect(res.body.paths["/api/v1/broadcast/asrun/reconcile"]).toBeDefined();
+      expect(res.body.paths["/api/v1/quality/gates"]).toBeDefined();
+    });
   });
 
   describe("1. Observability, Health & Telemetry", () => {

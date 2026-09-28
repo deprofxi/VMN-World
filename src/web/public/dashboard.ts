@@ -191,6 +191,7 @@ export function renderMasterLayout(title: string, bodyContent: string, activeNav
       <a href="/hub" class="${activeNav === "/hub" ? "active" : ""}">Creative Hub</a>
       <a href="/broadcast/screens" class="${activeNav.startsWith("/broadcast/screens") ? "active" : ""}">33 Screens</a>
       <a href="/broadcast/dashboard" class="${activeNav === "/broadcast/dashboard" ? "active" : ""}">Operator Console</a>
+      <a href="/docs" class="${activeNav.startsWith("/docs") ? "active" : ""}">API Docs</a>
     </nav>
   </header>
 

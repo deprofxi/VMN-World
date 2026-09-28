@@ -32,6 +32,7 @@ import {
   renderScreensCatalogHtml,
   renderScreenDetailHtml,
 } from "../web/public/index.js";
+import { OPENAPI_SPEC, renderDocsHtml } from "./docs.js";
 
 export interface RequestHandlerContext {
   telemetry: TelemetryService;
@@ -148,6 +149,17 @@ export async function handleApiRequest(
       const screenId = pathname.replace("/broadcast/screens/", "").trim();
       const html = renderMasterLayout(`Screen Surface ${screenId}`, renderScreenDetailHtml(screenId), "/broadcast/screens");
       sendText(res, 200, html, "text/html; charset=utf-8");
+      return;
+    }
+
+    if ((pathname === "/docs" || pathname === "/api/docs") && method === "GET") {
+      const html = renderMasterLayout("API Documentation", renderDocsHtml(), "/docs");
+      sendText(res, 200, html, "text/html; charset=utf-8");
+      return;
+    }
+
+    if (pathname === "/api/v1/openapi.json" && method === "GET") {
+      sendJson(res, 200, OPENAPI_SPEC);
       return;
     }
 
