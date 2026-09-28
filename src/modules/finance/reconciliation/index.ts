@@ -55,10 +55,8 @@ export class BankReconciliationEngine {
     const results: ReconciliationMatchResult[] = [];
 
     for (const tx of this.transactions.values()) {
-      let matchedInvoice: InvoiceReconciliationTarget | undefined;
-
       // 1. Exact reference match in bank narration or tx reference
-      matchedInvoice = invoices.find(
+      const matchedInvoice: InvoiceReconciliationTarget | undefined = invoices.find(
         (inv) =>
           tx.transactionReference.includes(inv.invoiceNumber) ||
           tx.bankNarration.includes(inv.invoiceNumber)

@@ -38,10 +38,13 @@ export function createApiServer(port?: number, envOverrides: Record<string, stri
   const serverPort = port || config.PORT || 4000;
   const telemetry = new TelemetryService();
   const azeeboBridge = new AzeeboFederationBridge(config.AZEEBO_WEBHOOK_SECRET);
-  const azeeboLinks = new AzeeboLinkGateway();
+  const azeeboLinks = new AzeeboLinkGateway({
+    universalBaseUrl: config.AZEEBO_PLUS_UNIVERSAL_URL,
+    appScheme: config.AZEEBO_APP_SCHEME,
+  });
   const talentRegistry = new TalentAcceleratorRegistry();
-  const afcaService = new AfcaAcademyService();
-  const eventsEngine = new FusionEventsEngine();
+  const afcaService = new AfcaAcademyService(config.APP_URL);
+  const eventsEngine = new FusionEventsEngine(config.FUSION_EVENTS_HMAC_SECRET);
   const vtmEngine = new VirtualTalentManagementEngine();
   const headspace = new HeadspaceKnowledgeEngine();
   const cr8tech = new Cr8TechCreativeEngine();

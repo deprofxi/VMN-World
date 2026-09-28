@@ -18,6 +18,7 @@ export interface BroadcastChannelConfig {
     dthChannelNumber?: number;
     bouquetTier: "Basic" | "Classic" | "Super";
     servicePid?: number;
+    isProvisional: boolean; // Authority: CLAUDE.md <broadcast> law (mark unverified until confirmed by StarTimes / NBC)
   };
   isActive: boolean;
 }
@@ -38,6 +39,7 @@ export const CANONICAL_CHANNELS: Record<string, BroadcastChannelConfig> = {
       dthChannelNumber: 312,
       bouquetTier: "Basic",
       servicePid: 1042,
+      isProvisional: true, // Marked provisional per CLAUDE.md until formal StarTimes/NBC certificate confirmation
     },
     isActive: true,
   },
@@ -56,6 +58,7 @@ export const CANONICAL_CHANNELS: Record<string, BroadcastChannelConfig> = {
       dthChannelNumber: 315,
       bouquetTier: "Basic",
       servicePid: 1044,
+      isProvisional: true, // Marked provisional per CLAUDE.md until formal StarTimes/NBC certificate confirmation
     },
     isActive: true,
   },
@@ -74,6 +77,7 @@ export const CANONICAL_CHANNELS: Record<string, BroadcastChannelConfig> = {
       dthChannelNumber: 318,
       bouquetTier: "Basic",
       servicePid: 1046,
+      isProvisional: true, // Marked provisional per CLAUDE.md until formal StarTimes/NBC certificate confirmation
     },
     isActive: true,
   },

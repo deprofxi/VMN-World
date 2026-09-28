@@ -6,7 +6,7 @@
  * default, hover, active, focus-visible, disabled, loading, error, empty.
  */
 
-import { ButtonProps, InputFieldProps, ComponentState, DESIGN_TOKENS } from "./tokens.js";
+import { ButtonProps, InputFieldProps } from "./tokens.js";
 
 export * from "./tokens.js";
 

@@ -42,6 +42,25 @@ const configSchema = z.object({
   AZEEBO_API_BASE_URL: z.string().url().default("https://api.azeebo.plus/v1"),
   AZEEBO_CLIENT_ID: z.string().default("vmnl_enterprise_hub"),
   AZEEBO_WEBHOOK_SECRET: z.string().min(16, "AZEEBO_WEBHOOK_SECRET must be at least 16 characters"),
+  AZEEBO_APP_SCHEME: z.string().default("azeeboplus"),
+
+  // Security & CORS
+  ALLOWED_ORIGINS: z.string().default("http://localhost:3000,http://localhost:4000,https://vmnl.ng,https://azeebo.plus"),
+  FUSION_EVENTS_HMAC_SECRET: z.string().min(16).default("vmnl_fusion_events_hmac_secret_key_prod"),
+  CDN_BASE_URL: z.string().url().default("http://localhost:9000/vmnl-assets"),
+
+  // StarTimes Carriage & Verification Authority (CLAUDE.md Law: Mark clearly as provisional until verified)
+  STARTIMES_CARRIAGE_VERIFIED: z.coerce.boolean().default(false),
+  NXTR_DTT_CHANNEL: z.coerce.number().default(428),
+  NXTR_DTH_CHANNEL: z.coerce.number().default(312),
+  NXTR_SERVICE_PID: z.coerce.number().default(1042),
+  ORIS_DTT_CHANNEL: z.coerce.number().default(430),
+  ORIS_DTH_CHANNEL: z.coerce.number().default(315),
+  ORIS_SERVICE_PID: z.coerce.number().default(1044),
+  IMBD_DTT_CHANNEL: z.coerce.number().default(432),
+  IMBD_DTH_CHANNEL: z.coerce.number().default(318),
+  IMBD_SERVICE_PID: z.coerce.number().default(1046),
+  COMPANY_RC_NUMBER: z.string().default("RC 642819 (Provisional - Pending StarTimes / CAC Verification)"),
 
   // Observability
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),

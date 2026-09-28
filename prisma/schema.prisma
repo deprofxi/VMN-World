@@ -1,6 +1,5 @@
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 generator client {
@@ -323,3 +322,167 @@ model AuditLog {
 
   user               User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
 }
+
+// ---------------------------------------------------------
+// Broadcast Domain Models
+// ---------------------------------------------------------
+
+model BroadcastChannel {
+  id                 String         @id @default(uuid())
+  code               String         @unique // NXTR, ORIS, IMBD
+  name               String
+  tagline            String
+  primaryLanguage    String
+  dttChannelNumber   Int?
+  dthChannelNumber   Int?
+  bouquetTier        String         @default("Basic")
+  servicePid         Int?
+  isProvisional      Boolean        @default(true)
+  isActive           Boolean        @default(true)
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  programmes         Programme[]
+}
+
+model Programme {
+  id                 String            @id @default(uuid())
+  code               String            @unique
+  title              String
+  channelCode        String
+  category           String
+  targetDemographic  String
+  synopsis           String
+  totalEpisodes      Int               @default(0)
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  channel            BroadcastChannel  @relation(fields: [channelCode], references: [code])
+  episodes           BroadcastEpisode[]
+}
+
+model BroadcastEpisode {
+  id                 String         @id @default(uuid())
+  episodeCode        String         @unique
+  programmeCode      String
+  episodeNumber      Int
+  title              String
+  durationSeconds    Int
+  segmentCount       Int            @default(4)
+  mediaAssetId       String?
+  rightsWindowStart  DateTime?
+  rightsWindowEnd    DateTime?
+  complianceRating   String         @default("15")
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  programme          Programme      @relation(fields: [programmeCode], references: [code])
+}
+
+model AsRunLogRecord {
+  id                    String         @id @default(uuid())
+  channelCode           String
+  transmissionDate      DateTime
+  totalPlannedSpots     Int
+  totalAiredSpots       Int
+  matchedSpots          Int
+  discrepancyCount      Int
+  reconciliationStatus  String
+  certificateHashSha256 String?
+  createdAt             DateTime       @default(now())
+}
+
+// ---------------------------------------------------------
+// Hub Domain Models
+// ---------------------------------------------------------
+
+model AfcaCourse {
+  id                 String         @id @default(uuid())
+  code               String         @unique
+  title              String
+  faculty            String
+  credits            Int
+  tuitionNgn         Decimal        @db.Decimal(14, 2)
+  durationWeeks      Int
+  maxCohortSize      Int            @default(30)
+  isActive           Boolean        @default(true)
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+}
+
+model FusionEvent {
+  id                 String         @id @default(uuid())
+  code               String         @unique
+  name               String
+  category           String
+  venueName          String
+  venueCity          String
+  eventDate          DateTime
+  doorsOpenTime      String
+  capacity           Int
+  isPublished        Boolean        @default(false)
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  tickets            EventTicket[]
+}
+
+model EventTicket {
+  id                 String         @id @default(uuid())
+  ticketNumber       String         @unique
+  eventId            String
+  attendeeName       String
+  attendeeEmail      String
+  tier               String
+  pricePaidNgn       Decimal        @db.Decimal(14, 2)
+  status             String         @default("ISSUED")
+  qrSignatureHmac    String
+  issuedAt           DateTime       @default(now())
+  checkedInAt        DateTime?
+
+  event              FusionEvent    @relation(fields: [eventId], references: [id])
+}
+
+// ---------------------------------------------------------
+// Finance Domain Models
+// ---------------------------------------------------------
+
+model CommercialCampaign {
+  id                    String         @id @default(uuid())
+  campaignCode          String         @unique
+  clientName            String
+  brand                 String
+  bookedSpots           Int
+  totalContractValueNgn Decimal        @db.Decimal(14, 2)
+  status                String         @default("BOOKED")
+  startDate             DateTime
+  endDate               DateTime
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+}
+
+model TalentPayoutBatch {
+  id                 String         @id @default(uuid())
+  batchNumber        String         @unique
+  totalAmountNgn     Decimal        @db.Decimal(14, 2)
+  currency           String         @default("NGN")
+  itemCount          Int
+  status             String         @default("DRAFT")
+  approvedBy         String?
+  executedAt         DateTime?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+}
+
+model BankStatementRecord {
+  id                 String         @id @default(uuid())
+  statementReference String
+  transactionDate    DateTime
+  rawSwiftCode       String?        // MT940 :61: or :86:
+  amountNgn          Decimal        @db.Decimal(14, 2)
+  isCredit           Boolean
+  narrative          String
+  reconciledStatus   String         @default("UNMATCHED")
+  createdAt          DateTime       @default(now())
+}
+

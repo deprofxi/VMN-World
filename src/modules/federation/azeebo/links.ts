@@ -43,9 +43,21 @@ export interface ScanTelemetry {
   scannedAt: Date;
 }
 
+export interface AzeeboLinkGatewayOptions {
+  universalBaseUrl?: string;
+  appScheme?: string;
+}
+
 export class AzeeboLinkGateway {
   private activeLinks = new Map<string, GeneratedDeepLink>();
   private scans: ScanTelemetry[] = [];
+  private universalBaseUrl: string;
+  private appScheme: string;
+
+  constructor(options?: AzeeboLinkGatewayOptions) {
+    this.universalBaseUrl = options?.universalBaseUrl?.replace(/\/+$/, "") || "https://azeebo.plus";
+    this.appScheme = options?.appScheme?.replace(/:\/\/?$/, "") || "azeeboplus";
+  }
 
   public createUniversalLink(params: DeepLinkParams): GeneratedDeepLink {
     const trackingId = `TRK-${params.universe.substring(0, 3)}-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random() * 1000)}`;
@@ -61,8 +73,8 @@ export class AzeeboLinkGateway {
       trk: trackingId,
     });
 
-    const universalUrl = `https://azeebo.plus/u/${universeSlug}/${params.contentId}?${queryParams.toString()}`;
-    const appSchemeUrl = `azeeboplus://u/${universeSlug}/${params.contentId}?${queryParams.toString()}`;
+    const universalUrl = `${this.universalBaseUrl}/u/${universeSlug}/${params.contentId}?${queryParams.toString()}`;
+    const appSchemeUrl = `${this.appScheme}://u/${universeSlug}/${params.contentId}?${queryParams.toString()}`;
 
     const link: GeneratedDeepLink = {
       universalUrl,

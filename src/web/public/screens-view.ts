@@ -9,7 +9,7 @@
  * - WCAG 2.2 AA compliant tokens, touch targets >= 44x44px, semantic HTML
  */
 
-import { BROADCAST_SCREEN_INVENTORY, BroadcastScreenDescriptor, getScreenDescriptorById } from "../../modules/broadcast/screens/index.js";
+import { BROADCAST_SCREEN_INVENTORY, getScreenDescriptorById } from "../../modules/broadcast/screens/index.js";
 
 const ROLE_COLORS: Record<string, { bg: string; text: string; border: string }> = {
   ExecutiveLeader: { bg: "#EEF2FF", text: "#4338CA", border: "#C7D2FE" },

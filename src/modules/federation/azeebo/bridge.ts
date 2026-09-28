@@ -42,9 +42,12 @@ export class AzeeboFederationBridge {
   private deadLetterQueue: OutboundWebhook[] = [];
 
   constructor(
-    secretKey: string = "azeebo-federation-hmac-sha256-key-vmnl",
+    secretKey: string,
     config: CircuitBreakerConfig = { failureThreshold: 3, recoveryTimeMs: 5000 }
   ) {
+    if (!secretKey || secretKey.length < 16) {
+      throw new Error("AzeeboFederationBridge requires a valid secretKey of at least 16 characters");
+    }
     this.secretKey = secretKey;
     this.config = config;
   }
@@ -107,13 +110,7 @@ export class AzeeboFederationBridge {
 
     // Attempt delivery via mock transport or real fetch
     webhook.attempts += 1;
-    let success = false;
-
-    if (mockTransport) {
-      success = mockTransport(webhook);
-    } else {
-      success = true; // default simulated delivery
-    }
+    const success = mockTransport ? mockTransport(webhook) : true;
 
     if (success) {
       webhook.status = "DELIVERED";

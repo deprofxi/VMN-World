@@ -8,6 +8,7 @@ export interface PlaylistItem {
   itemType: "PROGRAMME" | "COMMERCIAL_SPOT" | "STATION_PROMO" | "STATION_IDENT" | "EMERGENCY_FILLER";
   title: string;
   assetUrl: string;
+  mediaAssetId?: string;
   durationSeconds: number;
   expectedStartTime: Date;
   isFiller: boolean;
@@ -28,7 +29,9 @@ export interface PlayoutScheduleExport {
 export function insertEmergencyFiller(
   items: PlaylistItem[],
   targetDurationSeconds: number = 86400,
-  fillerAssetUrl: string = "https://cdn.vmn.ng/assets/filler/vmn_emergency_loop_1080i.mp4"
+  fillerAssetUrl: string = process.env.CDN_BASE_URL
+    ? `${process.env.CDN_BASE_URL.replace(/\/+$/, "")}/assets/filler/vmn_emergency_loop_1080i.mp4`
+    : "http://localhost:9000/vmnl-assets/filler/vmn_emergency_loop_1080i.mp4"
 ): PlaylistItem[] {
   const result = [...items];
   const currentTotal = result.reduce((acc, item) => acc + item.durationSeconds, 0);
@@ -59,7 +62,7 @@ export class PlayoutAutomationEngine {
 
   public triggerEmergencyFiller(
     channelId: string,
-    reason: string
+    _reason: string
   ): { status: string; fillerAssetId: string; alertDispatched: boolean } {
     const fillerAssetId = `${channelId.replace("CHN-", "AST-")}-EMERGENCY-LOOP-01`;
     return {
@@ -81,7 +84,7 @@ export class PlayoutAutomationEngine {
     };
   }
 
-  public triggerServerFailover(reason: string): { redundantServerActive: boolean; seamlessSwitchover: boolean } {
+  public triggerServerFailover(_reason: string): { redundantServerActive: boolean; seamlessSwitchover: boolean } {
     return {
       redundantServerActive: true,
       seamlessSwitchover: true,

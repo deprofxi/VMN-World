@@ -3,6 +3,7 @@
 **Status:** `ACCEPTED`  
 **Date:** 2026-09-27  
 **Authority:** `VMNL-AZP-VMN-CCPP-001 — R1.1` (CC-ARCH-002)  
+**Approver:** `VMNL Enterprise Architecture Board (EAB)`  
 **Parent Master:** `VMNL-AZP-VMN-BRD-PRD-001 — R1.2A`
 
 ## Context

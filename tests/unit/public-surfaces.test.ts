@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  DESIGN_TOKENS,
   validateControlAccessibility,
   ComponentRenderer,
 } from "../../src/web/components/index.js";

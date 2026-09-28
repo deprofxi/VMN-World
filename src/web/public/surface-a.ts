@@ -25,8 +25,7 @@
  * 20. Azeebo+ Information & App Gateway (Open Azeebo+) (/azeebo)
  */
 
-import { PUBLIC_CHANNELS, PublicChannelInfo } from "./channels.js";
-import { HUB_SHOWCASES, HubShowcase } from "./hub.js";
+import { PUBLIC_CHANNELS } from "./channels.js";
 
 // Helper for UI badges
 function renderBadge(text: string, type: "live" | "ready" | "info" = "info"): string {

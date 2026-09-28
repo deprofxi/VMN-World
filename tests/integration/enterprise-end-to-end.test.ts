@@ -42,7 +42,7 @@ function makeRequest(
         let data = "";
         res.on("data", (chunk) => (data += chunk));
         res.on("end", () => {
-          let parsedBody = null;
+          let parsedBody;
           try {
             parsedBody = JSON.parse(data);
           } catch {
@@ -412,7 +412,7 @@ describe("VMNL Enterprise End-to-End Platform Integration", () => {
       expect(cert.courseId).toBe("afca-dir-01");
       expect(cert.verificationTokenSha256).toBeDefined();
       expect(cert.verificationTokenSha256.length).toBe(64);
-      expect(cert.verificationUrl).toContain("https://vmnl.ng/verify/afca/");
+      expect(cert.verificationUrl).toContain("/verify/afca/");
       expect(cert.qrPayload).toContain("AFCA-CERT-2026");
     });
 

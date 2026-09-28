@@ -234,8 +234,8 @@ export class VirtualContentFundEngine {
       totalSeniorTargetNgn - project.seniorInvestorRecoupedNgn
     );
 
-    let seniorInvestorRecoupmentNgn = 0;
-    let preferredReturnPaidNgn = 0;
+    let seniorInvestorRecoupmentNgn: number;
+    const preferredReturnPaidNgn = 0;
     let netProfitsNgn = 0;
     let investorProfitShareNgn = 0;
     let producerProfitShareNgn = 0;

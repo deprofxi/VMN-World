@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ReleaseGatePipeline, ReleaseManifest } from "../../src/modules/quality/gates.js";
+import { ReleaseGatePipeline, ReleaseManifest, BroadcastReleaseManifest } from "../../src/modules/quality/gates.js";
 import { generateGoldenDataset } from "../../src/db/seeds/golden/index.js";
 
 describe("Phase 9: Quality Gates & Golden Datasets", () => {
@@ -50,6 +50,55 @@ describe("Phase 9: Quality Gates & Golden Datasets", () => {
       expect(passingResult.canDeploy).toBe(true);
       expect(passingResult.failingGates.length).toBe(0);
       expect(failingManifest.isReadyForProduction).toBe(true);
+    });
+
+    it("evaluates governing R1.2A §67 Broadcast Release Gates BG0–BG9 with strict NOT_TESTED invariant", () => {
+      // 1. Invariant: NOT_TESTED is never represented as PASS
+      const manifestWithUntested: BroadcastReleaseManifest = {
+        version: "1.0.0-rc1",
+        environment: "PRODUCTION_S5" as const,
+        gitCommitSha: "abc1234",
+        humanReleaseOwner: {
+          name: "Chief Technology Officer",
+          role: "Release Authority",
+          signedAt: new Date(),
+        },
+        decision: "GO" as const,
+        decisionRationale: "Initial production release candidate",
+        gates: {
+          BG0_CHANNEL_AUTHORITY: { id: "BG0_CHANNEL_AUTHORITY" as const, name: "Channel Authority", description: "Channel identity and ownership", status: "PASS" as const, evaluatedAt: new Date(), verifiedBy: "EAB" },
+          BG1_CATALOGUE: { id: "BG1_CATALOGUE" as const, name: "Catalogue", description: "Programme and master records", status: "PASS" as const, evaluatedAt: new Date(), verifiedBy: "EAB" },
+          BG2_RIGHTS: { id: "BG2_RIGHTS" as const, name: "Rights", description: "Broadcast rights linked", status: "PASS" as const, evaluatedAt: new Date(), verifiedBy: "EAB" },
+          BG3_SCHEDULE: { id: "BG3_SCHEDULE" as const, name: "Schedule", description: "Schedule workflow passes", status: "PASS" as const, evaluatedAt: new Date(), verifiedBy: "EAB" },
+          BG4_TRAFFIC: { id: "BG4_TRAFFIC" as const, name: "Traffic", description: "Ad inventory workflow passes", status: "PASS" as const, evaluatedAt: new Date(), verifiedBy: "EAB" },
+          BG5_PLAYOUT: { id: "BG5_PLAYOUT" as const, name: "Playout", description: "Playout integration passes", status: "PASS" as const, evaluatedAt: new Date(), verifiedBy: "EAB" },
+          BG6_CARRIAGE: { id: "BG6_CARRIAGE" as const, name: "Carriage", description: "StarTimes endpoints mapped", status: "NOT_TESTED" as const, evaluatedAt: new Date(), verifiedBy: "EAB" },
+          BG7_FINANCE: { id: "BG7_FINANCE" as const, name: "Finance", description: "Proof-to-invoice reconciliation", status: "PASS" as const, evaluatedAt: new Date(), verifiedBy: "EAB" },
+          BG8_AZEEBO: { id: "BG8_AZEEBO" as const, name: "Azeebo+", description: "Linear-to-digital link works", status: "PASS" as const, evaluatedAt: new Date(), verifiedBy: "EAB" },
+          BG9_CONTINUITY: { id: "BG9_CONTINUITY" as const, name: "Continuity", description: "Failure drills pass", status: "PASS" as const, evaluatedAt: new Date(), verifiedBy: "EAB" },
+        },
+      };
+
+      const untestedResult = ReleaseGatePipeline.evaluateBroadcastRelease(manifestWithUntested);
+      expect(untestedResult.canDeploy).toBe(false);
+      expect(untestedResult.decision).toBe("HOLD");
+      expect(untestedResult.untestedGates.length).toBe(1);
+      expect(untestedResult.untestedGates[0]).toContain("BG6_CARRIAGE");
+
+      // 2. Invariant: BLOCKED gate forces NO_GO
+      manifestWithUntested.gates.BG6_CARRIAGE.status = "BLOCKED";
+      manifestWithUntested.gates.BG6_CARRIAGE.reason = "Uplink carrier lock not confirmed by StarTimes NOC";
+      const blockedResult = ReleaseGatePipeline.evaluateBroadcastRelease(manifestWithUntested);
+      expect(blockedResult.canDeploy).toBe(false);
+      expect(blockedResult.decision).toBe("NO_GO");
+      expect(blockedResult.blockedGates.length).toBe(1);
+
+      // 3. Complete verified manifest with FULFILLED_BY_VERIFIED_EXISTING_SYSTEM
+      manifestWithUntested.gates.BG6_CARRIAGE.status = "FULFILLED_BY_VERIFIED_EXISTING_SYSTEM";
+      const readyResult = ReleaseGatePipeline.evaluateBroadcastRelease(manifestWithUntested);
+      expect(readyResult.canDeploy).toBe(true);
+      expect(readyResult.decision).toBe("GO");
+      expect(readyResult.passedGates.length).toBe(10);
     });
   });
 });

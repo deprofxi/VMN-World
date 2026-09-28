@@ -54,7 +54,10 @@ export class FusionEventsEngine {
   private tickets = new Map<string, IssuedTicket>();
   private secretKey: string;
 
-  constructor(secretKey: string = "fusion-events-secure-hmac-secret-vmnl") {
+  constructor(secretKey: string) {
+    if (!secretKey || secretKey.length < 16) {
+      throw new Error("FusionEventsEngine requires a valid secretKey of at least 16 characters");
+    }
     this.secretKey = secretKey;
   }
 

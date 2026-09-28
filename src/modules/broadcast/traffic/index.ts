@@ -155,7 +155,7 @@ export class BroadcastTrafficEngine {
     return { resolved: true, allocatedBreakId: targetBreakId };
   }
 
-  public revalidateDownstreamBreaks(channelId: string, offsetSeconds: number): { success: boolean; breaksRevalidated: number } {
+  public revalidateDownstreamBreaks(channelId: string, _offsetSeconds: number): { success: boolean; breaksRevalidated: number } {
     const matchingBreaks = Array.from(this.breaks.values()).filter((b) => b.channelId === channelId);
     return { success: true, breaksRevalidated: matchingBreaks.length || 1 };
   }

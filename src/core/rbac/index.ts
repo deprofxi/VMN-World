@@ -25,7 +25,24 @@ export type EnterpriseRole =
   | "TalentManager"
   | "AcademyDirector"
   | "FinanceController"
-  | "Auditor";
+  | "Auditor"
+  // R1.2A §48 The 17 Broadcast Capability Roles
+  | "HeadOfBroadcast"
+  | "ChannelManager"
+  | "HeadOfProgramming"
+  | "ProgrammeScheduler"
+  | "AcquisitionsCommissioningManager"
+  | "CommercialTrafficOfficer"
+  | "BroadcastOperationsManager"
+  | "PlayoutMcoOperator"
+  | "BroadcastEngineer"
+  | "EpgMetadataCoordinator"
+  | "PromoProducer"
+  | "AdSalesCommercialManager"
+  | "SponsorshipManager"
+  | "BroadcastRightsCoordinator"
+  | "BroadcastFinanceAssurance"
+  | "CarriagePlatformOwner";
 
 export interface PermissionRule {
   action: EnterpriseAction;
@@ -208,6 +225,128 @@ export const ROLE_PERMISSIONS: Record<EnterpriseRole, PermissionRule[]> = {
     { action: "read", resource: "contract" },
     { action: "read", resource: "audit" },
     { action: "read", resource: "agent" },
+  ],
+
+  // R1.2A §48 & §49 Broadcast Capability Role Mappings
+  HeadOfBroadcast: [
+    { action: "read", resource: "broadcast" },
+    { action: "create", resource: "broadcast" },
+    { action: "update", resource: "broadcast" },
+    { action: "approve", resource: "broadcast" },
+    { action: "read", resource: "schedule" },
+    { action: "approve", resource: "schedule" },
+    { action: "read", resource: "rights" },
+    { action: "approve", resource: "rights" },
+    { action: "read", resource: "traffic" },
+    { action: "read", resource: "playout" },
+  ],
+
+  ChannelManager: [
+    { action: "read", resource: "broadcast" },
+    { action: "update", resource: "broadcast" },
+    { action: "read", resource: "schedule" },
+    { action: "update", resource: "schedule" },
+    { action: "read", resource: "traffic" },
+  ],
+
+  HeadOfProgramming: [
+    { action: "read", resource: "broadcast" },
+    { action: "create", resource: "broadcast" },
+    { action: "update", resource: "broadcast" },
+    { action: "read", resource: "schedule" },
+    { action: "create", resource: "schedule" },
+    { action: "update", resource: "schedule" },
+    { action: "approve", resource: "schedule" },
+  ],
+
+  ProgrammeScheduler: [
+    { action: "read", resource: "broadcast" },
+    { action: "read", resource: "schedule" },
+    { action: "create", resource: "schedule" },
+    { action: "update", resource: "schedule" },
+    { action: "read", resource: "rights" },
+  ],
+
+  AcquisitionsCommissioningManager: [
+    { action: "read", resource: "rights" },
+    { action: "create", resource: "rights" },
+    { action: "update", resource: "rights" },
+    { action: "approve", resource: "rights" },
+    { action: "read", resource: "contract" },
+    { action: "create", resource: "contract" },
+    { action: "update", resource: "contract" },
+  ],
+
+  CommercialTrafficOfficer: [
+    { action: "read", resource: "traffic" },
+    { action: "create", resource: "traffic" },
+    { action: "update", resource: "traffic" },
+    { action: "read", resource: "schedule" },
+  ],
+
+  BroadcastOperationsManager: [
+    { action: "read", resource: "broadcast" },
+    { action: "read", resource: "playout" },
+    { action: "update", resource: "playout" },
+    { action: "execute", resource: "playout" },
+    { action: "read", resource: "schedule" },
+  ],
+
+  PlayoutMcoOperator: [
+    { action: "read", resource: "playout" },
+    { action: "update", resource: "playout" },
+    { action: "execute", resource: "playout" },
+    { action: "read", resource: "schedule" },
+  ],
+
+  BroadcastEngineer: [
+    { action: "read", resource: "playout" },
+    { action: "execute", resource: "playout" },
+    { action: "read", resource: "broadcast" },
+  ],
+
+  EpgMetadataCoordinator: [
+    { action: "read", resource: "broadcast" },
+    { action: "read", resource: "schedule" },
+    { action: "update", resource: "schedule" },
+  ],
+
+  PromoProducer: [
+    { action: "read", resource: "broadcast" },
+    { action: "create", resource: "broadcast" },
+    { action: "read", resource: "schedule" },
+  ],
+
+  AdSalesCommercialManager: [
+    { action: "read", resource: "traffic" },
+    { action: "create", resource: "traffic" },
+    { action: "update", resource: "traffic" },
+    { action: "approve", resource: "traffic" },
+    { action: "read", resource: "finance" },
+  ],
+
+  SponsorshipManager: [
+    { action: "read", resource: "traffic" },
+    { action: "create", resource: "traffic" },
+    { action: "update", resource: "traffic" },
+    { action: "read", resource: "contract" },
+  ],
+
+  BroadcastRightsCoordinator: [
+    { action: "read", resource: "rights" },
+    { action: "create", resource: "rights" },
+    { action: "update", resource: "rights" },
+  ],
+
+  BroadcastFinanceAssurance: [
+    { action: "read", resource: "finance" },
+    { action: "approve", resource: "finance" },
+    { action: "read", resource: "traffic" },
+  ],
+
+  CarriagePlatformOwner: [
+    { action: "read", resource: "broadcast" },
+    { action: "update", resource: "broadcast" },
   ],
 };
 

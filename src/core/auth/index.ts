@@ -63,10 +63,60 @@ export function signSessionToken(user: SessionUser, customExpiresIn?: number): A
   };
 }
 
+const revokedTokens = new Set<string>();
+
+export function revokeToken(token: string): void {
+  revokedTokens.add(token);
+}
+
+export function isTokenRevoked(token: string): boolean {
+  return revokedTokens.has(token);
+}
+
+interface RateLimitBucket {
+  count: number;
+  resetAt: number;
+}
+const rateLimitStore = new Map<string, RateLimitBucket>();
+
+export function checkRateLimit(
+  key: string,
+  maxRequests: number = 60,
+  windowMs: number = 60_000
+): {
+  allowed: boolean;
+  remaining: number;
+  resetInMs: number;
+} {
+  const now = Date.now();
+  const bucket = rateLimitStore.get(key);
+
+  if (!bucket || now > bucket.resetAt) {
+    rateLimitStore.set(key, { count: 1, resetAt: now + windowMs });
+    return { allowed: true, remaining: maxRequests - 1, resetInMs: windowMs };
+  }
+
+  if (bucket.count >= maxRequests) {
+    return { allowed: false, remaining: 0, resetInMs: Math.max(0, bucket.resetAt - now) };
+  }
+
+  bucket.count += 1;
+  return { allowed: true, remaining: maxRequests - bucket.count, resetInMs: Math.max(0, bucket.resetAt - now) };
+}
+
+export function createSessionCookie(token: string, maxAgeSeconds: number = 86400): string {
+  const isSecure = process.env.NODE_ENV === "production";
+  return `vmnl_session=${token}; HttpOnly; Path=/; Max-Age=${maxAgeSeconds}; SameSite=Lax${isSecure ? "; Secure" : ""}`;
+}
+
 /**
  * Verifies and decodes a JWT session token
  */
 export function verifySessionToken(token: string): SessionUser {
+  if (isTokenRevoked(token)) {
+    throw new Error("[VMNL-AUTH-ERROR] Session token has been revoked");
+  }
+
   const config = getConfig();
   try {
     const decoded = jwt.verify(token, config.JWT_SECRET, {
@@ -82,6 +132,9 @@ export function verifySessionToken(token: string): SessionUser {
       tenantId: decoded.tenantId as string | undefined,
     };
   } catch (error) {
-    throw new Error(`[VMNL-AUTH-ERROR] Invalid or expired session token: ${(error as Error).message}`);
+    throw new Error(`[VMNL-AUTH-ERROR] Invalid or expired session token: ${(error as Error).message}`, {
+      cause: error,
+    });
   }
 }
+

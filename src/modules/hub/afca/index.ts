@@ -116,6 +116,11 @@ export class AfcaAcademyService {
   private cohorts = new Map<string, Cohort>();
   private submissions = new Map<string, StudentSubmission>();
   private certificates = new Map<string, AfcaCertificate>();
+  private baseUrl: string;
+
+  constructor(baseUrl?: string) {
+    this.baseUrl = (baseUrl || process.env.APP_URL || "http://localhost:4000").replace(/\/+$/, "");
+  }
 
   public createCourse(course: Course): Course {
     if (this.courses.has(course.id)) {
@@ -345,7 +350,7 @@ export class AfcaAcademyService {
       finalScorePercent: avgScore,
       distinction,
       verificationTokenSha256: tokenSha256,
-      verificationUrl: `https://vmnl.ng/verify/afca/${certificateId}`,
+      verificationUrl: `${this.baseUrl}/verify/afca/${certificateId}`,
       qrPayload: JSON.stringify({
         certId: certificateId,
         studentId,

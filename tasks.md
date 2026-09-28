@@ -377,7 +377,7 @@ All technical, product, and operational decisions must strictly respect the 10-t
   - **Deliverable:** HeadspaceNG content repository and vector/semantic search indexing service.
   - **Acceptance Criteria:** Sub-second search response time; strict role-based document access controls.
 
-- [x] **TASK-P5-02: Cr8TechNG Creative Toolkits & AI Workflows (CR8-01..04, R1.2A §158)**
+- [x] **TASK-P5-02: Cr8TechNG Creative Toolkits & AI Workflows (CR8-01..04, R1.2A §19, §34)**
   - **Action:** Implement creative technology sandbox and automation toolkits:
     - Automated subtitling, transcription, and translation workflows (English, Yoruba, Igbo, Hausa, Nigerian Pidgin).
     - Automated social clipping tool: Extracts short promotional clips from long-form broadcast masters with burnt-in branding.
@@ -485,7 +485,7 @@ All technical, product, and operational decisions must strictly respect the 10-t
   - **Deliverable:** Commercial workflow state machine and sales ledger.
   - **Acceptance Criteria:** Contracts require dual authorization (Sales Lead + Legal/Finance); milestone billing automatically triggered upon proof-of-performance.
 
-- [x] **TASK-P8-02: Seven-Way Financial Data Separation Engine (R1.2A §283)**
+- [x] **TASK-P8-02: Seven-Way Financial Data Separation Engine (R1.2A §14, §42, §70)**
   - **Action:** Build the core financial ledger ensuring strict segregation of:
     1. **Contract Value:** Total legal committed figure.
     2. **Gross Merchandise Value (GMV):** Total transaction throughput across platforms.
@@ -631,7 +631,7 @@ All technical, product, and operational decisions must strictly respect the 10-t
 | `EVT-01` – `EVT-04` | Fusion Events & Digital Ticketing | R1.2A §33 | Task P4-04 |
 | `TEND-01` – `TEND-04` | The Entertainment Network Distribution | R1.2A §34 | Task P4-03 |
 | `HSP-01` – `HSP-04` | HeadspaceNG Knowledge & Media Intel | R1.2A §26, §54 | Task P5-01 |
-| `CR8-01` – `CR8-04` | Cr8TechNG Toolkits & AI Workflows | R1.2A §158 | Task P5-02 |
+| `CR8-01` – `CR8-04` | Cr8TechNG Toolkits & AI Workflows | R1.2A §19, §34 | Task P5-02 |
 | `AZP-01` – `AZP-06` | Azeebo+ Direct Consumer Federation | R1.2A §40, §41 | Tasks P6-01 to P6-04 |
 | `NFR-01` – `NFR-08` | Non-Functional Requirements & Scale | R1.2A §1 | Tasks P0-02, P7-04, P10-02 |
 | `SEC-01` – `SEC-07` | Security, Threat Model & Privacy | R1.2A §55, §56 | Tasks P1-02, P1-03, P9-01 |
