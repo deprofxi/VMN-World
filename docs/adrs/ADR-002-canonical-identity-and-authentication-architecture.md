@@ -7,13 +7,13 @@
 **Parent Master:** `VMNL-AZP-VMN-BRD-PRD-001 — R1.2A`
 
 ## Context
-Multiple isolated user tables exist across legacy databases (vmnl_control, azeebo_auth, vmnltalentaccelerator). R1.2A mandates: 'One person -> one canonical identity -> multiple legitimate roles'.
+Multiple isolated user tables exist across legacy subsystems (internal control, azeebo auth, talent pools). R1.2A mandates: 'One person -> one canonical identity -> multiple legitimate roles'.
 
 ## Decision
 Implement a unified Canonical Identity model where a single Person entity maps to one or more user accounts, profiles, and enterprise roles. Authentication uses secure HTTP-only cookies with rotating JWT session tokens and Argon2id password hashing. Multi-tenant access is governed by organizational tenant IDs and contextual role assignments.
 
 ## Consequences
-Positive: Eliminates identity fragmentation; enables seamless cross-platform privileges (e.g. an AFCA mentor who is also a VTM talent and broadcast presenter). Negative: Requires migration mapping for existing user tables.
+Positive: Eliminates identity fragmentation; enables seamless cross-platform privileges (e.g. an AFCA mentor who is also a VTM talent and broadcast presenter). Negative: Requires unifying existing user credentials into canonical Person records.
 
 ## Compliance & Verification
 - Verified against VMNL 10 Immutable Engineering Laws.
