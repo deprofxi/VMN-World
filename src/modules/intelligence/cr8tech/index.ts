@@ -1,6 +1,6 @@
 /**
  * Cr8TechNG Creative Toolkits & AI Workflows
- * Authority: VMNL-AZP-VMN-BRD-PRD-001 — R1.2A §158 / VMNL-AZP-VMN-CCPP-001 §15
+ * Authority: VMNL-AZP-VMN-BRD-PRD-001 — R1.2A §19, §34 / VMNL-AZP-VMN-CCPP-001 §15
  *
  * Core Mandate:
  * Creative technology sandbox, automated multilingual subtitling (English, Yoruba, Igbo, Hausa, Pidgin),

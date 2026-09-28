@@ -1,6 +1,6 @@
 /**
  * Seven-Way Financial Data Separation & Double-Entry Ledger Engine
- * Authority: VMNL-AZP-VMN-BRD-PRD-001 — R1.2A §283 / VMNL-AZP-VMN-CCPP-001 §18
+ * Authority: VMNL-AZP-VMN-BRD-PRD-001 — R1.2A §14, §42, §70 / VMNL-AZP-VMN-CCPP-001 §18
  *
  * Core Mandate:
  * Strict mathematical segregation of the 7 enterprise financial pillars:
