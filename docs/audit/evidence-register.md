@@ -15,16 +15,19 @@ Virtual Media Network Limited enforces continuous evidence progression from conc
 [Tier S1: Architecture & Assumptions] 
    └── Documented specifications, BRD/PRD R1.2A, ADR-001..013, Canonical Data Model. (VERIFIED)
 [Tier S2: Internal Sandbox] 
-   └── 494 Automated unit, contract, security, a11y, and integration tests passing; 45 test files; zero typecheck errors;
-   (Re-pinned 2026-10-02, TODO-DOC-05: previous pinned figures were 356/41 then 480/480; measured against the
-   final-remediation working tree at candidate commit `ca303f0dea650ace92e8e0e0d331b0bbd9734ce2`
-   plus its uncommitted remediation changes — `npx tsc --noEmit` clean. Remediation committed as
-   `6bb519d5bd7908ff5216f5b78367ebca8b10db3e`; post-commit follow-ups (SCR-03 review-queue media
-   visibility, content-editor picker wiring, golden-seed DAM backfill, EPG & channel-schedule
-   episode-master surfacing) measure 494/494 across 45 files, zero skips (2026-10-02 full-suite
-   re-run at default workers after host load recovered; an earlier confirming run was sharded at
-   `--maxWorkers=2` while the host was under external load). Re-measure at the next commit
-   boundary to keep this pin truthful.)
+   └── 506 Automated unit, contract, security, a11y, and integration tests passing; 45 test files; zero typecheck errors;
+   (Re-pinned 2026-10-02, TODO-DOC-05, at commit boundary `b80ba12`; previous pinned figures were
+   356/41, then 480/480 measured against `ca303f0` + uncommitted remediation changes.
+   Commit-boundary chain: remediation committed as `6bb519d5bd7908ff5216f5b78367ebca8b10db3e`
+   (480/480 measured at that boundary); first follow-up batch committed as
+   `b80ba126bbfcba7510c7bf38e53caab12e40462c` (494/494 measured at that boundary — DAM seed
+   backfill, review-queue media visibility, EPG & channel-schedule master surfacing);
+   current working tree uncommitted on top of `b80ba12` (schedule-entry episodeCode + live now/next
+   master, approved-schedule demo seed, schedule-review-desk channel-keyed linkage) measures
+   506/506 across 45 files, zero skips — `npx tsc --noEmit` clean, full-suite re-run at default
+   workers (an earlier confirming run was sharded at `--maxWorkers=2` while the host was under
+   external load). Candidate for the next pin: `b80ba12` + these uncommitted changes; re-measure
+   at the next commit boundary to keep this pin truthful.)
        225 system screens; domain invariants, 3-way reconciliation algorithms, and failure drills verified in code. (CURRENT ACTIVE TIER)
 [Tier S3: Operational Staging] 
    └── Live staging deployment with Postgres container, playout integration,
@@ -72,7 +75,7 @@ Virtual Media Network Limited enforces continuous evidence progression from conc
 ## 3. Truthful Maturity Attestation
 
 The VMNL enterprise repository (`vmng`) is currently certified at **Tier S2 (Internal Sandbox)**.
-- **What is verified:** 480 automated tests across 45 test files passing 100% (re-pinned 2026-10-01 at candidate commit `ca303f0` + uncommitted remediation changes); clean TypeScript compilation (`tsc --noEmit`); ESLint with zero errors (pre-existing unused-parameter warnings excepted); all business invariants (7-way financial separation, rights window gates, broadcast failure drills including the 13 new journey drills, 3-way reconciliation logic, MT940 SWIFT parsing, 33 operational broadcast screens, the 60-entry screen register at 55 IMPLEMENTED / 4 MOCK / 1 ALIAS, HMAC webhook validation, idempotent mutations, and tamper-evident audit ledger) verified by automated execution in sandbox conditions.
+- **What is verified:** 506 automated tests across 45 test files passing 100% with zero skips (re-pinned 2026-10-02 at candidate commit `b80ba126bbfcba7510c7bf38e53caab12e40462c` + uncommitted follow-up changes; boundary measurements: `6bb519d` = 480/480, `b80ba12` = 494/494, current tree = 506/506); clean TypeScript compilation (`tsc --noEmit`); ESLint with zero errors (pre-existing unused-parameter warnings excepted); all business invariants (7-way financial separation, rights window gates, broadcast failure drills including the 13 new journey drills, 3-way reconciliation logic, MT940 SWIFT parsing, 33 operational broadcast screens, the 60-entry screen register at 55 IMPLEMENTED / 4 MOCK / 1 ALIAS, HMAC webhook validation, idempotent mutations, and tamper-evident audit ledger) verified by automated execution in sandbox conditions.
 - **What is provisional / pending operational staging (S3) and production (S5):**
   - StarTimes carriage channel assignments (Ch 428/430/432) and service PIDs are marked provisional (`BG6_CARRIAGE: "NOT_TESTED"`) pending final execution of StarTimes carriage contracts and NBC frequency allocations.
   - Playout automation relies on native standard playout engines (SMPTE-2067, BXF, Harris CSV, Grass Valley) pending live master control network deployment.

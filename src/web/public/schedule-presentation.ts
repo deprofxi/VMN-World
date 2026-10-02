@@ -13,6 +13,8 @@
  */
 
 import { BroadcastScheduleRecord, ScheduleEntry } from "../../modules/broadcast/versions/index.js";
+import { findEpisodeMaster, type EpisodeMasterState } from "../../modules/broadcast/episode-masters.js";
+import { escapeHtml } from "../components/escape.js";
 
 /** The single governing timezone of the VMNL broadcast day (R1.2A §16). */
 export const GOVERNING_TIMEZONE = "Africa/Lagos";
@@ -43,6 +45,8 @@ const VIEWER_TZ_OFFSET_MINUTES: Record<ViewerTimezone, number> = {
 export interface ViewerScheduleSlotView {
   entryId: string;
   title: string;
+  /** Canonical episode reference when the entry carries one (optional — legacy entries have none). */
+  episodeCode?: string;
   startTimeUtc: string; // ISO
   endTimeUtc: string; // ISO
   startViewerTime: string; // "HH:MM" in viewer timezone
@@ -92,6 +96,7 @@ function toSlotView(entry: ScheduleEntry, broadcastDate: string, viewerTz: Viewe
   return {
     entryId: entry.entryId,
     title: entry.programmeTitle,
+    episodeCode: entry.episodeCode,
     startTimeUtc: start.toISOString(),
     endTimeUtc: end.toISOString(),
     startViewerTime: viewer.time,
@@ -115,7 +120,6 @@ export function resolveNowAndNext(params: {
 }): NowNextView {
   const now = params.now || new Date();
   const viewerTz = params.viewerTimezone || "Africa/Lagos";
-  const nowSeconds = Math.floor(now.getTime() / 1000);
 
   const eligible = params.schedules
     .filter((s) => s.channelId === params.channelCode)
@@ -199,6 +203,48 @@ export function resolveNowAndNext(params: {
   };
 }
 
+const MASTER_STATE_COLORS: Record<EpisodeMasterState, string> = {
+  AVAILABLE: "var(--vmn-color-success-600, #15803d)",
+  QUARANTINED: "var(--vmn-color-danger-600, #b91c1c)",
+  FAILED: "var(--vmn-color-danger-600, #b91c1c)",
+  UNREGISTERED: "var(--vmn-color-warning-600, #b45309)",
+  NO_REFERENCE: "var(--vmn-color-text-muted, #64748b)",
+};
+
+/**
+ * SCR-03 follow-on: renders the episode's registered DAM master for a
+ * now/next slot. Lookup is a read-time probe of the boot-refreshed
+ * BroadcastEpisode → DAM index — never cached, never invented. Legacy
+ * entries without an episodeCode render nothing; not-indexed, unregistered,
+ * no-reference, quarantined and failed episodes each render their honest
+ * state so a viewer never mistakes a blocked master for a clean one.
+ */
+function renderSlotMasterLineHtml(channelCode: string, slot: ViewerScheduleSlotView): string {
+  if (!slot.episodeCode) return "";
+  const mono = "font-family:monospace; font-size:0.78rem;";
+  const baseStyle = "margin:4px 0 0; font-size:0.78rem;";
+  const master = findEpisodeMaster(channelCode, slot.episodeCode);
+  if (!master) {
+    return `
+    <p class="vmn-master-ref" style="${baseStyle} color:var(--vmn-color-warning-600,#b45309);">Master: <span style="${mono}">${escapeHtml(slot.episodeCode)}</span> — episode not indexed in this environment</p>`;
+  }
+  if (master.state === "NO_REFERENCE") {
+    return `
+    <p class="vmn-master-ref" style="${baseStyle} color:var(--vmn-color-text-muted,#64748b);">Master: <span style="${mono}">${escapeHtml(master.episodeCode)}</span> — no master reference registered</p>`;
+  }
+  const color = MASTER_STATE_COLORS[master.state];
+  const tail =
+    master.state === "AVAILABLE"
+      ? master.assetTitle
+        ? ` · ${escapeHtml(master.assetTitle)}`
+        : ""
+      : master.state === "UNREGISTERED"
+        ? " — not registered in the DAM registry"
+        : " — blocked from exploitation";
+  return `
+    <p class="vmn-master-ref" style="${baseStyle} color:${color};">Master: <span style="${mono}">${escapeHtml(master.mediaAssetId!)}</span> <strong>${master.state}</strong>${tail}</p>`;
+}
+
 /**
  * Renders the now/next widget HTML from the resolved view. The unavailable
  * state renders the honest notice — never a fabricated "on air" pair.
@@ -229,10 +275,12 @@ export function renderNowNextWidgetHtml(view: NowNextView, viewerTz: ViewerTimez
     <div class="vmn-time-range">${view.current.startViewerTime} – ${view.current.endViewerTime} (${viewerTz})</div>
     <h3 class="vmn-show-title">${view.current.title}</h3>
     <p class="vmn-show-synopsis">On air now. Governing schedule time ${view.current.startGoverningTime} WAT.</p>
+    ${renderSlotMasterLineHtml(view.channelCode, view.current)}
   </div>
   <div class="vmn-next-playing">
     <span class="vmn-time-range">Up next at ${view.next.startViewerTime} (${viewerTz})</span>
     <h3 class="vmn-show-title" style="font-size:1.05rem">${view.next.title}</h3>
+    ${renderSlotMasterLineHtml(view.channelCode, view.next)}
   </div>
 </section>`;
 }

@@ -74,7 +74,7 @@ import {
 } from "../../src/core/content/index.js";
 import { projectContentEditorForm, renderContentEditorFormHtml } from "../../src/web/workspace/content-editor.js";
 import { projectMediaRefBadges, renderMediaRefBadgesHtml } from "../../src/web/workspace/media-picker.js";
-import { renderContentReviewAndPublicationHtml } from "../../src/web/workspace/governance-and-operations.js";
+import { renderContentReviewAndPublicationHtml, renderBroadcastScheduleReviewHtml } from "../../src/web/workspace/governance-and-operations.js";
 
 // SCR-13/15: admin consoles + source mappings
 import { projectAccessMatrix, renderAccessAdminConsoleHtml, renderSourceMappingsConsoleHtml } from "../../src/web/workspace/admin-consoles.js";
@@ -83,7 +83,7 @@ import { renderPublicScheduleHtml } from "../../src/web/public/pub-screens.js";
 import { renderBroadcastScreenHtml } from "../../src/web/broadcast/index.js";
 import { BROADCAST_SCREEN_INVENTORY } from "../../src/modules/broadcast/screens/index.js";
 import { generateXmltvFeed } from "../../src/modules/broadcast/epg/index.js";
-import { getChannelByCode } from "../../src/modules/broadcast/channels/index.js";
+import { getChannelByCode, resolveChannelCode } from "../../src/modules/broadcast/channels/index.js";
 import { ScheduleRepository } from "../../src/core/database/repositories/schedule.repository.js";
 import {
   projectEpisodeMasters,
@@ -91,6 +91,7 @@ import {
   listEpisodeMasters,
   resolveEpisodeMasterAssetId,
   deriveEpisodeMasterState,
+  findEpisodeMaster,
   _resetEpisodeMasterIndexForTesting,
 } from "../../src/modules/broadcast/episode-masters.js";
 import { listSourceMappings, resolveSourceMapping, assertApprovedSource, computeSourceMappingCounts } from "../../src/core/config/source-mappings.js";
@@ -107,6 +108,8 @@ import {
   amendSchedule,
   lockScheduleIfPastLockout,
   getSchedule,
+  getVersion,
+  listSchedules,
   registerVersion,
   markReadyForAir,
   isVersionAirable,
@@ -114,7 +117,9 @@ import {
   _resetVersionsForTesting,
   _resetSchedulesForTesting,
 } from "../../src/modules/broadcast/versions/index.js";
-import type { VersionQcReport } from "../../src/modules/broadcast/versions/index.js";
+import type { VersionQcReport, ScheduleEntry } from "../../src/modules/broadcast/versions/index.js";
+import { ensureScheduleDemoSeed, governingDate } from "../../src/modules/broadcast/schedule-demo.js";
+import { seedStatLabel } from "../../src/db/migrate-and-seed.js";
 import { SponsorshipEngine } from "../../src/modules/broadcast/sponsorship/index.js";
 
 // BCST-06: playout cache contract; BCST-08/09: schedule presentation
@@ -1649,5 +1654,360 @@ describe("EPG & channel schedule DAM master linkage (SCR-03 follow-on)", () => {
     expect(html).toContain("MA-EP-LINK-01-MASTER");
     expect(html).toContain("EP-LINK-01");
     expect(html).toContain("&lt;episode-num system=&quot;vmnl-media-asset&quot;&gt;"); // note documents the XMLTV contract
+  });
+});
+
+describe("ScheduleEntry episodeCode: validation, live master on now/next, demo seed", () => {
+  const demoQc: VersionQcReport = {
+    videoStandard: "1080i50",
+    aspectRatio: "16:9",
+    audioLoudnessLufs: -23,
+    hasCountdownSlate: true,
+    hasBlackGaps: false,
+    hasClosedCaptionTrack: true,
+  };
+
+  beforeEach(() => {
+    _resetVersionsForTesting(); // clears versions + schedules
+    _resetEpisodeMasterIndexForTesting();
+    _resetMediaAssetsForTesting();
+  });
+
+  afterAll(() => {
+    _resetVersionsForTesting();
+    _resetEpisodeMasterIndexForTesting();
+    _resetMediaAssetsForTesting();
+  });
+
+  function airableVersion(id: string, episodeId: string): void {
+    registerVersion({ id, episodeId, versionType: "MASTER", durationSeconds: 7200, qc: demoQc });
+    markReadyForAir({ versionId: id, rfaBy: "test" });
+  }
+
+  /** Index fixture: NXTR has EP-LNK-1 (registered) + EP-LNK-2 (no reference); ORIS has EP-LNK-O (unregistered ref). */
+  async function seedLinkageIndex(): Promise<void> {
+    const repo = new ScheduleRepository();
+    await repo.createProgramme({ code: "PRG-LNK-A", title: "Linkage Show A", channelCode: "NXTR" });
+    await repo.createProgramme({ code: "PRG-LNK-B", title: "Linkage Show B", channelCode: "NXTR" });
+    await repo.createProgramme({ code: "PRG-LNK-O", title: "Other Channel Show", channelCode: "ORIS" });
+    await repo.createEpisode({ episodeCode: "EP-LNK-1", programmeCode: "PRG-LNK-A", episodeNumber: 1, title: "A1", durationSeconds: 1800, mediaAssetId: "MA-EP-LNK-1" });
+    await repo.createEpisode({ episodeCode: "EP-LNK-2", programmeCode: "PRG-LNK-B", episodeNumber: 1, title: "B1", durationSeconds: 1800 });
+    await repo.createEpisode({ episodeCode: "EP-LNK-O", programmeCode: "PRG-LNK-O", episodeNumber: 1, title: "O1", durationSeconds: 1800, mediaAssetId: "MA-UNREG-1" });
+    await refreshEpisodeMasterIndex({ repository: repo });
+    registerMediaAsset({
+      assetId: "MA-EP-LNK-1",
+      title: "Linkage master A",
+      assetKey: "golden/episodes/EP-LNK-1/master.mp4",
+      mimeType: "video/mp4",
+      sizeBytes: 1_800_000,
+      checksumSha256: "d".repeat(64),
+      provenance: "Test fixture ingest",
+      registeredBy: "test",
+      virusScanPassed: true,
+    });
+  }
+
+  /** Presentation fixture: approved schedule for 2026-10-05, entries carry optional episodeCode. */
+  function linkedSchedule(channelId: string, entries: ScheduleEntry[]): BroadcastScheduleRecord {
+    return {
+      scheduleId: `SCHED-LINK-${channelId}`,
+      channelId,
+      broadcastDate: "2026-10-05",
+      state: "APPROVED",
+      amendmentCount: 0,
+      entries,
+    };
+  }
+
+  const baseEntry = {
+    versionId: "v",
+    durationSeconds: 2 * 3600,
+    rightsClearedBy: "rights-1",
+  };
+
+  it("[SCHED-VAL-06/07] rejects blank and contradictory episodeCode; accepts matching or absent", () => {
+    airableVersion("v-ok", "EP-0001");
+    const entry = { versionId: "v-ok", programmeTitle: "Show", startSecondsFromDayStart: 0, durationSeconds: 7200, rightsClearedBy: "rights-1" };
+
+    upsertDraftSchedule({
+      scheduleId: "S-BLANK",
+      channelId: "NXTR",
+      broadcastDate: "2026-10-06",
+      entries: [{ entryId: "e1", ...entry, episodeCode: "   " }],
+    });
+    expect(() => submitScheduleForApproval("S-BLANK")).toThrow(/SCHED-VAL-06/);
+
+    upsertDraftSchedule({
+      scheduleId: "S-CONFLICT",
+      channelId: "NXTR",
+      broadcastDate: "2026-10-06",
+      entries: [{ entryId: "e1", ...entry, episodeCode: "EP-9999" }],
+    });
+    expect(() => submitScheduleForApproval("S-CONFLICT")).toThrow(/SCHED-VAL-07/);
+
+    upsertDraftSchedule({
+      scheduleId: "S-OK",
+      channelId: "NXTR",
+      broadcastDate: "2026-10-06",
+      entries: [
+        { entryId: "e1", ...entry, episodeCode: "EP-0001" },
+        { entryId: "e2", ...entry, startSecondsFromDayStart: 7200 },
+      ],
+    });
+    expect(submitScheduleForApproval("S-OK").state).toBe("PENDING_APPROVAL");
+    approveSchedule({ scheduleId: "S-OK", approvedBy: "test" });
+    const stored = getSchedule("S-OK")!;
+    expect(stored.state).toBe("APPROVED");
+    expect(stored.entries[0].episodeCode).toBe("EP-0001");
+    expect(stored.entries[1].episodeCode).toBeUndefined(); // legacy entry stays valid
+  });
+
+  it("propagates episodeCode through resolveNowAndNext slot views", () => {
+    const schedule = linkedSchedule("NXTR", [
+      { entryId: "E1", ...baseEntry, programmeTitle: "Morning", startSecondsFromDayStart: 6 * 3600 },
+      { entryId: "E2", ...baseEntry, programmeTitle: "Midday", startSecondsFromDayStart: 12 * 3600, episodeCode: "EP-LNK-1" },
+      { entryId: "E3", ...baseEntry, programmeTitle: "Prime", startSecondsFromDayStart: 19 * 3600, episodeCode: "EP-LNK-2" },
+    ]);
+    const view = resolveNowAndNext({ channelCode: "NXTR", schedules: [schedule], now: new Date("2026-10-05T12:30:00Z") }); // 13:30 WAT → E2 current, E3 next
+    expect(view.available).toBe(true);
+    if (view.available) {
+      expect(view.current.episodeCode).toBe("EP-LNK-1");
+      expect(view.next.episodeCode).toBe("EP-LNK-2");
+    }
+  });
+
+  it("now/next widget renders the live master state honestly for every linkage case", async () => {
+    await seedLinkageIndex();
+    const now = new Date("2026-10-05T12:30:00Z");
+
+    // current: registered → AVAILABLE with id + registry title; next: no reference.
+    const view = resolveNowAndNext({
+      channelCode: "NXTR",
+      schedules: [
+        linkedSchedule("NXTR", [
+          { entryId: "E2", ...baseEntry, programmeTitle: "Midday", startSecondsFromDayStart: 12 * 3600, episodeCode: "EP-LNK-1" },
+          { entryId: "E3", ...baseEntry, programmeTitle: "Prime", startSecondsFromDayStart: 19 * 3600, episodeCode: "EP-LNK-2" },
+        ]),
+      ],
+      now,
+    });
+    const html = renderNowNextWidgetHtml(view as never, "Africa/Lagos");
+    expect(html).toContain("MA-EP-LNK-1");
+    expect(html).toContain("AVAILABLE");
+    expect(html).toContain("Linkage master A");
+    expect(html).toContain("no master reference registered"); // EP-LNK-2 has no persisted id
+
+    // persisted but unregistered (ORIS row) → flagged, never presented as clean.
+    const orisView = resolveNowAndNext({
+      channelCode: "ORIS",
+      schedules: [linkedSchedule("ORIS", [{ entryId: "O1", ...baseEntry, programmeTitle: "Other", startSecondsFromDayStart: 12 * 3600, episodeCode: "EP-LNK-O" }, { entryId: "O2", ...baseEntry, programmeTitle: "Other 2", startSecondsFromDayStart: 19 * 3600 }])],
+      now,
+    });
+    const orisHtml = renderNowNextWidgetHtml(orisView as never, "Africa/Lagos");
+    expect(orisHtml).toContain("MA-UNREG-1");
+    expect(orisHtml).toContain("UNREGISTERED");
+    expect(orisHtml).toContain("not registered in the DAM registry");
+
+    // episodeCode not present in the index → honest "not indexed", never invented.
+    const notIndexedView = resolveNowAndNext({
+      channelCode: "NXTR",
+      schedules: [linkedSchedule("NXTR", [{ entryId: "E2", ...baseEntry, programmeTitle: "Midday", startSecondsFromDayStart: 12 * 3600, episodeCode: "EP-NOPE" }, { entryId: "E3", ...baseEntry, programmeTitle: "Prime", startSecondsFromDayStart: 19 * 3600 }])],
+      now,
+    });
+    expect(renderNowNextWidgetHtml(notIndexedView as never)).toContain("episode not indexed in this environment");
+
+    // legacy entry without episodeCode → no master line at all.
+    const legacyView = resolveNowAndNext({
+      channelCode: "NXTR",
+      schedules: [linkedSchedule("NXTR", [{ entryId: "E2", ...baseEntry, programmeTitle: "Midday", startSecondsFromDayStart: 12 * 3600 }, { entryId: "E3", ...baseEntry, programmeTitle: "Prime", startSecondsFromDayStart: 19 * 3600 }])],
+      now,
+    });
+    expect(renderNowNextWidgetHtml(legacyView as never)).not.toContain("vmn-master-ref");
+  });
+
+  it("findEpisodeMaster reads live state from the index, scoped to the channel", async () => {
+    await seedLinkageIndex();
+    expect(findEpisodeMaster("NXTR", "EP-LNK-1")?.state).toBe("AVAILABLE");
+    expect(findEpisodeMaster("NXTR", "EP-LNK-1")?.assetTitle).toBe("Linkage master A");
+    expect(findEpisodeMaster("NXTR", "EP-LNK-2")?.state).toBe("NO_REFERENCE");
+    expect(findEpisodeMaster("ORIS", "EP-LNK-1")).toBeUndefined(); // never cross-channel
+    expect(findEpisodeMaster("NXTR", "EP-NOPE")).toBeUndefined();
+    _resetMediaAssetsForTesting();
+    expect(findEpisodeMaster("NXTR", "EP-LNK-1")?.state).toBe("UNREGISTERED"); // live flip on de-registration
+  });
+
+  it("demo seed builds an approved full-day episode-linked schedule from the index, idempotently", async () => {
+    // Empty index → seeds nothing (never fabricates entries).
+    expect(ensureScheduleDemoSeed()).toEqual({ channelsSeeded: 0, entries: 0, skipped: 3 });
+
+    const repo = new ScheduleRepository();
+    await repo.createProgramme({ code: "PRG-SD-A", title: "Seed Show A", channelCode: "NXTR" });
+    await repo.createProgramme({ code: "PRG-SD-B", title: "Seed Show B", channelCode: "NXTR" });
+    await repo.createEpisode({ episodeCode: "EP-SD-1", programmeCode: "PRG-SD-A", episodeNumber: 1, title: "A1", durationSeconds: 1000, mediaAssetId: "MA-SD-1" });
+    await repo.createEpisode({ episodeCode: "EP-SD-2", programmeCode: "PRG-SD-B", episodeNumber: 1, title: "B1", durationSeconds: 1000, mediaAssetId: "MA-SD-2" });
+    await refreshEpisodeMasterIndex({ repository: repo });
+
+    expect(ensureScheduleDemoSeed()).toEqual({ channelsSeeded: 1, entries: 2, skipped: 2 });
+
+    const schedule = listSchedules("NXTR").find((s) => s.broadcastDate === governingDate());
+    expect(schedule).toBeDefined();
+    expect(schedule!.state).toBe("APPROVED");
+    expect(schedule!.approvedBy).toBe("golden-seed sandbox demo");
+    expect(schedule!.entries).toHaveLength(2);
+    expect(schedule!.entries[0].startSecondsFromDayStart).toBe(0);
+    expect(schedule!.entries.reduce((sum, e) => sum + e.durationSeconds, 0)).toBe(86_400); // full-day, gap-free
+    expect(schedule!.entries.map((e) => e.episodeCode).sort()).toEqual(["EP-SD-1", "EP-SD-2"]);
+    expect(schedule!.entries.every((e) => e.rightsClearedBy.includes("sandbox demo"))).toBe(true);
+
+    // Versions are PASSED + RFA masters bound to the registered DAM asset.
+    const version = getVersion("ver-demo-EP-SD-1")!;
+    expect(version.qcStatus).toBe("PASSED");
+    expect(version.readyForAir).toBe(true);
+    expect(version.mediaAssetId).toBe("MA-SD-1");
+
+    // now/next resolves an available pair carrying the episode reference.
+    // Deterministic clock: 06:00 WAT today sits inside a non-final slot for
+    // any ≥2-slot day, so "next" always exists regardless of wall-clock time.
+    const fixedNow = new Date(`${governingDate()}T05:00:00Z`);
+    const view = resolveNowAndNext({ channelCode: "NXTR", schedules: listSchedules("NXTR"), now: fixedNow });
+    expect(view.available).toBe(true);
+    if (view.available) {
+      expect(view.current.episodeCode).toBeTruthy();
+    }
+
+    // Second run: already covered → idempotent, no duplicate schedules.
+    expect(ensureScheduleDemoSeed()).toEqual({ channelsSeeded: 0, entries: 0, skipped: 3 });
+    expect(listSchedules("NXTR").filter((s) => s.broadcastDate === governingDate())).toHaveLength(1);
+  });
+
+  it("channel page widget shows the live master after the demo seed", async () => {
+    const repo = new ScheduleRepository();
+    await repo.createProgramme({ code: "PRG-SD-A", title: "Seed Show A", channelCode: "NXTR" });
+    await repo.createProgramme({ code: "PRG-SD-B", title: "Seed Show B", channelCode: "NXTR" });
+    await repo.createEpisode({ episodeCode: "EP-SD-1", programmeCode: "PRG-SD-A", episodeNumber: 1, title: "A1", durationSeconds: 1000, mediaAssetId: "MA-SD-1" });
+    await repo.createEpisode({ episodeCode: "EP-SD-2", programmeCode: "PRG-SD-B", episodeNumber: 1, title: "B1", durationSeconds: 1000, mediaAssetId: "MA-SD-2" });
+    await refreshEpisodeMasterIndex({ repository: repo });
+    ensureScheduleDemoSeed();
+
+    // Deterministic clock (06:00 WAT today) — the widget's end-of-day
+    // "final published programme" state is honest but has no master line.
+    const fixedNow = new Date(`${governingDate()}T05:00:00Z`);
+    const html = renderChannelDetailPageHtml("NXTR", undefined, { now: fixedNow });
+    expect(html).toContain("ON AIR NOW");
+    expect(html).toContain("vmn-master-ref");
+    expect(html).toMatch(/MA-SD-[12]/);
+  });
+
+  it("seed summary never claims Postgres persistence for in-memory stat families", () => {
+    expect(seedStatLabel("schedules", "POSTGRESQL_PERSISTED")).toBe("IN-MEMORY SCHEDULE AUTHORITY (no Postgres table)");
+    expect(seedStatLabel("damAssets", "POSTGRESQL_PERSISTED")).toBe("DAM REGISTRY (in-memory)");
+    expect(seedStatLabel("episodes", "POSTGRESQL_PERSISTED")).toBe("POSTGRESQL_PERSISTED");
+    expect(seedStatLabel("episodes", "IN_MEMORY_SANDBOX_VERIFIED")).toBe("IN_MEMORY_SANDBOX_VERIFIED");
+  });
+});
+
+describe("Schedule review desk: episode master linkage keyed by its channel parameter", () => {
+  beforeEach(() => {
+    _resetMediaAssetsForTesting();
+    _resetEpisodeMasterIndexForTesting();
+  });
+
+  afterAll(() => {
+    _resetMediaAssetsForTesting();
+    _resetEpisodeMasterIndexForTesting();
+  });
+
+  /** Index fixture: one NXTR row (registered) + one ORIS row (unregistered ref). */
+  async function seedKeyedIndex(): Promise<void> {
+    const repo = new ScheduleRepository();
+    await repo.createProgramme({ code: "PRG-KEY-N", title: "Keyed NXTR Show", channelCode: "NXTR" });
+    await repo.createProgramme({ code: "PRG-KEY-O", title: "Keyed ORIS Show", channelCode: "ORIS" });
+    await repo.createEpisode({ episodeCode: "EP-KEY-1", programmeCode: "PRG-KEY-N", episodeNumber: 1, title: "N1", durationSeconds: 1800, mediaAssetId: "MA-KEY-1" });
+    await repo.createEpisode({ episodeCode: "EP-KEY-O", programmeCode: "PRG-KEY-O", episodeNumber: 1, title: "O1", durationSeconds: 1800, mediaAssetId: "MA-KEY-O" });
+    await refreshEpisodeMasterIndex({ repository: repo });
+    registerMediaAsset({
+      assetId: "MA-KEY-1",
+      title: "Keyed NXTR master",
+      assetKey: "golden/episodes/EP-KEY-1/master.mp4",
+      mimeType: "video/mp4",
+      sizeBytes: 1_800_000,
+      checksumSha256: "e".repeat(64),
+      provenance: "Test fixture ingest",
+      registeredBy: "test",
+      virusScanPassed: true,
+    });
+  }
+
+  it("resolves desk channel references to canonical codes — codes, names, and labels", () => {
+    expect(resolveChannelCode("NXTR")).toBe("NXTR");
+    expect(resolveChannelCode(" nxtr ")).toBe("NXTR");
+    expect(resolveChannelCode("Nigezie Xtreme (NXTR)")).toBe("NXTR"); // desk default label
+    expect(resolveChannelCode("Orisun (ORIS)")).toBe("ORIS");
+    expect(resolveChannelCode("Orisun — The Source")).toBe("ORIS"); // canonical full name
+    expect(resolveChannelCode("Isi Mbido")).toBe("IMBD"); // short name
+    expect(resolveChannelCode("Isi Mbido (IMBD)")).toBe("IMBD");
+    expect(resolveChannelCode("Lagos Community TV")).toBeUndefined();
+    expect(resolveChannelCode("")).toBeUndefined();
+    expect(resolveChannelCode("   ")).toBeUndefined();
+  });
+
+  it("renders the keyed linkage table scoped to the resolved channel, with live states", async () => {
+    await seedKeyedIndex();
+
+    const nxtr = renderBroadcastScheduleReviewHtml({ channel: "Nigezie Xtreme (NXTR)" });
+    expect(nxtr).toContain("Registered Episode Masters (DAM) — Nigezie Xtreme (NXTR)");
+    expect(nxtr).toContain("MA-KEY-1");
+    expect(nxtr).toContain("AVAILABLE");
+    expect(nxtr).toContain("Keyed NXTR master");
+    expect(nxtr).not.toContain("MA-KEY-O"); // never the other channel's rows
+
+    const oris = renderBroadcastScheduleReviewHtml({ channel: "ORIS" });
+    expect(oris).toContain("Registered Episode Masters (DAM) — Orisun — The Source (ORIS)");
+    expect(oris).toContain("MA-KEY-O");
+    expect(oris).toContain("UNREGISTERED");
+    expect(oris).not.toContain("MA-KEY-1");
+
+    // The default parameter keys NXTR, not a random channel.
+    const defaulted = renderBroadcastScheduleReviewHtml();
+    expect(defaulted).toContain("MA-KEY-1");
+    expect(defaulted).not.toContain("MA-KEY-O");
+  });
+
+  it("shows the honest empty state when the channel resolves but the index has no rows", () => {
+    const html = renderBroadcastScheduleReviewHtml({ channel: "IMBD" });
+    expect(html).toContain("Registered Episode Masters (DAM) — Isi Mbido — The Beginning (IMBD)");
+    expect(html).toContain("No episode master linkage is loaded");
+  });
+
+  it("unknown channel reference → honest unresolved state, never keyed to a guessed channel", async () => {
+    await seedKeyedIndex();
+    const html = renderBroadcastScheduleReviewHtml({ channel: "Lagos Community TV" });
+    expect(html).toContain("does not resolve to an active VMNL channel");
+    expect(html).toContain("Lagos Community TV");
+    expect(html).not.toContain("MA-KEY-1"); // no linkage rows leak in
+    expect(html).not.toContain("MA-KEY-O");
+    // The rest of the desk still renders (blocker + agenda unchanged).
+    expect(html).toContain("CRITICAL RIGHTS BLOCKER");
+    expect(html).toContain("Urban Sound Showcase #4102");
+  });
+
+  it("route keys the linkage by ?channel (GET /broadcast/schedule/review?channel=ORIS)", async () => {
+    const app = createApiServer(4267, { NODE_ENV: "test", AUTH_BYPASS_ENABLED: "false" });
+    await app.start();
+    try {
+      await seedKeyedIndex(); // boot refresh used the empty default repository; re-key after
+      const res = await makeHttpRequest(4267, "/broadcast/schedule/review?channel=ORIS", {
+        headers: { "x-test-role": "SuperAdmin" },
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toContain("Broadcast Master Schedule Review");
+      expect(res.body).toContain("Registered Episode Masters (DAM) — Orisun — The Source (ORIS)");
+      expect(res.body).toContain("MA-KEY-O");
+      expect(res.body).not.toContain("MA-KEY-1");
+    } finally {
+      await app.stop();
+      _resetMediaAssetsForTesting();
+      _resetEpisodeMasterIndexForTesting();
+    }
   });
 });

@@ -92,3 +92,31 @@ export function getChannelByCode(code: string): BroadcastChannelConfig | undefin
 export function getAllActiveChannels(): BroadcastChannelConfig[] {
   return Object.values(CANONICAL_CHANNELS).filter((c) => c.isActive);
 }
+
+/**
+ * Resolves a free-text channel reference — a bare code (`NXTR`), a canonical
+ * name (`Orisun — The Source`), a short name (`Isi Mbido`), or a desk label
+ * like `Nigezie Xtreme (NXTR)` — to a canonical ACTIVE channel code.
+ *
+ * Returns undefined when the reference does not resolve (empty, unknown, or
+ * an inactive channel). Callers must surface an honest unknown state rather
+ * than silently keying content to a default channel (one canonical truth).
+ */
+export function resolveChannelCode(reference: string): string | undefined {
+  const needle = reference.trim().toLowerCase();
+  if (!needle) return undefined;
+  const active = getAllActiveChannels();
+  for (const channel of active) {
+    if (channel.code.toLowerCase() === needle) return channel.code;
+  }
+  // First canonical match wins when a label mentions several identifiers.
+  for (const channel of active) {
+    const fullName = channel.name.toLowerCase();
+    const shortName = fullName.split("—")[0].trim();
+    const matchesName = needle.includes(fullName) || (shortName.length > 0 && needle.includes(shortName));
+    if (matchesName || needle.includes(channel.code.toLowerCase())) {
+      return channel.code;
+    }
+  }
+  return undefined;
+}

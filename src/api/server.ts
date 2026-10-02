@@ -40,6 +40,7 @@ import { getMediaAsset } from "../core/storage/index.js";
 import { registerGoldenDamAssets } from "../db/seeds/dam-backfill.js";
 import { ensureContentDemoSeed } from "./router.js";
 import { refreshEpisodeMasterIndex } from "../modules/broadcast/episode-masters.js";
+import { ensureScheduleDemoSeed } from "../modules/broadcast/schedule-demo.js";
 
 export interface ApiServerInstance {
   server: Server;
@@ -220,13 +221,21 @@ export function createApiServer(port?: number, envOverrides: Record<string, stri
       // SCR-03 follow-on: project the canonical BroadcastEpisode → DAM master
       // chain into the sync index read by the EPG and channel schedule
       // surfaces, so the first request already sees populated rows (or the
-      // honest empty state when no database/seed is present). A refresh
-      // failure must never block serving.
+      // honest empty state when no database/seed is present). Then seed
+      // today's approved demo schedule from that index so the now/next widget
+      // (BCST-08/09) can show live episode masters — it skips honestly when
+      // the index is empty and never fabricates entries. Failures here must
+      // never block serving.
       try {
         await refreshEpisodeMasterIndex();
+        const demoSeed = ensureScheduleDemoSeed();
+        if (demoSeed.channelsSeeded > 0) {
+          const span = TelemetryService.createSpanContext("server_bootstrap");
+          telemetry.logStructured("INFO", "Approved schedule demo seeded from the episode-master index", span, { ...demoSeed });
+        }
       } catch (err) {
         const span = TelemetryService.createSpanContext("server_bootstrap");
-        telemetry.logStructured("WARN", "Episode master index refresh failed — broadcast surfaces will show the honest empty state", span, { error: String(err) });
+        telemetry.logStructured("WARN", "Episode master index refresh or schedule demo seed failed — broadcast surfaces will show the honest empty state", span, { error: String(err) });
       }
       return new Promise<void>((resolve, reject) => {
         server.listen(serverPort, () => {

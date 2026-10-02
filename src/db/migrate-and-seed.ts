@@ -263,10 +263,23 @@ export async function runDatabaseSeed(): Promise<{ success: boolean; stats: Reco
 
   console.log("[VMNL-DB-SEED] Golden Master seed summary:");
   for (const [key, count] of Object.entries(stats)) {
-    console.log(`  - ${key.padEnd(16)}: ${count} records generated (${persistenceMode})`);
+    console.log(`  - ${key.padEnd(16)}: ${count} records generated (${seedStatLabel(key, persistenceMode)})`);
   }
 
   return { success: true, stats, persistenceMode };
+}
+
+/**
+ * Per-entity honesty for the seed summary. `persistenceMode` describes what
+ * reached Postgres, but two stat families never touch a table: `schedules`
+ * are the in-memory schedule authority (there is no Postgres schedule table)
+ * and `damAssets` are in-memory DAM registry records. Labeling them as
+ * database-persisted would be a false evidence claim (canonical law 20).
+ */
+export function seedStatLabel(key: string, persistenceMode: string): string {
+  if (key === "schedules") return "IN-MEMORY SCHEDULE AUTHORITY (no Postgres table)";
+  if (key === "damAssets") return "DAM REGISTRY (in-memory)";
+  return persistenceMode;
 }
 
 if (process.argv[1]?.includes("migrate-and-seed")) {

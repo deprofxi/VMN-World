@@ -40,7 +40,11 @@ function renderBadge(text: string, type: "live" | "ready" | "info" = "info"): st
 // 3. Nigezie Xtreme Channel Page (/channels/nxtr)
 // 4. Orisun Channel Page (/channels/orisun)
 // 5. Isi Mbido Channel Page (/channels/isimbido)
-export function renderChannelDetailPageHtml(channelCode: "NXTR" | "ORIS" | "IMBD", viewerTimezoneHeader?: string): string {
+export function renderChannelDetailPageHtml(
+  channelCode: "NXTR" | "ORIS" | "IMBD",
+  viewerTimezoneHeader?: string,
+  options: { now?: Date } = {}
+): string {
   const channel = PUBLIC_CHANNELS.find((c) => c.code === channelCode);
   if (!channel) {
     return `<div class="card" style="text-align:center; padding:48px 24px;"><h1>Channel Not Found</h1><p>The requested linear channel is not in the active registry.</p><a href="/channels" class="btn btn-primary" style="margin-top:16px;">&larr; Back to Channels</a></div>`;
@@ -88,7 +92,7 @@ export function renderChannelDetailPageHtml(channelCode: "NXTR" | "ORIS" | "IMBD
     </div>
 
     <!-- TODO-BCST-09: On Air Now / Up Next widget from the approved EPG schedule -->
-    ${renderNowNextWidgetHtml(resolveNowAndNext({ channelCode, schedules: listSchedules() }), defaultViewerTimezone(viewerTimezoneHeader))}
+    ${renderNowNextWidgetHtml(resolveNowAndNext({ channelCode, schedules: listSchedules(), now: options.now }), defaultViewerTimezone(viewerTimezoneHeader))}
 
     <!-- On Air Now & Up Next Component -->
     <div class="grid-2" style="margin-top:0;">

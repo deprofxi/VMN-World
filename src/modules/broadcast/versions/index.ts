@@ -150,6 +150,15 @@ export interface ScheduleEntry {
   startSecondsFromDayStart: number;
   durationSeconds: number;
   rightsClearedBy: string;
+  /**
+   * Optional canonical episode reference (`BroadcastEpisode.episodeCode`).
+   * When present, schedule presentation can surface the episode's registered
+   * DAM master on the now/next widget (SCR-03 follow-on). Optional so legacy
+   * entries remain valid; validated on submit/amend — a blank value or one
+   * that contradicts the entry's own version is rejected (one episode truth),
+   * never stored as a free-text guess.
+   */
+  episodeCode?: string;
 }
 
 export interface BroadcastScheduleRecord {
@@ -180,6 +189,16 @@ function validateScheduleEntries(entries: ScheduleEntry[]): string[] {
     }
     if (!isVersionAirable(entry.versionId)) {
       errors.push(`[SCHED-VAL-02] Entry '${entry.entryId}' references version '${entry.versionId}' which is not Ready-For-Air.`);
+    }
+    if (entry.episodeCode !== undefined) {
+      if (typeof entry.episodeCode !== "string" || entry.episodeCode.trim().length === 0) {
+        errors.push(`[SCHED-VAL-06] Entry '${entry.entryId}' carries an empty episodeCode — omit the field instead of supplying a blank episode reference.`);
+      } else {
+        const version = getVersion(entry.versionId);
+        if (version && version.episodeId.trim() !== entry.episodeCode.trim()) {
+          errors.push(`[SCHED-VAL-07] Entry '${entry.entryId}' episodeCode '${entry.episodeCode.trim()}' contradicts version '${entry.versionId}' episode '${version.episodeId}' (one episode truth).`);
+        }
+      }
     }
     if (i > 0) {
       const prev = sorted[i - 1];

@@ -16,6 +16,9 @@ import { SessionUser } from "../../core/auth/index.js";
 import { createApproval, listAllApprovals } from "../../core/approvals/index.js";
 import { getContent } from "../../core/content/index.js";
 import { projectMediaRefBadges, renderMediaRefBadgesHtml } from "./media-picker.js";
+import { renderEpisodeMastersTableHtml } from "../components/episode-masters.js";
+import { listEpisodeMasters } from "../../modules/broadcast/episode-masters.js";
+import { getChannelByCode, resolveChannelCode } from "../../modules/broadcast/channels/index.js";
 
 /** Human-readable copy for approval decision failure codes (UX-GOV-002). */
 const APPROVAL_ERROR_COPY: Record<string, string> = {
@@ -40,6 +43,11 @@ export function renderBroadcastScheduleReviewHtml(options: {
   const channel = options.channel || "Nigezie Xtreme (NXTR)";
   const date = options.date || "2026-09-30";
   const hasBlocker = options.hasBlocker ?? true;
+  // Key the episode-master linkage by this desk's channel parameter — a
+  // reference that does not resolve to a canonical active channel renders an
+  // honest unknown state instead of silently defaulting to some channel's rows.
+  const resolvedChannelCode = resolveChannelCode(channel);
+  const resolvedChannel = resolvedChannelCode ? getChannelByCode(resolvedChannelCode) : undefined;
 
   return `
     <div style="max-width: 1100px; margin: 32px auto; padding: 0 16px;">
@@ -160,6 +168,19 @@ export function renderBroadcastScheduleReviewHtml(options: {
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <div style="margin-top: 24px;">
+        ${
+          resolvedChannel
+            ? renderEpisodeMastersTableHtml(listEpisodeMasters(resolvedChannel.code), {
+                heading: `Registered Episode Masters (DAM) — ${resolvedChannel.name} (${resolvedChannel.code})`,
+                note: "Keyed from this desk's channel parameter; access states are read live from the DAM registry against the canonical BroadcastEpisode → DAM chain.",
+              })
+            : `<div class="vmn-card" role="status" style="padding: 20px 24px; border: 1px dashed var(--vmn-color-border); border-radius: var(--vmn-radius-lg); color: var(--vmn-color-secondary-text);">
+              <strong style="color: var(--vmn-color-primary-text);">Episode master linkage unavailable:</strong> channel reference <code>${escapeHtml(channel)}</code> does not resolve to an active VMNL channel (NXTR / ORIS / IMBD or a canonical channel name) — linkage is never keyed to a guessed channel.
+            </div>`
+        }
       </div>
     </div>
   `;

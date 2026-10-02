@@ -170,6 +170,18 @@ export function listEpisodeMasters(channelCode?: string): EpisodeMasterRow[] {
 }
 
 /**
+ * Single-row lookup for schedule presentation: the indexed master for a
+ * channel + episode pair, with state derived live at read time. Returns
+ * undefined when the episode is not indexed, so callers can render an honest
+ * "not indexed" state instead of inventing a reference.
+ */
+export function findEpisodeMaster(channelCode: string, episodeCode: string): EpisodeMasterRow | undefined {
+  const rows = rowsByChannel.get(channelCode.toUpperCase());
+  const row = rows?.find((r) => r.episodeCode === episodeCode);
+  return row ? deriveEpisodeMasterState(row) : undefined;
+}
+
+/**
  * The registered DAM master id for an episode code, or null. Returns an id
  * ONLY when it resolves in the live DAM registry (see module honesty
  * contract) — this is the resolver the XMLTV generator uses.
