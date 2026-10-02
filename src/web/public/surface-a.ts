@@ -29,6 +29,8 @@ import { PUBLIC_CHANNELS } from "./channels.js";
 import { renderVerticalLandingPageHtml } from "./hub.js";
 import { resolveNowAndNext, renderNowNextWidgetHtml, defaultViewerTimezone } from "./schedule-presentation.js";
 import { listSchedules } from "../../modules/broadcast/versions/index.js";
+import { listEpisodeMasters } from "../../modules/broadcast/episode-masters.js";
+import { renderEpisodeMastersTableHtml } from "../components/episode-masters.js";
 
 // Helper for UI badges
 function renderBadge(text: string, type: "live" | "ready" | "info" = "info"): string {
@@ -146,6 +148,12 @@ export function renderChannelDetailPageHtml(channelCode: "NXTR" | "ORIS" | "IMBD
         </table>
       </div>
     </div>
+
+    <!-- SCR-03 follow-on: canonical BroadcastEpisode → DAM master linkage for this channel -->
+    ${renderEpisodeMastersTableHtml(
+      listEpisodeMasters(channelCode),
+      { note: "Access states are read live from the DAM registry; unregistered or missing references are flagged rather than hidden." }
+    )}
   </section>
   `;
 }

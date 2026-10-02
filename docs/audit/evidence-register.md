@@ -15,11 +15,16 @@ Virtual Media Network Limited enforces continuous evidence progression from conc
 [Tier S1: Architecture & Assumptions] 
    └── Documented specifications, BRD/PRD R1.2A, ADR-001..013, Canonical Data Model. (VERIFIED)
 [Tier S2: Internal Sandbox] 
-   └── 480 Automated unit, contract, security, a11y, and integration tests passing; 45 test files; zero typecheck errors;
-   (Re-pinned 2026-10-01, TODO-DOC-05: previous pinned figure was 356/41; measured against the
+   └── 494 Automated unit, contract, security, a11y, and integration tests passing; 45 test files; zero typecheck errors;
+   (Re-pinned 2026-10-02, TODO-DOC-05: previous pinned figures were 356/41 then 480/480; measured against the
    final-remediation working tree at candidate commit `ca303f0dea650ace92e8e0e0d331b0bbd9734ce2`
-   plus its uncommitted remediation changes — `npx tsc --noEmit` clean, `npx vitest run` 480/480
-   across 45 files. Re-measure at the next commit boundary to keep this pin truthful.)
+   plus its uncommitted remediation changes — `npx tsc --noEmit` clean. Remediation committed as
+   `6bb519d5bd7908ff5216f5b78367ebca8b10db3e`; post-commit follow-ups (SCR-03 review-queue media
+   visibility, content-editor picker wiring, golden-seed DAM backfill, EPG & channel-schedule
+   episode-master surfacing) measure 494/494 across 45 files, zero skips (2026-10-02 full-suite
+   re-run at default workers after host load recovered; an earlier confirming run was sharded at
+   `--maxWorkers=2` while the host was under external load). Re-measure at the next commit
+   boundary to keep this pin truthful.)
        225 system screens; domain invariants, 3-way reconciliation algorithms, and failure drills verified in code. (CURRENT ACTIVE TIER)
 [Tier S3: Operational Staging] 
    └── Live staging deployment with Postgres container, playout integration,

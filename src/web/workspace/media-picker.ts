@@ -12,6 +12,7 @@
  */
 
 import { escapeHtml } from "../components/escape.js";
+import { getMediaAsset } from "../../core/storage/index.js";
 import type { MediaAssetRecord } from "../../core/storage/index.js";
 
 export interface MediaPickerProjection {
@@ -60,6 +61,58 @@ export function projectMediaPicker(assets: MediaAssetRecord[]): MediaPickerProje
       failed: rows.filter((r) => r.accessState === "FAILED").length,
     },
   };
+}
+
+// ---------------------------------------------------------------------------
+// Review-queue media reference badges (SCR-03 follow-on): show editors WHICH
+// registered DAM assets a content revision references BEFORE they approve.
+// ---------------------------------------------------------------------------
+
+export interface ContentMediaRefBadge {
+  assetId: string;
+  label: string;
+  state: "AVAILABLE" | "QUARANTINED" | "FAILED" | "UNREGISTERED";
+  detail?: string;
+}
+
+/**
+ * Projects a revision's mediaAssetIds into review badges. Ids that do not
+ * resolve in the DAM registry (legacy free-text references) are surfaced as
+ * UNREGISTERED rather than silently shown as if they were real assets.
+ */
+export function projectMediaRefBadges(assetIds: string[]): ContentMediaRefBadge[] {
+  return assetIds.map((id) => {
+    const asset = getMediaAsset(id);
+    if (!asset) {
+      return { assetId: id, label: id, state: "UNREGISTERED" as const, detail: "not registered in the DAM — legacy free-text reference" };
+    }
+    return { assetId: id, label: asset.title, state: asset.accessState, detail: asset.provenance };
+  });
+}
+
+const MEDIA_REF_STATE_COLOR: Record<ContentMediaRefBadge["state"], string> = {
+  AVAILABLE: "var(--vmn-color-success-600, #15803d)",
+  QUARANTINED: "var(--vmn-color-danger-600, #b91c1c)",
+  FAILED: "var(--vmn-color-danger-600, #b91c1c)",
+  UNREGISTERED: "var(--vmn-color-warning-600, #b45309)",
+};
+
+/**
+ * Renders read-only reference badges for a review-queue row. Quarantined /
+ * failed / unregistered references are visually flagged so a reviewer sees
+ * them before approving; the badges never offer a mutation path.
+ */
+export function renderMediaRefBadgesHtml(badges: ContentMediaRefBadge[], emptyText = "No media references"): string {
+  if (badges.length === 0) {
+    return `<span style="color: var(--vmn-color-text-muted, #64748b); font-size: 0.8rem;">${escapeHtml(emptyText)}</span>`;
+  }
+  return badges
+    .map((b) => {
+      const color = MEDIA_REF_STATE_COLOR[b.state];
+      const detail = b.detail ? ` title="${escapeHtml(b.detail)}"` : "";
+      return `<span${detail} style="display: inline-block; border: 1px solid var(--vmn-color-border, #e2e8f0); border-radius: 999px; padding: 2px 10px; margin: 2px 4px 2px 0; font-size: 0.78rem;"><strong style="color: ${color};">${escapeHtml(b.state)}</strong> ${escapeHtml(b.label)}<span style="color: var(--vmn-color-text-muted, #64748b); font-family: monospace;"> · ${escapeHtml(b.assetId)}</span></span>`;
+    })
+    .join("");
 }
 
 function formatBytes(bytes: number): string {

@@ -60,17 +60,39 @@ import { issueCsrfToken, verifyCsrfToken, verifyFormCsrf, extractCsrfFromForm, c
 // SCR-03: approved media registry + picker + CMS editor integration
 import { registerMediaAsset, listApprovedMediaAssets, _resetMediaAssetsForTesting } from "../../src/core/storage/index.js";
 import { projectMediaPicker, renderMediaPickerHtml } from "../../src/web/workspace/media-picker.js";
+import { createHash } from "node:crypto";
+import { goldenDamAssetRegistrations, registerGoldenDamAssets, episodeMasterAssetId, persistEpisodeMediaAssets } from "../../src/db/seeds/dam-backfill.js";
+import { generateGoldenDataset } from "../../src/db/seeds/golden/index.js";
 import {
   createContent,
   editContent,
   getContent,
+  submitForReview,
+  approveRevision,
   wireMediaAssetLookup,
   _resetContentForTesting,
 } from "../../src/core/content/index.js";
 import { projectContentEditorForm, renderContentEditorFormHtml } from "../../src/web/workspace/content-editor.js";
+import { projectMediaRefBadges, renderMediaRefBadgesHtml } from "../../src/web/workspace/media-picker.js";
+import { renderContentReviewAndPublicationHtml } from "../../src/web/workspace/governance-and-operations.js";
 
 // SCR-13/15: admin consoles + source mappings
 import { projectAccessMatrix, renderAccessAdminConsoleHtml, renderSourceMappingsConsoleHtml } from "../../src/web/workspace/admin-consoles.js";
+import { renderChannelDetailPageHtml } from "../../src/web/public/surface-a.js";
+import { renderPublicScheduleHtml } from "../../src/web/public/pub-screens.js";
+import { renderBroadcastScreenHtml } from "../../src/web/broadcast/index.js";
+import { BROADCAST_SCREEN_INVENTORY } from "../../src/modules/broadcast/screens/index.js";
+import { generateXmltvFeed } from "../../src/modules/broadcast/epg/index.js";
+import { getChannelByCode } from "../../src/modules/broadcast/channels/index.js";
+import { ScheduleRepository } from "../../src/core/database/repositories/schedule.repository.js";
+import {
+  projectEpisodeMasters,
+  refreshEpisodeMasterIndex,
+  listEpisodeMasters,
+  resolveEpisodeMasterAssetId,
+  deriveEpisodeMasterState,
+  _resetEpisodeMasterIndexForTesting,
+} from "../../src/modules/broadcast/episode-masters.js";
 import { listSourceMappings, resolveSourceMapping, assertApprovedSource, computeSourceMappingCounts } from "../../src/core/config/source-mappings.js";
 
 // SCR-20: VTM payment visibility
@@ -1190,6 +1212,88 @@ describe("SCR-03: CMS editor references registered media (UX-CMS-006)", () => {
     expect(html.match(/checked/g)?.length).toBe(1);
   });
 
+  it("shows registered media references on each CMS review-queue row before approval", () => {
+    const asset = registerMediaAsset({ ...assetInput, provenance: "ONE Studios stills desk" });
+    const item = createContent({
+      id: "CNT-MEDIA-REVIEW-1",
+      title: "Doc with registered stills",
+      slug: "doc-with-registered-stills",
+      summary: "s",
+      body: "b",
+      relatedUnit: "VMNL",
+      mediaAssetIds: [asset.assetId],
+      authorId: "editor-1",
+    });
+    submitForReview(item.id);
+
+    // The queue resolves each row id against the canonical store + registry.
+    const badges = projectMediaRefBadges(getContent(item.id)!.revisions.get(1)!.mediaAssetIds);
+    expect(badges).toHaveLength(1);
+    expect(badges[0].state).toBe("AVAILABLE");
+    expect(badges[0].label).toBe(asset.title);
+
+    const badgesHtml = renderMediaRefBadgesHtml(badges);
+    expect(badgesHtml).toContain(asset.assetId);
+    expect(badgesHtml).toContain("AVAILABLE");
+
+    // Empty reference list renders an explicit (not blank) state.
+    expect(renderMediaRefBadgesHtml([])).toContain("No media references");
+  });
+
+  it("flags unregistered legacy references and unknown content rows in the queue", () => {
+    // Pre-SCR-03 revisions may carry free-text asset keys; the queue must
+    // surface them as UNREGISTERED, never as real assets.
+    const legacy = projectMediaRefBadges(["tenants/t-1/legacy-free-text.jpg"]);
+    expect(legacy[0].state).toBe("UNREGISTERED");
+    expect(renderMediaRefBadgesHtml(legacy)).toContain("legacy free-text reference");
+
+    // Dirty registry entries are flagged for reviewer attention.
+    const dirty = registerMediaAsset({ ...assetInput, title: "Dirty still", assetKey: "x/dirty.jpg", checksumSha256: "3".repeat(64), virusScanPassed: false });
+    const dirtyBadge = projectMediaRefBadges([dirty.assetId]);
+    expect(dirtyBadge[0].state).toBe("QUARANTINED");
+    expect(renderMediaRefBadgesHtml(dirtyBadge)).toContain("QUARANTINED");
+
+    // The demo queue row CNT-DOC-102 has no CMS record — the cell says so
+    // honestly instead of implying an approvable item.
+    const html = renderContentReviewAndPublicationHtml();
+    expect(html).toContain("Media references (UX-CMS-006)");
+    expect(html).toContain("Content record not found in the CMS registry");
+  });
+
+  it("renders the live seeded APPROVED item's media cell in the queue HTML", () => {
+    // CNT-LAGOS-201 is the router's demo seed (APPROVED, no media). This
+    // describe resets the content store, so re-seed it exactly as the router
+    // seed does, then assert the queue's empty state → attached-media flow.
+    createContent({
+      id: "CNT-LAGOS-201",
+      title: "Lagos Noir — Season 1 Editorial Feature",
+      slug: "lagos-noir-season-1",
+      summary: "Editorial feature accompanying the Lagos Noir acquisition.",
+      body: "Long-form editorial content for the public programme page.",
+      relatedUnit: "S-CONTENT",
+      claimSources: ["Acquisition contract ACQ-2026-118"],
+      alternativeText: "Lagos Noir key art",
+      authorId: "usr-editorial-demo",
+    });
+    submitForReview("CNT-LAGOS-201");
+    approveRevision("CNT-LAGOS-201", "usr-content-approver-demo");
+
+    const emptyHtml = renderContentReviewAndPublicationHtml();
+    expect(emptyHtml).toContain("No media references");
+
+    const asset = registerMediaAsset({ ...assetInput, title: "Causeway key art", assetKey: "tenants/t-1/stills/causeway.jpg", checksumSha256: "4".repeat(64), registeredBy: "ingest@vmnl.ng" });
+    // The seed item is APPROVED; editing creates a new DRAFT revision (and
+    // that is exactly the reviewer-visible flow: media refs show on the
+    // revision the editor saved).
+    const edited = editContent({ id: "CNT-LAGOS-201", editorId: "editor-2", changes: { mediaAssetIds: [asset.assetId] } });
+    expect(edited.status).toBe("DRAFT");
+    const badges = projectMediaRefBadges(edited.revisions.get(edited.currentRevision)!.mediaAssetIds);
+    expect(badges[0].state).toBe("AVAILABLE");
+    const html = renderContentReviewAndPublicationHtml();
+    expect(html).toContain(asset.assetId);
+    expect(html).toContain("Causeway key art");
+  });
+
   it("persists picker selections end-to-end through the editor form routes", async () => {
     const app = createApiServer(4263, { NODE_ENV: "test", AUTH_BYPASS_ENABLED: "false" });
     await app.start();
@@ -1258,5 +1362,292 @@ describe("SCR-03: CMS editor references registered media (UX-CMS-006)", () => {
       _resetMediaAssetsForTesting();
       _resetContentForTesting();
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// SCR-03 backfill: golden-seed episodes + demo content start with registered
+// DAM assets so the editor, picker and review surfaces start populated.
+// AC-SCR-03-03: deterministic ids survive re-registration; demo content
+// references a registered key art at boot.
+// ---------------------------------------------------------------------------
+describe("SCR-03: golden DAM backfill", () => {
+  const deterministicChecksumForTest = (assetKey: string): string => createHash("sha256").update(`vmnl-golden-dam:${assetKey}`).digest("hex");
+
+  beforeEach(() => {
+    _resetMediaAssetsForTesting();
+    _resetContentForTesting();
+  });
+
+  it("derives one master per episode + one key art per programme with deterministic ids", () => {
+    const registrations = goldenDamAssetRegistrations();
+    expect(registrations).toHaveLength(250); // 200 episode masters + 50 key arts
+    expect(registrations.filter((r) => r.mimeType === "video/mp4")).toHaveLength(200);
+    expect(registrations.filter((r) => r.mimeType === "image/jpeg")).toHaveLength(50);
+
+    const first = registrations[0];
+    expect(first.assetId).toBe("MA-EP-0001-MASTER");
+    expect(first.checksumSha256).toBe(deterministicChecksumForTest(first.assetKey!));
+    const again = goldenDamAssetRegistrations();
+    expect(again[0].checksumSha256).toBe(first.checksumSha256); // deterministic
+  });
+
+  it("registers idempotently — repeated calls never mint twins", () => {
+    const count1 = registerGoldenDamAssets();
+    expect(count1).toBe(250);
+    registerGoldenDamAssets();
+    const all = listApprovedMediaAssets();
+    expect(all).toHaveLength(250);
+    expect(all.find((a) => a.assetId === episodeMasterAssetId("EP-0001"))?.title).toContain("Episode 1 master");
+  });
+
+  it("persistEpisodeMediaAssets reports the standing reference total on re-runs, not a per-run delta", async () => {
+    const dataset = generateGoldenDataset();
+    const rows = new Map<string, string | null>(dataset.episodes.map((ep) => [ep.id, null]));
+    const writes: string[] = [];
+    const fakePrisma = {
+      broadcastEpisode: {
+        findUnique: async ({ where }: { where: { episodeCode: string } }) =>
+          rows.has(where.episodeCode) ? { mediaAssetId: rows.get(where.episodeCode) ?? null } : null,
+        update: async ({ where, data }: { where: { episodeCode: string }; data: { mediaAssetId: string } }) => {
+          rows.set(where.episodeCode, data.mediaAssetId);
+          writes.push(where.episodeCode);
+        },
+      },
+    } as never;
+
+    // First run: every episode gets written and counted.
+    const first = await persistEpisodeMediaAssets(fakePrisma, dataset);
+    expect(first).toBe(dataset.episodes.length);
+    expect(writes).toHaveLength(dataset.episodes.length);
+    expect(rows.get("EP-0001")).toBe(episodeMasterAssetId("EP-0001"));
+
+    // Re-run: no writes needed, but the standing total is still reported —
+    // a seed summary must never claim "0 references persisted" while 200 exist.
+    writes.length = 0;
+    const second = await persistEpisodeMediaAssets(fakePrisma, dataset);
+    expect(second).toBe(dataset.episodes.length);
+    expect(writes).toHaveLength(0);
+
+    // A missing episode row is never counted as persisted.
+    rows.delete("EP-0001");
+    const third = await persistEpisodeMediaAssets(fakePrisma, dataset);
+    expect(third).toBe(dataset.episodes.length - 1);
+  });
+
+  it("boots the sandbox with demo content referencing its registered key art", async () => {
+    const app = createApiServer(4264, { NODE_ENV: "test", AUTH_BYPASS_ENABLED: "false" });
+    await app.start();
+    try {
+      // The boot backfill + demo seed ran inside createApiServer.
+      expect(listApprovedMediaAssets().length).toBeGreaterThanOrEqual(250);
+      const seeded = getContent("CNT-LAGOS-201");
+      expect(seeded).toBeDefined();
+      const refs = seeded!.revisions.get(seeded!.currentRevision)!.mediaAssetIds;
+      expect(refs).toEqual(["MA-CNT-LAGOS-201-KEYART"]);
+
+      // Review queue shows the registered reference (AVAILABLE) for the demo
+      // item instead of the empty state.
+      const queueHtml = renderContentReviewAndPublicationHtml();
+      expect(queueHtml).toContain("MA-CNT-LAGOS-201-KEYART");
+      expect(queueHtml).toContain("Lagos Noir — key art");
+      expect(queueHtml).toContain("AVAILABLE");
+
+      // The editor page pre-checks the reference for the demo item.
+      const editorRes = await makeHttpRequest(4264, "/workspace/content/editor/CNT-LAGOS-201", { headers: { "x-test-role": "SuperAdmin" } });
+      expect(editorRes.statusCode).toBe(200);
+      expect(editorRes.body).toContain(`value="MA-CNT-LAGOS-201-KEYART" checked`);
+    } finally {
+      await app.stop();
+      _resetMediaAssetsForTesting();
+      _resetContentForTesting();
+    }
+  });
+});
+
+describe("EPG & channel schedule DAM master linkage (SCR-03 follow-on)", () => {
+  beforeEach(() => {
+    _resetMediaAssetsForTesting();
+    _resetEpisodeMasterIndexForTesting();
+  });
+
+  afterAll(() => {
+    _resetMediaAssetsForTesting();
+    _resetEpisodeMasterIndexForTesting();
+  });
+
+  /** Builds a three-episode fixture across two channels and refreshes the index. */
+  async function seedFixtureIndex(options: { registerMaster?: boolean } = {}): Promise<void> {
+    const repo = new ScheduleRepository();
+    await repo.createProgramme({ code: "PRG-LINK-1", title: "Linkage Show", channelCode: "NXTR" });
+    await repo.createProgramme({ code: "PRG-LINK-2", title: "Other Channel Show", channelCode: "ORIS" });
+    await repo.createEpisode({
+      episodeCode: "EP-LINK-01",
+      programmeCode: "PRG-LINK-1",
+      episodeNumber: 1,
+      title: "Linkage Episode 1",
+      durationSeconds: 1500,
+      mediaAssetId: "MA-EP-LINK-01-MASTER",
+    });
+    await repo.createEpisode({
+      episodeCode: "EP-LINK-02",
+      programmeCode: "PRG-LINK-1",
+      episodeNumber: 2,
+      title: "Linkage Episode 2",
+      durationSeconds: 1500,
+    });
+    await repo.createEpisode({
+      episodeCode: "EP-ORIS-01",
+      programmeCode: "PRG-LINK-2",
+      episodeNumber: 1,
+      title: "Other Episode",
+      durationSeconds: 1500,
+      mediaAssetId: "MA-UNREGISTERED-REF",
+    });
+    const stats = await refreshEpisodeMasterIndex({ repository: repo });
+    expect(stats).toEqual({ channels: 3, programmes: 2, episodes: 3 });
+    if (options.registerMaster) {
+      registerMediaAsset({
+        assetId: "MA-EP-LINK-01-MASTER",
+        title: "Linkage Episode 1 master",
+        assetKey: "golden/episodes/EP-LINK-01/master.mp4",
+        mimeType: "video/mp4",
+        sizeBytes: 1_500_000,
+        checksumSha256: "c".repeat(64),
+        provenance: "Test fixture ingest",
+        registeredBy: "test",
+        virusScanPassed: true,
+      });
+    }
+  }
+
+  it("projects episodes only onto their own channel's programmes — never cross-listed", () => {
+    const rows = projectEpisodeMasters({
+      channelCode: "NXTR",
+      programmes: [
+        { code: "PRG-A", title: "Alpha", channelCode: "NXTR" },
+        { code: "PRG-B", title: "Beta", channelCode: "ORIS" },
+      ],
+      episodes: [
+        { programmeCode: "PRG-A", episodeCode: "EP-A-1", episodeNumber: 2, title: "Ep2", durationSeconds: 100 },
+        { programmeCode: "PRG-A", episodeCode: "EP-A-0", episodeNumber: 1, title: "Ep1", durationSeconds: 100 },
+        { programmeCode: "PRG-B", episodeCode: "EP-B-1", episodeNumber: 1, title: "EpB", durationSeconds: 100 },
+      ],
+    });
+    expect(rows.map((r) => r.episodeCode)).toEqual(["EP-A-0", "EP-A-1"]); // sorted, no ORIS leakage
+    expect(rows[0].channelCode).toBe("NXTR");
+    expect(rows[0].programmeTitle).toBe("Alpha");
+  });
+
+  it("derives state at read time: NO_REFERENCE, UNREGISTERED, then live registry states", async () => {
+    const base = {
+      channelCode: "NXTR",
+      programmeCode: "PRG-LINK-1",
+      programmeTitle: "Linkage Show",
+      episodeCode: "EP-LINK-01",
+      episodeNumber: 1,
+      episodeTitle: "Linkage Episode 1",
+      durationSeconds: 1500,
+    };
+    expect(deriveEpisodeMasterState({ ...base }).state).toBe("NO_REFERENCE");
+    expect(deriveEpisodeMasterState({ ...base, mediaAssetId: "MA-GONE" }).state).toBe("UNREGISTERED");
+
+    await seedFixtureIndex();
+    // Persisted but unregistered at first read…
+    expect(listEpisodeMasters("NXTR").find((r) => r.episodeCode === "EP-LINK-01")!.state).toBe("UNREGISTERED");
+    // …then the asset registers and the NEXT read flips: state is never cached in the index.
+    registerMediaAsset({
+      assetId: "MA-EP-LINK-01-MASTER",
+      title: "Linkage Episode 1 master",
+      assetKey: "golden/episodes/EP-LINK-01/master.mp4",
+      mimeType: "video/mp4",
+      sizeBytes: 1_500_000,
+      checksumSha256: "c".repeat(64),
+      provenance: "Test fixture ingest",
+      registeredBy: "test",
+      virusScanPassed: true,
+    });
+    const row = listEpisodeMasters("NXTR").find((r) => r.episodeCode === "EP-LINK-01")!;
+    expect(row.state).toBe("AVAILABLE");
+    expect(row.assetTitle).toBe("Linkage Episode 1 master");
+  });
+
+  it("resolves only REGISTERED masters for episode codes", async () => {
+    await seedFixtureIndex({ registerMaster: true });
+    expect(resolveEpisodeMasterAssetId("EP-LINK-01")).toBe("MA-EP-LINK-01-MASTER");
+    expect(resolveEpisodeMasterAssetId("EP-ORIS-01")).toBeNull(); // persisted but unregistered
+    expect(resolveEpisodeMasterAssetId("EP-NOPE")).toBeNull(); // unknown episode
+    _resetMediaAssetsForTesting();
+    expect(resolveEpisodeMasterAssetId("EP-LINK-01")).toBeNull(); // de-registered → stops resolving
+  });
+
+  it("carries registered masters in the XMLTV feed and omits unregistered/unknown refs", async () => {
+    await seedFixtureIndex({ registerMaster: true });
+    const channel = getChannelByCode("NXTR")!;
+    const slot = (episodeId: string, id: string) => ({
+      id,
+      channelId: channel.id,
+      episodeId,
+      title: "Slot Title",
+      startTime: new Date("2026-10-05T06:00:00Z"),
+      durationSeconds: 1800,
+      isLocked: true,
+    });
+    const xml = generateXmltvFeed(channel, [
+      slot("EP-LINK-01", "s1"),
+      slot("EP-LINK-02", "s2"), // no reference on the episode
+      slot("EP-NOPE", "s3"), // unknown episode
+      slot("EP-ORIS-01", "s4"), // persisted but unregistered
+    ]);
+    expect(xml).toContain('<episode-num system="vmnl-media-asset">MA-EP-LINK-01-MASTER</episode-num>');
+    expect((xml.match(/<episode-num/g) ?? [])).toHaveLength(1);
+    // An injected resolver wins over the default (future approved sources).
+    const custom = generateXmltvFeed(channel, [slot("EP-NOPE", "s1")], {
+      resolveEpisodeMediaAsset: () => "MA-CUSTOM-1",
+    });
+    expect(custom).toContain('<episode-num system="vmnl-media-asset">MA-CUSTOM-1</episode-num>');
+  });
+
+  it("channel detail page surfaces the linkage table, honest empty state, and channel scoping", async () => {
+    const emptyHtml = renderChannelDetailPageHtml("NXTR");
+    expect(emptyHtml).toContain("Registered Episode Masters (DAM)");
+    expect(emptyHtml).toContain("No episode master linkage is loaded");
+
+    await seedFixtureIndex({ registerMaster: true });
+    const html = renderChannelDetailPageHtml("NXTR");
+    expect(html).toContain("MA-EP-LINK-01-MASTER");
+    expect(html).toContain("EP-LINK-01");
+    expect(html).toContain("AVAILABLE");
+    expect(html).toContain("No master reference"); // EP-LINK-02 has no persisted id
+
+    const orisHtml = renderChannelDetailPageHtml("ORIS");
+    expect(orisHtml).toContain("MA-UNREGISTERED-REF");
+    expect(orisHtml).toContain("UNREGISTERED");
+    expect(orisHtml).not.toContain("MA-EP-LINK-01-MASTER"); // never cross-listed
+  });
+
+  it("public schedule renders a compact per-channel DAM master summary with problems flagged", async () => {
+    const before = renderPublicScheduleHtml();
+    expect(before).toContain("Episode masters: not loaded");
+
+    await seedFixtureIndex({ registerMaster: true });
+    const html = renderPublicScheduleHtml();
+    expect(html).toContain("DAM masters:");
+    expect(html).toContain("2 episode masters across 1 programme");
+    expect(html).toContain("AVAILABLE 1");
+    expect(html).toContain("no reference 1"); // EP-LINK-02 called out, never hidden
+  });
+
+  it("EPG Inspector screen (SCR-BCST-14) renders the episode master linkage panel", async () => {
+    const screen = BROADCAST_SCREEN_INVENTORY.find((s) => s.screenId === "SCR-BCST-14")!;
+    const emptyHtml = renderBroadcastScreenHtml(screen, {}, "ExecutiveLeader");
+    expect(emptyHtml).toContain("Episode Master Linkage (DAM)");
+    expect(emptyHtml).toContain("No episode master linkage is loaded");
+
+    await seedFixtureIndex({ registerMaster: true });
+    const html = renderBroadcastScreenHtml(screen, {}, "ExecutiveLeader");
+    expect(html).toContain("MA-EP-LINK-01-MASTER");
+    expect(html).toContain("EP-LINK-01");
+    expect(html).toContain("&lt;episode-num system=&quot;vmnl-media-asset&quot;&gt;"); // note documents the XMLTV contract
   });
 });

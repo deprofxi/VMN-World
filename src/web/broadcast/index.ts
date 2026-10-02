@@ -17,8 +17,9 @@ import {
   BROADCAST_SCREEN_INVENTORY,
   BroadcastScreenDescriptor,
 } from "../../modules/broadcast/screens/index.js";
-import { renderIcon, IconName } from "../components/index.js";
+import { renderIcon, IconName, renderEpisodeMastersTableHtml } from "../components/index.js";
 import { renderMockDataBanner } from "../../modules/broadcast/screens/data.js";
+import { listEpisodeMasters } from "../../modules/broadcast/episode-masters.js";
 
 export interface MatchedScreenRoute {
   screen: BroadcastScreenDescriptor;
@@ -799,6 +800,12 @@ function renderEpgInspectorDiffHtml(): string {
         <span class="xmltv-diff-same">  &lt;/programme&gt;</span>
         <span class="xmltv-diff-same">&lt;/tv&gt;</span>
       </div>
+
+      <!-- SCR-03 follow-on: canonical episode → DAM master linkage -->
+      ${renderEpisodeMastersTableHtml(listEpisodeMasters(), {
+        heading: "Episode Master Linkage (DAM)",
+        note: 'Every indexed episode with its registered DAM master id; the XMLTV export carries each id as <episode-num system="vmnl-media-asset">.',
+      })}
     </div>
   `;
 }

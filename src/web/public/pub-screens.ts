@@ -7,7 +7,8 @@
  */
 
 import { PUBLIC_CHANNELS } from "./channels.js";
-import { renderIcon } from "../components/index.js";
+import { renderIcon, renderEpisodeMasterSummaryHtml } from "../components/index.js";
+import { listEpisodeMasters } from "../../modules/broadcast/episode-masters.js";
 
 /**
  * UX-PUB-002: About VMN
@@ -99,6 +100,7 @@ export function renderPublicScheduleHtml(): string {
           <div style="font-size: 0.8rem; color: var(--vmn-text-muted);">ONE Studios Original Production</div>
         </div>
       </div>
+      ${renderEpisodeMasterSummaryHtml(listEpisodeMasters(c.code))}
     </div>
   `
     )

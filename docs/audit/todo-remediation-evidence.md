@@ -2,7 +2,7 @@
 
 **Document:** `VMNL-AZP-VMN-REM-EVID-001 — R1.0`
 **Authority:** TODO-PRC-09 (traceability), TODO-DOC-05/06 (evidence pinning and register updates).
-**Verification run (this tree):** `npx tsc --noEmit` clean · `npx vitest run --reporter=basic` → **480 passed / 45 files** (incl. 21 desk-rewiring tests from Round 6B and 48 final-remediation tests + 13 journey drills from Round 6C) · `eslint` 0 errors (warnings remain pre-existing unused-param style).
+**Verification run (this tree):** `npx tsc --noEmit` clean · `npx vitest run --reporter=basic` → **494 passed / 45 files, zero skips** (incl. 21 desk-rewiring tests from Round 6B and 62 final-remediation tests + 13 journey drills from Round 6C; measured 2026-10-02 after the post-commit follow-ups — review-queue media visibility, content-editor picker wiring, golden-seed DAM backfill, EPG & channel-schedule DAM master surfacing. Under host load the full suite flakes on HTTP timeouts, so the run was first confirmed sharded at `--maxWorkers=2` (96/96 contract+security+integration+a11y, 391/391 unit) and then re-confirmed at default workers once load recovered) · `eslint` 0 errors (warnings remain pre-existing unused-param style).
 
 ## Round 6C — Final remediation traceability (2026-10-01)
 
@@ -32,7 +32,7 @@
 | PRC-08 backup automation | `docker/backups/backup.sh` + compose `postgres-backup` service + `docs/audit/backup-restore-drill.md` — **DRILL-01 executed 2026-10-01: restore 0.132 s, 26/26 table parity, app 200 from restored copy; WAL/PITR RPO target still open** | — (job + executed-drill evidence) |
 | PRC-09 AC-ID index | `docs/audit/ac-traceability-index.md` | — (documentation evidence) |
 | DOC-01…07 | taskss.md phantom withdrawn; design-task.md de-cited (`docs/decisions/design-task-de-citation.md`); DR runbook DB name fixed; ADR-013 corrected; evidence re-pinned 480/45 @ `ca303f0`+tree; claims downgraded | grep-verifiable in-repo |
-| SCR-03 media picker + editor integration | `registerMediaAsset`/`listApprovedMediaAssets` (`src/core/storage/index.ts`) + `src/web/workspace/media-picker.ts` + `src/web/workspace/content-editor.ts`; `GET /workspace/content/media-picker`, `POST/GET /api/v1/cms/media-assets`, `GET /workspace/content/editor[/:id]`, guarded `POST /api/v1/workspace/content-editor[/update]`; `[CMS-11]` registry validation wired via `wireMediaAssetLookup` | `todo-final-remediation.test.ts` — SCR-03 describes (provenance/access-state contract, tenant scoping, 401/route authority, `[CMS-11]` rejections, CSRF-flow create→edit→persisted-picker-selection E2E) |
+| SCR-03 media picker + editor integration | `registerMediaAsset`/`listApprovedMediaAssets` (`src/core/storage/index.ts`) + `src/web/workspace/media-picker.ts` + `src/web/workspace/content-editor.ts`; `GET /workspace/content/media-picker`, `POST/GET /api/v1/cms/media-assets`, `GET /workspace/content/editor[/:id]`, guarded `POST /api/v1/workspace/content-editor[/update]`; `[CMS-11]` registry validation wired via `wireMediaAssetLookup`; **review-queue media-reference column** (`renderQueueMediaCell` in governance-and-operations.ts resolves each row against the CMS store + DAM registry, flagging quarantined/failed/unregistered refs and phantom demo rows) | `todo-final-remediation.test.ts` — SCR-03 describes (provenance/access-state contract, tenant scoping, 401/route authority, `[CMS-11]` rejections, review-queue badge/empty/phantom-row assertions, CSRF-flow create→edit→persisted-picker-selection E2E) |
 
 ## Round 6B — SCR-17/18/19 desk rewiring traceability (2026-09-30)
 

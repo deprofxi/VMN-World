@@ -37,6 +37,9 @@ import { loadConfig } from "../core/config/index.js";
 import { CommercialProposalStore } from "../web/workspace/commercial-proposal.js";
 import { wireMediaAssetLookup } from "../core/content/index.js";
 import { getMediaAsset } from "../core/storage/index.js";
+import { registerGoldenDamAssets } from "../db/seeds/dam-backfill.js";
+import { ensureContentDemoSeed } from "./router.js";
+import { refreshEpisodeMasterIndex } from "../modules/broadcast/episode-masters.js";
 
 export interface ApiServerInstance {
   server: Server;
@@ -91,6 +94,13 @@ export function createApiServer(port?: number, envOverrides: Record<string, stri
   // SCR-03 (UX-CMS-006): the CMS revision domain validates mediaAssetIds
   // against the canonical DAM registry — wire the lookup seam at boot.
   wireMediaAssetLookup(getMediaAsset);
+
+  // SCR-03 backfill: register the golden DAM assets (episode masters +
+  // programme key art, deterministic ids) BEFORE the demo content seed so its
+  // media reference validates, then seed the demo content that references it.
+  // Idempotent: explicit assetIds make repeat boots no-ops.
+  registerGoldenDamAssets();
+  ensureContentDemoSeed();
 
   // Register production job handlers (T-09, T-10)
   queueWorker.registerHandler("EPG_GENERATION", async (job) => {
@@ -206,8 +216,19 @@ export function createApiServer(port?: number, envOverrides: Record<string, stri
     server,
     port: serverPort,
     context,
-    start: () =>
-      new Promise<void>((resolve, reject) => {
+    start: async () => {
+      // SCR-03 follow-on: project the canonical BroadcastEpisode → DAM master
+      // chain into the sync index read by the EPG and channel schedule
+      // surfaces, so the first request already sees populated rows (or the
+      // honest empty state when no database/seed is present). A refresh
+      // failure must never block serving.
+      try {
+        await refreshEpisodeMasterIndex();
+      } catch (err) {
+        const span = TelemetryService.createSpanContext("server_bootstrap");
+        telemetry.logStructured("WARN", "Episode master index refresh failed — broadcast surfaces will show the honest empty state", span, { error: String(err) });
+      }
+      return new Promise<void>((resolve, reject) => {
         server.listen(serverPort, () => {
           queueWorker.start();
           configureRollingEpgScheduler(queueWorker);
@@ -227,7 +248,8 @@ export function createApiServer(port?: number, envOverrides: Record<string, stri
           resolve();
         });
         server.on("error", (err) => reject(err));
-      }),
+      });
+    },
     stop: () =>
       new Promise<void>((resolve, reject) => {
         queueWorker.stop();

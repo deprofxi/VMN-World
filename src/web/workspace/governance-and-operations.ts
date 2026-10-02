@@ -14,6 +14,8 @@ import { escapeHtml } from "../components/escape.js";
 import { renderIcon } from "../components/icons.js";
 import { SessionUser } from "../../core/auth/index.js";
 import { createApproval, listAllApprovals } from "../../core/approvals/index.js";
+import { getContent } from "../../core/content/index.js";
+import { projectMediaRefBadges, renderMediaRefBadgesHtml } from "./media-picker.js";
 
 /** Human-readable copy for approval decision failure codes (UX-GOV-002). */
 const APPROVAL_ERROR_COPY: Record<string, string> = {
@@ -389,6 +391,24 @@ export function renderPoaExceptionsWorkbenchHtml(options: { resolvedId?: string 
 /**
  * UX-CMS-001..008: Content Review & Publication Workflow (J-RL1-11)
  */
+
+/**
+ * SCR-03 follow-on: read-only media-reference cell for a review-queue row.
+ * The row id is resolved against the canonical CMS store and the revision's
+ * mediaAssetIds against the DAM registry, so an editor sees exactly which
+ * registered assets (and their access states) a revision references BEFORE
+ * approving. Unknown content ids and legacy free-text references are flagged
+ * rather than silently rendered as if they were real assets.
+ */
+function renderQueueMediaCell(contentId: string): string {
+  const item = getContent(contentId);
+  if (!item) {
+    return `<span style="color: var(--vmn-color-warning-600, #b45309); font-size: 0.8rem;">Content record not found in the CMS registry — demo row; publish will be refused (CMS_NOT_FOUND).</span>`;
+  }
+  const revision = item.revisions.get(item.currentRevision)!;
+  return renderMediaRefBadgesHtml(projectMediaRefBadges(revision.mediaAssetIds));
+}
+
 export function renderContentReviewAndPublicationHtml(options: { publishedId?: string } = {}): string {
   return `
     <div style="max-width: 1100px; margin: 32px auto; padding: 0 16px;">
@@ -427,6 +447,7 @@ export function renderContentReviewAndPublicationHtml(options: { publishedId?: s
               <th style="padding: 12px 14px; font-weight: 700;">NBC Rating</th>
               <th style="padding: 12px 14px; font-weight: 700;">Languages</th>
               <th style="padding: 12px 14px; font-weight: 700;">Editorial State</th>
+              <th style="padding: 12px 14px; font-weight: 700;">Media references (UX-CMS-006)</th>
               <th style="padding: 12px 14px; font-weight: 700; text-align: right;">Action</th>
             </tr>
           </thead>
@@ -439,6 +460,7 @@ export function renderContentReviewAndPublicationHtml(options: { publishedId?: s
               <td style="padding: 12px 14px;"><span class="vmn-badge badge-neutral">18+ (Violence)</span></td>
               <td style="padding: 12px 14px;">EN, YO, IG</td>
               <td style="padding: 12px 14px;"><span class="vmn-badge badge-success">READY FOR AIR</span></td>
+              <td style="padding: 12px 14px;">${renderQueueMediaCell("CNT-LAGOS-201")}</td>
               <td style="padding: 12px 14px; text-align: right;">
                 <form method="POST" action="/api/v1/workspace/content/CNT-LAGOS-201/publish" style="display: inline;">
                   <button type="submit" class="btn btn-primary" style="min-height: 34px; padding: 0 12px; font-size: 0.8rem; cursor: pointer;">
@@ -456,6 +478,7 @@ export function renderContentReviewAndPublicationHtml(options: { publishedId?: s
               <td style="padding: 12px 14px;"><span class="vmn-badge badge-neutral">PG (General)</span></td>
               <td style="padding: 12px 14px;">EN, YO</td>
               <td style="padding: 12px 14px;"><span class="vmn-badge badge-info">PENDING EDITORIAL SIGNOFF</span></td>
+              <td style="padding: 12px 14px;">${renderQueueMediaCell("CNT-DOC-102")}</td>
               <td style="padding: 12px 14px; text-align: right;">
                 <form method="POST" action="/api/v1/workspace/content/CNT-DOC-102/publish" style="display: inline;">
                   <button type="submit" class="btn btn-outline" style="min-height: 34px; padding: 0 12px; font-size: 0.8rem; cursor: pointer;">

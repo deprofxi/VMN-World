@@ -303,6 +303,13 @@ export interface RegisterMediaAssetParams {
   validationErrors?: string[];
   registeredBy: string;
   registeredAt?: Date;
+  /**
+   * Deterministic id for seed/backfill registration. When supplied and already
+   * present, the existing record is returned unchanged (idempotent seeding);
+   * otherwise it is adopted verbatim so persisted references keep resolving
+   * across restarts of the in-memory registry.
+   */
+  assetId?: string;
 }
 
 const mediaAssetRegistry = new Map<string, MediaAssetRecord>();
@@ -321,7 +328,17 @@ export function registerMediaAsset(params: RegisterMediaAssetParams): MediaAsset
   if (!params.checksumSha256?.trim()) {
     throw new Error("[MEDIA-ASSET-04] Checksum is required (computeSha256 of the validated buffer).");
   }
-  const id = `MA-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random() * 9000 + 1000)}`;
+  // Idempotent backfill semantics (SCR-03 seed): the same explicit assetId or
+  // the same assetKey returns the existing record instead of minting a twin.
+  if (params.assetId?.trim()) {
+    const existing = mediaAssetRegistry.get(params.assetId.trim());
+    if (existing) return existing;
+  }
+  for (const candidate of mediaAssetRegistry.values()) {
+    if (candidate.assetKey === params.assetKey.trim()) return candidate;
+  }
+
+  const id = params.assetId?.trim() || `MA-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random() * 9000 + 1000)}`;
   const hasErrors = (params.validationErrors?.length ?? 0) > 0;
   const accessState: MediaAssetRecord["accessState"] = hasErrors
     ? "FAILED"

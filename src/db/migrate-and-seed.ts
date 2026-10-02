@@ -4,6 +4,7 @@
  */
 
 import { generateGoldenDataset } from "./seeds/golden/index.js";
+import { persistEpisodeMediaAssets, registerGoldenDamAssets } from "./seeds/dam-backfill.js";
 import { loadConfig } from "../core/config/index.js";
 import { getPrismaClient, checkDatabaseConnection, disconnectDatabase } from "../core/database/index.js";
 
@@ -27,6 +28,8 @@ export async function runDatabaseSeed(): Promise<{ success: boolean; stats: Reco
     afcaCourses: dataset.afcaCourses.length,
     vcfSlates: dataset.vcfSlates.length,
     tendDeals: dataset.tendDeals.length,
+    damAssets: 0,
+    episodeMediaAssets: 0,
   };
 
   // Test live database connectivity (Finding B-5)
@@ -138,6 +141,16 @@ export async function runDatabaseSeed(): Promise<{ success: boolean; stats: Reco
           },
         });
       }
+
+      // SCR-03 backfill: register the golden DAM assets (deterministic ids,
+      // idempotent) and point every episode at its registered master so the
+      // editor, picker, review and broadcast surfaces reference assets that
+      // resolve in the registry.
+      const damAssets = registerGoldenDamAssets(dataset);
+      const episodeMediaAssets = await persistEpisodeMediaAssets(prisma, dataset);
+      stats.damAssets = damAssets;
+      stats.episodeMediaAssets = episodeMediaAssets;
+      console.log(`[VMNL-DB-SEED] DAM backfill: ${damAssets} assets registered, ${episodeMediaAssets} episode references persisted.`);
 
       // 6. Seed Talent Profiles & Persons
       for (const tal of dataset.talentProfiles) {

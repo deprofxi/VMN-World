@@ -259,6 +259,11 @@ import {
   registerMediaAsset,
   listApprovedMediaAssets,
 } from "../core/storage/index.js";
+
+/** Deterministic checksum shared with the golden DAM backfill. */
+function deterministicChecksum(assetKey: string): string {
+  return crypto.createHash("sha256").update(`vmnl-golden-dam:${assetKey}`).digest("hex");
+}
 import {
   recordAuditLog,
   getAuditLogs,
@@ -714,9 +719,25 @@ registerWorkTaskSource({
  * APPROVED state so the editorial review surface and publish journey exercise
  * the real CMS domain. Author differs from any live publisher so separation
  * of duties holds; the seed is labelled in the queue renderer.
+ *
+ * SCR-03 backfill: the item references its registered DAM key art so the
+ * review queue/editor start populated with a resolving media reference.
+ * Invoked from createApiServer AFTER registerGoldenDamAssets (the content
+ * domain validates mediaAssetIds against the registry — [CMS-11]).
  */
-(function ensureContentDemoSeed(): void {
+export function ensureContentDemoSeed(): void {
   if (getContent("CNT-LAGOS-201")) return;
+  registerMediaAsset({
+    assetId: "MA-CNT-LAGOS-201-KEYART",
+    title: "Lagos Noir — key art",
+    assetKey: "golden/content/cnt-lagos-201/keyart.jpg",
+    mimeType: "image/jpeg",
+    sizeBytes: 512_000,
+    checksumSha256: deterministicChecksum("golden/content/cnt-lagos-201/keyart.jpg"),
+    provenance: "Golden seed ingest (synthetic key art — no media file uploaded)",
+    virusScanPassed: true,
+    registeredBy: "golden-seed",
+  });
   createContent({
     id: "CNT-LAGOS-201",
     title: "Lagos Noir — Season 1 Editorial Feature",
@@ -726,11 +747,12 @@ registerWorkTaskSource({
     relatedUnit: "S-CONTENT",
     claimSources: ["Acquisition contract ACQ-2026-118"],
     alternativeText: "Lagos Noir key art",
+    mediaAssetIds: ["MA-CNT-LAGOS-201-KEYART"],
     authorId: "usr-editorial-demo",
   });
   submitForReview("CNT-LAGOS-201");
   approveRevision("CNT-LAGOS-201", "usr-content-approver-demo");
-})();
+}
 
 export function resolveClientIp(req: IncomingMessage): string {
   // Identity for rate limiting and audit records (AUD-03). Only the first hop

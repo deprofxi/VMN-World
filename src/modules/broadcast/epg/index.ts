@@ -5,6 +5,7 @@
 
 import { ScheduleSlot } from "../scheduling/index.js";
 import { BroadcastChannelConfig } from "../channels/index.js";
+import { resolveEpisodeMasterAssetId } from "../episode-masters.js";
 
 export interface EpgProgramItem {
   channelCode: string;
@@ -32,12 +33,22 @@ export function formatXmltvDate(date: Date): string {
 }
 
 /**
- * Builds XMLTV XML content for a channel and schedule slots
+ * Builds XMLTV XML content for a channel and schedule slots.
+ *
+ * SCR-03 follow-on: when a slot's episode resolves to a REGISTERED DAM
+ * master, the feed carries it as `<episode-num system="vmnl-media-asset">`.
+ * The default resolver consults the boot-refreshed episode-master index AND
+ * the live DAM registry, so processes that never loaded either (CLI sample
+ * exports, the rolling sample scheduler) emit no episode-num instead of
+ * referencing something unregistered. Inject `resolveEpisodeMediaAsset` to
+ * override (tests, future approved sources).
  */
 export function generateXmltvFeed(
   channel: BroadcastChannelConfig,
-  slots: ScheduleSlot[]
+  slots: ScheduleSlot[],
+  options: { resolveEpisodeMediaAsset?: (episodeId: string) => string | null } = {}
 ): string {
+  const resolveEpisodeMediaAsset = options.resolveEpisodeMediaAsset ?? resolveEpisodeMasterAssetId;
   let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
   xml += `<tv generator-info-name="VMNL-EPG-Engine" generator-info-url="https://vmn.ng">\n`;
   xml += `  <channel id="${channel.code}">\n`;
@@ -51,6 +62,10 @@ export function generateXmltvFeed(
 
     xml += `  <programme start="${startStr}" stop="${stopStr}" channel="${channel.code}">\n`;
     xml += `    <title lang="${channel.language.split(" ")[0].toLowerCase()}">${escapeXml(slot.title)}</title>\n`;
+    const mediaAssetId = resolveEpisodeMediaAsset(slot.episodeId);
+    if (mediaAssetId) {
+      xml += `    <episode-num system="vmnl-media-asset">${escapeXml(mediaAssetId)}</episode-num>\n`;
+    }
     xml += `  </programme>\n`;
   }
 
