@@ -1,5 +1,10 @@
-version: "3.8"
-
+# Local Development & Sandbox Services
+# Authority: VMNL-AZP-VMN-CCPP-001 / T9-20 (F-9-20)
+#
+# AUD-14: security-bearing variables carry NO default secrets. The application
+# fails fast on missing required secrets (CR-6) instead of booting with
+# publicly-known values. Sandbox infrastructure passwords (postgres/minio) are
+# explicitly non-production and documented as such.
 services:
   app:
     build:
@@ -8,30 +13,39 @@ services:
     container_name: vmnl-enterprise-app
     restart: unless-stopped
     ports:
-      - "4000:4000"
+      - "5500:5500"
     environment:
-      - NODE_ENV=production
-      - PORT=4000
+      - NODE_ENV=${NODE_ENV:-development}
+      - PORT=5500
       - APP_NAME=VMNL Enterprise Orchestrator
-      - APP_URL=http://localhost:4000
-      - DATABASE_URL=postgresql://vmn_user:vmn_secret_pass@postgres:5432/vmn_enterprise?schema=public
+      - APP_URL=${APP_URL:-http://localhost:5500}
+      # Required: no default. The app fails fast if unset (CR-6 / AUD-14).
+      - DATABASE_URL=${DATABASE_URL:?DATABASE_URL is required (see .env.example)}
+      # Required in all environments: no default JWT secret (AUD-14).
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required, min 32 chars (see .env.example)}
+      - JWT_EXPIRATION_SECONDS=86400
+      # Required: no default webhook secret.
+      - AZEEBO_WEBHOOK_SECRET=${AZEEBO_WEBHOOK_SECRET:?AZEEBO_WEBHOOK_SECRET is required (see .env.example)}
       - DATABASE_POOL_MIN=2
       - DATABASE_POOL_MAX=20
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - JWT_SECRET=vmnl_production_enterprise_jwt_secret_must_be_32_chars_long
-      - JWT_EXPIRATION_SECONDS=86400
+      # TODO-SEC-10: the distributed KV adapter (cache/session/rate-limit
+      # stores) prefers REDIS_URL; set to the compose redis service.
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      # Storage credentials for the local sandbox MinIO (non-production only).
       - STORAGE_DRIVER=minio
-      - STORAGE_ENDPOINT=http://minio:9000
+      - STORAGE_ENDPOINT=${STORAGE_ENDPOINT:-http://minio:9000}
       - STORAGE_BUCKET=vmnl-assets
-      - STORAGE_ACCESS_KEY=minioadmin
-      - STORAGE_SECRET_KEY=minioadmin_secure_key
-      - AZEEBO_WEBHOOK_SECRET=azeebo_enterprise_webhook_secret_key_16_chars
+      - STORAGE_ACCESS_KEY=${STORAGE_ACCESS_KEY:-minioadmin}
+      - STORAGE_SECRET_KEY=${STORAGE_SECRET_KEY:-minioadmin_secure_key}
       - PROMETHEUS_METRICS_ENABLED=true
     depends_on:
       postgres:
         condition: service_healthy
       minio:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     networks:
       - vmnl-network
@@ -41,8 +55,9 @@ services:
     container_name: vmnl-postgres
     restart: unless-stopped
     environment:
+      # Sandbox-local credentials; NEVER mirror production values here.
       - POSTGRES_USER=vmn_user
-      - POSTGRES_PASSWORD=vmn_secret_pass
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-vmn_sandbox_only_password}
       - POSTGRES_DB=vmn_enterprise
     ports:
       - "5432:5432"
@@ -50,6 +65,26 @@ services:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U vmn_user -d vmn_enterprise"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - vmnl-network
+
+  # AUD-08: Redis service added. REDIS_* configuration and the BullMQ message
+  # bus contract are first-class in src/core/config; the compose stack must
+  # provide the dependency for parity between sandbox and deployment topology.
+  redis:
+    image: redis:7-alpine
+    container_name: vmnl-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -77,6 +112,45 @@ services:
     networks:
       - vmnl-network
 
+  # TODO-PRC-08 (TASK-P10-03): nightly 02:00 WAT PostgreSQL backup with
+  # integrity verification and 14-day retention. WAL archiving (true PITR)
+  # remains TARGET-state — see docs/runbooks/disaster-recovery.md and
+  # docs/audit/backup-restore-drill.md for the drill evidence protocol.
+  postgres-backup:
+    image: postgres:18-alpine
+    container_name: vmnl-postgres-backup
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - PGHOST=postgres
+      - PGPORT=5432
+      - PGUSER=vmn_user
+      - PGPASSWORD=${POSTGRES_PASSWORD:-vmn_sandbox_only_password}
+      - PGDATABASE=vmn_enterprise
+      - VMNL_BACKUP_DIR=/backups
+      - VMNL_BACKUP_RETENTION_DAYS=${VMNL_BACKUP_RETENTION_DAYS:-14}
+    volumes:
+      - ./docker/backups/backup.sh:/usr/local/bin/backup.sh:ro
+      - pgbackups:/backups
+    entrypoint: ["/bin/sh", "-c"]
+    # Sleep-loop scheduler standing in for cron: first backup runs ~2 minutes
+    # after boot (sandbox convenience), then every 24h aligned to 02:00 WAT.
+    command:
+      ["
+        while true; do
+          sleep 120;
+          if [ \"$$(date -u +%H)\" = \"01\" ] || [ ! -f /backups/.last_run ]; then
+            /bin/sh /usr/local/bin/backup.sh && touch /backups/.last_run;
+            sleep 3600;
+          fi;
+          sleep 1800;
+        done
+      "]
+    networks:
+      - vmnl-network
+
   prometheus:
     image: prom/prometheus:latest
     container_name: vmnl-prometheus
@@ -97,5 +171,7 @@ networks:
 
 volumes:
   pgdata:
+  pgbackups:
   miniodata:
   promdata:
+  redisdata:

@@ -5,3 +5,5 @@ export * from "./components/index.js";
 export * from "./public/index.js";
 export * from "./workspace/index.js";
 export * from "./federation/index.js";
+export * from "./broadcast/index.js";
+export * from "./portal/index.js";

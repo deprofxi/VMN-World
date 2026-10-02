@@ -1,0 +1,30 @@
+# VMNL Design Debt & Intentional Deviation Register
+
+**Authority:** `VMNL-AZP-VMN-DESIGN-TASK-001 — R1.0` / `docs/decisions/design-task-de-citation.md (legacy "design-task" DT reference) DT-1005`  
+**Classification:** Living Architectural Debt Register  
+**Review Cadence:** Every Milestone Release & Sprint Retrospective
+
+---
+
+## 1. Intentional Deviations & Human Authority Sign-Offs
+
+This register tracks every intentional temporary visual deviation, placeholder integration, or pending human sign-off item in accordance with `docs/decisions/design-task-de-citation.md (legacy "design-task" DT reference)` §8.
+
+| Debt ID | Related Task | Description & Current State | Rationale & Fallback | Owner | Target Expiry | Sign-Off Status |
+|---|---|---|---|---|---|---|
+| **DEBT-001** | **DT-105 / DD-1** | **Self-hosted brand typography licensing.** System font fallback (`VMN Sans`, `VMN Display`, `VMN Mono`) with `@font-face` and `font-display: swap` implemented to guarantee zero CLS and zero third-party blocking network calls. | Full web font binary packaging (`.woff2`) awaiting corporate brand identity sign-off. | Brand Owner + Lead Executive | 2026-11-30 | **[PENDING SIGN-OFF DD-1]** |
+| **DEBT-002** | **DT-107 / DD-2** | **Channel Key Art Assets.** Channels currently use high-contrast SVG monograms and badge seals instead of high-resolution photographic station key art. | Prevents broken or blurry assets until creative agency photography delivers official 4K master slates. | Brand Owner + Broadcast Director | 2026-12-15 | **[PENDING SIGN-OFF DD-2]** |
+| **DEBT-003** | **DT-401 / DD-3** | **Public Surface Dark Mode.** Dark-room theme is implemented for MCR operator consoles (`.vmn-dark-room`), but public marketing surfaces remain light-mode only. | Focuses dark-room ergonomics strictly on MCR/broadcast operators where ambient light is low; public surfaces prioritize crisp readability on high-brightness mobile devices. | Broadcast Operations + Brand | 2027-01-31 | **[REVIEWED & APPROVED DD-3]** |
+| **DEBT-004** | **DT-304 / DD-4** | **Enquiry Form NDPR & DPO Legal Consent Copy.** Canonical NDPR/NDPA 2023 data protection statement deployed across all enquiry and Hub vertical forms. | Complies with legal guidelines; pending formal DPO written confirmation on file. | Data Protection Officer (DPO) | 2026-10-31 | **[PROVISIONAL COMPLIANCE DD-4]** |
+| **DEBT-005** | **DT-803 / DD-5** | **Compliance Claim Qualification.** Footer updated from unqualified "Compliant with NBC 7th Edition" to "Engineered to WCAG 2.2 Level AA & NBC Broadcast Code standards". | Avoids regulatory over-claim while third-party external audit is underway. | General Counsel / Compliance Lead | 2026-11-15 | **[QUALIFIED IN PROD DD-5]** |
+| **DEBT-006** | **DT-403 / DD-6** | **StarTimes Provisional RF Telemetry.** StarTimes satellite transponder parameters marked with explicit `SAMPLE TELEMETRY` and `PROVISIONAL` provenance notice. | Avoids asserting synchronization before live hardware probe is mounted at uplink station. | Transmission Lead + StarTimes Relationship Lead | 2026-12-01 | **[PROVENANCE MARKED DD-6]** |
+| **DEBT-007** | **DT-505 / DD-7** | **Indigenous Language Subtitling Engine.** Cr8TechNG subtitling supports English, Yoruba, and Igbo metadata slates; Hausa and Pidgin models currently under training. | Modular language models allow rapid phased addition without blocking deployment. | Head of Content & Production | 2027-02-28 | **[PHASE 1 DEPLOYED DD-7]** |
+| **DEBT-008** | **DT-108 / DD-8** | **Low-Bandwidth Mobile Profile Budget.** All public pages bundle single critical stylesheet under 25KB, total HTML payload under 65KB, and zero external blocking fonts. | Meets sub-2.5s LCP on throttled 3G mobile network profile across Nigerian telecom carriers (MTN, Airtel, Glo). | Lead Frontend Architect | 2026-12-31 | **[TARGET — downgraded 2026-09-30 per TODO-DOC-07/TODO-PRC-04: no measurement artifact exists; budgets frozen in docs/audit/performance-budgets.md, procedure recorded there, claim not evidence-backed]** |
+
+---
+
+## 2. Debt Elimination Protocol
+
+1. **No Silent Accumulation:** Every new visual shortcut or mock must be recorded here with an owner and concrete expiry date.
+2. **Review Cadence:** During each release gate review (BG0–BG9), the Engineering Lead and Brand Owner review active debt items. Expired items block subsequent release gate clearance.
+3. **Audit Trail:** When a debt item is resolved, update its status to `RESOLVED`, note the resolving commit hash, and archive it in the quarterly audit log.

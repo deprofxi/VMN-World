@@ -4,6 +4,7 @@
  */
 
 import { getPrismaClient, checkDatabaseConnection } from "../index.js";
+import { handleRepoError } from "../repository-mode.js";
 
 export interface ContractRecord {
   id: string;
@@ -17,6 +18,7 @@ export interface ContractRecord {
   startDate: Date;
   endDate: Date;
   signedAt?: Date;
+  source?: "DB" | "MEMORY";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -36,6 +38,7 @@ export interface SettlementRecord {
   partnerShareAmount: number;
   currency: string;
   reconciledAt?: Date;
+  source?: "DB" | "MEMORY";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -43,6 +46,14 @@ export interface SettlementRecord {
 export class InvoiceRepository {
   private contracts = new Map<string, ContractRecord>();
   private settlements = new Map<string, SettlementRecord>();
+
+  public getInMemoryContractsCount(): number {
+    return this.contracts.size;
+  }
+
+  public getInMemorySettlementsCount(): number {
+    return this.settlements.size;
+  }
 
   public async createContract(data: {
     id?: string;
@@ -79,7 +90,7 @@ export class InvoiceRepository {
     if (db.connected) {
       try {
         const client = getPrismaClient();
-        await (client as any).contract.upsert({
+        const created = await client.contract.upsert({
           where: { contractNumber: data.contractNumber },
           update: {
             title: record.title,
@@ -104,13 +115,31 @@ export class InvoiceRepository {
             signedAt: record.signedAt,
           },
         });
-      } catch {
-        // Fall back
+
+        return {
+          id: created.id,
+          contractNumber: created.contractNumber,
+          title: created.title,
+          organisationId: created.organisationId ?? undefined,
+          personId: created.personId ?? undefined,
+          status: created.status,
+          contractValue: Number(created.contractValue || 0),
+          currency: created.currency,
+          startDate: created.startDate,
+          endDate: created.endDate,
+          signedAt: created.signedAt ?? undefined,
+          source: "DB",
+          createdAt: created.createdAt,
+          updatedAt: created.updatedAt,
+        };
+      } catch (err: any) {
+        await handleRepoError("contract", "write", err);
       }
     }
 
-    this.contracts.set(record.contractNumber, record);
-    return record;
+    const memoryRecord: ContractRecord = { ...record, source: "MEMORY" };
+    this.contracts.set(record.contractNumber, memoryRecord);
+    return memoryRecord;
   }
 
   public async getContract(contractNumber: string): Promise<ContractRecord | null> {
@@ -118,7 +147,7 @@ export class InvoiceRepository {
     if (db.connected) {
       try {
         const client = getPrismaClient();
-        const found = await (client as any).contract.findUnique({
+        const found = await client.contract.findUnique({
           where: { contractNumber },
         });
         if (found) {
@@ -134,19 +163,51 @@ export class InvoiceRepository {
             startDate: found.startDate,
             endDate: found.endDate,
             signedAt: found.signedAt ?? undefined,
+            source: "DB",
             createdAt: found.createdAt,
             updatedAt: found.updatedAt,
           };
         }
-      } catch {
-        // Fall back
+      } catch (err: any) {
+        await handleRepoError("contract", "read", err);
       }
     }
-    return this.contracts.get(contractNumber) || null;
+    const mem = this.contracts.get(contractNumber);
+    return mem ? { ...mem, source: "MEMORY" } : null;
   }
 
   public async listContracts(status?: string): Promise<ContractRecord[]> {
-    let list = Array.from(this.contracts.values());
+    const db = await checkDatabaseConnection();
+    if (db.connected) {
+      try {
+        const client = getPrismaClient();
+        const found = await client.contract.findMany({
+          where: status ? { status: status as any } : undefined,
+        });
+        if (found.length > 0) {
+          return found.map((c) => ({
+            id: c.id,
+            contractNumber: c.contractNumber,
+            title: c.title,
+            organisationId: c.organisationId ?? undefined,
+            personId: c.personId ?? undefined,
+            status: c.status,
+            contractValue: Number(c.contractValue || 0),
+            currency: c.currency,
+            startDate: c.startDate,
+            endDate: c.endDate,
+            signedAt: c.signedAt ?? undefined,
+            source: "DB",
+            createdAt: c.createdAt,
+            updatedAt: c.updatedAt,
+          }));
+        }
+      } catch (err: any) {
+        await handleRepoError("contract", "list", err);
+      }
+    }
+
+    let list = Array.from(this.contracts.values()).map((c) => ({ ...c, source: "MEMORY" as const }));
     if (status) {
       list = list.filter((c) => c.status === status);
     }
@@ -192,7 +253,7 @@ export class InvoiceRepository {
     if (db.connected) {
       try {
         const client = getPrismaClient();
-        await (client as any).settlement.upsert({
+        const created = await client.settlement.upsert({
           where: { settlementNumber: data.settlementNumber },
           update: {
             status: record.status,
@@ -221,13 +282,33 @@ export class InvoiceRepository {
             reconciledAt: record.reconciledAt,
           },
         });
-      } catch {
-        // Fall back
+
+        return {
+          id: created.id,
+          settlementNumber: created.settlementNumber,
+          contractId: created.contractId ?? undefined,
+          status: created.status,
+          contractValue: Number(created.contractValue || 0),
+          gmvAmount: Number(created.gmvAmount || 0),
+          invoicedAmount: Number(created.invoicedAmount || 0),
+          recognizedAmount: Number(created.recognizedAmount || 0),
+          cashCollectedAmount: Number(created.cashCollectedAmount || 0),
+          talentPayableAmount: Number(created.talentPayableAmount || 0),
+          partnerShareAmount: Number(created.partnerShareAmount || 0),
+          currency: created.currency,
+          reconciledAt: created.reconciledAt ?? undefined,
+          source: "DB",
+          createdAt: created.createdAt,
+          updatedAt: created.updatedAt,
+        };
+      } catch (err: any) {
+        await handleRepoError("settlement", "write", err);
       }
     }
 
-    this.settlements.set(record.settlementNumber, record);
-    return record;
+    const memoryRecord: SettlementRecord = { ...record, source: "MEMORY" };
+    this.settlements.set(record.settlementNumber, memoryRecord);
+    return memoryRecord;
   }
 
   public async getSettlement(settlementNumber: string): Promise<SettlementRecord | null> {
@@ -235,7 +316,7 @@ export class InvoiceRepository {
     if (db.connected) {
       try {
         const client = getPrismaClient();
-        const found = await (client as any).settlement.findUnique({
+        const found = await client.settlement.findUnique({
           where: { settlementNumber },
         });
         if (found) {
@@ -253,15 +334,17 @@ export class InvoiceRepository {
             partnerShareAmount: Number(found.partnerShareAmount || 0),
             currency: found.currency,
             reconciledAt: found.reconciledAt ?? undefined,
+            source: "DB",
             createdAt: found.createdAt,
             updatedAt: found.updatedAt,
           };
         }
-      } catch {
-        // Fall back
+      } catch (err: any) {
+        await handleRepoError("settlement", "read", err);
       }
     }
-    return this.settlements.get(settlementNumber) || null;
+    const mem = this.settlements.get(settlementNumber);
+    return mem ? { ...mem, source: "MEMORY" } : null;
   }
 
   public async updateSettlementStatus(
@@ -269,38 +352,87 @@ export class InvoiceRepository {
     status: "PENDING" | "RECONCILED" | "DISPUTED" | "PAID",
     reconciledAt?: Date
   ): Promise<SettlementRecord | null> {
-    const existing = await this.getSettlement(settlementNumber);
-    if (!existing) return null;
-
-    const updated: SettlementRecord = {
-      ...existing,
-      status,
-      reconciledAt: reconciledAt ?? (status === "RECONCILED" ? new Date() : existing.reconciledAt),
-      updatedAt: new Date(),
-    };
-
     const db = await checkDatabaseConnection();
     if (db.connected) {
       try {
         const client = getPrismaClient();
-        await (client as any).settlement.update({
+        const updated = await client.settlement.update({
           where: { settlementNumber },
           data: {
             status,
-            reconciledAt: updated.reconciledAt,
+            reconciledAt: reconciledAt ?? (status === "RECONCILED" ? new Date() : undefined),
           },
         });
-      } catch {
-        // Fall back
+        return {
+          id: updated.id,
+          settlementNumber: updated.settlementNumber,
+          contractId: updated.contractId ?? undefined,
+          status: updated.status,
+          contractValue: Number(updated.contractValue || 0),
+          gmvAmount: Number(updated.gmvAmount || 0),
+          invoicedAmount: Number(updated.invoicedAmount || 0),
+          recognizedAmount: Number(updated.recognizedAmount || 0),
+          cashCollectedAmount: Number(updated.cashCollectedAmount || 0),
+          talentPayableAmount: Number(updated.talentPayableAmount || 0),
+          partnerShareAmount: Number(updated.partnerShareAmount || 0),
+          currency: updated.currency,
+          reconciledAt: updated.reconciledAt ?? undefined,
+          source: "DB",
+          createdAt: updated.createdAt,
+          updatedAt: updated.updatedAt,
+        };
+      } catch (err: any) {
+        await handleRepoError("settlement", "update", err);
       }
     }
 
-    this.settlements.set(settlementNumber, updated);
-    return updated;
+    const mem = this.settlements.get(settlementNumber);
+    if (!mem) return null;
+    const updatedMem: SettlementRecord = {
+      ...mem,
+      status,
+      reconciledAt: reconciledAt ?? (status === "RECONCILED" ? new Date() : mem.reconciledAt),
+      updatedAt: new Date(),
+      source: "MEMORY",
+    };
+    this.settlements.set(settlementNumber, updatedMem);
+    return updatedMem;
   }
 
   public async listSettlements(status?: string): Promise<SettlementRecord[]> {
-    let list = Array.from(this.settlements.values());
+    const db = await checkDatabaseConnection();
+    if (db.connected) {
+      try {
+        const client = getPrismaClient();
+        const found = await client.settlement.findMany({
+          where: status ? { status: status as any } : undefined,
+        });
+        if (found.length > 0) {
+          return found.map((s) => ({
+            id: s.id,
+            settlementNumber: s.settlementNumber,
+            contractId: s.contractId ?? undefined,
+            status: s.status,
+            contractValue: Number(s.contractValue || 0),
+            gmvAmount: Number(s.gmvAmount || 0),
+            invoicedAmount: Number(s.invoicedAmount || 0),
+            recognizedAmount: Number(s.recognizedAmount || 0),
+            cashCollectedAmount: Number(s.cashCollectedAmount || 0),
+            talentPayableAmount: Number(s.talentPayableAmount || 0),
+            partnerShareAmount: Number(s.partnerShareAmount || 0),
+            currency: s.currency,
+            reconciledAt: s.reconciledAt ?? undefined,
+            source: "DB",
+            createdAt: s.createdAt,
+            updatedAt: s.updatedAt,
+          }));
+        }
+      } catch (err: any) {
+        await handleRepoError("settlement", "list", err);
+      }
+    }
+
+    let list = Array.from(this.settlements.values()).map((s) => ({ ...s, source: "MEMORY" as const }));
     if (status) {
       list = list.filter((s) => s.status === status);
     }

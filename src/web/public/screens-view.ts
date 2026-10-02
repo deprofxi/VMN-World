@@ -10,6 +10,7 @@
  */
 
 import { BROADCAST_SCREEN_INVENTORY, getScreenDescriptorById } from "../../modules/broadcast/screens/index.js";
+import { renderIcon } from "../components/index.js";
 
 const ROLE_COLORS: Record<string, { bg: string; text: string; border: string }> = {
   ExecutiveLeader: { bg: "#EEF2FF", text: "#4338CA", border: "#C7D2FE" },
@@ -32,11 +33,11 @@ export function renderScreensCatalogHtml(selectedRole?: string): string {
     : BROADCAST_SCREEN_INVENTORY;
 
   const roleFilterButtons = [
-    `<a href="/broadcast/screens" class="btn ${!selectedRole ? "btn-primary" : "btn-outline"}" style="min-height:36px; padding:6px 14px; font-size:0.85rem;">All (${BROADCAST_SCREEN_INVENTORY.length})</a>`,
+    `<a href="/broadcast/screens" class="btn ${!selectedRole ? "btn-primary" : "btn-outline"}" style="min-height:44px; padding:8px 16px; font-size:0.85rem; display:inline-flex; align-items:center;">All (${BROADCAST_SCREEN_INVENTORY.length})</a>`,
     ...allRoles.map((role) => {
       const count = BROADCAST_SCREEN_INVENTORY.filter((s) => s.primaryRole === role).length;
       const isSelected = selectedRole?.toLowerCase() === role.toLowerCase();
-      return `<a href="/broadcast/screens?role=${encodeURIComponent(role)}" class="btn ${isSelected ? "btn-primary" : "btn-outline"}" style="min-height:36px; padding:6px 14px; font-size:0.85rem;">${role} (${count})</a>`;
+      return `<a href="/broadcast/screens?role=${encodeURIComponent(role)}" class="btn ${isSelected ? "btn-primary" : "btn-outline"}" style="min-height:44px; padding:8px 16px; font-size:0.85rem; display:inline-flex; align-items:center;">${role} (${count})</a>`;
     }),
   ].join("\n");
 
@@ -103,15 +104,15 @@ export function renderScreensCatalogHtml(selectedRole?: string): string {
     <div class="grid-3" style="margin-top:0;">
       <div class="card stat-box">
         <span class="stat-val">33</span>
-        <span class="stat-lbl">Operational Screen Surfaces</span>
+        <span class="stat-lbl">Mandated Screen Surfaces (R1.2A §46)</span>
       </div>
       <div class="card stat-box">
-        <span class="stat-val">6</span>
-        <span class="stat-lbl">Enterprise Operational Roles</span>
+        <span class="stat-val">17</span>
+        <span class="stat-lbl">Broadcast Capability Roles (R1.2A §48)</span>
       </div>
       <div class="card stat-box">
-        <span class="stat-val">100%</span>
-        <span class="stat-lbl">R1.2A (§46) Compliance</span>
+        <span class="stat-val">S2</span>
+        <span class="stat-lbl">Operating Environment Tier</span>
       </div>
     </div>
 
@@ -126,7 +127,7 @@ export function renderScreensCatalogHtml(selectedRole?: string): string {
     </div>
 
     <!-- Screen Cards Grid -->
-    <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(360px, 1fr)); gap:20px;">
+    <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap:20px;">
       ${cardsHtml}
     </div>
   </section>
@@ -139,7 +140,7 @@ export function renderScreenDetailHtml(screenId: string): string {
   if (!descriptor) {
     return `
     <section class="card" style="max-width:640px; margin:40px auto; text-align:center; padding:48px 24px;">
-      <span style="font-size:3rem; margin-bottom:16px; display:block;">⚠️</span>
+      <div style="margin-bottom:16px; color:#DC2626;">${renderIcon("alert", { size: 48 })}</div>
       <h1 style="font-size:1.75rem; font-weight:800; color:var(--vmn-primary); margin-bottom:8px;">Screen Surface Not Found</h1>
       <p style="color:var(--vmn-text-muted); margin-bottom:24px;">
         No operational screen was found matching identifier "<strong>${screenId}</strong>" in the VMNL R1.2A (§46) inventory.

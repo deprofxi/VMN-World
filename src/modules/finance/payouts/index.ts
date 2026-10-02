@@ -40,6 +40,27 @@ export interface PayoutBatch {
   approvedAt?: Date;
 }
 
+/** TODO-FIN-04: one aggregated WHT line per beneficiary/tax-type per month. */
+export interface WhtRemittanceLine {
+  beneficiaryId: string;
+  beneficiaryName: string;
+  beneficiaryTaxType: BeneficiaryTaxType;
+  whtPercent: number;
+  deductionCount: number;
+  totalWhtDeductedNgn: number;
+  sourceBatchReferences: string[];
+}
+
+/** TODO-FIN-04: monthly WHT remittance schedule. */
+export interface WhtRemittanceSchedule {
+  year: number;
+  month: number;
+  remittanceMonthKey: string;
+  lines: WhtRemittanceLine[];
+  totalWhtNgn: number;
+  generatedAt: Date;
+}
+
 export class TalentPayoutEngine {
   private batches = new Map<string, PayoutBatch>();
 
@@ -186,11 +207,97 @@ export class TalentPayoutEngine {
     return this.batches.get(id);
   }
 
+  /**
+   * Read accessor for creator/vendor portal projections (SCR-19). Callers
+   * must scope batches to the counterparty beneficiary before rendering.
+   */
+  public listBatches(): PayoutBatch[] {
+    return Array.from(this.batches.values());
+  }
+
   private getBatchOrThrow(id: string): PayoutBatch {
     const batch = this.batches.get(id);
     if (!batch) {
       throw new Error(`[PAY-ERR-404] Payout batch '${id}' not found.`);
     }
     return batch;
+  }
+
+  // ---------------------------------------------------------------------------
+  // TODO-FIN-04: WHT remittance schedules & payment advice slips (TASK-P8-03)
+  //
+  // WHT deducted at source belongs to FIRS, not to VMNL: it is a liability,
+  // never revenue and never talent payable (canonical law 5 — one
+  // consolidated financial truth; Finance owns the accounting treatment).
+  // The schedule aggregates approved/processed batches by remittance month
+  // (per beneficiary / tax type) and each advice slip itemises one
+  // beneficiary's deductions for the month in a FIRS-ready column layout.
+  // Final FIRS submission remains a Finance-authority action.
+  // ---------------------------------------------------------------------------
+
+  public buildWhtRemittanceSchedule(params: { year: number; month: number }): WhtRemittanceSchedule {
+    if (params.month < 1 || params.month > 12) {
+      throw new Error("[WHT-REM-01] month must be 1..12.");
+    }
+    const monthKey = `${params.year}-${String(params.month).padStart(2, "0")}`;
+    const byBeneficiary = new Map<string, WhtRemittanceLine>();
+
+    for (const batch of this.listBatches()) {
+      const batchMonth = `${batch.createdAt.getUTCFullYear()}-${String(batch.createdAt.getUTCMonth() + 1).padStart(2, "0")}`;
+      if (batchMonth !== monthKey) continue;
+      if (batch.status !== "APPROVED_FOR_DISBURSEMENT" && batch.status !== "PROCESSED") {
+        continue; // DRAFT/REJECTED batches are not remittable evidence.
+      }
+      for (const item of batch.items) {
+        if (item.whtDeductionNgn <= 0) continue;
+        const key = `${item.beneficiaryId}:${item.beneficiaryTaxType}`;
+        const line = byBeneficiary.get(key) || {
+          beneficiaryId: item.beneficiaryId,
+          beneficiaryName: item.beneficiaryName,
+          beneficiaryTaxType: item.beneficiaryTaxType,
+          whtPercent: item.whtPercent,
+          deductionCount: 0,
+          totalWhtDeductedNgn: 0,
+          sourceBatchReferences: [],
+        };
+        line.deductionCount += 1;
+        line.totalWhtDeductedNgn += item.whtDeductionNgn;
+        line.sourceBatchReferences.push(batch.batchReference);
+        byBeneficiary.set(key, line);
+      }
+    }
+
+    const lines = [...byBeneficiary.values()].sort((a, b) => a.beneficiaryId.localeCompare(b.beneficiaryId));
+    return {
+      year: params.year,
+      month: params.month,
+      remittanceMonthKey: monthKey,
+      lines,
+      totalWhtNgn: lines.reduce((s, l) => s + l.totalWhtDeductedNgn, 0),
+      generatedAt: new Date(),
+    };
+  }
+
+  /** Renders one beneficiary's FIRS-ready advice slip for the month. */
+  public renderWhtAdviceSlip(schedule: WhtRemittanceSchedule, beneficiaryId: string): string {
+    const lines = schedule.lines.filter((l) => l.beneficiaryId === beneficiaryId);
+    if (lines.length === 0) {
+      throw new Error(`[WHT-REM-02] No WHT deductions recorded for beneficiary '${beneficiaryId}' in ${schedule.remittanceMonthKey}.`);
+    }
+    const total = lines.reduce((s, l) => s + l.totalWhtDeductedNgn, 0);
+    const rows = lines
+      .map(
+        (l) =>
+          `"${l.beneficiaryId}","${l.beneficiaryName}","${l.beneficiaryTaxType}",${l.whtPercent},${l.deductionCount},${l.totalWhtDeductedNgn},"${l.sourceBatchReferences.join(";")}"`
+      )
+      .join("\n");
+    return [
+      `# VMNL WHT Remittance Advice Slip — ${schedule.remittanceMonthKey}`,
+      `# Withholding tax deducted at source from approved payout batches. Liability of VMNL to FIRS; not talent payable and not revenue.`,
+      `# Finance authority confirmation is required before remittance (FIRS-ready format; treatment owned by Finance).`,
+      `BeneficiaryId,BeneficiaryName,TaxType,WhtPercent,Deductions,TotalWhtNgn,SourceBatches`,
+      rows,
+      `TOTAL,,,,,${total},`,
+    ].join("\n");
   }
 }

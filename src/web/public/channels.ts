@@ -39,7 +39,7 @@ export function getPublicChannels(): PublicChannelInfo[] {
     },
     {
       code: "ORIS",
-      name: "Orisun",
+      name: "Orisun — The Source",
       tagline: "The True Source of Yoruba Heritage & Culture",
       dttChannel: config.ORIS_DTT_CHANNEL,
       dthChannel: config.ORIS_DTH_CHANNEL,
@@ -51,14 +51,14 @@ export function getPublicChannels(): PublicChannelInfo[] {
     },
     {
       code: "IMBD",
-      name: "Isi Mbido",
+      name: "Isi Mbido — The Beginning",
       tagline: "Roots of the Igbo Heritage",
       dttChannel: config.IMBD_DTT_CHANNEL,
       dthChannel: config.IMBD_DTH_CHANNEL,
       genre: "Igbo Cultural Programming, Film, Folklore",
       primaryLanguage: "Igbo",
       targetAudience: "Igbo speakers, Eastern cultural diaspora",
-      accentColor: "#00875A",
+      accentColor: "#0369A1",
       isProvisional: !config.STARTIMES_CARRIAGE_VERIFIED,
     },
   ];

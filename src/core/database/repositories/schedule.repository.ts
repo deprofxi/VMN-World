@@ -4,6 +4,7 @@
  */
 
 import { getPrismaClient, checkDatabaseConnection } from "../index.js";
+import { handleRepoError } from "../repository-mode.js";
 
 export interface ProgrammeRecord {
   id: string;
@@ -14,6 +15,7 @@ export interface ProgrammeRecord {
   targetDemographic: string;
   synopsis: string;
   totalEpisodes: number;
+  source?: "DB" | "MEMORY";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -28,6 +30,7 @@ export interface BroadcastEpisodeRecord {
   segmentCount: number;
   mediaAssetId?: string;
   complianceRating: string;
+  source?: "DB" | "MEMORY";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -42,6 +45,7 @@ export interface AsRunLogRecordEntity {
   discrepancyCount: number;
   reconciliationStatus: string;
   certificateHashSha256?: string;
+  source?: "DB" | "MEMORY";
   createdAt: Date;
 }
 
@@ -49,6 +53,10 @@ export class ScheduleRepository {
   private programmes = new Map<string, ProgrammeRecord>();
   private episodes = new Map<string, BroadcastEpisodeRecord>();
   private asRuns = new Map<string, AsRunLogRecordEntity>();
+
+  public getInMemoryProgrammesCount(): number {
+    return this.programmes.size;
+  }
 
   public async createProgramme(data: {
     id?: string;
@@ -79,7 +87,7 @@ export class ScheduleRepository {
     if (db.connected) {
       try {
         const client = getPrismaClient();
-        await (client as any).programme.upsert({
+        const created = await client.programme.upsert({
           where: { code: data.code },
           update: {
             title: record.title,
@@ -100,13 +108,28 @@ export class ScheduleRepository {
             totalEpisodes: record.totalEpisodes,
           },
         });
-      } catch {
-        // Fall back
+
+        return {
+          id: created.id,
+          code: created.code,
+          title: created.title,
+          channelCode: created.channelCode,
+          category: created.category,
+          targetDemographic: created.targetDemographic,
+          synopsis: created.synopsis,
+          totalEpisodes: created.totalEpisodes,
+          source: "DB",
+          createdAt: created.createdAt,
+          updatedAt: created.updatedAt,
+        };
+      } catch (err: any) {
+        await handleRepoError("programme", "write", err);
       }
     }
 
-    this.programmes.set(record.code, record);
-    return record;
+    const memoryRecord: ProgrammeRecord = { ...record, source: "MEMORY" };
+    this.programmes.set(record.code, memoryRecord);
+    return memoryRecord;
   }
 
   public async getProgrammeByCode(code: string): Promise<ProgrammeRecord | null> {
@@ -114,7 +137,7 @@ export class ScheduleRepository {
     if (db.connected) {
       try {
         const client = getPrismaClient();
-        const found = await (client as any).programme.findUnique({
+        const found = await client.programme.findUnique({
           where: { code },
         });
         if (found) {
@@ -127,19 +150,48 @@ export class ScheduleRepository {
             targetDemographic: found.targetDemographic,
             synopsis: found.synopsis,
             totalEpisodes: found.totalEpisodes,
+            source: "DB",
             createdAt: found.createdAt,
             updatedAt: found.updatedAt,
           };
         }
-      } catch {
-        // Fall back
+      } catch (err: any) {
+        await handleRepoError("programme", "read", err);
       }
     }
-    return this.programmes.get(code) || null;
+    const mem = this.programmes.get(code);
+    return mem ? { ...mem, source: "MEMORY" } : null;
   }
 
   public async listProgrammes(channelCode?: string): Promise<ProgrammeRecord[]> {
-    let list = Array.from(this.programmes.values());
+    const db = await checkDatabaseConnection();
+    if (db.connected) {
+      try {
+        const client = getPrismaClient();
+        const found = await client.programme.findMany({
+          where: channelCode ? { channelCode } : undefined,
+        });
+        if (found.length > 0) {
+          return found.map((p) => ({
+            id: p.id,
+            code: p.code,
+            title: p.title,
+            channelCode: p.channelCode,
+            category: p.category,
+            targetDemographic: p.targetDemographic,
+            synopsis: p.synopsis,
+            totalEpisodes: p.totalEpisodes,
+            source: "DB",
+            createdAt: p.createdAt,
+            updatedAt: p.updatedAt,
+          }));
+        }
+      } catch (err: any) {
+        await handleRepoError("programme", "list", err);
+      }
+    }
+
+    let list = Array.from(this.programmes.values()).map((p) => ({ ...p, source: "MEMORY" as const }));
     if (channelCode) {
       list = list.filter((p) => p.channelCode === channelCode);
     }
@@ -177,7 +229,7 @@ export class ScheduleRepository {
     if (db.connected) {
       try {
         const client = getPrismaClient();
-        await (client as any).broadcastEpisode.upsert({
+        const created = await client.broadcastEpisode.upsert({
           where: { episodeCode: data.episodeCode },
           update: {
             title: record.title,
@@ -197,17 +249,63 @@ export class ScheduleRepository {
             complianceRating: record.complianceRating,
           },
         });
-      } catch {
-        // Fall back
+
+        return {
+          id: created.id,
+          episodeCode: created.episodeCode,
+          programmeCode: created.programmeCode,
+          episodeNumber: created.episodeNumber,
+          title: created.title,
+          durationSeconds: created.durationSeconds,
+          segmentCount: created.segmentCount,
+          mediaAssetId: created.mediaAssetId ?? undefined,
+          complianceRating: created.complianceRating,
+          source: "DB",
+          createdAt: created.createdAt,
+          updatedAt: created.updatedAt,
+        };
+      } catch (err: any) {
+        await handleRepoError("broadcastEpisode", "write", err);
       }
     }
 
-    this.episodes.set(record.episodeCode, record);
-    return record;
+    const memoryRecord: BroadcastEpisodeRecord = { ...record, source: "MEMORY" };
+    this.episodes.set(record.episodeCode, memoryRecord);
+    return memoryRecord;
   }
 
   public async listEpisodes(programmeCode: string): Promise<BroadcastEpisodeRecord[]> {
-    return Array.from(this.episodes.values()).filter((e) => e.programmeCode === programmeCode);
+    const db = await checkDatabaseConnection();
+    if (db.connected) {
+      try {
+        const client = getPrismaClient();
+        const found = await client.broadcastEpisode.findMany({
+          where: { programmeCode },
+        });
+        if (found.length > 0) {
+          return found.map((e) => ({
+            id: e.id,
+            episodeCode: e.episodeCode,
+            programmeCode: e.programmeCode,
+            episodeNumber: e.episodeNumber,
+            title: e.title,
+            durationSeconds: e.durationSeconds,
+            segmentCount: e.segmentCount,
+            mediaAssetId: e.mediaAssetId ?? undefined,
+            complianceRating: e.complianceRating,
+            source: "DB",
+            createdAt: e.createdAt,
+            updatedAt: e.updatedAt,
+          }));
+        }
+      } catch (err: any) {
+        await handleRepoError("broadcastEpisode", "list", err);
+      }
+    }
+
+    return Array.from(this.episodes.values())
+      .filter((e) => e.programmeCode === programmeCode)
+      .map((e) => ({ ...e, source: "MEMORY" as const }));
   }
 
   public async recordAsRun(data: {
@@ -240,7 +338,7 @@ export class ScheduleRepository {
     if (db.connected) {
       try {
         const client = getPrismaClient();
-        await (client as any).asRunLogRecord.create({
+        const created = await client.asRunLogRecord.create({
           data: {
             id: record.id,
             channelCode: record.channelCode,
@@ -253,17 +351,59 @@ export class ScheduleRepository {
             certificateHashSha256: record.certificateHashSha256,
           },
         });
-      } catch {
-        // Fall back
+
+        return {
+          id: created.id,
+          channelCode: created.channelCode,
+          transmissionDate: created.transmissionDate,
+          totalPlannedSpots: created.totalPlannedSpots,
+          totalAiredSpots: created.totalAiredSpots,
+          matchedSpots: created.matchedSpots,
+          discrepancyCount: created.discrepancyCount,
+          reconciliationStatus: created.reconciliationStatus,
+          certificateHashSha256: created.certificateHashSha256 ?? undefined,
+          source: "DB",
+          createdAt: created.createdAt,
+        };
+      } catch (err: any) {
+        await handleRepoError("asRunLogRecord", "write", err);
       }
     }
 
-    this.asRuns.set(record.id, record);
-    return record;
+    const memoryRecord: AsRunLogRecordEntity = { ...record, source: "MEMORY" };
+    this.asRuns.set(record.id, memoryRecord);
+    return memoryRecord;
   }
 
   public async listAsRunRecords(channelCode?: string): Promise<AsRunLogRecordEntity[]> {
-    let list = Array.from(this.asRuns.values());
+    const db = await checkDatabaseConnection();
+    if (db.connected) {
+      try {
+        const client = getPrismaClient();
+        const found = await client.asRunLogRecord.findMany({
+          where: channelCode ? { channelCode } : undefined,
+        });
+        if (found.length > 0) {
+          return found.map((a) => ({
+            id: a.id,
+            channelCode: a.channelCode,
+            transmissionDate: a.transmissionDate,
+            totalPlannedSpots: a.totalPlannedSpots,
+            totalAiredSpots: a.totalAiredSpots,
+            matchedSpots: a.matchedSpots,
+            discrepancyCount: a.discrepancyCount,
+            reconciliationStatus: a.reconciliationStatus,
+            certificateHashSha256: a.certificateHashSha256 ?? undefined,
+            source: "DB",
+            createdAt: a.createdAt,
+          }));
+        }
+      } catch (err: any) {
+        await handleRepoError("asRunLogRecord", "list", err);
+      }
+    }
+
+    let list = Array.from(this.asRuns.values()).map((a) => ({ ...a, source: "MEMORY" as const }));
     if (channelCode) {
       list = list.filter((a) => a.channelCode === channelCode);
     }

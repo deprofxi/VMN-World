@@ -4,6 +4,8 @@ import {
   getAuditLogs,
   dispatchNotification,
   verifyAuditLogChainIntegrity,
+  computeAuditEntryHash,
+  _getAuditLogStoreForTesting,
 } from "../../src/core/audit/index.js";
 
 describe("Enterprise Audit Logging & Notification Engine (TASK-P1-05)", () => {
@@ -34,7 +36,72 @@ describe("Enterprise Audit Logging & Notification Engine (TASK-P1-05)", () => {
     expect(chainCheck.errors.length).toBe(0);
   });
 
-  it("should dispatch multi-channel notifications successfully via provider", async () => {
+  it("should detect unauthorized payload mutation in the audit chain (T-13, R3-4)", () => {
+    const store = _getAuditLogStoreForTesting();
+    expect(store.length).toBeGreaterThan(0);
+
+    const originalEntry = store[0];
+    const originalAction = originalEntry.action;
+
+    try {
+      // 1. Mutate recorded entry in place
+      (originalEntry as any).action = "tampered:illicit:override";
+
+      // 2. Integrity check must flag tampering
+      const check = verifyAuditLogChainIntegrity();
+      expect(check.valid).toBe(false);
+      expect(check.errors.some((e) => e.includes("Tampered entry"))).toBe(true);
+    } finally {
+      // Revert mutation to preserve chain for subsequent tests
+      originalEntry.action = originalAction;
+    }
+
+    // Verify chain is valid once reverted
+    expect(verifyAuditLogChainIntegrity().valid).toBe(true);
+  });
+
+  it("should detect deleted entries causing chain link breaks (T-13, R3-4)", () => {
+    // Record two subsequent entries
+    const e1 = recordAuditLog({
+      userId: "usr-test-1",
+      action: "channel:switch",
+      resource: "broadcast",
+      resourceId: "chan-nxtr",
+    });
+    recordAuditLog({
+      userId: "usr-test-2",
+      action: "channel:mute",
+      resource: "broadcast",
+      resourceId: "chan-nxtr",
+    });
+
+    const store = _getAuditLogStoreForTesting();
+    const e1Index = store.findIndex((e) => e.id === e1.id);
+    expect(e1Index).toBeGreaterThan(-1);
+
+    // Remove e1 from the chain to simulate record deletion
+    const [removed] = store.splice(e1Index, 1);
+    try {
+      const check = verifyAuditLogChainIntegrity();
+      expect(check.valid).toBe(false);
+      expect(check.errors.some((e) => e.includes("Broken link"))).toBe(true);
+    } finally {
+      // Restore removed entry
+      store.splice(e1Index, 0, removed);
+    }
+
+    expect(verifyAuditLogChainIntegrity().valid).toBe(true);
+  });
+
+  it("should correctly compute entry hashes independently (T-13)", () => {
+    const store = _getAuditLogStoreForTesting();
+    const entry = store[store.length - 1];
+    const computed = computeAuditEntryHash(entry.previousHash, entry);
+    expect(computed).toBe(entry.entryHash);
+  });
+
+  it("should distinguish sandbox vs real notification delivery (T-14, N-9)", async () => {
+    // Without SMTP configured in test environment, provider should be SANDBOX with status "sandbox"
     const result = await dispatchNotification({
       recipientId: "director@vmnl.ng",
       channel: "email",
@@ -43,7 +110,8 @@ describe("Enterprise Audit Logging & Notification Engine (TASK-P1-05)", () => {
     });
 
     expect(result.messageId.startsWith("msg-")).toBe(true);
-    expect(result.status).toBe("delivered");
+    expect(result.status).toBe("sandbox");
+    expect(result.provider).toBe("SANDBOX");
     expect(result.channel).toBe("email");
   });
 

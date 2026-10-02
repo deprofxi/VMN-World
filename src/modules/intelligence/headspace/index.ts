@@ -96,6 +96,15 @@ export class HeadspaceKnowledgeEngine {
     return doc;
   }
 
+  /**
+   * Read accessor for the research-desk catalogue projection (SCR-18 tail).
+   * Returns canonical knowledge documents only; confidentiality is still
+   * enforced per document at access time (getDocument/search).
+   */
+  public listDocuments(): KnowledgeDocument[] {
+    return Array.from(this.documents.values());
+  }
+
   public getDocument(id: string, userConfidentialityLevel: ConfidentialityLevel): KnowledgeDocument {
     const doc = this.documents.get(id);
     if (!doc) {

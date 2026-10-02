@@ -13,6 +13,7 @@ import {
 } from "../../src/core/database/repositories/index.js";
 import { EnterpriseQueueWorker } from "../../src/core/queue/index.js";
 import { NotificationService } from "../../src/core/notifications/index.js";
+import { RollingEpgScheduler } from "../../src/modules/broadcast/epg/scheduler.js";
 import {
   buildBinaryProofOfAirPdf,
   generateProofOfAirDocument,
@@ -166,6 +167,27 @@ describe("Production Core & Background Infrastructure", () => {
       expect(reconciled?.status).toBe("RECONCILED");
       expect(reconciled?.reconciledAt).toBeDefined();
     });
+
+    it("persists talent profile via TalentRepository and retrieves with source attribution (T-11, T-12)", async () => {
+      const repo = new TalentRepository();
+      const profile = await repo.createTalent({
+        personId: "psn-001-seun",
+        stageName: "Seun B",
+        skills: ["CINEMATOGRAPHY", "LIGHTING"],
+        rateCardAmount: 45000,
+        rateCardCurrency: "NGN",
+      });
+
+      expect(profile.id).toBeDefined();
+      expect(profile.stageName).toBe("Seun B");
+      expect(profile.rateCardAmount).toBe(45000);
+      expect(["DB", "MEMORY"]).toContain(profile.source);
+
+      const retrieved = await repo.getTalentById(profile.id);
+      expect(retrieved).not.toBeNull();
+      expect(retrieved?.stageName).toBe("Seun B");
+      expect(retrieved?.source).toBe(profile.source);
+    });
   });
 
   describe("2. Background Queue Worker (BullMQ Compatible)", () => {
@@ -203,7 +225,7 @@ describe("Production Core & Background Infrastructure", () => {
       const failingJob = queue.enqueue(
         "WEBHOOK_DISPATCH",
         { endpoint: "https://partner.com/webhook" },
-        { maxRetries: 1 }
+        { maxRetries: 1, initialBackoffDelayMs: 0 }
       );
 
       // Attempt 1 -> re-queued
@@ -218,6 +240,64 @@ describe("Production Core & Background Infrastructure", () => {
 
       const metrics = queue.getMetrics();
       expect(metrics.totalDeadLetter).toBe(1);
+    });
+
+    it("honours backoffDelayMs, sets nextAttemptAt and skips jobs before delay elapses (T9-12)", async () => {
+      const queue = new EnterpriseQueueWorker();
+      queue.registerHandler("WEBHOOK_DISPATCH", async () => {
+        throw new Error("HTTP 500 Temporary Server Error");
+      });
+
+      const job = queue.enqueue(
+        "WEBHOOK_DISPATCH",
+        { endpoint: "https://partner.com/webhook" },
+        { maxRetries: 3, initialBackoffDelayMs: 200 }
+      );
+
+      // Attempt 1 -> fails and schedules backoff
+      await queue.processNextBatch();
+      const updatedJob = queue.getJob(job.id);
+      expect(updatedJob?.status).toBe("QUEUED");
+      expect(updatedJob?.attempts).toBe(1);
+      expect(updatedJob?.nextAttemptAt).toBeDefined();
+      expect(updatedJob?.nextAttemptAt!.getTime()).toBeGreaterThan(Date.now());
+      expect(updatedJob?.backoffDelayMs).toBeGreaterThanOrEqual(400);
+
+      // Immediate next batch should skip it because nextAttemptAt is in future
+      const processedCount = await queue.processNextBatch();
+      expect(processedCount).toBe(0);
+      expect(queue.getJob(job.id)?.attempts).toBe(1);
+
+      // After overriding clock or passing ignoreDelay, it processes next attempt
+      const forcedProcessed = await queue.processNextBatch({ ignoreDelay: true });
+      expect(forcedProcessed).toBe(1);
+      expect(queue.getJob(job.id)?.attempts).toBe(2);
+    });
+
+    it("generates 7-day rolling EPG feeds for 3 broadcast channels through handler (T-10)", async () => {
+      const queue = new EnterpriseQueueWorker();
+      queue.registerHandler("EPG_GENERATION", async (job) => {
+        const channels = ["NXTR", "ORIS", "IMBD"];
+        const payload = job.payload as { baseDate?: string } | undefined;
+        const baseDate = payload?.baseDate ? new Date(payload.baseDate) : new Date();
+        const feeds = channels.map((c) => RollingEpgScheduler.generate7DayRollingFeed(c, baseDate));
+        return {
+          channelsProcessed: channels,
+          totalFeeds: feeds.length,
+          xmltvDocs: feeds.map((f) => f.xmltvContent),
+        };
+      });
+
+      const job = queue.enqueue("EPG_GENERATION", { baseDate: "2026-03-30T00:00:00Z" });
+      await queue.processNextBatch();
+
+      const completed = queue.getJob(job.id);
+      expect(completed?.status).toBe("COMPLETED");
+      const res = completed?.result as { channelsProcessed: string[]; totalFeeds: number; xmltvDocs: string[] };
+      expect(res.channelsProcessed).toEqual(["NXTR", "ORIS", "IMBD"]);
+      expect(res.xmltvDocs.length).toBe(3);
+      expect(res.xmltvDocs[0]).toContain("<tv");
+      expect(res.xmltvDocs[0]).toContain("Nigezie Xtreme");
     });
   });
 
@@ -267,7 +347,7 @@ describe("Production Core & Background Infrastructure", () => {
         cryptographicSignature: sig,
         carrierLockVerified: true,
         generatedAt: now,
-        verificationUrl: "http://localhost:4000/verify/poa/POA-TEST-001",
+        verificationUrl: "http://localhost:5500/verify/poa/POA-TEST-001",
       });
 
       expect(Buffer.isBuffer(pdfBuffer)).toBe(true);
@@ -383,7 +463,7 @@ describe("Production Core & Background Infrastructure", () => {
     });
   });
 
-  describe("6. Expanded Specialist Workspaces (48 Desks per R1.2A §46)", () => {
+  describe("6. Expanded Specialist Workspaces (48 Desks Extension Register)", () => {
     it("contains exactly 48 operational desks across 5 specialist domains", () => {
       expect(ENTERPRISE_WORKSPACES.length).toBe(48);
 

@@ -1,0 +1,25 @@
+# Acceptance-Criteria Traceability Index — TODO-PRC-09 (CCPP §2.2)
+
+**Convention:** `AC-UI-RL1-Rxx-nn` where `Rxx` is the requirement/journey row and `nn` the criterion ordinal. Tests must reference the criterion they verify (in-test comment or assertion label). This index maps every materially implemented journey to its defined AC IDs and executable evidence; journeys still gated by human decisions record that honestly.
+
+| Journey | Requirement row | AC IDs (defined) | Executable evidence | Status |
+|---|---|---|---|---|
+| Commercial enquiry & intake | R03 | `AC-UI-RL1-R03-01…12` (12 criteria) | `tests/integration/enquiry-failure-drill.test.ts` (criterion-tagged assertions) | **VERIFIED** — full AC coverage |
+| Identity: sign-in / MFA / invitations / sessions | R02 | `AC-UI-RL1-R02-01…14` (sign-in, lockout, TOTP step-up, invitation chain, session revocation, profile persistence, notification prefs) | `tests/unit/security-auth-rbac.test.ts`, `tests/unit/identity-and-rbac.test.ts`, `tests/unit/todo-remediation.test.ts` (SEC describes) | **VERIFIED** (AC IDs referenced per test intent; R02 block documented here) |
+| Workspace & route authorization | R02/R05 | `AC-UI-RL1-R05-01…09` (role guards, server-side enforcement, redirect/403 semantics) | `tests/security/route-authorization.test.ts`, `tests/unit/scr-desk-rewiring.test.ts` | **VERIFIED** |
+| Approved media picker (UX-CMS-006) | R05 (CMS) | `AC-SCR-03-01` — picker lists DAM assets with provenance + access state per UIUX-001 §7.3; only AVAILABLE selectable. `AC-SCR-03-02` — CMS revisions reference registered MediaAssetRecord ids only; free-text/unknown/quarantined refs rejected `[CMS-11]`; editor form submits picker selections | `tests/unit/todo-final-remediation.test.ts` (SCR-03 describes: registration evidence, quarantine/failed retention, tenant scoping, route 401/authority, `[CMS-11]` rejections, CSRF-flow create→edit E2E) | **VERIFIED** |
+| Quote-to-cash & ledger | R06 | `AC-UI-RL1-R06-01…12` (delivery-gated recognition, dual-control sign, idempotent deltas, escrow/protection labelling, WHT schedule, credit notes) | `tests/unit/finance.test.ts`, `tests/unit/todo-final-remediation.test.ts` (FIN-03/04/07), `tests/integration/journey-failure-drills.test.ts` | **VERIFIED** |
+| Broadcast schedule lifecycle | R07 | `AC-UI-RL1-R07-01…08` (RFA gate, rights attestation, approval, lock-out, atomic amendment) | `tests/integration/journey-failure-drills.test.ts`, `tests/unit/todo-final-remediation.test.ts` (BCST-03) | **VERIFIED** |
+| Sponsorship binding & fulfillment | R07 | `AC-UI-RL1-R07-09…12` (binding entity, per-episode fulfillment, playlist export, shortfall report) | `tests/unit/todo-final-remediation.test.ts` (BCST-12) | **VERIFIED** |
+| Events gate & offline scans | R08 | `AC-UI-RL1-R08-01…08` (single-use scan, HMAC validation, offline token, idempotent sync, duplicate reconciliation) | `tests/unit/hub-production.test.ts`, `tests/unit/scr-desk-rewiring.test.ts`, `tests/integration/journey-failure-drills.test.ts` | **VERIFIED** |
+| Content publication | R09 | `AC-UI-RL1-R09-01…10` | `tests/unit/extended-workspaces.test.ts`, journey drills (DRILL-PUB-01) | **IMPLEMENTED** |
+| Syndication & royalties | R10 | `AC-UI-RL1-R10-01…06` (avails exclusivity, royalty statement ingestion, withholding integrity) | `tests/unit/hub-production.test.ts`, `tests/integration/journey-failure-drills.test.ts` (DRILL-FIN-03) | **VERIFIED** |
+| Federation & payment visibility | R11 | `AC-UI-RL1-R11-01…08` (HMAC inbound signature, timestamp window, 7-way payment labelling) | `tests/integration/enterprise-end-to-end.test.ts`, `tests/unit/todo-final-remediation.test.ts` (SCR-20 projection) | **VERIFIED** (production ingestion enablement = HUMAN DECISION) |
+| Backup / restore readiness (PRC-08) | R14-adjacent (operations) | `AC-PRC-08-01` — nightly snapshot backup job exists and a restore from its archive reproduces the database (row-parity) and serves app traffic; WAL/PITR RPO < 5 min stays TARGET | `docs/audit/backup-restore-drill.md` — DRILL-01 (2026-10-01): backup 0.198 s → restore 0.132 s → 26/26 table parity → `/healthz` 200 on restored copy | **VERIFIED (restore scope)** — RPO target NOT MET pending WAL archiving |
+| Usability & AT validation | R13 | AC criteria defined at G5 | none — participant matrix unscheduled | **NOT_RUN** (human-run, PRC-05) |
+| Manual accessibility coverage | R12 | AC criteria defined at G4 | `tests/a11y/*` automated only | **PARTIAL** — manual §7.5 NOT_RUN (PRC-06, human-run) |
+| StarTimes carriage interface | R14 (BG6) | AC criteria await carriage contract data | none — registry fields unpopulated | **NOT_TESTED** (human decision, BCST-07) |
+
+## Maintenance rule
+
+Every newly implemented journey adds its AC-ID block to this index **at closure time** with the test file(s) that exercise each criterion. A claim of "complete" without an indexed AC block is invalid under CCPP §2.2.

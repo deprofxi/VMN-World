@@ -4,6 +4,8 @@
 **Applies to:** Production & Staging Environments  
 **Target RTO:** < 60 seconds rollback time with zero data loss
 
+> **STATUS: TARGET (TODO-PRC-07, 2026-09-30).** The `kubectl` objects referenced below (`vmn-canary`, `vmn-app-service`, `infra/k8s/*`) DO NOT exist in this repository, and CI has no canary stage today. This runbook describes the target-state pipeline and is not evidence of an implemented pipeline. Preconditions to move this runbook from TARGET to OPERATIONAL: (1) committed deployment manifests or compose-based equivalents; (2) a CI canary stage wiring the §1 triggers to real telemetry (`/metrics` scrape already scaffolded via prometheus.yml); (3) a rehearsal drill with recorded timings; (4) named on-call owner. Deployment today is single-shot container builds (Dockerfile) with no automated rollback — incident response is manual per this procedure.
+
 ---
 
 ## 1. Automated Rollback Triggers

@@ -34,6 +34,7 @@ export interface QueueJob<T = any> {
   attempts: number;
   maxRetries: number;
   backoffDelayMs: number;
+  nextAttemptAt?: Date;
   lastError?: string;
   result?: any;
   createdAt: Date;
@@ -66,10 +67,30 @@ export class EnterpriseQueueWorker {
   private concurrency: number;
   private recurringTimers = new Set<NodeJS.Timeout>();
   private telemetry?: TelemetryService;
+  // Terminal-state TTL: completed/failed/dead-lettered jobs are evicted after
+  // this window so the jobs Map cannot grow unbounded on long-lived processes
+  // (AUD-16).
+  private terminalJobTtlMs: number;
 
-  constructor(options?: { concurrency?: number; telemetry?: TelemetryService }) {
+  constructor(options?: { concurrency?: number; telemetry?: TelemetryService; terminalJobTtlMs?: number }) {
     this.concurrency = options?.concurrency || 5;
     this.telemetry = options?.telemetry;
+    this.terminalJobTtlMs = options?.terminalJobTtlMs ?? 60 * 60_000; // 1 hour
+  }
+
+  /**
+   * Evicts terminal-state jobs older than the retention TTL (AUD-16).
+   */
+  private pruneTerminalJobs(): void {
+    const now = Date.now();
+    for (const [id, job] of this.jobs) {
+      if (
+        (job.status === "COMPLETED" || job.status === "FAILED" || job.status === "DEAD_LETTER") &&
+        job.updatedAt.getTime() + this.terminalJobTtlMs < now
+      ) {
+        this.jobs.delete(id);
+      }
+    }
   }
 
   /**
@@ -166,9 +187,12 @@ export class EnterpriseQueueWorker {
   /**
    * Executes a single processing pass over queued items up to concurrency limit.
    */
-  public async processNextBatch(): Promise<number> {
+  public async processNextBatch(options?: { ignoreDelay?: boolean }): Promise<number> {
+    this.pruneTerminalJobs();
+    const now = new Date();
+    const ignoreDelay = options?.ignoreDelay ?? false;
     const pendingJobs = Array.from(this.jobs.values())
-      .filter((j) => j.status === "QUEUED")
+      .filter((j) => j.status === "QUEUED" && (ignoreDelay || !j.nextAttemptAt || j.nextAttemptAt <= now))
       .sort((a, b) => a.priority - b.priority || a.createdAt.getTime() - b.createdAt.getTime())
       .slice(0, this.concurrency);
 
@@ -198,6 +222,7 @@ export class EnterpriseQueueWorker {
 
   /**
    * Stops background processing gracefully.
+   */
   public async stop(): Promise<void> {
     this.stopAllRecurring();
     this.isRunning = false;
@@ -220,6 +245,10 @@ export class EnterpriseQueueWorker {
       activeCount: all.filter((j) => j.status === "PROCESSING").length,
       pendingCount: all.filter((j) => j.status === "QUEUED").length,
     };
+  }
+
+  public getIsRunning(): boolean {
+    return this.isRunning;
   }
 
   private async executeJob(job: QueueJob): Promise<void> {
@@ -247,9 +276,16 @@ export class EnterpriseQueueWorker {
       job.updatedAt = new Date();
 
       if (job.attempts <= job.maxRetries) {
-        // Schedule retry with exponential backoff
+        // Schedule retry with exponential backoff and jitter
         job.status = "QUEUED";
-        job.backoffDelayMs *= 2;
+        if (job.backoffDelayMs > 0) {
+          const delay = Math.min(job.backoffDelayMs * 2, 300_000); // capped at 5 minutes
+          const jitter = Math.floor(Math.random() * 50);
+          job.backoffDelayMs = delay;
+          job.nextAttemptAt = new Date(Date.now() + delay + jitter);
+        } else {
+          job.nextAttemptAt = undefined;
+        }
         this.telemetry?.recordMetric("queue_job_retry_total", 1, { type: job.type });
       } else {
         job.status = "DEAD_LETTER";

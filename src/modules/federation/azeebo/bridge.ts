@@ -8,7 +8,7 @@
  * Dead Letter Queue (DLQ) with exponential backoff retry.
  */
 
-import { createHmac } from "node:crypto";
+import { createHmac, timingSafeEqual } from "node:crypto";
 
 export type CircuitBreakerState = "CLOSED" | "OPEN" | "HALF_OPEN";
 
@@ -65,6 +65,27 @@ export class AzeeboFederationBridge {
   public signPayload(payload: Record<string, unknown>, timestamp: string): string {
     const raw = `${timestamp}.${JSON.stringify(payload)}`;
     return createHmac("sha256", this.secretKey).update(raw).digest("hex");
+  }
+
+  /**
+   * TODO-SEC-09: inbound ingestion signature — HMAC over
+   * `<timestamp>.<rawBody>` computed on the exact bytes the partner sent
+   * (never re-serialized), so partner implementations can reproduce it.
+   */
+  public signInboundRaw(rawBody: string, timestamp: string): string {
+    return createHmac("sha256", this.secretKey).update(`${timestamp}.${rawBody}`).digest("hex");
+  }
+
+  /** Replay-safe, timing-safe verification of an inbound ingestion request. */
+  public verifyInboundSignature(rawBody: string, timestamp: string, signature: string): boolean {
+    const expected = this.signInboundRaw(rawBody, timestamp);
+    const provided = signature.replace(/^sha256=/, "");
+    if (provided.length !== expected.length) return false;
+    try {
+      return timingSafeEqual(Buffer.from(provided), Buffer.from(expected));
+    } catch {
+      return false;
+    }
   }
 
   public verifySignature(payload: Record<string, unknown>, timestamp: string, signature: string): boolean {

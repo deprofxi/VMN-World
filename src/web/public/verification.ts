@@ -11,6 +11,7 @@
 
 import { AfcaCertificate } from "../../modules/hub/afca/index.js";
 import { ProofOfAirCertificate } from "../../modules/broadcast/asrun/index.js";
+import { renderIcon, escapeHtml } from "../components/index.js";
 
 export function renderAfcaVerificationHtml(result: {
   valid: boolean;
@@ -23,8 +24,8 @@ export function renderAfcaVerificationHtml(result: {
     return `
 <section class="vmn-verification-container" style="max-width: 800px; margin: 40px auto; padding: 0 16px;">
   <div class="vmn-card" style="background: var(--vmn-surface); border: 2px solid var(--vmn-error); border-radius: var(--vmn-radius-lg); padding: 36px 28px; text-align: center; box-shadow: var(--vmn-shadow);">
-    <div style="width: 64px; height: 64px; margin: 0 auto 16px; border-radius: 50%; background: #FEE2E2; display: flex; align-items: center; justify-content: center; font-size: 32px;" aria-hidden="true">
-      ❌
+    <div style="width: 64px; height: 64px; margin: 0 auto 16px; border-radius: 50%; background: #FEE2E2; display: flex; align-items: center; justify-content: center; color: #DC2626;" aria-hidden="true">
+      ${renderIcon("alert", { size: 32 })}
     </div>
     <span class="vmn-badge" style="background: #FEE2E2; color: #991B1B; font-weight: 700; padding: 6px 14px; border-radius: 9999px; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em;">
       Certificate Not Found
@@ -83,8 +84,8 @@ export function renderAfcaVerificationHtml(result: {
     <!-- Verification Status Banner -->
     <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid var(--vmn-surface-border);">
       <div style="display: flex; align-items: center; gap: 14px;">
-        <div style="width: 52px; height: 52px; border-radius: 50%; background: #DCFCE7; display: flex; align-items: center; justify-content: center; font-size: 26px;" aria-hidden="true">
-          ✓
+        <div style="width: 52px; height: 52px; border-radius: 50%; background: #DCFCE7; display: flex; align-items: center; justify-content: center; color: #166534;" aria-hidden="true">
+          ${renderIcon("check", { size: 28 })}
         </div>
         <div>
           <span class="vmn-badge" style="background: #DCFCE7; color: #166534; font-weight: 700; padding: 4px 12px; border-radius: 9999px; font-size: 0.8125rem; letter-spacing: 0.05em; text-transform: uppercase;">
@@ -175,8 +176,8 @@ export function renderPoaVerificationHtml(result: {
     return `
 <section class="vmn-verification-container" style="max-width: 800px; margin: 40px auto; padding: 0 16px;">
   <div class="vmn-card" style="background: var(--vmn-surface); border: 2px solid var(--vmn-error); border-radius: var(--vmn-radius-lg); padding: 36px 28px; text-align: center; box-shadow: var(--vmn-shadow);">
-    <div style="width: 64px; height: 64px; margin: 0 auto 16px; border-radius: 50%; background: #FEE2E2; display: flex; align-items: center; justify-content: center; font-size: 32px;" aria-hidden="true">
-      ⚠️
+    <div style="width: 64px; height: 64px; margin: 0 auto 16px; border-radius: 50%; background: #FEE2E2; display: flex; align-items: center; justify-content: center; color: #DC2626;" aria-hidden="true">
+      ${renderIcon("alert", { size: 32 })}
     </div>
     <span class="vmn-badge" style="background: #FEE2E2; color: #991B1B; font-weight: 700; padding: 6px 14px; border-radius: 9999px; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em;">
       Unverified Certificate
@@ -236,8 +237,8 @@ export function renderPoaVerificationHtml(result: {
     <!-- Verification Status Banner -->
     <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid var(--vmn-surface-border);">
       <div style="display: flex; align-items: center; gap: 14px;">
-        <div style="width: 52px; height: 52px; border-radius: 50%; background: #E0F2FE; display: flex; align-items: center; justify-content: center; font-size: 26px;" aria-hidden="true">
-          📡
+        <div style="width: 52px; height: 52px; border-radius: 50%; background: #E0F2FE; display: flex; align-items: center; justify-content: center; color: var(--vmn-color-primary);" aria-hidden="true">
+          ${renderIcon("broadcast", { size: 28 })}
         </div>
         <div>
           <span class="vmn-badge" style="background: #DCFCE7; color: #166534; font-weight: 700; padding: 4px 12px; border-radius: 9999px; font-size: 0.8125rem; letter-spacing: 0.05em; text-transform: uppercase;">
@@ -289,8 +290,8 @@ export function renderPoaVerificationHtml(result: {
 
       <div style="background: var(--vmn-surface-alt); padding: 18px 20px; border-radius: var(--vmn-radius-md); border: 1px solid var(--vmn-surface-border);">
         <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--vmn-text-muted); display: block; margin-bottom: 4px;">3-Way Carrier Match</span>
-        <span class="vmn-badge" style="background: #DCFCE7; color: #166534; font-weight: 700; padding: 4px 10px; border-radius: 4px; font-size: 0.8125rem;">
-          ✓ StarTimes Uplink Lock Confirmed
+        <span class="vmn-badge" style="background: #DCFCE7; color: #166534; font-weight: 700; padding: 4px 10px; border-radius: 4px; font-size: 0.8125rem; display: inline-flex; align-items: center; gap: 4px;">
+          ${renderIcon("check", { size: 14 })} StarTimes Uplink Lock Confirmed
         </span>
       </div>
     </div>
@@ -315,8 +316,8 @@ export function renderPoaVerificationHtml(result: {
     <div style="display: flex; gap: 14px; justify-content: flex-end; flex-wrap: wrap;">
       ${
         certificate.documentBase64
-          ? `<a href="data:application/pdf;base64,${certificate.documentBase64}" download="PoA-${escapeHtml(certificate.certificateId)}.pdf" class="vmn-btn vmn-btn-secondary" style="display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 10px 20px; border-radius: var(--vmn-radius-md); text-decoration: none; font-weight: 600; border: 1px solid var(--vmn-surface-border); background: var(--vmn-surface); color: var(--vmn-text-main);">
-              📄 Download PDF Certificate
+          ? `<a href="data:application/pdf;base64,${certificate.documentBase64}" download="PoA-${escapeHtml(certificate.certificateId)}.pdf" class="vmn-btn vmn-btn-secondary" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 44px; min-height: 44px; padding: 10px 20px; border-radius: var(--vmn-radius-md); text-decoration: none; font-weight: 600; border: 1px solid var(--vmn-surface-border); background: var(--vmn-surface); color: var(--vmn-text-main);">
+              ${renderIcon("download", { size: 16 })} Download PDF Certificate
             </a>`
           : ""
       }
@@ -327,13 +328,4 @@ export function renderPoaVerificationHtml(result: {
   </div>
 </section>
   `.trim();
-}
-
-function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
 }

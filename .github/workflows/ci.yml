@@ -44,7 +44,9 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: latest
+          # AUD-27: version resolved from the packageManager field — no drift
+          # between local, CI, and container builds.
+          package_json_file: package.json
           run_install: false
 
       - name: Get pnpm store directory
@@ -62,6 +64,11 @@ jobs:
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Secret Scan (gitleaks) (AUD-31)
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf4290777ba3e2f4ab # v2.3.9
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Static Typecheck (tsc --noEmit)
         run: pnpm run typecheck

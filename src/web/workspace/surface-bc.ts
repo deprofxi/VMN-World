@@ -1,6 +1,7 @@
 /**
  * Surface B & C — Enterprise Operating Hub & Specialist Workspaces
- * Authority: VMNL-AZP-VMN-BRD-PRD-001 — R1.2A §46 / VMNL-AZP-VMN-CCPP-001 (§8–§25)
+ * Authority: VMNL-AZP-VMN-CCPP-001 (§8–§25)
+ * Design Authority: docs/decisions/design-task-de-citation.md (legacy "design-task" DT reference) DT-408 / DS-16 / DS-20
  *
  * Implements all 48 Enterprise Operating Desks & Specialist Workspaces:
  *
@@ -61,6 +62,8 @@
  * 48. aos            - Agentic OS Registry & Evaluation Desk
  */
 
+import { renderIcon, IconName } from "../components/index.js";
+
 export interface WorkspaceDeskDescriptor {
   key: string;
   name: string;
@@ -69,6 +72,9 @@ export interface WorkspaceDeskDescriptor {
   authorityCitation: string;
   description: string;
   activeWorkflows: string[];
+  dutyStation?: string;
+  icon?: IconName;
+  primaryObject?: string;
 }
 
 export const ENTERPRISE_WORKSPACES: WorkspaceDeskDescriptor[] = [
@@ -80,7 +86,10 @@ export const ENTERPRISE_WORKSPACES: WorkspaceDeskDescriptor[] = [
     name: "Enterprise Executive Command Dashboard",
     category: "Executive & Core",
     primaryRole: "ExecutiveLeader",
-    authorityCitation: "CCPP-001 §8 / R1.2A §46",
+    authorityCitation: "CCPP-001 §8 / Corporate Governance",
+    dutyStation: "Executive Command",
+    icon: "shield",
+    primaryObject: "Cross-Pillar Enterprise Scorecard",
     description: "Consolidated enterprise oversight spanning broadcast ratings, revenue yield, hub academy throughput, and platform health.",
     activeWorkflows: ["Cross-Pillar Health Scorecard", "StarTimes Carriage SLAs", "Daily Revenue Yield vs. Target"],
   },
@@ -90,6 +99,9 @@ export const ENTERPRISE_WORKSPACES: WorkspaceDeskDescriptor[] = [
     category: "Executive & Core",
     primaryRole: "SuperAdmin",
     authorityCitation: "CC-SEC-001 / CCPP-001 §9",
+    dutyStation: "Identity & Security",
+    icon: "lock",
+    primaryObject: "Multi-Role Session Matrix",
     description: "Multi-tenant user administration supporting one person with multiple context-switched operational roles.",
     activeWorkflows: ["Session Persona Switcher", "Active JWT Revocation", "MFA Verification Engine"],
   },
@@ -99,6 +111,9 @@ export const ENTERPRISE_WORKSPACES: WorkspaceDeskDescriptor[] = [
     category: "Executive & Core",
     primaryRole: "LegalCounsel",
     authorityCitation: "CCPP-001 §10",
+    dutyStation: "Legal & Counterparty",
+    icon: "folder",
+    primaryObject: "Counterparty KYC & TIN Vault",
     description: "Master directory of StarTimes, corporate sponsors, talent agencies, co-producers, and vendors with KYC/RC validation.",
     activeWorkflows: ["CAC Corporate Verification", "TIN & Tax Compliance Check", "Bank Account NIP Validation"],
   },
@@ -108,6 +123,9 @@ export const ENTERPRISE_WORKSPACES: WorkspaceDeskDescriptor[] = [
     category: "Executive & Core",
     primaryRole: "ProductionDirector",
     authorityCitation: "CCPP-001 §14",
+    dutyStation: "Production PMO",
+    icon: "document",
+    primaryObject: "Enterprise Slate & Project Tracker",
     description: "Unified tracker for commissioned original series, event festival staging, and tech deployment sprints.",
     activeWorkflows: ["Milestone Delivery Tracking", "Cross-Functional Dependencies", "Resource Utilization Heatmap"],
   },
@@ -117,6 +135,9 @@ export const ENTERPRISE_WORKSPACES: WorkspaceDeskDescriptor[] = [
     category: "Executive & Core",
     primaryRole: "RiskManager",
     authorityCitation: "CC-OPS-001",
+    dutyStation: "Enterprise Risk",
+    icon: "alert",
+    primaryObject: "Sev-1 Incident Escalation Queue",
     description: "StarTimes satellite transponder outages, transmission carrier drops, and commercial breach incident resolution.",
     activeWorkflows: ["Incident Sev-1 Triage", "Post-Mortem Runbook Execution", "SLA Penalty Credit Ledger"],
   },
@@ -125,7 +146,10 @@ export const ENTERPRISE_WORKSPACES: WorkspaceDeskDescriptor[] = [
     name: "Board of Directors & Investor Relations Desk",
     category: "Executive & Core",
     primaryRole: "ExecutiveLeader",
-    authorityCitation: "R1.2A §46 / Governance",
+    authorityCitation: "CCPP-001 §8 / Corporate Governance",
+    dutyStation: "Board & Investors",
+    icon: "shield",
+    primaryObject: "Board Resolution & Cap Table Register",
     description: "Quarterly board governance packets, cap table analytics, shareholding registries, and investor briefing archives.",
     activeWorkflows: ["Board Resolution Sign-Off", "Investor KPI Dashboard", "Governance Audit Briefing"],
   },
@@ -135,6 +159,9 @@ export const ENTERPRISE_WORKSPACES: WorkspaceDeskDescriptor[] = [
     category: "Executive & Core",
     primaryRole: "ProcurementManager",
     authorityCitation: "CCPP-001 §10",
+    dutyStation: "Procurement",
+    icon: "folder",
+    primaryObject: "Vendor Scorecard & RFP Ledger",
     description: "Supplier rate benchmarking, technical RFPs, broadcast hardware procurement, and vendor scorecards.",
     activeWorkflows: ["Vendor Evaluation Scoring", "Purchase Order Sign-Off", "Commercial Terms Review"],
   },
@@ -144,6 +171,9 @@ export const ENTERPRISE_WORKSPACES: WorkspaceDeskDescriptor[] = [
     category: "Executive & Core",
     primaryRole: "InternalAuditor",
     authorityCitation: "CC-AUD-001 / CCPP-001 §22",
+    dutyStation: "Internal Audit",
+    icon: "document",
+    primaryObject: "Statutory NBC Compliance Evidence Vault",
     description: "Statutory audit trails, Nigerian NBC broadcast compliance logs, and ISO 27001 evidence vaults.",
     activeWorkflows: ["Compliance Gap Analysis", "NBC Regulatory Filing", "Immutable Ledger Verification"],
   },
@@ -152,7 +182,10 @@ export const ENTERPRISE_WORKSPACES: WorkspaceDeskDescriptor[] = [
     name: "Sustainability & Corporate Social Responsibility (ESG)",
     category: "Executive & Core",
     primaryRole: "SustainabilityOfficer",
-    authorityCitation: "R1.2A §46",
+    authorityCitation: "CCPP-001 §10 / ESG",
+    dutyStation: "Sustainability & ESG",
+    icon: "check",
+    primaryObject: "Renewable Energy & Carbon Offset Ledger",
     description: "Solar production energy audits, youth talent inclusion ratios, and regional community empowerment metrics.",
     activeWorkflows: ["Carbon Footprint Auditing", "Community Empowerment Scorecard", "Renewable Studio Metrics"],
   },
@@ -161,7 +194,10 @@ export const ENTERPRISE_WORKSPACES: WorkspaceDeskDescriptor[] = [
     name: "Corporate Communications & Public Relations",
     category: "Executive & Core",
     primaryRole: "CommunicationsDirector",
-    authorityCitation: "R1.2A §46",
+    authorityCitation: "CCPP-001 §10 / Communications",
+    dutyStation: "Corporate Communications",
+    icon: "broadcast",
+    primaryObject: "Press Release & Brand Media Asset Vault",
     description: "Press release dissemination, brand media kits, crisis messaging playbooks, and PR agency liaisons.",
     activeWorkflows: ["Media Kit Syndication", "Press Release Approval", "Brand Reputation Monitoring"],
   },
@@ -171,6 +207,9 @@ export const ENTERPRISE_WORKSPACES: WorkspaceDeskDescriptor[] = [
     category: "Executive & Core",
     primaryRole: "HRDirector",
     authorityCitation: "CCPP-001 §9",
+    dutyStation: "People & Payroll",
+    icon: "folder",
+    primaryObject: "Broadcast Crew Shift Roster & PAYE Ledger",
     description: "Employee lifecycle management, broadcast crew shift rostering, PAYE tax withholding, and pension compliance.",
     activeWorkflows: ["Roster Shift Scheduling", "PAYE Calculation Matrix", "Employee Benefits Ledger"],
   },
@@ -180,6 +219,9 @@ export const ENTERPRISE_WORKSPACES: WorkspaceDeskDescriptor[] = [
     category: "Executive & Core",
     primaryRole: "GeneralCounsel",
     authorityCitation: "CCPP-001 §10, §12",
+    dutyStation: "Legal Chamber",
+    icon: "shield",
+    primaryObject: "IP Trademark & Litigation Risk Matrix",
     description: "Litigation tracking, intellectual property protection, trademark filings, and regulatory representation.",
     activeWorkflows: ["IP Trademark Filing", "Litigation Risk Matrix", "Regulatory Representation Log"],
   },
@@ -192,7 +234,10 @@ export const ENTERPRISE_WORKSPACES: WorkspaceDeskDescriptor[] = [
     name: "Master Control Room (MCR) Playout Supervisor",
     category: "Broadcast Operations",
     primaryRole: "MCRSupervisor",
-    authorityCitation: "R1.2A §46 / CCPP-001 §19",
+    authorityCitation: "CCPP-001 §19 / MCR Operations",
+    dutyStation: "Master Control Room",
+    icon: "broadcast",
+    primaryObject: "Tri-Channel Frame-Accurate Playout Switcher",
     description: "24/7 real-time monitoring of Nigezie Xtreme, Orisun, and Isi Mbido linear channels with frame-accurate failover.",
     activeWorkflows: ["Emergency Manual Override", "Linear Stream Bitrate Gauge", "Automated Playout Handover"],
   },
@@ -538,25 +583,31 @@ export function renderWorkspaceDirectoryHtml(): string {
       const cardsHtml = desks
         .map(
           (d) => `
-        <article class="card" style="display:flex; flex-direction:column; justify-content:space-between;">
+        <article class="card" style="display:flex; flex-direction:column; justify-content:space-between; border-left:4px solid var(--vmn-color-primary);">
           <div>
             <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
-              <span style="font-family:monospace; font-size:0.85rem; font-weight:700; color:#0284C7; background:#E0F2FE; padding:2px 8px; border-radius:4px;">
+              <span style="font-family:monospace; font-size:0.85rem; font-weight:700; color:#0369A1; background:#E0F2FE; padding:2px 8px; border-radius:4px;">
                 /workspace/${d.key}
               </span>
               <span class="vmn-badge badge-ready">Active</span>
             </div>
-            <h3 style="font-size:1.15rem; font-weight:700; margin-bottom:8px;">
-              <a href="/workspace/${d.key}" style="text-decoration:none; color:var(--vmn-text-main);">${d.name}</a>
-            </h3>
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+              <span style="color:var(--vmn-color-primary);">${renderIcon(d.icon || (d.category === "Broadcast Operations" ? "broadcast" : d.category === "Hub Specialist" ? "film" : d.category === "Commercial & Finance" ? "bolt" : d.category === "Tech & Governance" ? "lock" : "shield"), { size: 18 })}</span>
+              <h3 style="font-size:1.15rem; font-weight:700; margin:0;">
+                <a href="/workspace/${d.key}" style="text-decoration:none; color:var(--vmn-text-main);">${d.name}</a>
+              </h3>
+            </div>
             <p style="font-size:0.875rem; color:var(--vmn-text-muted); margin-bottom:12px;">${d.description}</p>
           </div>
           <div>
-            <div style="margin-bottom:12px;">
-              <span style="font-size:0.75rem; font-weight:700; color:var(--vmn-text-muted);">Primary Role:</span>
-              <code style="font-size:0.8rem; background:#F8FAFC; padding:2px 6px; border-radius:4px; margin-left:4px;">${d.primaryRole}</code>
+            <div style="margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+              <div>
+                <span style="font-size:0.75rem; font-weight:700; color:var(--vmn-text-muted);">Primary Role:</span>
+                <code style="font-size:0.8rem; background:#F8FAFC; padding:2px 6px; border-radius:4px; margin-left:4px;">${d.primaryRole}</code>
+              </div>
+              ${d.dutyStation ? `<span style="font-size:0.75rem; color:var(--vmn-color-primary); font-weight:600;">${d.dutyStation}</span>` : ""}
             </div>
-            <a href="/workspace/${d.key}" class="btn btn-outline" style="width:100%; text-align:center; min-height:40px; font-size:0.85rem;">Open Desk &rarr;</a>
+            <a href="/workspace/${d.key}" class="btn btn-outline" style="width:100%; text-align:center; min-height:44px; display:inline-flex; align-items:center; justify-content:center; font-size:0.85rem;">Open Desk &rarr;</a>
           </div>
         </article>
       `
@@ -581,17 +632,17 @@ export function renderWorkspaceDirectoryHtml(): string {
     <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;">
       <div>
         <nav aria-label="Breadcrumb" style="font-size:0.85rem; color:var(--vmn-text-muted); margin-bottom:8px;">
-          <a href="/" style="color:var(--vmn-secondary); text-decoration:none;">Home</a> &gt; 
-          <span>Enterprise Workspaces</span>
+          <a href="/" style="color:var(--vmn-color-primary); text-decoration:none;">Home</a> &gt; 
+          <span style="color:var(--vmn-text-main); font-weight:600;">Enterprise Workspaces</span>
         </nav>
         <h1 style="font-size:2rem; font-weight:800; color:var(--vmn-primary);">Enterprise Operating Hub &amp; Specialist Desks</h1>
         <p style="color:var(--vmn-text-muted); margin-top:4px;">
-          Surface B &amp; C: Complete 48-desk internal operating environment and specialist workflows mandated by <strong>VMNL-AZP-VMN-CCPP-001 / R1.2A §46</strong>.
+          Surface B &amp; C: 48-desk specialist enterprise workspaces spanning 5 operational domains (CCPP-001 §8–§25; broadcast operational screens are governed separately under the Broadcast Consoles catalog).
         </p>
       </div>
       <div style="display:flex; gap:12px; align-items:center;">
         <span class="vmn-badge badge-ready">${ENTERPRISE_WORKSPACES.length} of ${ENTERPRISE_WORKSPACES.length} Desks Operational</span>
-        <a href="/broadcast/screens" class="btn btn-primary">Surface D (33 Broadcast Screens) &rarr;</a>
+        <a href="/broadcast/screens" class="btn btn-primary" style="min-height:44px; display:inline-flex; align-items:center;">Surface D (33 Broadcast Screens) &rarr;</a>
       </div>
     </div>
 
@@ -642,24 +693,44 @@ export function renderWorkspaceDeskHtml(deskKey: string): string {
 
   return `
   <section style="display:flex; flex-direction:column; gap:24px; max-width:960px; margin:0 auto;">
+    <!-- Global Context Bar (DT-401) -->
+    <div class="card" style="padding:12px 16px; background:var(--vmn-surface-alt); border:1px solid var(--vmn-surface-border); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:0;">
+      <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap; font-size:0.85rem;">
+        <span><strong>Station Context:</strong> ${desk.dutyStation || desk.category}</span>
+        <span style="color:#CBD5E1;">|</span>
+        <span><strong>Channel:</strong> <select style="padding:4px 10px; border:1px solid var(--vmn-color-control-border); border-radius:4px; font-size:0.85rem; background:var(--vmn-surface); color:var(--vmn-color-text-main);"><option>NXTR (Nigezie Xtreme)</option><option>ORIS (Orisun — The Source)</option><option>IMBD (Isi Mbido — The Beginning)</option></select></span>
+        <span style="color:#CBD5E1;">|</span>
+        <span><strong>Date:</strong> 2026-09-28</span>
+        <span style="color:#CBD5E1;">|</span>
+        <span><strong>Mode:</strong> <span class="vmn-badge badge-ready">LIVE OPERATING</span></span>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <a href="/broadcast/screens" class="btn btn-outline" style="min-height:44px; padding:6px 14px; font-size:0.85rem; display:inline-flex; align-items:center;">Broadcast Consoles (33) &rarr;</a>
+      </div>
+    </div>
+
     <nav aria-label="Breadcrumb" style="font-size:0.85rem; color:var(--vmn-text-muted);">
-      <a href="/" style="color:var(--vmn-secondary); text-decoration:none;">Home</a> &gt; 
-      <a href="/workspace" style="color:var(--vmn-secondary); text-decoration:none;">Workspaces</a> &gt; 
-      <span>${desk.name}</span>
+      <a href="/" style="color:var(--vmn-color-primary); text-decoration:none;">Home</a> &gt; 
+      <a href="/workspace" style="color:var(--vmn-color-primary); text-decoration:none;">Workspaces</a> &gt; 
+      <span style="color:var(--vmn-text-main); font-weight:600;">${desk.name}</span>
     </nav>
 
-    <article class="card" style="border-top:5px solid var(--vmn-secondary);">
+    <article class="card" style="border-top:6px solid var(--vmn-color-primary);">
       <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;">
         <div>
           <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
-            <span style="font-family:monospace; font-weight:800; font-size:1.1rem; color:#0284C7; background:#E0F2FE; padding:4px 10px; border-radius:6px;">
+            <span style="font-family:monospace; font-weight:800; font-size:1.1rem; color:#0369A1; background:#E0F2FE; padding:4px 10px; border-radius:6px;">
               /workspace/${desk.key}
             </span>
             <span class="vmn-badge badge-ready">${desk.category}</span>
+            ${desk.dutyStation ? `<span class="vmn-badge badge-info">${desk.dutyStation}</span>` : ""}
           </div>
-          <h1 style="font-size:2rem; font-weight:800; color:var(--vmn-primary); margin-bottom:8px;">
-            ${desk.name}
-          </h1>
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+            <span style="color:var(--vmn-color-primary);">${renderIcon(desk.icon || "shield", { size: 28 })}</span>
+            <h1 style="font-size:2rem; font-weight:800; color:var(--vmn-primary); margin:0;">
+              ${desk.name}
+            </h1>
+          </div>
           <p style="font-size:1.1rem; color:var(--vmn-text-muted);">
             ${desk.description}
           </p>
@@ -667,6 +738,22 @@ export function renderWorkspaceDeskHtml(deskKey: string): string {
         <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
           <span style="font-size:0.85rem; font-weight:700; color:var(--vmn-text-muted);">Governing Authority</span>
           <code style="font-size:0.8rem; background:#F8FAFC; padding:4px 8px; border-radius:4px; border:1px solid #CBD5E1;">${desk.authorityCitation}</code>
+        </div>
+      </div>
+
+      <!-- Primary Operational Object Panel (DT-408) -->
+      <div class="card" style="margin-top:20px; background:#F8FAFC; border:1px solid var(--vmn-color-control-border);">
+        <h2 style="font-size:1rem; font-weight:700; color:var(--vmn-primary); margin-bottom:6px;">
+          Primary Operational Object &amp; State
+        </h2>
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+          <div>
+            <div style="font-weight:700; font-size:1.05rem; color:var(--vmn-color-primary);">${desk.primaryObject || `${desk.name} Control Ledger`}</div>
+            <p style="font-size:0.85rem; color:var(--vmn-text-muted); margin-top:2px;">
+              Synchronized with VMNL Enterprise Operating Bus. Role-gated by <code>${desk.primaryRole}</code>.
+            </p>
+          </div>
+          <span class="vmn-badge badge-ready">Synchronized</span>
         </div>
       </div>
 

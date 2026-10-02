@@ -1,9 +1,11 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import http from "node:http";
+import crypto from "node:crypto";
 import { createApiServer, ApiServerInstance } from "../../src/api/server.js";
 import { scanBufferForThreats, generatePresignedUploadUrl } from "../../src/core/storage/index.js";
 import { signSessionToken, revokeToken, isTokenRevoked, checkRateLimit } from "../../src/core/auth/index.js";
-import { canPerform } from "../../src/core/rbac/index.js";
+import { canPerform, assertSeedRolesConformToRbac } from "../../src/core/rbac/index.js";
+import { BankReconciliationEngine } from "../../src/modules/finance/reconciliation/index.js";
 
 function makeRequest(
   port: number,
@@ -64,12 +66,48 @@ describe("Security, RBAC Enforcement & Authentication Suite (B-6, B-7, B-8)", ()
     await app.stop();
   });
 
+  it("should hide internal exception details from 500 responses (route now guarded, so unauthenticated callers get 401 before any handler logic)", async () => {
+    // AUD-01/AUD-04: /api/v1/storage/upload-url now requires authentication,
+    // so an unauthenticated request with a disallowed MIME type is rejected at
+    // the authorization boundary (401) before reaching MIME validation. A 500
+    // would leak handler internals; 401 proves the guard runs first.
+    const res = await makeRequest(testPort, "/api/v1/storage/upload-url", {
+      method: "POST",
+      body: { fileName: "rejected.bin", contentType: "application/x-internal-test" },
+    });
+
+    expect(res.statusCode).toBe(401);
+    expect(res.body.code).toBe("AUTH_TOKEN_REQUIRED");
+    expect(res.body.message).not.toContain("not permitted");
+  });
+
+  it("should return 500 with sanitized body for authenticated storage errors (fail-closed guard regression)", async () => {
+    const devPass = process.env.DEV_SEED_PASSWORD || "vmnl-dev-seed-pass-2026#secure";
+    const loginRes = await makeRequest(testPort, "/api/v1/auth/login", {
+      method: "POST",
+      body: { email: "admin@vmnl.ng", password: devPass },
+    });
+    const token = loginRes.body.accessToken;
+
+    const res = await makeRequest(testPort, "/api/v1/storage/upload-url", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: { fileName: "rejected.bin", contentType: "application/x-internal-test" },
+    });
+
+    expect(res.statusCode).toBe(500);
+    expect(res.body.message).toBe("An unexpected error occurred");
+    expect(res.body.message).not.toContain("not permitted");
+    expect(typeof res.body.traceId).toBe("string");
+  });
+
   it("should authenticate users via POST /api/v1/auth/login and set session cookie", async () => {
+    const devPass = process.env.DEV_SEED_PASSWORD || "vmnl-dev-seed-pass-2026#secure";
     const res = await makeRequest(testPort, "/api/v1/auth/login", {
       method: "POST",
       body: {
         email: "finance.controller@vmnl.ng",
-        password: "ValidEnterprisePassword123!",
+        password: devPass,
       },
     });
 
@@ -96,7 +134,7 @@ describe("Security, RBAC Enforcement & Authentication Suite (B-6, B-7, B-8)", ()
       method: "POST",
       body: {
         email: "unknown.intruder@vmnl.ng",
-        password: "AnyPassword123!",
+        password: "WrongDevAuthKey2026!",
       },
     });
     expect(nonExistentRes.statusCode).toBe(401);
@@ -104,12 +142,13 @@ describe("Security, RBAC Enforcement & Authentication Suite (B-6, B-7, B-8)", ()
   });
 
   it("should revoke tokens and prevent re-use via POST /api/v1/auth/revoke", async () => {
+    const devPass = process.env.DEV_SEED_PASSWORD || "vmnl-dev-seed-pass-2026#secure";
     // 1. Login
     const loginRes = await makeRequest(testPort, "/api/v1/auth/login", {
       method: "POST",
       body: {
         email: "admin@vmnl.ng",
-        password: "AdminPassword123!",
+        password: devPass,
       },
     });
     const token = loginRes.body.accessToken;
@@ -234,5 +273,141 @@ describe("Security, RBAC Enforcement & Authentication Suite (B-6, B-7, B-8)", ()
     expect(canPerform(trafficOfficer, "create", "traffic")).toBe(true);
     // CommercialTrafficOfficer CANNOT change pricing or approve rights
     expect(canPerform(trafficOfficer, "approve", "rights")).toBe(false);
+  });
+
+  it("should enforce CI invariant: seed roles must conform to RBAC permissions matrix (T-04)", () => {
+    // 1. Valid seed roles pass
+    const validSeedRoles = [
+      "SuperAdmin",
+      "BroadcastDirector",
+      "FinanceController",
+      "CommercialTrafficOfficer",
+      "ProgrammeScheduler",
+      "RightsManager",
+      "Operator",
+      "Auditor",
+      "MCRSupervisor",
+      "TalentManager",
+    ];
+    expect(assertSeedRolesConformToRbac(validSeedRoles)).toBe(true);
+
+    // 2. Invalid/unregistered role throws invariant error
+    expect(() => assertSeedRolesConformToRbac(["NonExistentArbitraryRole"])).toThrowError(
+      /is not defined in ROLE_PERMISSIONS matrix/
+    );
+
+    // 3. MCRSupervisor permissions verification
+    const mcrUser = {
+      userId: "usr-mcr-01",
+      personId: "per-mcr-01",
+      email: "mcr@vmnl.ng",
+      roles: ["MCRSupervisor"],
+    };
+    expect(canPerform(mcrUser, "read", "playout")).toBe(true);
+    expect(canPerform(mcrUser, "execute", "playout")).toBe(true);
+    expect(canPerform(mcrUser, "read", "schedule")).toBe(true);
+    expect(canPerform(mcrUser, "execute", "broadcast")).toBe(true);
+    expect(canPerform(mcrUser, "approve", "finance")).toBe(false);
+  });
+
+  it("should unconditionally enforce HMAC signature verification on payment webhooks (T-01, T-02)", async () => {
+    const origKey = process.env.PAYSTACK_SECRET_KEY;
+    const origFlw = process.env.FLUTTERWAVE_SECRET_HASH;
+    try {
+      process.env.PAYSTACK_SECRET_KEY = "test_paystack_secret_key_configured_32";
+      process.env.FLUTTERWAVE_SECRET_HASH = "test_flw_secret_hash_configured_32";
+
+      // 1. Unsigned request -> 401 in test environment
+      const unsignedRes = await makeRequest(testPort, "/api/v1/webhooks/paystack", {
+        method: "POST",
+        body: { event: "charge.success", data: { id: "tx-unsigned-1" } },
+      });
+      expect(unsignedRes.statusCode).toBe(401);
+      expect(unsignedRes.body.message).toContain("signature");
+
+      // 2. Tampered / invalid signature -> 401
+      const tamperedRes = await makeRequest(testPort, "/api/v1/webhooks/paystack", {
+        method: "POST",
+        headers: { "x-paystack-signature": "invalid_hex_signature_deadbeef" },
+        body: { event: "charge.success", data: { id: "tx-tampered-1" } },
+      });
+      expect(tamperedRes.statusCode).toBe(401);
+      expect(tamperedRes.body.message).toContain("Invalid Paystack signature");
+
+      // 3. Valid signature -> 200
+      const validPayload = { event: "charge.success", data: { id: "psk-unit-test-1", amount: 100000 } };
+      const rawPayload = JSON.stringify(validPayload);
+      const validSig = crypto
+        .createHmac("sha512", process.env.PAYSTACK_SECRET_KEY)
+        .update(rawPayload)
+        .digest("hex");
+
+      const validRes = await makeRequest(testPort, "/api/v1/webhooks/paystack", {
+        method: "POST",
+        headers: { "x-paystack-signature": validSig },
+        body: validPayload,
+      });
+      expect(validRes.statusCode).toBe(200);
+      expect(validRes.body.status).toBe("success");
+
+      // 4. Flutterwave missing header -> 401
+      const unsignedFlwRes = await makeRequest(testPort, "/api/v1/webhooks/flutterwave", {
+        method: "POST",
+        body: { event: "charge.completed", data: { id: "flw-unsigned-1" } },
+      });
+      expect(unsignedFlwRes.statusCode).toBe(401);
+      expect(unsignedFlwRes.body.message).toContain("hash header");
+
+      // 5. Flutterwave invalid hash -> 401
+      const invalidFlwRes = await makeRequest(testPort, "/api/v1/webhooks/flutterwave", {
+        method: "POST",
+        headers: { "verif-hash": "wrong-hash" },
+        body: { event: "charge.completed", data: { id: "flw-invalid-1" } },
+      });
+      expect(invalidFlwRes.statusCode).toBe(401);
+      expect(invalidFlwRes.body.message).toContain("Invalid Flutterwave");
+
+      // 6. Flutterwave valid hash -> 200
+      const validFlwRes = await makeRequest(testPort, "/api/v1/webhooks/flutterwave", {
+        method: "POST",
+        headers: { "verif-hash": process.env.FLUTTERWAVE_SECRET_HASH },
+        body: { event: "charge.completed", data: { id: "flw-unit-test-1", amount: 50000 } },
+      });
+      expect(validFlwRes.statusCode).toBe(200);
+      expect(validFlwRes.body.status).toBe("success");
+    } finally {
+      process.env.PAYSTACK_SECRET_KEY = origKey;
+      process.env.FLUTTERWAVE_SECRET_HASH = origFlw;
+    }
+  });
+
+  it("should enforce webhook idempotency and reject duplicate transaction replays (T-03)", () => {
+    const recon = new BankReconciliationEngine();
+    const records = [
+      {
+        id: "PAYSTACK-12345",
+        source: "PAYSTACK" as const,
+        transactionReference: "PSK-REF-001",
+        bankNarration: "Paystack: test@agency.ng - Successful",
+        amountNgn: 50000,
+        valueDate: new Date(),
+      },
+    ];
+
+    // First ingestion: exactly 1 transaction ingested
+    const count1 = recon.ingestBankTransactions(records);
+    expect(count1).toBe(1);
+    expect(recon.getTransactionCount()).toBe(1);
+
+    // Duplicate ingestion replay: 0 newly ingested transactions
+    const count2 = recon.ingestBankTransactions(records);
+    expect(count2).toBe(0);
+    expect(recon.getTransactionCount()).toBe(1);
+
+    // Replay was logged with transactionId
+    const replayLogs = recon.getReplayLogs();
+    expect(replayLogs.length).toBe(1);
+    expect(replayLogs[0].transactionId).toBe("PAYSTACK-12345");
+    expect(replayLogs[0].reason).toContain("replay");
   });
 });

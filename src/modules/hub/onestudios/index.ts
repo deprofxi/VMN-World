@@ -141,6 +141,14 @@ export class OneStudiosEngine {
     return this.assets.get(id);
   }
 
+  public getAvailableAssets(category?: StudioAssetCategory): ProductionAsset[] {
+    const all = Array.from(this.assets.values()).filter((a) => a.isAvailable);
+    if (category) {
+      return all.filter((a) => a.category === category);
+    }
+    return all;
+  }
+
   /**
    * Books studio stages or equipment packages.
    * INVARIANT: Double-booking prevention across overlapping time slots.

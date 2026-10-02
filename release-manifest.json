@@ -1,14 +1,25 @@
 {
   "version": "1.0.0-rc1",
   "environment": "SANDBOX_S2",
-  "gitCommitSha": "HEAD",
+  "gitCommitSha": "ca303f0dea650ace92e8e0e0d331b0bbd9734ce2",
   "humanReleaseOwner": {
-    "name": "Broadcast Architecture Authority",
-    "role": "Release Authority / Lead System Architect",
+    "name": "Femi Aderibigbe",
+    "role": "Executive Chairman & Broadcast Authority",
+    "employeeId": "VMNL-EXEC-001",
     "signedAt": "2026-09-28T12:00:00.000Z"
   },
-  "decision": "GO",
-  "decisionRationale": "Sandbox S2 verification completed across domain invariants, 20/20 failure drills, and strict security controls.",
+  "decision": "GO_WITH_CONDITIONS",
+  "decisionRationale": "Sandbox S2 verification completed across domain invariants, 20/20 failure drills, and strict security controls. Approved under GO_WITH_CONDITIONS: BG6 Carriage requires live StarTimes carriage uplink integration verification prior to production promotion.",
+  "conditionsAcceptance": {
+    "acceptedBy": "Femi Aderibigbe",
+    "role": "Executive Chairman & Broadcast Authority",
+    "employeeId": "VMNL-EXEC-001",
+    "acceptedAt": "2026-09-28T12:00:00.000Z",
+    "acceptedConditions": [
+      "BG6_CARRIAGE: StarTimes direct machine-to-machine carriage interface remains NOT_TESTED; manual transmission monitoring active under provisional SLA."
+    ],
+    "rationale": "S2 Sandbox verification complete across all software-controllable domain boundaries (BG0-BG5, BG7-BG9). BG6 carriage is external third-party infrastructure awaiting live NOC coordination."
+  },
   "gates": {
     "BG0_CHANNEL_AUTHORITY": {
       "id": "BG0_CHANNEL_AUTHORITY",
@@ -60,7 +71,7 @@
       "name": "Playout",
       "description": "Playlist/as-run integration passes",
       "status": "PASS",
-      "evidenceRef": "src/modules/broadcast/playout/index.ts",
+      "evidenceRef": "src/core/queue/index.ts (configureRollingEpgScheduler) & tests/unit/production-core-and-infrastructure.test.ts & tests/unit/uat-broadcast-failure-drills.test.ts",
       "evaluatedAt": "2026-09-28T12:00:00.000Z",
       "verifiedBy": "BroadcastEngineer"
     },
@@ -68,8 +79,9 @@
       "id": "BG6_CARRIAGE",
       "name": "Carriage",
       "description": "StarTimes carriage endpoints and contacts mapped (provisional pending live uplink verification)",
-      "status": "FULFILLED_BY_VERIFIED_EXISTING_SYSTEM",
-      "evidenceRef": "StarTimes DTT Carriage Agreement (Provisional / Configurable)",
+      "status": "NOT_TESTED",
+      "reason": "No machine interface or control evidence exists post-adapter-removal; StarTimes carriage data remains unverified/provisional.",
+      "evidenceRef": "StarTimes DTT Carriage Agreement (Provisional / Configurable). Reason: No machine interface or control evidence exists post-adapter-removal; StarTimes carriage data remains unverified/provisional.",
       "evaluatedAt": "2026-09-28T12:00:00.000Z",
       "verifiedBy": "PlatformRelationshipLead"
     },

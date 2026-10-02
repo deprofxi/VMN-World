@@ -1,0 +1,5 @@
+{
+  "descopedModules": [],
+  "updatedAt": "2026-09-28T16:00:00Z",
+  "rationale": "All 13 core domain modules (vcf, onestudios, tend, community, traffic, playout, sponsorship, carriage, billing, export, programmes, scheduling, rights) are fully wired into src/api/server.ts and src/api/router.ts per T9-05."
+}

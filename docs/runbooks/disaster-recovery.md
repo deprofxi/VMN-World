@@ -1,21 +1,22 @@
 # VMN Disaster Recovery & Business Continuity Runbook
 
 **Authority:** VMNL-AZP-VMN-BRD-PRD-001 — R1.2A §57 / VMNL-AZP-VMN-CCPP-001 §20  
-**Recovery Objectives:** RPO < 5 minutes | RTO < 15 minutes
+**Recovery Objectives:** RPO < 5 minutes (TARGET) | RTO < 15 minutes (TARGET)
+**Status (TODO-DOC-03 / TODO-PRC-08):** Database name corrected to the canonical sandbox `vmn_enterprise` (ADR-013 supersession). The `kubectl`/`infra/k8s` objects in Scenario A are TARGET-state procedure — no Kubernetes manifests exist in this repository (see `docs/runbooks/rollback-runbook.md` TARGET note). Backup automation that DOES exist today is the compose-hosted `vmnl-postgres-backup` service (docker/backups/), whose first measured RPO/RTO drill evidence is PENDING.
 
 ---
 
 ## 1. Business Continuity Architecture
 
-In accordance with R1.2A §57, Virtual Media Network Limited guarantees 24/7/365 uninterrupted broadcast transmission even during total cloud datacenter loss or central database outages:
+In accordance with R1.2A §57, Virtual Media Network Limited targets 24/7/365 uninterrupted broadcast transmission even during total cloud datacenter loss or central database outages. Item 1 below is a CONTRACT + SIMULATOR only today (TODO-BCST-06: `PlayoutAutomationEngine.evaluateAutonomousCacheContract` / `simulateDrill20CacheOutage`); physical playout servers at StarTimes uplink centres are not operated by this codebase:
 
-1. **48-Hour Autonomous Playout Cache:**
-   - Every local playout automation server at StarTimes transmission uplink centers maintains a pre-buffered, locally cached 48-hour playlist grid and high-definition video master cache.
-   - If the central VMN database or internet connectivity drops, playout transitions automatically to local cache with zero dead-air.
+1. **48-Hour Autonomous Playout Cache (CONTRACT, hardware TARGET):**
+   - Contract: every local playout automation server must hold a pre-buffered, locally cached 48-hour playlist grid; `evaluateAutonomousCacheContract` verifies ≥48h coverage and Drill 20 simulation (`simulateDrill20CacheOutage`) exercises the DB-offline fallback.
+   - Hardware integration at StarTimes transmission uplink centres is tracked separately with the MCR/StarTimes engineering owner (HUMAN DECISION in todo.md TODO-BCST-06) and is NOT claimed as operational.
 
-2. **Automated Database Backups & Point-in-Time Recovery (PITR):**
-   - Automated continuous Write-Ahead Log (WAL) archiving to encrypted multi-region S3/MinIO offsite buckets.
-   - Full daily database snapshots at 02:00 WAT retained for 90 days.
+2. **Automated Database Backups & Point-in-Time Recovery (PITR) — TARGET:**
+   - TARGET-state: continuous Write-Ahead Log (WAL) archiving to encrypted multi-region S3/MinIO offsite buckets; full daily database snapshots at 02:00 WAT retained for 90 days.
+   - Implemented today (TODO-PRC-08): nightly 02:00 `pg_dump` + retention sweep via the `vmnl-postgres-backup` compose service (docker/backups/backup.sh). WAL archiving and measured RPO/RTO evidence remain PENDING first sandbox drill.
 
 ---
 
@@ -27,17 +28,17 @@ In accordance with R1.2A §57, Virtual Media Network Limited guarantees 24/7/365
 # 1. Engage Global Playout Cache Lock
 # Local playout engines switch to local cached playlists automatically (UAT Drill 20)
 
-# 2. Spin up Standby PostgreSQL Database Cluster
-kubectl apply -f infra/k8s/postgres-dr-cluster.yaml -n production
+# 2. TARGET-state step (no k8s manifests in repo): spin up standby PostgreSQL cluster.
+# Implemented sandbox path today: docker compose up vmnl-postgres restored from docker/backups dump.
 
 # 3. Restore from Latest Point-in-Time S3 Archive
-pg_restore -h postgres-dr.internal -U vmnl_admin -d vmnl_control --clean /mnt/backup/latest_wal_snapshot.dump
+pg_restore -h postgres-dr.internal -U vmn_user -d vmn_enterprise --clean /mnt/backup/latest_wal_snapshot.dump
 
 # 4. Verify Database Integrity & Foreign Key Constraints
 pnpm tsx src/core/domain/integrity-check.ts
 
-# 5. Point Production Traffic to Restored Cluster
-kubectl set env deployment/vmn-backend DATABASE_URL="postgresql://vmnl_admin:***@postgres-dr.internal:5432/vmnl_control"
+# 5. Point Production Traffic to Restored Cluster (TARGET-state kubectl form; sandbox: update DATABASE_URL in compose env)
+kubectl set env deployment/vmn-backend DATABASE_URL="postgresql://vmn_user:***@postgres-dr.internal:5432/vmn_enterprise"
 ```
 
 ### Scenario B: Studio Uplink Loss / StarTimes Satellite Carrier Incident

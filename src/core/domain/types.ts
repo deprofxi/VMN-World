@@ -125,6 +125,7 @@ export interface RightsRecordEntity {
   rightsType: RightsType;
   territory: string; // e.g. "NG", "WEST_AFRICA", "GLOBAL"
   mediaType: string; // "LINEAR_TV", "SVOD"
+  channelCode?: string | null;
   exclusivity: boolean;
   startDate: Date;
   expiryDate: Date;
@@ -223,4 +224,61 @@ export function validateSettlementInvariants(settlement: SettlementEntity): { va
     valid: errors.length === 0,
     errors,
   };
+}
+
+/**
+ * Minor unit representation for monetary amounts (Kobo = NGN / 100, Cents = USD / 100).
+ * Authority: tasks-9.md T9-10 / report-9.md F-9-08
+ * All financial arithmetic MUST be performed on integer minor units to eliminate floating-point drift.
+ */
+export type Kobo = number & { readonly __brand: unique symbol };
+
+export function toKobo(majorUnits: number): Kobo {
+  return Math.round(majorUnits * 100) as Kobo;
+}
+
+/**
+ * Validates that a value is an exact kobo (minor-unit) integer (AUD-25).
+ * Accepts values produced by toKobo() or literal integer kobo from callers;
+ * rejects fractional floats that would silently carry IEEE-754 error into
+ * money columns.
+ */
+export function isWholeKobo(value: number): value is Kobo {
+  return Number.isFinite(value) && Number.isInteger(value);
+}
+
+/**
+ * API-boundary money normalizer (AUD-25): accepts NGN major-unit values that
+ * are either exact kobo integers (already in minor units) or 2dp-correct major
+ * units, and returns kobo. Throws on values that cannot be represented exactly
+ * in kobo (more than 2 decimal places).
+ */
+export function requireKoboExact(value: number): Kobo {
+  if (!Number.isFinite(value)) {
+    throw new Error("[VMNL-MONEY-ERROR] Amount must be a finite number");
+  }
+  // A value is "exact kobo" if rounding to 2dp does not change it
+  const rounded = Math.round(value * 100);
+  if (Math.abs(value * 100 - rounded) > 1e-6) {
+    throw new Error(
+      `[VMNL-MONEY-ERROR] Amount ${value} cannot be represented exactly in kobo (max 2 decimal places)`
+    );
+  }
+  return rounded as Kobo;
+}
+
+export function fromKobo(minorUnits: Kobo | number): number {
+  return Number((minorUnits / 100).toFixed(2));
+}
+
+export function parseDecimalToKobo(decimalStr: string): Kobo {
+  const sanitized = decimalStr.trim().replace(/,/g, ".");
+  if (!sanitized) return 0 as Kobo;
+  const isNegative = sanitized.startsWith("-");
+  const cleaned = sanitized.replace(/^[+-]/, "");
+  const [wholePart = "0", fracPart = ""] = cleaned.split(".");
+  const whole = parseInt(wholePart, 10) || 0;
+  const frac = parseInt((fracPart + "00").slice(0, 2), 10) || 0;
+  const total = whole * 100 + frac;
+  return (isNegative ? -total : total) as Kobo;
 }

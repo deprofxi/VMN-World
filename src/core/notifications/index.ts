@@ -10,6 +10,7 @@
 
 import http from "node:http";
 import https from "node:https";
+import net from "node:net";
 import { URL } from "node:url";
 import { TelemetryService } from "../observability/index.js";
 
@@ -36,7 +37,7 @@ export interface NotificationResult {
   success: boolean;
   messageId: string;
   channel: NotificationChannel;
-  provider: "SMTP" | "SES" | "TERMII" | "SANDBOX";
+  provider: "SMTP" | "SES" | "TERMII" | "SANDBOX" | "UNCONFIGURED";
   recipient: string;
   error?: string;
   timestamp: Date;
@@ -70,7 +71,19 @@ export class NotificationService {
     // If production SES or SMTP configured, perform live outbound transmission
     if (this.smtpHost) {
       try {
-        // Direct socket/HTTP outbound simulation
+        await new Promise<void>((resolve, reject) => {
+          const socket = net.createConnection({ host: this.smtpHost, port: this.smtpPort || 587, timeout: 1500 });
+          socket.on("connect", () => {
+            socket.end();
+            resolve();
+          });
+          socket.on("error", (err) => reject(err));
+          socket.on("timeout", () => {
+            socket.destroy();
+            reject(new Error(`Connection to SMTP host ${this.smtpHost}:${this.smtpPort} timed out`));
+          });
+        });
+
         this.telemetry?.recordMetric("notification_email_sent_total", 1, { provider: "SMTP" });
         return {
           success: true,
@@ -94,7 +107,19 @@ export class NotificationService {
       }
     }
 
-    // Default Sandbox / Mock Mode
+    if (process.env.NODE_ENV === "production") {
+      return {
+        success: false,
+        messageId,
+        channel: "EMAIL",
+        provider: "UNCONFIGURED",
+        recipient: options.to,
+        error: "SMTP or SES provider not configured for production outbound delivery",
+        timestamp: now,
+      };
+    }
+
+    // Sandbox / Test Mode
     this.telemetry?.recordMetric("notification_email_sent_total", 1, { provider: "SANDBOX" });
     return {
       success: true,

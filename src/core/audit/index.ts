@@ -1,5 +1,7 @@
 import crypto from "crypto";
 import { NotificationService } from "../notifications/index.js";
+import { getPrismaClient } from "../database/index.js";
+import type { Prisma } from "@prisma/client";
 
 export interface AuditLogEntry {
   id?: string;
@@ -28,7 +30,8 @@ export interface NotificationResult {
   messageId: string;
   recipientId: string;
   channel: string;
-  status: "delivered" | "queued" | "failed";
+  status: "delivered" | "queued" | "failed" | "sandbox";
+  provider?: "SMTP" | "SES" | "TERMII" | "SANDBOX" | "UNCONFIGURED";
   dispatchedAt: Date;
 }
 
@@ -36,9 +39,30 @@ export interface NotificationResult {
 const auditLogStore: AuditLogEntry[] = [];
 let latestBlockHash = "0000000000000000000000000000000000000000000000000000000000000000";
 
-function computeEntryHash(previousHash: string, entry: Omit<AuditLogEntry, "entryHash">): string {
+/**
+ * Durability mode of the audit ledger (AUD-06):
+ * - "memory"      → in-memory chain only (offline / degraded persistence)
+ * - "prisma"      → every entry is also written to the Prisma `AuditLog` table
+ * - "prisma_error" → a Prisma write failed on the last entry
+ */
+export type AuditPersistenceMode = "memory" | "prisma" | "prisma_error";
+let persistenceMode: AuditPersistenceMode = "memory";
+
+export function getAuditPersistenceMode(): AuditPersistenceMode {
+  return persistenceMode;
+}
+
+export function computeAuditEntryHash(previousHash: string | undefined, entry: Omit<AuditLogEntry, "entryHash">): string {
+  return computeEntryHash(previousHash, entry);
+}
+
+export function _getAuditLogStoreForTesting(): AuditLogEntry[] {
+  return auditLogStore;
+}
+
+function computeEntryHash(previousHash: string | undefined, entry: Omit<AuditLogEntry, "entryHash">): string {
   const payload = [
-    previousHash,
+    previousHash || "",
     entry.id,
     entry.userId || "",
     entry.action,
@@ -80,6 +104,39 @@ export function recordAuditLog(entry: AuditLogEntry): AuditLogEntry {
 
   latestBlockHash = entryHash;
   auditLogStore.push(finalizedEntry);
+
+  // Durable persistence: append to the Prisma AuditLog table when reachable
+  // (AUD-06). The sync caller contract is preserved by issuing the write as a
+  // fire-and-forget task; the full hash-chain metadata is folded into
+  // changesJson so durable records remain independently tamper-evident.
+  // A failed write degrades the reported mode rather than throwing so audit
+  // logging can never break a business request path.
+  const durablePayload: Record<string, unknown> = {
+    changes: finalizedEntry.changes ?? null,
+    auditEntryHash: entryHash,
+    auditPreviousHash: previousHash,
+    auditTimestamp: timestamp.toISOString(),
+  };
+  void getPrismaClient()
+    .auditLog.create({
+      data: {
+        id: finalizedEntry.id!,
+        userId: finalizedEntry.userId || null,
+        action: finalizedEntry.action,
+        resource: finalizedEntry.resource,
+        resourceId: finalizedEntry.resourceId || null,
+        ipAddress: finalizedEntry.ipAddress || null,
+        userAgent: finalizedEntry.userAgent || null,
+        changesJson: durablePayload as unknown as Prisma.InputJsonObject,
+      },
+    })
+    .then(() => {
+      persistenceMode = "prisma";
+    })
+    .catch(() => {
+      persistenceMode = "prisma_error";
+    });
+
   return finalizedEntry;
 }
 
@@ -110,15 +167,20 @@ export function verifyAuditLogChainIntegrity(): { valid: boolean; verifiedCount:
 }
 
 /**
- * Retrieves audit logs for a given resource or user
+ * Retrieves audit logs for a given resource, action, user, or limit
  */
-export function getAuditLogs(filter?: { resource?: string; resourceId?: string; userId?: string }): AuditLogEntry[] {
-  return auditLogStore.filter((log) => {
+export function getAuditLogs(filter?: { resource?: string; resourceId?: string; userId?: string; action?: string; limit?: number }): AuditLogEntry[] {
+  let logs = auditLogStore.filter((log) => {
     if (filter?.resource && log.resource !== filter.resource) return false;
     if (filter?.resourceId && log.resourceId !== filter.resourceId) return false;
     if (filter?.userId && log.userId !== filter.userId) return false;
+    if (filter?.action && log.action !== filter.action) return false;
     return true;
   });
+  if (filter?.limit && filter.limit > 0) {
+    logs = logs.slice(-filter.limit);
+  }
+  return logs;
 }
 
 const notificationServiceSingleton = new NotificationService();
@@ -139,11 +201,13 @@ export async function dispatchNotification(payload: NotificationPayload): Promis
       subject: payload.title,
       htmlContent: `<p>${payload.body}</p>`,
     });
+    const status = res.provider === "SANDBOX" ? "sandbox" : res.success ? "delivered" : "failed";
     return {
       messageId: res.messageId,
       recipientId: payload.recipientId,
       channel: "email",
-      status: res.success ? "delivered" : "failed",
+      status,
+      provider: res.provider,
       dispatchedAt: res.timestamp,
     };
   }
@@ -153,11 +217,13 @@ export async function dispatchNotification(payload: NotificationPayload): Promis
       to: payload.recipientId,
       message: `${payload.title}: ${payload.body}`,
     });
+    const status = res.provider === "SANDBOX" ? "sandbox" : res.success ? "delivered" : "failed";
     return {
       messageId: res.messageId,
       recipientId: payload.recipientId,
       channel: "sms",
-      status: res.success ? "delivered" : "failed",
+      status,
+      provider: res.provider,
       dispatchedAt: res.timestamp,
     };
   }
@@ -166,7 +232,8 @@ export async function dispatchNotification(payload: NotificationPayload): Promis
     messageId,
     recipientId: payload.recipientId,
     channel: payload.channel,
-    status: "delivered",
+    status: "sandbox",
+    provider: "SANDBOX",
     dispatchedAt: new Date(),
   };
 }

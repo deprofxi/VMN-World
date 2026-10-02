@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <rect width="1200" height="630" fill="#0F172A"/>
+  <rect x="0" y="618" width="1200" height="12" fill="#E50914"/>
+  <circle cx="1100" cy="100" r="300" fill="#0369A1" opacity="0.15"/>
+  <text x="100" y="240" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="72" font-weight="900" fill="#38BDF8">VMNL</text>
+  <text x="100" y="320" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="44" font-weight="800" fill="#FFFFFF">Virtual Media Network Limited</text>
+  <text x="100" y="390" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="26" font-weight="600" fill="#94A3B8">Powering the African Creative Economy through Linear Broadcast, Hub Infrastructure, and Azeebo+</text>
+  <rect x="100" y="450" width="220" height="48" rx="8" fill="#0369A1"/>
+  <text x="210" y="482" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF" text-anchor="middle">vmnl.ng</text>
+</svg>

@@ -238,6 +238,14 @@ export class AgenticOperatingSystem {
     return [...this.auditLog];
   }
 
+  /**
+   * Read accessor for the console projection (SCR-18 tail): renders only the
+   * canonical registered agents — the console never invents agent rows.
+   */
+  public listAgents(): RegisteredAgent[] {
+    return Array.from(this.agents.values());
+  }
+
   private recordAudit(record: Omit<AgentAuditRecord, "id" | "timestamp">): void {
     this.auditLog.push({
       ...record,

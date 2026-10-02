@@ -79,6 +79,10 @@ export class TendDistributionEngine {
     return this.catalogue.get(id);
   }
 
+  public getCatalogueTitles(): CatalogueTitle[] {
+    return Array.from(this.catalogue.values());
+  }
+
   /**
    * Evaluates if a title is available for licensing in a specific territory, medium, and window.
    */
@@ -211,4 +215,142 @@ export class TendDistributionEngine {
   public getLicense(id: string): DistributionLicense | undefined {
     return this.licenses.get(id);
   }
+
+  /** Read accessor for the syndication desk avails matrix (SCR-18). */
+  public listLicenses(): DistributionLicense[] {
+    return Array.from(this.licenses.values());
+  }
+
+  // ---------------------------------------------------------------------------
+  // TODO-FIN-08: Distributor royalty statement CSV parser (TASK-P4-03)
+  //
+  // Accepts the standard distributor statement layout:
+  //   statement_id,license_id,period_start,period_end,views_or_impressions,
+  //   gross_royalty_usd[,commission_percent][,withholding_tax_percent]
+  // Validation is row-by-row: bad rows are REJECTED with reasons and good
+  // rows are ingested — one corrupt line never blocks the whole statement.
+  // Withholding comes from the license (the executed agreement is the truth);
+  // if the statement data carries a withholding_tax_percent that disagrees
+  // with the license the row is rejected rather than silently substituted.
+  // ---------------------------------------------------------------------------
+
+  public parseRoyaltyStatementCsv(csvText: string, options?: { commissionPercent?: number }): ParsedRoyaltyStatement {
+    const lines = csvText.split(/\r?\n/).filter((l) => l.trim().length > 0);
+    if (lines.length < 2) {
+      throw new Error("[TEND-CSV-01] Royalty statement CSV must contain a header row and at least one data row.");
+    }
+    const header = parseRoyaltyCsvLine(lines[0]).map((h) => h.trim().toLowerCase());
+    for (const col of ["statement_id", "license_id", "period_start", "period_end", "views_or_impressions", "gross_royalty_usd"]) {
+      if (!header.includes(col)) {
+        throw new Error(`[TEND-CSV-02] Missing required column '${col}'. Found: ${header.join(", ")}`);
+      }
+    }
+    const idx = (col: string) => header.indexOf(col);
+    const accepted: RoyaltyStatement[] = [];
+    const rejected: Array<{ row: number; statementId: string; error: string }> = [];
+
+    for (let i = 1; i < lines.length; i++) {
+      const cells = parseRoyaltyCsvLine(lines[i]);
+      const get = (col: string) => (idx(col) >= 0 ? (cells[idx(col)] || "").trim() : "");
+      const statementId = get("statement_id");
+      try {
+        if (!statementId) throw new Error("statement_id is empty");
+        const licenseId = get("license_id");
+        if (!licenseId) throw new Error("license_id is empty");
+        const periodStart = parseRoyaltyUtcDate(get("period_start"));
+        const periodEnd = parseRoyaltyUtcDate(get("period_end"));
+        if (!periodStart || !periodEnd) {
+          throw new Error(`unparseable period dates '${get("period_start")}'/'${get("period_end")}' (expected YYYY-MM-DD)`);
+        }
+        if (periodEnd <= periodStart) throw new Error("period_end must be after period_start");
+        const views = Number(get("views_or_impressions"));
+        if (!Number.isFinite(views) || views < 0) throw new Error(`invalid views_or_impressions '${get("views_or_impressions")}'`);
+        const gross = Number(get("gross_royalty_usd"));
+        if (!Number.isFinite(gross) || gross < 0) throw new Error(`invalid gross_royalty_usd '${get("gross_royalty_usd")}'`);
+
+        const license = this.licenses.get(licenseId);
+        if (!license) throw new Error(`[TEND-ROY-01] License '${licenseId}' not found.`);
+
+        const commissionPercent = options?.commissionPercent ?? (get("commission_percent") ? Number(get("commission_percent")) : undefined);
+        if (commissionPercent !== undefined && (!Number.isFinite(commissionPercent) || commissionPercent < 0 || commissionPercent > 100)) {
+          throw new Error("commission_percent must be 0..100");
+        }
+
+        const statedWht = get("withholding_tax_percent");
+        if (statedWht) {
+          const statedWhtNum = Number(statedWht);
+          if (!Number.isFinite(statedWhtNum) || statedWhtNum < 0 || statedWhtNum > 100) {
+            throw new Error("withholding_tax_percent must be 0..100");
+          }
+          if (statedWhtNum !== license.withholdingTaxPercent) {
+            throw new Error(`withholding_tax_percent ${statedWhtNum} disagrees with license ${license.withholdingTaxPercent} — no silent substitution`);
+          }
+        }
+
+        accepted.push(
+          this.ingestRoyaltyStatement({
+            id: statementId,
+            licenseId,
+            reportingPeriodStart: periodStart,
+            reportingPeriodEnd: periodEnd,
+            reportedViewsOrAdImpressions: Math.round(views),
+            grossRoyaltyUsd: Math.round(gross * 100) / 100,
+            commissionPercent,
+          })
+        );
+      } catch (err: any) {
+        rejected.push({ row: i + 1, statementId, error: String(err?.message || "unknown error") });
+      }
+    }
+
+    return { accepted, rejected, totalRows: lines.length - 1 };
+  }
+
+  /** Read accessor for ingested statements (optionally by license). */
+  public listRoyaltyStatements(licenseId?: string): RoyaltyStatement[] {
+    const all = Array.from(this.statements.values());
+    return licenseId ? all.filter((s) => s.licenseId === licenseId) : all;
+  }
+}
+
+export interface ParsedRoyaltyStatement {
+  accepted: RoyaltyStatement[];
+  rejected: Array<{ row: number; statementId: string; error: string }>;
+  totalRows: number;
+}
+
+function parseRoyaltyCsvLine(line: string): string[] {
+  const out: string[] = [];
+  let cur = "";
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (inQuotes) {
+      if (ch === '"') {
+        if (line[i + 1] === '"') {
+          cur += '"';
+          i++;
+        } else {
+          inQuotes = false;
+        }
+      } else {
+        cur += ch;
+      }
+    } else if (ch === '"') {
+      inQuotes = true;
+    } else if (ch === ",") {
+      out.push(cur);
+      cur = "";
+    } else {
+      cur += ch;
+    }
+  }
+  out.push(cur);
+  return out;
+}
+
+function parseRoyaltyUtcDate(value: string): Date | undefined {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return undefined;
+  const d = new Date(`${value}T00:00:00Z`);
+  return Number.isNaN(d.getTime()) ? undefined : d;
 }

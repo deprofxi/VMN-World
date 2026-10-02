@@ -26,6 +26,9 @@
  */
 
 import { PUBLIC_CHANNELS } from "./channels.js";
+import { renderVerticalLandingPageHtml } from "./hub.js";
+import { resolveNowAndNext, renderNowNextWidgetHtml, defaultViewerTimezone } from "./schedule-presentation.js";
+import { listSchedules } from "../../modules/broadcast/versions/index.js";
 
 // Helper for UI badges
 function renderBadge(text: string, type: "live" | "ready" | "info" = "info"): string {
@@ -35,7 +38,7 @@ function renderBadge(text: string, type: "live" | "ready" | "info" = "info"): st
 // 3. Nigezie Xtreme Channel Page (/channels/nxtr)
 // 4. Orisun Channel Page (/channels/orisun)
 // 5. Isi Mbido Channel Page (/channels/isimbido)
-export function renderChannelDetailPageHtml(channelCode: "NXTR" | "ORIS" | "IMBD"): string {
+export function renderChannelDetailPageHtml(channelCode: "NXTR" | "ORIS" | "IMBD", viewerTimezoneHeader?: string): string {
   const channel = PUBLIC_CHANNELS.find((c) => c.code === channelCode);
   if (!channel) {
     return `<div class="card" style="text-align:center; padding:48px 24px;"><h1>Channel Not Found</h1><p>The requested linear channel is not in the active registry.</p><a href="/channels" class="btn btn-primary" style="margin-top:16px;">&larr; Back to Channels</a></div>`;
@@ -75,13 +78,15 @@ export function renderChannelDetailPageHtml(channelCode: "NXTR" | "ORIS" | "IMBD
             <span><strong>Genre:</strong> ${channel.genre}</span>
             <span><strong>Language:</strong> ${channel.primaryLanguage}</span>
           </div>
-        </div>
-        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
+        </div>        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
           <a href="/azeebo" class="btn btn-primary">Watch on Azeebo+ &rarr;</a>
           <a href="/broadcast/screens/SCR-BCST-14" class="btn btn-outline" style="font-size:0.8rem;">EPG Syndication Spec</a>
         </div>
       </div>
     </div>
+
+    <!-- TODO-BCST-09: On Air Now / Up Next widget from the approved EPG schedule -->
+    ${renderNowNextWidgetHtml(resolveNowAndNext({ channelCode, schedules: listSchedules() }), defaultViewerTimezone(viewerTimezoneHeader))}
 
     <!-- On Air Now & Up Next Component -->
     <div class="grid-2" style="margin-top:0;">
@@ -205,255 +210,55 @@ export function renderPublicProgrammeDetailHtml(programmeId: string): string {
 
 // 8. Talent Accelerator Network (/hub/talent)
 export function renderTalentAcceleratorPageHtml(): string {
-  return `
-  <section style="display:flex; flex-direction:column; gap:24px;">
-    <nav aria-label="Breadcrumb" style="font-size:0.85rem; color:var(--vmn-text-muted);">
-      <a href="/" style="color:var(--vmn-secondary); text-decoration:none;">Home</a> &gt; 
-      <a href="/hub" style="color:var(--vmn-secondary); text-decoration:none;">Creative Hub</a> &gt; 
-      <span>Talent Accelerator</span>
-    </nav>
-
-    <div class="card" style="border-left:6px solid #0284C7;">
-      <h1 style="font-size:2.2rem; font-weight:800; color:var(--vmn-primary);">Talent Accelerator Network</h1>
-      <p style="font-size:1.15rem; color:var(--vmn-text-muted); margin-top:8px;">
-        VMNL's nationwide talent discovery and career acceleration engine, linking creative practitioners across Nigeria with production slates, broadcast syndication, and brand sponsorships.
-      </p>
-    </div>
-
-    <div class="grid-3" style="margin-top:0;">
-      <div class="card">
-        <h3>1. Multitier Evaluation</h3>
-        <p>Rigorous 5-point assessment evaluating technical competence, industry readiness, and creative originality.</p>
-        <span class="vmn-badge badge-ready">Tier 1 - Tier 4 Badges</span>
-      </div>
-      <div class="card">
-        <h3>2. Partner Hub Desks</h3>
-        <p>Physical partner co-working, rehearsal, and podcast recording spaces across Lagos, Abuja, Enugu, Ibadan, and Port Harcourt.</p>
-        <span class="vmn-badge badge-info">12 Nationwide Hubs</span>
-      </div>
-      <div class="card">
-        <h3>3. Commercial Representation</h3>
-        <p>VTM talent deal desk, standardized day rates, and 15% platform escrow-protected fee contracts.</p>
-        <span class="vmn-badge badge-ready">NDPR Compliant</span>
-      </div>
-    </div>
-
-    <!-- Application Form Card -->
-    <div class="card" style="max-width:720px; margin:0 auto; width:100%;">
-      <h2 style="font-size:1.3rem; font-weight:700; margin-bottom:12px;">Submit Accelerator Application</h2>
-      <form action="/api/v1/hub/talent/onboard" method="POST" style="display:flex; flex-direction:column; gap:16px;">
-        <div>
-          <label style="display:block; font-weight:600; margin-bottom:4px; font-size:0.9rem;">Full Legal Name</label>
-          <input type="text" name="fullName" required placeholder="e.g. Chioma Adebayo" style="width:100%; min-height:44px; padding:8px 12px; border:1px solid #CBD5E1; border-radius:6px; font-size:1rem;" />
-        </div>
-        <div>
-          <label style="display:block; font-weight:600; margin-bottom:4px; font-size:0.9rem;">Email Address</label>
-          <input type="email" name="email" required placeholder="chioma@example.com" style="width:100%; min-height:44px; padding:8px 12px; border:1px solid #CBD5E1; border-radius:6px; font-size:1rem;" />
-        </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-          <div>
-            <label style="display:block; font-weight:600; margin-bottom:4px; font-size:0.9rem;">Primary Discipline</label>
-            <select name="category" style="width:100%; min-height:44px; padding:8px 12px; border:1px solid #CBD5E1; border-radius:6px; font-size:1rem; background:white;">
-              <option value="ACTOR">Actor / Performer</option>
-              <option value="DIRECTOR">Director</option>
-              <option value="WRITER">Screenwriter</option>
-              <option value="CINEMATOGRAPHER">Cinematographer</option>
-              <option value="SOUND_ENGINEER">Sound Engineer</option>
-              <option value="EDITOR">Film & Video Editor</option>
-              <option value="MUSICIAN">Musician / Composer</option>
-            </select>
-          </div>
-          <div>
-            <label style="display:block; font-weight:600; margin-bottom:4px; font-size:0.9rem;">Preferred Hub Location</label>
-            <select name="hubLocation" style="width:100%; min-height:44px; padding:8px 12px; border:1px solid #CBD5E1; border-radius:6px; font-size:1rem; background:white;">
-              <option value="Lagos - Ikeja Hub">Lagos - Ikeja Central</option>
-              <option value="Lagos - Lekki Hub">Lagos - Lekki Phase 1</option>
-              <option value="Abuja - Wuse II Hub">Abuja - Wuse II</option>
-              <option value="Enugu - Independence Layout">Enugu - Independence</option>
-              <option value="Ibadan - Bodija Hub">Ibadan - Bodija</option>
-            </select>
-          </div>
-        </div>
-        <button type="submit" class="btn btn-primary" style="margin-top:8px;">Submit Application to National Registrar &rarr;</button>
-      </form>
-    </div>
-  </section>
-  `;
+  return renderVerticalLandingPageHtml("TALENT_ACCELERATOR");
 }
 
-// 9. Learn (AFCA Academy) (/hub/afca)
+// 9. Learn (AFCA Academy) (/hub/afca & /learn)
 export function renderAfcaAcademyPageHtml(): string {
-  return `
-  <section style="display:flex; flex-direction:column; gap:24px;">
-    <nav aria-label="Breadcrumb" style="font-size:0.85rem; color:var(--vmn-text-muted);">
-      <a href="/" style="color:var(--vmn-secondary); text-decoration:none;">Home</a> &gt; 
-      <a href="/hub" style="color:var(--vmn-secondary); text-decoration:none;">Creative Hub</a> &gt; 
-      <span>AFCA Academy</span>
-    </nav>
-
-    <div class="card" style="border-left:6px solid #16A34A;">
-      <h1 style="font-size:2.2rem; font-weight:800; color:var(--vmn-primary);">African Film & Creative Arts Academy (AFCA)</h1>
-      <p style="font-size:1.15rem; color:var(--vmn-text-muted); margin-top:8px;">
-        Accredited modular education in film production, broadcast operations, scriptwriting, and creative business management.
-      </p>
-    </div>
-
-    <div class="grid-3" style="margin-top:0;">
-      <div class="card">
-        <h3>Broadcast Television Engineering</h3>
-        <p>12-week comprehensive program covering playout automation, master control operations, audio loudness, and StarTimes transponder transmission.</p>
-        <div style="margin-top:12px;"><span class="vmn-badge badge-ready">Accredited Certificate</span></div>
-      </div>
-      <div class="card">
-        <h3>Cinematography & Lighting</h3>
-        <p>Hands-on studio masterclasses at ONE Studios with ARRI, RED, and Sony FX cinema packages under veteran Nigerian DPs.</p>
-        <div style="margin-top:12px;"><span class="vmn-badge badge-ready">Practical Studio Hours</span></div>
-      </div>
-      <div class="card">
-        <h3>Creative Commercial Management</h3>
-        <p>Entertainment law, rights licensing (TEND), IP valuation (HeadspaceNG), and slate finance structuring (VCF).</p>
-        <div style="margin-top:12px;"><span class="vmn-badge badge-info">Executive Masterclass</span></div>
-      </div>
-    </div>
-  </section>
-  `;
+  return renderVerticalLandingPageHtml("AFCA_ACADEMY");
 }
 
 // 10. Creators & Talent Gateway (/hub/creators)
 export function renderCreatorsGatewayPageHtml(): string {
-  return `
-  <section style="display:flex; flex-direction:column; gap:24px;">
-    <nav aria-label="Breadcrumb" style="font-size:0.85rem; color:var(--vmn-text-muted);">
-      <a href="/" style="color:var(--vmn-secondary); text-decoration:none;">Home</a> &gt; 
-      <a href="/hub" style="color:var(--vmn-secondary); text-decoration:none;">Creative Hub</a> &gt; 
-      <span>Creators & Talent</span>
-    </nav>
-    <div class="card" style="border-left:6px solid #D97706;">
-      <h1 style="font-size:2.2rem; font-weight:800; color:var(--vmn-primary);">Creators & Talent Gateway</h1>
-      <p style="font-size:1.15rem; color:var(--vmn-text-muted); margin-top:8px;">
-        Connecting social video creators, podcasters, and independent filmmakers to broadcast distribution and brand deals.
-      </p>
-      <div style="display:flex; gap:12px; margin-top:16px;">
-        <a href="/hub/talent" class="btn btn-primary">Join Talent Network</a>
-        <a href="/hub/vtm" class="btn btn-outline">Explore VTM Deals</a>
-      </div>
-    </div>
-  </section>
-  `;
+  return renderVerticalLandingPageHtml("TALENT_ACCELERATOR");
 }
 
 // 11. Afro-Fusion Creatives Community Presence (/hub/community)
 export function renderCommunityPresencePageHtml(): string {
-  return `
-  <section style="display:flex; flex-direction:column; gap:24px;">
-    <nav aria-label="Breadcrumb" style="font-size:0.85rem; color:var(--vmn-text-muted);">
-      <a href="/" style="color:var(--vmn-secondary); text-decoration:none;">Home</a> &gt; 
-      <a href="/hub" style="color:var(--vmn-secondary); text-decoration:none;">Creative Hub</a> &gt; 
-      <span>Afro-Fusion Creatives</span>
-    </nav>
-    <div class="card" style="border-left:6px solid #7C3AED;">
-      <h1 style="font-size:2.2rem; font-weight:800; color:var(--vmn-primary);">Afro-Fusion Creatives Community</h1>
-      <p style="font-size:1.15rem; color:var(--vmn-text-muted); margin-top:8px;">
-        The national guild, mentorship, and co-working workspace uniting over 10,000 African digital creatives.
-      </p>
-    </div>
-  </section>
-  `;
+  return renderVerticalLandingPageHtml("AFRO_FUSION_COMMUNITY");
 }
 
 // 12. VTM (Verified Talent Marketplace) (/hub/vtm)
 export function renderVtmMarketplacePageHtml(): string {
-  return `
-  <section style="display:flex; flex-direction:column; gap:24px;">
-    <nav aria-label="Breadcrumb" style="font-size:0.85rem; color:var(--vmn-text-muted);">
-      <a href="/" style="color:var(--vmn-secondary); text-decoration:none;">Home</a> &gt; 
-      <a href="/hub" style="color:var(--vmn-secondary); text-decoration:none;">Creative Hub</a> &gt; 
-      <span>VTM</span>
-    </nav>
-    <div class="card" style="border-left:6px solid #DC2626;">
-      <h1 style="font-size:2.2rem; font-weight:800; color:var(--vmn-primary);">Verified Talent Marketplace (VTM)</h1>
-      <p style="font-size:1.15rem; color:var(--vmn-text-muted); margin-top:8px;">
-        Protected engagements, automated rate cards, verified credentials, and escrow-backed milestone payouts.
-      </p>
-    </div>
-  </section>
-  `;
+  return renderVerticalLandingPageHtml("VTM_MANAGEMENT");
 }
 
 // 13. Production (ONE Studios & VCF) (/hub/production)
 export function renderProductionPageHtml(): string {
-  return `
-  <section style="display:flex; flex-direction:column; gap:24px;">
-    <nav aria-label="Breadcrumb" style="font-size:0.85rem; color:var(--vmn-text-muted);">
-      <a href="/" style="color:var(--vmn-secondary); text-decoration:none;">Home</a> &gt; 
-      <a href="/hub" style="color:var(--vmn-secondary); text-decoration:none;">Creative Hub</a> &gt; 
-      <span>Production (ONE Studios & VCF)</span>
-    </nav>
-    <div class="card" style="border-left:6px solid #0D9488;">
-      <h1 style="font-size:2.2rem; font-weight:800; color:var(--vmn-primary);">Production: ONE Studios & VCF</h1>
-      <p style="font-size:1.15rem; color:var(--vmn-text-muted); margin-top:8px;">
-        Soundstage infrastructure, camera gear rental, and 4-tier waterfall slate co-financing for premium African productions.
-      </p>
-    </div>
-  </section>
-  `;
+  return renderVerticalLandingPageHtml("ONE_STUDIOS");
+}
+
+export function renderVcfPageHtml(): string {
+  return renderVerticalLandingPageHtml("VCF_CONTENT_FUND");
+}
+
+export function renderOneStudiosPageHtml(): string {
+  return renderVerticalLandingPageHtml("ONE_STUDIOS");
 }
 
 // 14. Events (Fusion Events) (/hub/events)
 export function renderEventsPageHtml(): string {
-  return `
-  <section style="display:flex; flex-direction:column; gap:24px;">
-    <nav aria-label="Breadcrumb" style="font-size:0.85rem; color:var(--vmn-text-muted);">
-      <a href="/" style="color:var(--vmn-secondary); text-decoration:none;">Home</a> &gt; 
-      <a href="/hub" style="color:var(--vmn-secondary); text-decoration:none;">Creative Hub</a> &gt; 
-      <span>Fusion Events</span>
-    </nav>
-    <div class="card" style="border-left:6px solid #EC4899;">
-      <h1 style="font-size:2.2rem; font-weight:800; color:var(--vmn-primary);">Fusion Events</h1>
-      <p style="font-size:1.15rem; color:var(--vmn-text-muted); margin-top:8px;">
-        Experiential youth festivals, music concerts, and conferences with single-use HMAC-SHA256 turnstile verification.
-      </p>
-    </div>
-  </section>
-  `;
+  return renderVerticalLandingPageHtml("FUSION_EVENTS");
 }
 
 // 15. Technology (Cr8TechNG) (/hub/technology)
 export function renderTechnologyPageHtml(): string {
-  return `
-  <section style="display:flex; flex-direction:column; gap:24px;">
-    <nav aria-label="Breadcrumb" style="font-size:0.85rem; color:var(--vmn-text-muted);">
-      <a href="/" style="color:var(--vmn-secondary); text-decoration:none;">Home</a> &gt; 
-      <a href="/hub" style="color:var(--vmn-secondary); text-decoration:none;">Creative Hub</a> &gt; 
-      <span>Cr8TechNG</span>
-    </nav>
-    <div class="card" style="border-left:6px solid #0284C7;">
-      <h1 style="font-size:2.2rem; font-weight:800; color:var(--vmn-primary);">Cr8TechNG Creative Technology</h1>
-      <p style="font-size:1.15rem; color:var(--vmn-text-muted); margin-top:8px;">
-        Automated multilingual subtitling (English, Yoruba, Igbo, Hausa, Pidgin), AI social clipping, and broadcast watermarking.
-      </p>
-    </div>
-  </section>
-  `;
+  return renderVerticalLandingPageHtml("CR8TECH_NG");
 }
 
 // 16. Distribution & Syndication (TEND) (/hub/distribution)
 export function renderDistributionPageHtml(): string {
-  return `
-  <section style="display:flex; flex-direction:column; gap:24px;">
-    <nav aria-label="Breadcrumb" style="font-size:0.85rem; color:var(--vmn-text-muted);">
-      <a href="/" style="color:var(--vmn-secondary); text-decoration:none;">Home</a> &gt; 
-      <a href="/hub" style="color:var(--vmn-secondary); text-decoration:none;">Creative Hub</a> &gt; 
-      <span>TEND Distribution</span>
-    </nav>
-    <div class="card" style="border-left:6px solid #2563EB;">
-      <h1 style="font-size:2.2rem; font-weight:800; color:var(--vmn-primary);">TEND B2B Rights & Syndication</h1>
-      <p style="font-size:1.15rem; color:var(--vmn-text-muted); margin-top:8px;">
-        B2B international licensing, territorial rights windows, and catalog exploitation management across Africa and global diaspora.
-      </p>
-    </div>
-  </section>
-  `;
+  return renderVerticalLandingPageHtml("TEND_DISTRIBUTION");
 }
 
 // 17. Commercial Partners & Sponsors (/partners)
@@ -476,20 +281,7 @@ export function renderPartnersPageHtml(): string {
 
 // 18. Insights & Research (HeadspaceNG) (/insights)
 export function renderInsightsPageHtml(): string {
-  return `
-  <section style="display:flex; flex-direction:column; gap:24px;">
-    <nav aria-label="Breadcrumb" style="font-size:0.85rem; color:var(--vmn-text-muted);">
-      <a href="/" style="color:var(--vmn-secondary); text-decoration:none;">Home</a> &gt; 
-      <span>Insights & Research</span>
-    </nav>
-    <div class="card" style="border-left:6px solid #4F46E5;">
-      <h1 style="font-size:2.2rem; font-weight:800; color:var(--vmn-primary);">HeadspaceNG Strategic Intelligence</h1>
-      <p style="font-size:1.15rem; color:var(--vmn-text-muted); margin-top:8px;">
-        Cultural analytics, Nollywood benchmark rate cards, NBC regulatory guidelines, and African entertainment industry reports.
-      </p>
-    </div>
-  </section>
-  `;
+  return renderVerticalLandingPageHtml("HEADSPACE_NG");
 }
 
 // 19. Careers Directory (/careers)

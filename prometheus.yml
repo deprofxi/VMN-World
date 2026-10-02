@@ -6,7 +6,7 @@ scrape_configs:
   - job_name: "vmnl-app"
     metrics_path: "/metrics"
     static_configs:
-      - targets: ["app:4000"]
+      - targets: ["app:5500"]
         labels:
           environment: "production"
           service: "vmnl-enterprise-orchestrator"

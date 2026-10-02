@@ -22,7 +22,7 @@ export class RollingEpgScheduler {
     totalSlots: number;
     xmltvContent: string;
   } {
-    const channel = getChannelByCode(channelCode) || CANONICAL_CHANNELS[channelCode] || CANONICAL_CHANNELS["NXTR"];
+    const channel = getChannelByCode(channelCode) || CANONICAL_CHANNELS[channelCode] || CANONICAL_CHANNELS.nigezie_xtreme;
     const channelName = channel.name;
 
     const slots: ScheduleSlot[] = [];
@@ -32,12 +32,12 @@ export class RollingEpgScheduler {
       const currentDay = new Date(baseDate.getTime() + dayOffset * oneDayMs);
       const dateStr = currentDay.toISOString().split("T")[0];
 
-      // 4 dayparts per day: Morning, Afternoon, Prime, Night
+      // 4 dayparts per day: Midnight/Overnight, Morning, Afternoon, Prime
       const daypartSchedules = [
+        { title: `${channelName} Midnight Lounge`, startH: 0, durM: 360 },
         { title: `${channelName} Morning Dawn`, startH: 6, durM: 360 },
         { title: `${channelName} Midday Express`, startH: 12, durM: 360 },
         { title: `${channelName} Prime Special`, startH: 18, durM: 360 },
-        { title: `${channelName} Midnight Lounge`, startH: 24, durM: 360 },
       ];
 
       for (const dp of daypartSchedules) {

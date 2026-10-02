@@ -24,5 +24,14 @@ export default tseslint.config(
       ],
       "prefer-const": "error",
     },
+  },
+  // AUD-28: trust boundaries (API transport + core services) must not use
+  // untyped `any`. Per-module override keeps the rule targeted while the
+  // wider codebase migrates.
+  {
+    files: ["src/api/**/*.ts", "src/core/**/*.ts"],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "warn",
+    },
   }
 );

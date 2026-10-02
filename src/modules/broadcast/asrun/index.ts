@@ -242,7 +242,7 @@ export function generateProofOfAirDocument(cert: Omit<ProofOfAirCertificate, "do
   pdfBuffer: Buffer;
 } {
   const config = getConfig();
-  const baseUrl = config.APP_URL || "http://localhost:4000";
+  const baseUrl = config.APP_URL || "http://localhost:5500";
   const verificationUrl = `${baseUrl}/verify/poa/${cert.certificateId}`;
 
   const pdfBuffer = buildBinaryProofOfAirPdf({

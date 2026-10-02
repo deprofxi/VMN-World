@@ -51,17 +51,30 @@ export interface BroadcastReleaseGate {
   verifiedBy: string;
 }
 
+export interface ConditionsAcceptance {
+  acceptedBy: string;
+  role: string;
+  employeeId: string;
+  acceptedAt: Date;
+  acceptedConditions: string[];
+  rationale: string;
+}
+
+export interface HumanReleaseOwner {
+  name: string;
+  role: string;
+  employeeId: string;
+  signedAt: Date;
+}
+
 export interface BroadcastReleaseManifest {
   version: string;
   environment: "SANDBOX_S2" | "STAGING_S3" | "PRODUCTION_S5";
   gitCommitSha: string;
-  humanReleaseOwner: {
-    name: string;
-    role: string;
-    signedAt: Date;
-  };
-  decision: ReleaseDecision;
-  decisionRationale: string;
+  humanReleaseOwner: HumanReleaseOwner;
+  decision?: ReleaseDecision;
+  decisionRationale?: string;
+  conditionsAcceptance?: ConditionsAcceptance;
   gates: Record<BroadcastGateId, BroadcastReleaseGate>;
 }
 
@@ -85,6 +98,32 @@ export interface ReleaseManifest {
 
 export class ReleaseGatePipeline {
   /**
+   * Validates that the human release owner is an identified, accountable individual (F-9-13).
+   */
+  public static validateReleaseOwner(owner: HumanReleaseOwner): { valid: boolean; error?: string } {
+    if (!owner || !owner.name || owner.name.trim().length === 0) {
+      return { valid: false, error: "Human release owner name is required." };
+    }
+    const genericTitles = [
+      "broadcast architecture authority",
+      "architecture team",
+      "engineering lead",
+      "release authority",
+      "lead system architect",
+    ];
+    if (genericTitles.includes(owner.name.trim().toLowerCase())) {
+      return {
+        valid: false,
+        error: `Release owner '${owner.name}' is an organizational role label, not a named accountable person per §67.`,
+      };
+    }
+    if (!owner.employeeId || owner.employeeId.trim().length === 0) {
+      return { valid: false, error: "Human release owner employee identifier (employeeId) is required." };
+    }
+    return { valid: true };
+  }
+
+  /**
    * Evaluates the governing R1.2A §67 Broadcast Release Gates (BG0–BG9).
    */
   public static evaluateBroadcastRelease(manifest: BroadcastReleaseManifest): {
@@ -94,11 +133,18 @@ export class ReleaseGatePipeline {
     blockedGates: string[];
     untestedGates: string[];
     passedGates: string[];
+    ownerValidationError?: string;
   } {
     const failingGates: string[] = [];
     const blockedGates: string[] = [];
     const untestedGates: string[] = [];
     const passedGates: string[] = [];
+
+    const ownerCheck = this.validateReleaseOwner(manifest.humanReleaseOwner);
+    const ownerValidationError = ownerCheck.valid ? undefined : ownerCheck.error;
+    if (!ownerCheck.valid) {
+      failingGates.push(`HUMAN_RELEASE_OWNER: ${ownerCheck.error}`);
+    }
 
     const gateEntries = Object.entries(manifest.gates) as [BroadcastGateId, BroadcastReleaseGate][];
 
@@ -121,22 +167,42 @@ export class ReleaseGatePipeline {
     }
 
     let canDeploy = false;
-    let decision: ReleaseDecision = manifest.decision;
+    let decision: ReleaseDecision = "HOLD";
 
-    if (blockedGates.length > 0) {
+    if (blockedGates.length > 0 || !ownerCheck.valid) {
       decision = "NO_GO";
+      canDeploy = false;
+    } else if (untestedGates.length === gateEntries.length) {
+      // Invariant: An all-NOT_TESTED manifest can NEVER deploy under any circumstances (T9-15)
+      decision = "HOLD";
       canDeploy = false;
     } else if (untestedGates.length > 0) {
       if (manifest.environment === "PRODUCTION_S5") {
         decision = "HOLD";
         canDeploy = false;
       } else {
-        // In S2 sandbox, allow GO_WITH_CONDITIONS if explicitly signed off
-        decision = manifest.decision === "GO_WITH_CONDITIONS" ? "GO_WITH_CONDITIONS" : "HOLD";
-        canDeploy = decision === "GO_WITH_CONDITIONS";
+        // In non-prod S2/S3, allow GO_WITH_CONDITIONS ONLY if a signed conditionsAcceptance block exists
+        const acceptance = manifest.conditionsAcceptance;
+        const hasValidAcceptance =
+          acceptance &&
+          acceptance.acceptedBy &&
+          acceptance.acceptedBy.trim().length > 0 &&
+          acceptance.employeeId &&
+          acceptance.employeeId.trim().length > 0 &&
+          acceptance.acceptedConditions &&
+          acceptance.acceptedConditions.length > 0 &&
+          passedGates.length > 0;
+
+        if (hasValidAcceptance) {
+          decision = "GO_WITH_CONDITIONS";
+          canDeploy = true;
+        } else {
+          decision = "HOLD";
+          canDeploy = false;
+        }
       }
     } else if (failingGates.length === 0) {
-      decision = manifest.decision === "GO" ? "GO" : "GO_WITH_CONDITIONS";
+      decision = "GO";
       canDeploy = true;
     }
 
@@ -147,6 +213,7 @@ export class ReleaseGatePipeline {
       blockedGates,
       untestedGates,
       passedGates,
+      ownerValidationError,
     };
   }
 

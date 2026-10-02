@@ -37,9 +37,47 @@ export const OPENAPI_SPEC = {
     { name: "Intelligence & IP", description: "Headspace IP engine, Cr8Tech multilingual subtitling, and AOS kill switches" },
     { name: "Federation", description: "Azeebo+ deep linking, dynamic QR codes, and circuit breaker webhooks" },
     { name: "Finance & Commercial", description: "Quote-to-cash sales pipeline, talent payouts with WHT, and bank reconciliation" },
-    { name: "Quality & Governance", description: "Four-Tier Release Gates (Gates 0 to 3) evaluation and tri-party sign-offs" },
+    { name: "Quality & Governance", description: "Governing Broadcast Release Gates (BG0 to BG9) evaluation and sign-offs" },
   ],
   paths: {
+    "/api/v1/auth/login": {
+      post: {
+        tags: ["System"],
+        summary: "User Authentication & Session Issuance",
+        description: "Authenticates an enterprise operator or admin and returns a signed JWT session token with assigned RBAC roles.",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["email", "password"],
+                properties: {
+                  email: { type: "string", format: "email" },
+                  password: { type: "string" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "Session authenticated, token issued." },
+          "401": { description: "Invalid credentials." },
+        },
+      },
+    },
+    "/api/v1/auth/revoke": {
+      post: {
+        tags: ["System"],
+        summary: "Revoke Active Session Token",
+        description: "Explicitly terminates an active session and adds the token to the revocation blacklist.",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          "200": { description: "Session revoked successfully." },
+          "401": { description: "Unauthorized or missing token." },
+        },
+      },
+    },
     "/healthz": {
       get: {
         tags: ["System"],
@@ -197,8 +235,8 @@ export const OPENAPI_SPEC = {
     "/api/v1/broadcast/epg/{channelCode}": {
       get: {
         tags: ["Broadcast"],
-        summary: "Generate XMLTV EPG Feed",
-        description: "Produces standard XMLTV format EPG feed for StarTimes DTT/DTH carriage.",
+        summary: "Request XMLTV EPG Feed",
+        description: "Returns the channel's XMLTV feed when an approved schedule source is connected; sample scheduler data is not published as an operational feed.",
         parameters: [
           {
             name: "channelCode",
@@ -209,9 +247,11 @@ export const OPENAPI_SPEC = {
         ],
         responses: {
           "200": {
-            description: "XMLTV feed.",
+            description: "XMLTV feed from the approved schedule source.",
             content: { "application/xml; charset=utf-8": { schema: { type: "string" } } },
           },
+          "404": { description: "Channel not found." },
+          "503": { description: "No approved schedule source is connected; no feed is published." },
         },
       },
     },
@@ -266,15 +306,17 @@ export const OPENAPI_SPEC = {
             "application/json": {
               schema: {
                 type: "object",
-                required: ["fullName", "email", "category", "primarySkill", "hubLocation"],
+                required: ["fullName", "primaryCategory"],
                 properties: {
+                  id: { type: "string" },
+                  personId: { type: "string" },
                   fullName: { type: "string" },
-                  email: { type: "string", format: "email" },
-                  phone: { type: "string" },
-                  category: { type: "string", enum: ["ACTOR", "DIRECTOR", "WRITER", "CINEMATOGRAPHER", "SOUND_ENGINEER", "ANIMATOR", "MUSICIAN", "EDITOR"] },
-                  primarySkill: { type: "string" },
-                  experienceYears: { type: "integer" },
-                  hubLocation: { type: "string" },
+                  primaryCategory: { type: "string", enum: ["ACTING", "DIRECTING", "CINEMATOGRAPHY", "EDITING", "SOUND_DESIGN", "MUSIC", "ANIMATION", "CREW"] },
+                  locationCity: { type: "string" },
+                  locationState: { type: "string" },
+                  dayRateNgn: { type: "number" },
+                  bio: { type: "string" },
+                  skills: { type: "array", items: { type: "string" } },
                 },
               },
             },
@@ -282,6 +324,50 @@ export const OPENAPI_SPEC = {
         },
         responses: {
           "201": { description: "Talent onboarded and tiered successfully." },
+        },
+      },
+    },
+    "/api/v1/hub/talent/{id}": {
+      get: {
+        tags: ["Creative Economy Hub"],
+        summary: "Get Creative Talent Profile by ID",
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
+        responses: {
+          "200": { description: "Talent profile details." },
+          "404": { description: "Talent profile not found." },
+        },
+      },
+    },
+    "/api/v1/hub/vtm/match": {
+      post: {
+        tags: ["Creative Economy Hub"],
+        summary: "Match Talent to Production Roles",
+        description: "Executes rule-based and rubric matching between available talent profiles and open production character/crew briefs.",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  category: { type: "string" },
+                  skills: { type: "array", items: { type: "string" } },
+                  location: { type: "string" },
+                  maxDayRateNgn: { type: "number" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "Ranked talent matching results." },
         },
       },
     },
@@ -447,12 +533,13 @@ export const OPENAPI_SPEC = {
       post: {
         tags: ["Federation"],
         summary: "Ingest Azeebo+ Event Mesh Webhook",
-        description: "Protected by HMAC signature verification and isolated by circuit breaker.",
+        description: "Accepts a federation event for dispatch. The production partner signature, timestamp, and replay-protection contract is not yet verified; this route does not currently authenticate the advertised Azeebo+ signature header and must not be used as a production webhook receiver.",
         parameters: [
           {
             name: "X-Azeebo-Signature",
             in: "header",
-            required: true,
+            required: false,
+            description: "Reserved pending verification of the partner signature contract; not validated by the current handler.",
             schema: { type: "string" },
           },
         ],
@@ -461,8 +548,8 @@ export const OPENAPI_SPEC = {
           content: { "application/json": { schema: { type: "object" } } },
         },
         responses: {
-          "200": { description: "Webhook accepted and queued." },
-          "401": { description: "Invalid HMAC signature." },
+          "200": { description: "Event handled by the current prototype dispatch path; delivery is not verified." },
+          "503": { description: "Federation dependency or circuit is unavailable." },
         },
       },
     },
@@ -559,24 +646,112 @@ export const OPENAPI_SPEC = {
         },
       },
     },
+    "/api/v1/webhooks/paystack": {
+      post: {
+        tags: ["Finance & Commercial"],
+        summary: "Paystack Payment Webhook Ingestion",
+        description: "Ingests payment notifications with HMAC-SHA512 signature validation.",
+        security: [{ paystackSignature: [] }],
+        parameters: [
+          {
+            name: "x-paystack-signature",
+            in: "header",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: { "application/json": { schema: { type: "object" } } },
+        },
+        responses: {
+          "200": { description: "Webhook accepted and processed." },
+          "401": { description: "Invalid HMAC signature." },
+        },
+      },
+    },
+    "/api/v1/webhooks/flutterwave": {
+      post: {
+        tags: ["Finance & Commercial"],
+        summary: "Flutterwave Payment Webhook Ingestion",
+        description: "Ingests charge and transfer webhooks with verif-hash validation.",
+        security: [{ flutterwaveSignature: [] }],
+        parameters: [
+          {
+            name: "verif-hash",
+            in: "header",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: { "application/json": { schema: { type: "object" } } },
+        },
+        responses: {
+          "200": { description: "Webhook accepted and processed." },
+          "401": { description: "Invalid verification hash." },
+        },
+      },
+    },
+    "/api/v1/audit/logs": {
+      get: {
+        tags: ["System"],
+        summary: "Query Immutable Cryptographic Audit Ledger",
+        description: "Returns tamper-evident audit log records filtered by resource, action, and actor. Gated behind Auditor/Finance RBAC.",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: "resource", in: "query", schema: { type: "string" } },
+          { name: "action", in: "query", schema: { type: "string" } },
+          { name: "userId", in: "query", schema: { type: "string" } },
+        ],
+        responses: {
+          "200": { description: "Audit trail entries." },
+          "403": { description: "Auditor or Finance authorization required." },
+        },
+      },
+    },
+    "/api/v1/audit/verify": {
+      get: {
+        tags: ["System"],
+        summary: "Verify Cryptographic Audit Hash-Chain Integrity",
+        description: "Traverses all recorded audit log blocks and recalculates SHA-256 links to detect unauthorized payload mutations or record deletions.",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          "200": { description: "Chain integrity validation results." },
+          "403": { description: "Auditor or Executive authorization required." },
+        },
+      },
+    },
     "/api/v1/quality/gates": {
       post: {
         tags: ["Quality & Governance"],
-        summary: "Evaluate Four-Tier Release Gates (Gates 0 to 3)",
-        description: "Validates pre-flight, dry-run, parallel run, and transmission authorization gates with tri-party operational sign-offs.",
+        summary: "Evaluate Broadcast Release Gates (BG0 to BG9)",
+        description: "Validates pre-flight, catalogue, rights, schedule, traffic, playout, carriage, finance, Azeebo+, and continuity release gates (BG0–BG9) per R1.2A §67 with human release owner sign-off.",
         requestBody: {
           required: true,
           content: {
             "application/json": {
               schema: {
                 type: "object",
-                required: ["version", "gitCommitSha", "gates", "isReadyForProduction", "signOffSignatures"],
+                required: ["version", "gitCommitSha", "gates", "humanReleaseOwner"],
                 properties: {
                   version: { type: "string" },
                   gitCommitSha: { type: "string" },
+                  environment: { type: "string", enum: ["SANDBOX_S2", "STAGING_S3", "PRODUCTION_S5"] },
+                  humanReleaseOwner: {
+                    type: "object",
+                    required: ["name", "role", "employeeId", "signedAt"],
+                    properties: {
+                      name: { type: "string" },
+                      role: { type: "string" },
+                      employeeId: { type: "string" },
+                      signedAt: { type: "string", format: "date-time" },
+                    },
+                  },
+                  decision: { type: "string", enum: ["GO", "GO_WITH_CONDITIONS", "HOLD", "NO_GO"] },
+                  conditionsAcceptance: { type: "object" },
                   gates: { type: "object" },
-                  isReadyForProduction: { type: "boolean" },
-                  signOffSignatures: { type: "array", items: { type: "object" } },
                 },
               },
             },
@@ -588,11 +763,34 @@ export const OPENAPI_SPEC = {
       },
     },
   },
+  components: {
+    securitySchemes: {
+      bearerAuth: {
+        type: "http",
+        scheme: "bearer",
+        bearerFormat: "JWT",
+      },
+      paystackSignature: {
+        type: "apiKey",
+        in: "header",
+        name: "x-paystack-signature",
+      },
+      flutterwaveSignature: {
+        type: "apiKey",
+        in: "header",
+        name: "verif-hash",
+      },
+    },
+  },
 };
 
 export function renderDocsHtml(): string {
   const tags = OPENAPI_SPEC.tags;
   const paths = OPENAPI_SPEC.paths;
+  const totalEndpointCount = Object.values(paths).reduce(
+    (acc, m) => acc + Object.keys(m).length,
+    0
+  );
 
   const endpointCards = tags
     .map((tag) => {
@@ -672,7 +870,7 @@ export function renderDocsHtml(): string {
     <!-- Overview Stats -->
     <div class="grid-3" style="margin-top:0;">
       <div class="card stat-box">
-        <span class="stat-val">20</span>
+        <span class="stat-val">${totalEndpointCount}</span>
         <span class="stat-lbl">Enterprise REST Endpoints</span>
       </div>
       <div class="card stat-box">
@@ -680,8 +878,8 @@ export function renderDocsHtml(): string {
         <span class="stat-lbl">Schema Standard</span>
       </div>
       <div class="card stat-box">
-        <span class="stat-val">100%</span>
-        <span class="stat-lbl">Automated Test Coverage</span>
+        <span class="stat-val">BG0–BG9</span>
+        <span class="stat-lbl">Broadcast Release Gates</span>
       </div>
     </div>
 

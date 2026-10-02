@@ -17,6 +17,7 @@
 
 import crypto from "crypto";
 import { BankTransactionRecord } from "./index.js";
+import { toKobo, fromKobo, parseDecimalToKobo } from "../../../core/domain/types.js";
 
 export interface Mt940StatementHeader {
   transactionReference: string;
@@ -83,8 +84,8 @@ export class Mt940Parser {
         const isCredit = content.charAt(0) === "C";
         const dateStr = content.substring(1, 7); // YYMMDD
         currency = content.substring(7, 10);
-        const amountStr = content.substring(10).replace(",", ".");
-        openingBalance = parseFloat(amountStr) * (isCredit ? 1 : -1);
+        const kobo = parseDecimalToKobo(content.substring(10));
+        openingBalance = fromKobo(kobo) * (isCredit ? 1 : -1);
         openingBalanceDate = this.parseSwiftDate(dateStr);
       } else if (line.startsWith(":61:")) {
         // Commit previous line if exists
@@ -132,7 +133,7 @@ export class Mt940Parser {
         let ref = "";
 
         if (match) {
-          amount = parseFloat(match[1].replace(",", "."));
+          amount = fromKobo(parseDecimalToKobo(match[1]));
           txType = match[2];
           const rawRef = match[3].trim();
           ref = rawRef.includes("//") ? rawRef.split("//")[1].trim() : rawRef.replace(/^\/\//, "").trim();
@@ -140,7 +141,7 @@ export class Mt940Parser {
           // Fallback parsing
           const numMatch = remainder.match(/^[0-9,.]+/);
           if (numMatch) {
-            amount = parseFloat(numMatch[0].replace(",", "."));
+            amount = fromKobo(parseDecimalToKobo(numMatch[0]));
             ref = remainder.substring(numMatch[0].length).trim();
           }
         }
@@ -176,8 +177,8 @@ export class Mt940Parser {
         const content = line.substring(5);
         const isCredit = content.charAt(0) === "C";
         const dateStr = content.substring(1, 7);
-        const amountStr = content.substring(10).replace(",", ".");
-        closingBalance = parseFloat(amountStr) * (isCredit ? 1 : -1);
+        const kobo = parseDecimalToKobo(content.substring(10));
+        closingBalance = fromKobo(kobo) * (isCredit ? 1 : -1);
         closingBalanceDate = this.parseSwiftDate(dateStr);
       }
     }
@@ -193,13 +194,16 @@ export class Mt940Parser {
       });
     }
 
-    const totalCreditsNgn = statementLines
+    const totalCreditsKobo = statementLines
       .filter((l) => l.isCredit)
-      .reduce((sum, l) => sum + l.amountNgn, 0);
+      .reduce((sum, l) => sum + toKobo(l.amountNgn), 0);
 
-    const totalDebitsNgn = statementLines
+    const totalDebitsKobo = statementLines
       .filter((l) => !l.isCredit)
-      .reduce((sum, l) => sum + l.amountNgn, 0);
+      .reduce((sum, l) => sum + toKobo(l.amountNgn), 0);
+
+    const totalCreditsNgn = fromKobo(totalCreditsKobo);
+    const totalDebitsNgn = fromKobo(totalDebitsKobo);
 
     return {
       header: {
@@ -243,19 +247,25 @@ export class Mt940Parser {
 
 export class PaymentGatewayWebhookValidator {
   /**
-   * Verifies Paystack HMAC-SHA512 webhook signature.
+   * Verifies Paystack HMAC-SHA512 webhook signature using constant-time comparison.
    */
   public static verifyPaystackSignature(rawBody: string, signatureHeader: string, secretKey: string): boolean {
     if (!signatureHeader || !secretKey) return false;
     const hash = crypto.createHmac("sha512", secretKey).update(rawBody).digest("hex");
-    return hash === signatureHeader;
+    const hashBuf = Buffer.from(hash, "utf8");
+    const sigBuf = Buffer.from(signatureHeader, "utf8");
+    if (hashBuf.length !== sigBuf.length) return false;
+    return crypto.timingSafeEqual(hashBuf, sigBuf);
   }
 
   /**
-   * Verifies Flutterwave secret hash webhook header.
+   * Verifies Flutterwave secret hash webhook header using constant-time comparison.
    */
   public static verifyFlutterwaveSignature(secretHashHeader: string, configuredSecretHash: string): boolean {
     if (!secretHashHeader || !configuredSecretHash) return false;
-    return secretHashHeader === configuredSecretHash;
+    const headerBuf = Buffer.from(secretHashHeader, "utf8");
+    const configuredBuf = Buffer.from(configuredSecretHash, "utf8");
+    if (headerBuf.length !== configuredBuf.length) return false;
+    return crypto.timingSafeEqual(headerBuf, configuredBuf);
   }
 }

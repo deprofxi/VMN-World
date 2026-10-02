@@ -59,8 +59,9 @@ describe("Phase 9: Quality Gates & Golden Datasets", () => {
         environment: "PRODUCTION_S5" as const,
         gitCommitSha: "abc1234",
         humanReleaseOwner: {
-          name: "Chief Technology Officer",
+          name: "Dr. Babatunde Adeyemi",
           role: "Release Authority",
+          employeeId: "VMNL-CTO-001",
           signedAt: new Date(),
         },
         decision: "GO" as const,
@@ -99,6 +100,70 @@ describe("Phase 9: Quality Gates & Golden Datasets", () => {
       expect(readyResult.canDeploy).toBe(true);
       expect(readyResult.decision).toBe("GO");
       expect(readyResult.passedGates.length).toBe(10);
+    });
+
+    it("strictly blocks deployment when all gates are NOT_TESTED even if decision claims GO_WITH_CONDITIONS (T9-15, F-9-13)", () => {
+      const allUntestedGates: any = {};
+      const gateIds = [
+        "BG0_CHANNEL_AUTHORITY", "BG1_CATALOGUE", "BG2_RIGHTS", "BG3_SCHEDULE",
+        "BG4_TRAFFIC", "BG5_PLAYOUT", "BG6_CARRIAGE", "BG7_FINANCE", "BG8_AZEEBO", "BG9_CONTINUITY"
+      ] as const;
+
+      for (const id of gateIds) {
+        allUntestedGates[id] = {
+          id,
+          name: id,
+          description: "Untested gate",
+          status: "NOT_TESTED",
+          evaluatedAt: new Date(),
+          verifiedBy: "Tester",
+        };
+      }
+
+      const allUntestedManifest: BroadcastReleaseManifest = {
+        version: "1.0.0-rc1",
+        environment: "SANDBOX_S2",
+        gitCommitSha: "abc1234",
+        humanReleaseOwner: {
+          name: "Femi Aderibigbe",
+          role: "Executive Chairman",
+          employeeId: "VMNL-EXEC-001",
+          signedAt: new Date(),
+        },
+        decision: "GO_WITH_CONDITIONS", // Attempting self-certification without tested evidence!
+        gates: allUntestedGates,
+      };
+
+      const result = ReleaseGatePipeline.evaluateBroadcastRelease(allUntestedManifest);
+      expect(result.canDeploy).toBe(false);
+      expect(result.decision).toBe("HOLD");
+      expect(result.untestedGates.length).toBe(10);
+    });
+
+    it("requires a named accountable person with employeeId for humanReleaseOwner (T9-15, F-9-13)", () => {
+      const invalidOwner1 = {
+        name: "Broadcast Architecture Authority", // Generic title rejected
+        role: "Release Authority",
+        employeeId: "VMNL-001",
+        signedAt: new Date(),
+      };
+      expect(ReleaseGatePipeline.validateReleaseOwner(invalidOwner1).valid).toBe(false);
+
+      const invalidOwner2 = {
+        name: "Femi Aderibigbe",
+        role: "Release Authority",
+        employeeId: "", // Missing employeeId rejected
+        signedAt: new Date(),
+      };
+      expect(ReleaseGatePipeline.validateReleaseOwner(invalidOwner2).valid).toBe(false);
+
+      const validOwner = {
+        name: "Femi Aderibigbe",
+        role: "Executive Chairman",
+        employeeId: "VMNL-EXEC-001",
+        signedAt: new Date(),
+      };
+      expect(ReleaseGatePipeline.validateReleaseOwner(validOwner).valid).toBe(true);
     });
   });
 });

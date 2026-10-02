@@ -7,15 +7,10 @@
  * and reconciliation of aired commercial inventory to legally enforceable invoices.
  */
 
-export type DaypartClassification = "EARLY_MORNING" | "DAYTIME" | "EARLY_FRINGE" | "PRIME_TIME" | "LATE_NIGHT";
+import { PROVISIONAL_RATE_CARDS, RateCardEntry } from "./rate-cards.config.js";
+export { RateCardEntry, PROVISIONAL_RATE_CARDS };
 
-export interface RateCardEntry {
-  channelCode: string;
-  daypart: DaypartClassification;
-  baseRate30sNgn: number;
-  premiumMultiplier: number; // e.g. 1.35 for live events, 1.20 for top chart premieres
-  currency: string;
-}
+export type DaypartClassification = "EARLY_MORNING" | "DAYTIME" | "EARLY_FRINGE" | "PRIME_TIME" | "LATE_NIGHT";
 
 export interface CommercialBillingSchedule {
   id: string;
@@ -32,53 +27,49 @@ export interface CommercialBillingSchedule {
   endDate: Date;
 }
 
+/** TODO-FIN-07: missed-spot obligation raised from as-run reconciliation. */
+export interface BillingMakeGood {
+  id: string;
+  campaignCode: string;
+  spotId: string;
+  reason: "PREEMPTED" | "TECHNICAL_ERROR" | "SHORT_AIR" | "NOT_AIRED";
+  valueNgn: number;
+  status: "OPEN" | "CREDITED";
+  creditNoteId?: string;
+  createdAt: Date;
+}
+
+/** TODO-FIN-07: contra document for a missed spot — never revenue. */
+export interface CreditNote {
+  id: string;
+  campaignCode: string;
+  spotId: string;
+  makeGoodId: string;
+  valueNgn: number;
+  reason: BillingMakeGood["reason"];
+  issuedBy: string;
+  note?: string;
+  issuedAt: Date;
+}
+
 export class BroadcastBillingEngine {
   private rateCards = new Map<string, RateCardEntry>();
   private billingSchedules = new Map<string, CommercialBillingSchedule>();
+  private makeGoods = new Map<string, BillingMakeGood>();
+  private creditNotes = new Map<string, CreditNote>();
 
-  constructor() {
-    this.seedDefaultRateCards();
+  constructor(initialRateCards: RateCardEntry[] = PROVISIONAL_RATE_CARDS) {
+    this.seedRateCards(initialRateCards);
   }
 
-  private seedDefaultRateCards(): void {
-    const channels = ["NXTR", "ORIS", "IMBD"];
-    for (const ch of channels) {
-      this.rateCards.set(`${ch}:PRIME_TIME`, {
-        channelCode: ch,
-        daypart: "PRIME_TIME",
-        baseRate30sNgn: 450_000,
-        premiumMultiplier: 1.25,
-        currency: "NGN",
-      });
-      this.rateCards.set(`${ch}:DAYTIME`, {
-        channelCode: ch,
-        daypart: "DAYTIME",
-        baseRate30sNgn: 250_000,
-        premiumMultiplier: 1.0,
-        currency: "NGN",
-      });
-      this.rateCards.set(`${ch}:LATE_NIGHT`, {
-        channelCode: ch,
-        daypart: "LATE_NIGHT",
-        baseRate30sNgn: 150_000,
-        premiumMultiplier: 1.0,
-        currency: "NGN",
-      });
-      this.rateCards.set(`${ch}:EARLY_MORNING`, {
-        channelCode: ch,
-        daypart: "EARLY_MORNING",
-        baseRate30sNgn: 180_000,
-        premiumMultiplier: 1.0,
-        currency: "NGN",
-      });
-      this.rateCards.set(`${ch}:EARLY_FRINGE`, {
-        channelCode: ch,
-        daypart: "EARLY_FRINGE",
-        baseRate30sNgn: 280_000,
-        premiumMultiplier: 1.1,
-        currency: "NGN",
-      });
+  public seedRateCards(cards: RateCardEntry[]): void {
+    for (const card of cards) {
+      this.rateCards.set(`${card.channelCode}:${card.daypart}`, card);
     }
+  }
+
+  public getRateCard(channelCode: string, daypart: DaypartClassification): RateCardEntry | undefined {
+    return this.rateCards.get(`${channelCode}:${daypart}`);
   }
 
   public calculateSpotPrice(
@@ -154,5 +145,138 @@ export class BroadcastBillingEngine {
 
   public getBillingSchedule(campaignCode: string): CommercialBillingSchedule | undefined {
     return this.billingSchedules.get(campaignCode);
+  }
+
+  // ---------------------------------------------------------------------------
+  // TODO-FIN-07: Broadcast billing ← as-run linkage (TASK-P2-11)
+  //
+  // Revenue recognition for linear commercials is delivery-based: a spot
+  // earns contract value only when a matched as-run record proves it aired
+  // in full (tamper-evident certificates live in the as-run module). Missed
+  // spots (PREEMPTED / TECHNICAL_ERROR / absent from the log) become
+  // make-good obligations that resolve into credit notes — a credit note is
+  // a contra item, never revenue (canonical law 5 / FIN-01 labelling).
+  // ---------------------------------------------------------------------------
+
+  public generateBillingScheduleFromAsRun(params: {
+    campaignCode: string;
+    clientName: string;
+    brand: string;
+    channelCode: string;
+    contractedSpots: number;
+    asRunItems: Array<{
+      spotId: string;
+      campaignId: string;
+      status: "AIRED_FULL" | "PARTIAL" | "PREEMPTED" | "TECHNICAL_ERROR";
+      expectedDurationSeconds: number;
+      actualDurationSeconds?: number;
+      daypart?: DaypartClassification;
+    }>;
+    startDate: Date;
+    endDate: Date;
+  }): { schedule: CommercialBillingSchedule; makeGoods: BillingMakeGood[]; matchedCount: number; missedCount: number } {
+    if (params.asRunItems.length === 0) {
+      throw new Error("[BIL-ASRUN-01] No as-run records supplied — billing cannot be generated without delivery evidence.");
+    }
+    if (params.contractedSpots <= 0) {
+      throw new Error("[BIL-ASRUN-02] contractedSpots must be positive.");
+    }
+
+    const seenSpotIds = new Set<string>();
+    let matchedValueNgn = 0;
+    let matchedCount = 0;
+    const makeGoods: BillingMakeGood[] = [];
+
+    for (const item of params.asRunItems) {
+      if (seenSpotIds.has(item.spotId)) {
+        throw new Error(`[BIL-ASRUN-03] Duplicate as-run spot '${item.spotId}' — each spot may appear once per campaign reconciliation.`);
+      }
+      seenSpotIds.add(item.spotId);
+
+      const spotValueNgn = this.calculateSpotPrice(params.channelCode, item.daypart ?? "DAYTIME", item.expectedDurationSeconds);
+      const airedFull = item.status === "AIRED_FULL" && (item.actualDurationSeconds ?? 0) >= item.expectedDurationSeconds;
+
+      if (airedFull) {
+        matchedCount += 1;
+        matchedValueNgn += spotValueNgn;
+      } else {
+        const reason: BillingMakeGood["reason"] =
+          item.status === "PREEMPTED" ? "PREEMPTED" : item.status === "TECHNICAL_ERROR" ? "TECHNICAL_ERROR" : item.status === "PARTIAL" ? "SHORT_AIR" : "NOT_AIRED";
+        makeGoods.push({
+          id: `MG-${params.campaignCode}-${item.spotId}`,
+          campaignCode: params.campaignCode,
+          spotId: item.spotId,
+          reason,
+          valueNgn: spotValueNgn,
+          status: "OPEN",
+          createdAt: new Date(),
+        });
+      }
+    }
+
+    // Delivery-based recognition: only matched as-run value is recognised.
+    // The pre-existing createBillingSchedule path stays for contracted-value
+    // scheduling; this path records delivered value, not contract value.
+    const schedule: CommercialBillingSchedule = {
+      id: `BIL-${params.campaignCode}-ASRUN-${Date.now().toString(36).toUpperCase()}`,
+      campaignCode: params.campaignCode,
+      clientName: params.clientName,
+      brand: params.brand,
+      channelCode: params.channelCode,
+      contractedSpots: params.contractedSpots,
+      airedSpotsMatched: matchedCount,
+      totalContractValueNgn: 0, // contract value lives on the commercial deal; this projection is delivery-based
+      recognizedRevenueNgn: matchedValueNgn,
+      billingStatus: matchedCount >= params.contractedSpots ? "READY_FOR_INVOICE" : "AIRING_IN_PROGRESS",
+      startDate: params.startDate,
+      endDate: params.endDate,
+    };
+    this.billingSchedules.set(params.campaignCode, schedule);
+    for (const mg of makeGoods) {
+      this.makeGoods.set(mg.id, mg);
+    }
+
+    return { schedule, makeGoods, matchedCount, missedCount: makeGoods.length };
+  }
+
+  /** Issues a credit note against an OPEN make-good obligation. */
+  public issueCreditNoteForMakeGood(params: { makeGoodId: string; issuedBy: string; note?: string }): CreditNote {
+    const makeGood = this.makeGoods.get(params.makeGoodId);
+    if (!makeGood) {
+      throw new Error(`[BIL-MG-01] Make-good '${params.makeGoodId}' not found.`);
+    }
+    if (makeGood.status !== "OPEN") {
+      throw new Error(`[BIL-MG-02] Make-good '${params.makeGoodId}' is already '${makeGood.status}'.`);
+    }
+    if (!params.issuedBy || params.issuedBy.trim().length === 0) {
+      throw new Error("[BIL-MG-03] issuedBy is mandatory (auditable credit authority). Finance owns the credit treatment.");
+    }
+    const note: CreditNote = {
+      id: `CN-${makeGood.campaignCode}-${makeGood.spotId}`,
+      campaignCode: makeGood.campaignCode,
+      spotId: makeGood.spotId,
+      makeGoodId: makeGood.id,
+      valueNgn: makeGood.valueNgn,
+      reason: makeGood.reason,
+      issuedBy: params.issuedBy.trim(),
+      note: params.note,
+      issuedAt: new Date(),
+    };
+    makeGood.status = "CREDITED";
+    makeGood.creditNoteId = note.id;
+    this.creditNotes.set(note.id, note);
+    return note;
+  }
+
+  public listMakeGoods(params?: { campaignCode?: string; status?: BillingMakeGood["status"] }): BillingMakeGood[] {
+    let all = [...this.makeGoods.values()];
+    if (params?.campaignCode) all = all.filter((m) => m.campaignCode === params.campaignCode);
+    if (params?.status) all = all.filter((m) => m.status === params.status);
+    return all;
+  }
+
+  public listCreditNotes(campaignCode?: string): CreditNote[] {
+    const all = [...this.creditNotes.values()];
+    return campaignCode ? all.filter((c) => c.campaignCode === campaignCode) : all;
   }
 }

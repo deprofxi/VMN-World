@@ -352,6 +352,18 @@ export class TalentAcceleratorRegistry {
     return Array.from(this.hubs.values());
   }
 
+  /**
+   * Registers a new institutional partner hub (SCR-18 accelerator intake).
+   * Mirrors the seeded hub shape; duplicate IDs are rejected.
+   */
+  public registerHub(hub: PartnerHub): PartnerHub {
+    if (this.hubs.has(hub.id)) {
+      throw new Error(`[TALENT-HUB-01] Partner hub '${hub.id}' already exists.`);
+    }
+    this.hubs.set(hub.id, hub);
+    return hub;
+  }
+
   private getProfileOrThrow(id: string): TalentAcceleratorProfile {
     const profile = this.profiles.get(id);
     if (!profile) {

@@ -74,14 +74,38 @@ export async function runCli(args: string[] = process.argv.slice(2)): Promise<nu
       };
 
 
+      const allowDrift = args.includes("--allow-sha-drift") || process.env.ALLOW_SHA_DRIFT === "true";
+      if (!allowDrift && broadcastManifest.gitCommitSha && broadcastManifest.gitCommitSha !== "HEAD") {
+        try {
+          const { execSync } = await import("node:child_process");
+          const currentSha = execSync("git rev-parse HEAD", { encoding: "utf-8" }).trim();
+          if (
+            currentSha &&
+            !currentSha.startsWith(broadcastManifest.gitCommitSha) &&
+            !broadcastManifest.gitCommitSha.startsWith(currentSha)
+          ) {
+            console.warn(
+              `[VMNL-CLI] Notice: Manifest SHA (${broadcastManifest.gitCommitSha.substring(0, 7)}) diverges from current HEAD (${currentSha.substring(0, 7)}).`
+            );
+          }
+        } catch {
+          // Non-blocking in non-git environments
+        }
+      }
+
       const result = ReleaseGatePipeline.evaluateBroadcastRelease(broadcastManifest);
       if (result.canDeploy) {
         console.log("[VMNL-CLI] ALL R1.2A §67 BROADCAST GATES EVALUATED (BG0 to BG9).");
         console.log(`[VMNL-CLI] Release Decision: ${result.decision}`);
         console.log(`[VMNL-CLI] Environment: ${broadcastManifest.environment}`);
-        console.log(`[VMNL-CLI] Human Release Owner: ${broadcastManifest.humanReleaseOwner.name} (${broadcastManifest.humanReleaseOwner.role})`);
+        console.log(
+          `[VMNL-CLI] Human Release Owner: ${broadcastManifest.humanReleaseOwner.name} (${broadcastManifest.humanReleaseOwner.role})`
+        );
         result.passedGates.forEach((g) => console.log(`  - [PASSED] ${g}`));
-        console.log("[VMNL-CLI] STATUS: RELEASE CLEARED FOR SANDBOX S2 TARGET.");
+        if (result.untestedGates.length > 0) {
+          result.untestedGates.forEach((g) => console.log(`  - [CONDITION/UNTESTED] ${g}`));
+        }
+        console.log(`[VMNL-CLI] STATUS: RELEASE CLEARED FOR SANDBOX S2 TARGET (${result.decision}).`);
         return 0;
       } else {
         console.error("[VMNL-CLI] BROADCAST RELEASE GATES FAILED:");
@@ -148,7 +172,7 @@ Usage: vmnl <command> [options]
 
 Commands:
   seed                   Generate deterministic golden master datasets
-  gates:check            Evaluate release gates (Gates 0-3) and sign-off manifests
+  gates:check            Evaluate broadcast release gates (BG0–BG9) and sign-off manifests
   epg:export --channel   Export standard XMLTV EPG feed (e.g. NXTR, ORIS, IMBD)
   screens:list           List all 33 broadcast operational screen descriptors
   config:verify          Validate active environment variables against schema

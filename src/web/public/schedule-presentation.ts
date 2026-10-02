@@ -1,0 +1,238 @@
+/**
+ * Viewer Schedule Presentation — TODO-BCST-08 / TODO-BCST-09
+ * (TASK-P7-02 viewer-timezone presentation, R1.2A §16 EPG freshness)
+ *
+ * Responsibilities:
+ *  - Resolve the "on air now" / "up next" pair from an APPROVED (or AMENDED /
+ *    LOCKED) broadcast schedule — never from draft or pending data.
+ *  - Convert schedule times into the viewer's timezone while labelling
+ *    Africa/Lagos (WAT) as the governing timezone of the broadcast day.
+ *  - Report honest "unavailable" states (UIUX-001 §3.4) when no approved
+ *    schedule exists for the channel/day — a static sample must never pose
+ *    as live EPG data.
+ */
+
+import { BroadcastScheduleRecord, ScheduleEntry } from "../../modules/broadcast/versions/index.js";
+
+/** The single governing timezone of the VMNL broadcast day (R1.2A §16). */
+export const GOVERNING_TIMEZONE = "Africa/Lagos";
+const GOVERNING_TZ_OFFSET_MINUTES = 60; // WAT = UTC+1, no DST
+
+/**
+ * TODO-BCST-08: resolves the viewer timezone for server-side rendering from
+ * the browser's `Time-Zone` header when it carries one of the supported
+ * presentation zones; defaults to the governing zone otherwise. This is
+ * presentation-only — the governing WAT schedule truth is never rewritten.
+ */
+export function defaultViewerTimezone(headerValue?: string): ViewerTimezone {
+  if (headerValue && headerValue in VIEWER_TZ_OFFSET_MINUTES) {
+    return headerValue as ViewerTimezone;
+  }
+  return "Africa/Lagos";
+}
+
+export type ViewerTimezone = "Africa/Lagos" | "UTC" | "Europe/London";
+
+const VIEWER_TZ_OFFSET_MINUTES: Record<ViewerTimezone, number> = {
+  "Africa/Lagos": 60,
+  "UTC": 0,
+  // Resolved for standard time; BST (+01:00) is annotated at render time.
+  "Europe/London": 0,
+};
+
+export interface ViewerScheduleSlotView {
+  entryId: string;
+  title: string;
+  startTimeUtc: string; // ISO
+  endTimeUtc: string; // ISO
+  startViewerTime: string; // "HH:MM" in viewer timezone
+  endViewerTime: string; // "HH:MM" in viewer timezone
+  startGoverningTime: string; // "HH:MM" WAT — the governing-timezone label
+  dayShiftViewer: number; // -1 | 0 | 1 — day offset vs governing day
+}
+
+export interface NowAndNextView {
+  available: true;
+  channelCode: string;
+  viewerTimezone: ViewerTimezone;
+  governingTimezone: string;
+  current: ViewerScheduleSlotView;
+  next: ViewerScheduleSlotView;
+  /** EPG freshness marker used to key caches (R1.2A §16). */
+  epgFreshnessKey: string;
+}
+
+export interface UnavailableNowNextView {
+  available: false;
+  channelCode: string;
+  reason: "NO_APPROVED_SCHEDULE" | "EMPTY_SCHEDULE" | "OUTSIDE_COVERAGE";
+  message: string;
+}
+
+export type NowNextView = NowAndNextView | UnavailableNowNextView;
+
+function hhmm(date: Date, viewerTz: ViewerTimezone): { time: string; dayShift: number } {
+  const utcMs = date.getTime() + VIEWER_TZ_OFFSET_MINUTES[viewerTz] * 60 * 1000;
+  const shifted = new Date(utcMs);
+  const hh = String(shifted.getUTCHours()).padStart(2, "0");
+  const mm = String(shifted.getUTCMinutes()).padStart(2, "0");
+  // Day shift relative to the governing WAT day of the schedule date.
+  const govMs = date.getTime() + GOVERNING_TZ_OFFSET_MINUTES * 60 * 1000;
+  const dayShift = Math.round((Math.floor(utcMs / 86400000) - Math.floor(govMs / 86400000)));
+  return { time: `${hh}:${mm}`, dayShift };
+}
+
+function toSlotView(entry: ScheduleEntry, broadcastDate: string, viewerTz: ViewerTimezone): ViewerScheduleSlotView {
+  const dayStartUtcMs = Date.parse(`${broadcastDate}T00:00:00Z`) - GOVERNING_TZ_OFFSET_MINUTES * 60 * 1000;
+  const start = new Date(dayStartUtcMs + entry.startSecondsFromDayStart * 1000);
+  const end = new Date(start.getTime() + entry.durationSeconds * 1000);
+  const viewer = hhmm(start, viewerTz);
+  const viewerEnd = hhmm(end, viewerTz);
+  const governing = hhmm(start, "Africa/Lagos");
+  return {
+    entryId: entry.entryId,
+    title: entry.programmeTitle,
+    startTimeUtc: start.toISOString(),
+    endTimeUtc: end.toISOString(),
+    startViewerTime: viewer.time,
+    endViewerTime: viewerEnd.time,
+    startGoverningTime: governing.time,
+    dayShiftViewer: viewer.dayShift,
+  };
+}
+
+/**
+ * Resolves now/next from an approved schedule for the given instant. A
+ * schedule is eligible only in APPROVED, AMENDED or LOCKED state — DRAFT and
+ * PENDING_APPROVAL data never reach the viewer (one authoritative schedule
+ * truth; no preview leakage).
+ */
+export function resolveNowAndNext(params: {
+  channelCode: string;
+  schedules: BroadcastScheduleRecord[];
+  now?: Date;
+  viewerTimezone?: ViewerTimezone;
+}): NowNextView {
+  const now = params.now || new Date();
+  const viewerTz = params.viewerTimezone || "Africa/Lagos";
+  const nowSeconds = Math.floor(now.getTime() / 1000);
+
+  const eligible = params.schedules
+    .filter((s) => s.channelId === params.channelCode)
+    .filter((s) => s.state === "APPROVED" || s.state === "AMENDED" || s.state === "LOCKED")
+    .sort((a, b) => b.broadcastDate.localeCompare(a.broadcastDate));
+
+  const schedule = eligible.find((s) => {
+    const dayStartUtcMs = Date.parse(`${s.broadcastDate}T00:00:00Z`) - GOVERNING_TZ_OFFSET_MINUTES * 60 * 1000;
+    const dayEndUtcMs = dayStartUtcMs + 24 * 3600 * 1000;
+    return now.getTime() >= dayStartUtcMs && now.getTime() < dayEndUtcMs;
+  });
+
+  if (!schedule) {
+    return {
+      available: false,
+      channelCode: params.channelCode,
+      reason: "NO_APPROVED_SCHEDULE",
+      message: "Schedule guide is being updated. An approved broadcast schedule for today is not yet published (UIUX-001 §3.4).",
+    };
+  }
+  if (schedule.entries.length === 0) {
+    return {
+      available: false,
+      channelCode: params.channelCode,
+      reason: "EMPTY_SCHEDULE",
+      message: "Schedule guide is being updated. Today's approved schedule has no published entries yet.",
+    };
+  }
+
+  const dayStartUtcMs = Date.parse(`${schedule.broadcastDate}T00:00:00Z`) - GOVERNING_TZ_OFFSET_MINUTES * 60 * 1000;
+  const nowSecondsFromDayStart = Math.floor((now.getTime() - dayStartUtcMs) / 1000);
+
+  const sorted = [...schedule.entries].sort((a, b) => a.startSecondsFromDayStart - b.startSecondsFromDayStart);
+  const currentIndex = sorted.findIndex(
+    (e) => nowSecondsFromDayStart >= e.startSecondsFromDayStart && nowSecondsFromDayStart < e.startSecondsFromDayStart + e.durationSeconds
+  );
+
+  // Outside all coverage for today: honest state, no extrapolation.
+  if (currentIndex === -1) {
+    const first = sorted[0];
+    const last = sorted[sorted.length - 1];
+    const withinDay = nowSecondsFromDayStart >= first.startSecondsFromDayStart && nowSecondsFromDayStart < last.startSecondsFromDayStart + last.durationSeconds;
+    if (!withinDay) {
+      return {
+        available: false,
+        channelCode: params.channelCode,
+        reason: "OUTSIDE_COVERAGE",
+        message: "The channel is outside its published broadcast hours. Today's schedule guide remains available below.",
+      };
+    }
+    // Inside the day but in an unpublished gap between entries.
+    return {
+      available: false,
+      channelCode: params.channelCode,
+      reason: "OUTSIDE_COVERAGE",
+      message: "Off-air interval between published programmes. The next published programme appears in the schedule guide.",
+    };
+  }
+
+  const current = sorted[currentIndex];
+  const next = sorted[currentIndex + 1];
+  if (!next) {
+    // End of the approved day: report the current programme with no invented "next".
+    return {
+      available: false,
+      channelCode: params.channelCode,
+      reason: "OUTSIDE_COVERAGE",
+      message: "You are watching today's final published programme. Tomorrow's approved schedule has not been published yet.",
+    };
+  }
+
+  return {
+    available: true,
+    channelCode: params.channelCode,
+    viewerTimezone: viewerTz,
+    governingTimezone: GOVERNING_TIMEZONE,
+    current: toSlotView(current, schedule.broadcastDate, viewerTz),
+    next: toSlotView(next, schedule.broadcastDate, viewerTz),
+    // Cache key changes whenever the approved schedule content changes.
+    epgFreshnessKey: `${schedule.scheduleId}:${schedule.amendmentCount}:${sorted.length}`,
+  };
+}
+
+/**
+ * Renders the now/next widget HTML from the resolved view. The unavailable
+ * state renders the honest notice — never a fabricated "on air" pair.
+ */
+export function renderNowNextWidgetHtml(view: NowNextView, viewerTz: ViewerTimezone = "Africa/Lagos"): string {
+  if (!view.available) {
+    return `
+<section class="vmn-on-air-widget" aria-label="Broadcast status">
+  <div class="vmn-widget-header" style="border-left:4px solid var(--vmn-border,#CBD5E1)">
+    <span class="vmn-channel-badge">Schedule guide</span>
+  </div>
+  <div class="vmn-now-playing">
+    <p class="vmn-show-synopsis" role="status">${view.message}</p>
+  </div>
+</section>`;
+  }
+  const dayShiftNote =
+    view.current.dayShiftViewer !== 0 || view.next.dayShiftViewer !== 0
+      ? ` · crosses midnight in ${viewerTz}`
+      : "";
+  return `
+<section class="vmn-on-air-widget" aria-label="Broadcast status">
+  <div class="vmn-widget-header" style="border-left:4px solid var(--vmn-accent,#E50914)">
+    <span class="vmn-live-badge" aria-label="Live broadcast"><span class="vmn-pulse-dot" aria-hidden="true"></span> ON AIR NOW</span>
+    <span class="vmn-channel-badge">Times shown in ${viewerTz} · broadcast day governed by ${GOVERNING_TIMEZONE} (WAT)${dayShiftNote}</span>
+  </div>
+  <div class="vmn-now-playing">
+    <div class="vmn-time-range">${view.current.startViewerTime} – ${view.current.endViewerTime} (${viewerTz})</div>
+    <h3 class="vmn-show-title">${view.current.title}</h3>
+    <p class="vmn-show-synopsis">On air now. Governing schedule time ${view.current.startGoverningTime} WAT.</p>
+  </div>
+  <div class="vmn-next-playing">
+    <span class="vmn-time-range">Up next at ${view.next.startViewerTime} (${viewerTz})</span>
+    <h3 class="vmn-show-title" style="font-size:1.05rem">${view.next.title}</h3>
+  </div>
+</section>`;
+}

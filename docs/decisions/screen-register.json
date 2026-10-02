@@ -1,0 +1,179 @@
+{
+  "document": "VMNL-REG-SCREENS-001",
+  "documentId": "VMNL-AZP-VMN-UIUX-REG-001",
+  "version": "R1.1",
+  "generatedAt": "2026-09-30",
+  "authority": "VMNL-AZP-VMN-UIUX-CCPP-001 R1.1 §2.1 (source-register reconciliation entry gate) / TODO-GVR-02, TODO-GVR-03",
+  "reconciliationStatus": "RECONCILED_AGAINST_REPOSITORY_2026-09-30",
+  "note": "Every evidence path was verified to exist in the repository at reconciliation time. Counts are computed at run time by tests/unit/screen-register.test.ts and the loader in src/core/config/screen-register.ts; the summary block is validated against them.",
+  "statusValues": {
+    "IMPLEMENTED": "Screen wired to a real domain service or persistence",
+    "MOCK": "Screen rendered but data is hardcoded/mock; mutations audit-only or labelled demo seed",
+    "MISSING": "Screen ID specified in UIUX-001 R1.1 but no implementation surface exists",
+    "DEFERRED": "Formally deferred under DEC-RL1-SCOPE-001; informational/absent by decision",
+    "ALIAS": "Screen shares a template with another ID; alias recorded"
+  },
+  "knownConflicts": [
+    {
+      "id": "UX-VTM-010",
+      "docxDefinition": "Deployment Readiness (V)",
+      "repoImplementation": "Digital signature acceptance form (renderVtmTermsReviewHtml / POST /api/v1/vtm/contracts/:id/sign)",
+      "resolution": "Implementation retitled 'Engagement Acceptance & Signature'; alias recorded. UX-VTM-011 Payment Visibility implemented 2026-10-01 at /portal/vtm/payment-visibility (TODO-SCR-20).",
+      "status": "RESOLVED_ALIAS"
+    }
+  ],
+  "routeConventions": {
+    "note": "TODO-GVR-03: docx §6.3 routes are PROPOSED values; repo conventions are preserved per CCPP §2.1 (no silent renumbering).",
+    "docxToRepo": {
+      "/work": "/workspace",
+      "/work/commercial/enquiries": "/api/v1/enquiries + /workspace/traffic",
+      "/portal/learning/applications": "/apply/status/:ref",
+      "/portal/talent/engagements/:id/terms": "/vtm/terms",
+      "/portal/client/organisations/:orgId/projects": "SAME (implemented as specified)",
+      "/work/broadcast/channels/:id/schedules/:id": "/broadcast/schedule/review"
+    }
+  },
+  "groups": [
+    {
+      "group": "Public discovery (UX-PUB)",
+      "docSource": "UIUX-001 §4.1",
+      "entries": [
+        { "id": "UX-PUB-001..028", "name": "Public marketing & discovery surfaces", "status": "IMPLEMENTED", "route": "/, /channels, /programmes/:id, /hub*, /partners, /insights, /careers, /contact", "evidence": "src/web/public/ renderers wired in src/api/router.ts" }
+      ]
+    },
+    {
+      "group": "Identity & system (UX-SYS)",
+      "docSource": "UIUX-001 §8.4",
+      "entries": [
+        { "id": "UX-SYS-001", "name": "Sign In", "status": "IMPLEMENTED", "route": "/sign-in", "evidence": "src/web/public/auth-screens.ts; bcrypt auth in src/core/auth/index.ts" },
+        { "id": "UX-SYS-002", "name": "MFA / Step-Up", "status": "IMPLEMENTED", "route": "/auth/mfa", "evidence": "src/core/auth/totp.ts + router POST /auth/mfa (2026-09-30)" },
+        { "id": "UX-SYS-003", "name": "Account Recovery", "status": "IMPLEMENTED", "route": "/auth/recovery", "evidence": "src/core/auth/mfa.ts requestAccountRecovery; anti-enumeration; NotificationService dispatch" },
+        { "id": "UX-SYS-004", "name": "Invitation Acceptance", "status": "IMPLEMENTED", "route": "/auth/invitation", "evidence": "src/core/auth/invitations.ts full validation chain wired in router" },
+        { "id": "UX-SYS-005", "name": "First-Use Profile", "status": "IMPLEMENTED", "route": "/auth/profile-setup", "evidence": "SEC-04 remainder (2026-10-01): saveFirstUseProfile persists validated displayName/phone/timezone (src/core/auth/sessions.ts); router POST /auth/profile-setup audits and redirects on success/error (tests/unit/todo-final-remediation.test.ts)" },
+        { "id": "UX-SYS-006..011", "name": "Workspace selection, session expired, access denied/request, sign-out, settings", "status": "IMPLEMENTED", "route": "/select-workspace, /auth/session-expired, /access-denied, /access-request, /sign-out, /account/profile", "evidence": "src/web/public/auth-screens.ts + router; sign-out revokes real tokens" },
+        { "id": "UX-SYS-012", "name": "Notification Preferences", "status": "IMPLEMENTED", "route": "/account/notifications", "evidence": "src/core/auth/sessions.ts saveNotificationPreferences wired to form POST" },
+        { "id": "UX-SYS-013", "name": "Active Sessions", "status": "IMPLEMENTED", "route": "/account/sessions", "evidence": "src/core/auth/sessions.ts registry; revoke endpoints revoke real tokens" },
+        { "id": "UX-SYS-014", "name": "Contextual Help", "status": "IMPLEMENTED", "route": "/help/operator", "evidence": "src/web/public/auth-screens.ts renderContextualHelpHtml" }
+      ]
+    },
+    {
+      "group": "Shared work navigation (UX-HUB)",
+      "docSource": "UIUX-001 §8.5",
+      "entries": [
+        { "id": "UX-HUB-001", "name": "My Work", "status": "IMPLEMENTED", "route": "/workspace/my-work", "evidence": "src/web/workspace/work-hub.ts over src/core/work/index.ts task graph (2026-09-30)" },
+        { "id": "UX-HUB-002", "name": "Authorised Search", "status": "IMPLEMENTED", "route": "/workspace/search + GET /api/v1/search", "evidence": "authorisedSearch in src/core/work/index.ts; role+tenant scoped" },
+        { "id": "UX-HUB-003", "name": "Notifications", "status": "IMPLEMENTED", "route": "/workspace/notifications", "evidence": "deliverInAppNotification + listInAppNotifications in src/core/auth/sessions.ts; preference-aware" },
+        { "id": "UX-HUB-004", "name": "Management Overview", "status": "IMPLEMENTED", "route": "/workspace/management/overview", "evidence": "SCR-19 (2026-09-30): computed live from canonical engines (channels, carriage, Quote-to-Cash pipeline, talent registry); recognised revenue kept distinct from cash (FIN-01). Executive metric dictionary breadth remains pending DEC D-10" },
+        { "id": "UX-HUB-005", "name": "Workspace Directory", "status": "IMPLEMENTED", "route": "/workspace", "evidence": "ENTERPRISE_WORKSPACES directory rendered by router" }
+      ]
+    },
+    {
+      "group": "Commercial (UX-COM/UX-PRJ)",
+      "docSource": "UIUX-001 §5.3",
+      "entries": [
+        { "id": "UX-COM-001..003", "name": "Commercial overview / org directory / org detail", "status": "MOCK", "route": "surface-bc desk", "evidence": "src/web/workspace/surface-bc.ts presentation shell; CRM projection pending" },
+        { "id": "UX-COM-004", "name": "Lead Intake", "status": "IMPLEMENTED", "route": "/enquiry + GET /api/v1/enquiries", "evidence": "src/modules/hub/enquiry/index.ts durable store with idempotency" },
+        { "id": "UX-COM-005..009", "name": "Opportunity / proposal / quote / contract / campaign", "status": "MOCK", "route": "/workspace/commercial/*", "evidence": "SCR-17 closed for UX-COM-006/007 (2026-09-30): canonical CommercialProposalStore + QuoteToCashSalesEngine handoff with dual-authorisation acceptance (tests/unit/scr-desk-rewiring.test.ts). COM-005/008/009 remain presentation shell" },
+        { "id": "UX-COM-010", "name": "Delivery Overview", "status": "IMPLEMENTED", "route": "/portal/client/:orgId/projects/:projectId", "evidence": "src/web/portal/client-portal.ts commitments table; org isolation via getClientOrgRelationship (2026-09-30)" },
+        { "id": "UX-PRJ-001", "name": "Project Portfolio", "status": "MOCK", "route": "surface-bc desk", "evidence": "src/web/workspace/surface-bc.ts presentation shell" },
+        { "id": "UX-PRJ-002", "name": "Project Workspace", "status": "IMPLEMENTED", "route": "/portal/client/:orgId/projects/:projectId", "evidence": "src/web/portal/client-portal.ts; TODO-SEC-07 isolation enforced" }
+      ]
+    },
+    {
+      "group": "Broadcast operations (UX-BR / SCR-BCST)",
+      "docSource": "UIUX-001 §4.3; R1.2A §46",
+      "entries": [
+        { "id": "UX-BR-001..033", "name": "Broadcast 33 operational screens", "status": "MOCK", "route": "/broadcast/*", "evidence": "src/web/broadcast/index.ts sample decision/KPI constants retained as labelled demonstration data behind provenance banner (DEC C-4); RBAC 401/403 enforced; TODO-BCST-01 engine wiring remains open" },
+        { "id": "UX-BR-012", "name": "Schedule Review", "status": "IMPLEMENTED", "route": "/broadcast/schedule/review", "evidence": "src/web/workspace/governance-and-operations.ts read-only review with blocker explanations" },
+        { "id": "UX-BR-030", "name": "POA Exceptions Workbench", "status": "IMPLEMENTED", "route": "/broadcast/asrun/exceptions", "evidence": "src/web/workspace/governance-and-operations.ts + asrun reconcile engine" }
+      ]
+    },
+    {
+      "group": "Governance & evidence (UX-GOV)",
+      "docSource": "UIUX-001 §5.4, §5.6, §8.14",
+      "entries": [
+        { "id": "UX-GOV-001..002", "name": "Approval Queue / Decision Review", "status": "IMPLEMENTED", "route": "/workspace/approvals", "evidence": "src/core/approvals/index.ts four-eyes domain; decide endpoint enforces authority/SOD/stale-revision (2026-09-30)" },
+        { "id": "UX-GOV-003", "name": "Rights Source Record", "status": "IMPLEMENTED", "route": "/workspace/governance/records", "evidence": "src/web/workspace/governance-registers.ts projection over RightsRecordEntity (read-only)" },
+        { "id": "UX-GOV-004", "name": "Rights Review Request", "status": "IMPLEMENTED", "route": "/broadcast/rights/review-request", "evidence": "src/web/workspace/governance-and-operations.ts + src/core/rights/index.ts lifecycle; request never clears rights" },
+        { "id": "UX-GOV-005", "name": "Financial Reference", "status": "IMPLEMENTED", "route": "/workspace/governance/records", "evidence": "governance-registers.ts projectFinancialReference (7-way separated)" },
+        { "id": "UX-GOV-006", "name": "Delivery Exception", "status": "IMPLEMENTED", "route": "/broadcast/asrun/exceptions", "evidence": "governance-and-operations.ts workbench + asrun exceptions resolve" },
+        { "id": "UX-GOV-007", "name": "Evidence Viewer", "status": "IMPLEMENTED", "route": "/workspace/governance/records", "evidence": "governance-registers.ts projectEvidence over EvidenceEntity" },
+        { "id": "UX-GOV-008", "name": "Authorised Activity / Audit View", "status": "IMPLEMENTED", "route": "/workspace/governance/records", "evidence": "governance-registers.ts audit view; read:audit role-gated server-side" },
+        { "id": "UX-GOV-009", "name": "Privacy Request Case", "status": "IMPLEMENTED", "route": "/workspace/cases/privacy", "evidence": "src/core/cases/index.ts restricted queue; owner-only reads; router page (2026-09-30)" },
+        { "id": "UX-GOV-010", "name": "Security Report Case", "status": "IMPLEMENTED", "route": "/workspace/cases/security", "evidence": "src/core/cases/index.ts; 24h SLA; owner-only reads" }
+      ]
+    },
+    {
+      "group": "Content operations (UX-CMS)",
+      "docSource": "UIUX-001 §5.5, §8.13",
+      "entries": [
+        { "id": "UX-CMS-001..006", "name": "Content queue/editor/preview/publication", "status": "IMPLEMENTED", "route": "/workspace/content/review + /workspace/content/media-picker + /api/v1/workspace/content*", "evidence": "src/core/content/index.ts revision engine wired into router (2026-09-30); SCR-03 (2026-10-01) added the approved media picker (UX-CMS-006) over the canonical MediaAssetRecord registry with provenance + access state per UIUX-001 §7.3, plus the editor form embedding the picker as checkbox mediaAssetIds with server-side [CMS-11] registry validation (tests/unit/todo-final-remediation.test.ts SCR-03 describes)" },
+        { "id": "UX-CMS-007", "name": "Azeebo+ Destination Registry", "status": "IMPLEMENTED", "route": "/api/v1/federation/destinations", "evidence": "src/core/federation/destinations.ts verified allowlist + HX-13 fallback" },
+        { "id": "UX-CMS-008", "name": "Enquiry Routing Config", "status": "IMPLEMENTED", "route": "/api/v1/enquiries/routing-config", "evidence": "destinations.ts routing rules; audit-logged updates" }
+      ]
+    },
+    {
+      "group": "Administration (UX-ADM)",
+      "docSource": "UIUX-001 §5.7, §5.8",
+      "entries": [
+        { "id": "UX-ADM-001", "name": "Access & Membership Admin", "status": "IMPLEMENTED", "route": "/workspace/admin/access", "evidence": "SCR-13 (2026-10-01): read-only session/membership console over listAllSessions + ROLE_PERMISSIONS (src/web/workspace/admin-consoles.ts); no mutation path — identity-provider delegation for writes remains the §5.7 disposition (DEC-RL1-SCOPE-001); SuperAdmin-only via WORKSPACE_HTML_GUARDS" },
+        { "id": "UX-ADM-002", "name": "Integration Health", "status": "IMPLEMENTED", "route": "/workspace/cr8tech/operations", "evidence": "SCR-14/SCR-18 (2026-09-30): health from authoritative runtime state (Azeebo circuit, queue worker); unconfigured SaaS integrations render explicit NOT_CONFIGURED with owner/deferral; invented endpoints removed (tests/unit/extended-workspaces.test.ts)" },
+        { "id": "UX-ADM-003", "name": "Approved Routing & Source Mappings", "status": "IMPLEMENTED", "route": "/workspace/admin/source-mappings", "evidence": "SCR-15 (2026-10-01): HX-01..14 approved-source registry (src/core/config/source-mappings.ts) rendered read-only by src/web/workspace/admin-consoles.ts; SuperAdmin-only via WORKSPACE_HTML_GUARDS" },
+        { "id": "UX-ADM-004", "name": "Release Availability Config", "status": "IMPLEMENTED", "route": "/admin/feature-flags", "evidence": "src/web/public/admin-feature-flags.ts + flag API" }
+      ]
+    },
+    {
+      "group": "Shared records (UX-REC)",
+      "docSource": "UIUX-001 §5.4",
+      "entries": [
+        { "id": "UX-REC-001..006", "name": "Person / asset / job / risk / issue / incident projections", "status": "IMPLEMENTED", "route": "/workspace/governance/records + /workspace/governance/risks + /workspace/governance/issues", "evidence": "src/web/workspace/governance-registers.ts projections; risk+issue domain in src/core/work/index.ts" }
+      ]
+    },
+    {
+      "group": "AFCA academy (UX-AFCA/UX-APP)",
+      "docSource": "UIUX-001 §7",
+      "entries": [
+        { "id": "UX-AFCA-001..008", "name": "AFCA LMS surfaces", "status": "IMPLEMENTED", "route": "/workspace/afca*", "evidence": "src/web/workspace/afca-lms.ts + afca-extended-lms.ts + AfcaAcademyService" },
+        { "id": "UX-APP-001..008", "name": "Application journey", "status": "IMPLEMENTED", "route": "/apply*", "evidence": "src/modules/hub/afca/admissions.ts + renderers" }
+      ]
+    },
+    {
+      "group": "Extended creative workspaces",
+      "docSource": "UIUX-001 §6; DEC-RL1-SCOPE-001 D-items",
+      "entries": [
+        { "id": "UX-ACC-001..008", "name": "Accelerator desk", "status": "IMPLEMENTED", "route": "/workspace/accelerator", "evidence": "SCR-18 (2026-09-30): desk + intake are projections over TalentAcceleratorRegistry (listHubs/filterTalent/registerHub); tests/unit/extended-workspaces.test.ts" },
+        { "id": "UX-AFC-001..006", "name": "Afro-Fusion desk", "status": "IMPLEMENTED", "route": "/workspace/community/guilds", "evidence": "SCR-18 (2026-09-30): locations/resources/members/bookings read AfroFusionCommunityHub; member registration writes canonical records" },
+        { "id": "UX-VTM-001..009", "name": "VTM portal & matching", "status": "IMPLEMENTED", "route": "/vtm/*", "evidence": "src/web/portal/vtm-portal.ts + VirtualTalentManagementEngine contracts/milestones" },
+        { "id": "UX-VTM-010", "name": "Deployment Readiness (alias: signature form)", "status": "ALIAS", "route": "/vtm/terms", "evidence": "See knownConflicts[0]" },
+        { "id": "UX-VTM-011", "name": "Payment Visibility", "status": "IMPLEMENTED", "route": "/portal/vtm/payment-visibility", "evidence": "SCR-20 (2026-10-01): escrow/milestone readiness + 7-way payment split projected from VirtualTalentManagementEngine.listContracts and TalentPayoutEngine batches (src/web/portal/vtm-payment-visibility.ts; tests/unit/todo-final-remediation.test.ts)" },
+        { "id": "UX-VCF-001..008", "name": "VCF missions", "status": "IMPLEMENTED", "route": "/workspace/vcf/missions", "evidence": "SCR-18 (2026-09-30): pitch pipeline + active slate from VirtualContentFundEngine; submission writes canonical pitches" },
+        { "id": "UX-ONE-001..009", "name": "ONE Studios desk", "status": "IMPLEMENTED", "route": "/workspace/production/desk", "evidence": "SCR-18 (2026-09-30): gear locker from OneStudiosEngine assets; call sheet publish persists via publishCallSheet" },
+        { "id": "UX-EVT-001..008", "name": "Fusion Events desk", "status": "IMPLEMENTED", "route": "/workspace/events/desk", "evidence": "SCR-18 (2026-09-30): live gate statistics + real HMAC single-use scanGateTicket validation (tests/unit/scr-desk-rewiring.test.ts)" },
+        { "id": "UX-TEND-001..008", "name": "TEND catalogue", "status": "IMPLEMENTED", "route": "/workspace/tend/catalogue", "evidence": "SCR-18 (2026-09-30): catalogue + licence avails matrix from TendDistributionEngine; title registration writes canonical records" },
+        { "id": "UX-HSP-001..008", "name": "Headspace desk", "status": "IMPLEMENTED", "route": "/workspace/headspace/intelligence", "evidence": "SCR-18 tail (2026-09-30): canonical HeadspaceKnowledgeEngine catalogue with confidentiality enforced at access; document registration writes canonical docs" },
+        { "id": "UX-CR8-001..008", "name": "Cr8Tech desk", "status": "IMPLEMENTED", "route": "/workspace/cr8tech/operations", "evidence": "SCR-18 tail (2026-09-30): runtime adapter state only; NOT_CONFIGURED states for unwired SaaS integrations; fabricated health ping route retired with 410" },
+        { "id": "UX-AGT-001..009", "name": "Agentic OS console", "status": "IMPLEMENTED", "route": "/workspace/aos/console", "evidence": "intelligence-and-tech.ts + AgenticOperatingSystem HITL/killswitch" }
+      ]
+    },
+    {
+      "group": "Counterparty portals (UX-POR)",
+      "docSource": "UIUX-001 §5.6",
+      "entries": [
+        { "id": "UX-POR-001", "name": "Relationship Portal Home", "status": "IMPLEMENTED", "route": "/portal/client/:orgId/projects", "evidence": "src/web/portal/client-portal.ts; SEC-07 relationship check" },
+        { "id": "UX-POR-002", "name": "Client Delivery Question", "status": "IMPLEMENTED", "route": "POST /api/v1/client/projects/:id/questions", "evidence": "router audit + ticket response" },
+        { "id": "UX-POR-003", "name": "Partner Portal", "status": "IMPLEMENTED", "route": "/portal/partner/:orgId", "evidence": "SCR-19 (2026-09-30): canonical Quote-to-Cash deals scoped via getClientOrgRelationship; cross-org requests 403" },
+        { "id": "UX-POR-004", "name": "Creator Portal", "status": "IMPLEMENTED", "route": "/portal/creator/:id", "evidence": "SCR-19 (2026-09-30): settlement lines projected from TalentPayoutEngine batches where the creator is a line item; 7-way measures kept distinct" },
+        { "id": "UX-POR-005", "name": "Vendor Portal", "status": "IMPLEMENTED", "route": "/portal/vendor/:id", "evidence": "SCR-19 (2026-09-30): renders canonical PO records only; PO domain is a recorded deferral (DEC-RL1-SCOPE-001) so the empty state is explicit, never fabricated" }
+      ]
+    }
+  ],
+  "summary": {
+    "totalScreens": 60,
+    "implemented": 55,
+    "mock": 4,
+    "missing": 0,
+    "deferred": 0,
+    "alias": 1,
+    "note": "Counts are recomputed from the groups above by computeScreenRegisterCounts and verified in tests/unit/todo-remediation.test.ts. SCR-17/18/19 rewiring (2026-09-30) moved 13 surfaces MOCK→IMPLEMENTED; final remediation round (2026-10-01) closed UX-SYS-005, UX-ADM-001, UX-ADM-003 (SCR-13/15) and UX-VTM-011 (SCR-20)."
+  }
+}

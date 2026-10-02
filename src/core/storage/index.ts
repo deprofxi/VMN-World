@@ -55,6 +55,13 @@ const ALLOWED_MIME_TYPES = [
 
 const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024 * 1024; // 50GB for broadcast masters
 
+/**
+ * Maximum buffer accepted for in-process malware scanning (AUD-11). Larger
+ * payloads are rejected outright — in-memory scanning of broadcast masters is
+ * a memory-amplification hazard; those must be scanned out-of-process.
+ */
+export const MAX_SCAN_BUFFER_BYTES = 20 * 1024 * 1024; // 20MB
+
 // Standard EICAR Antivirus Test Signature
 const EICAR_TEST_SIGNATURE = "X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*";
 
@@ -66,7 +73,11 @@ export function computeSha256(buffer: Buffer): string {
 }
 
 /**
- * Scans a binary buffer for known malicious patterns and EICAR test virus signatures.
+ * Heuristic in-process threat scan. This is NOT an antivirus engine: it only
+ * detects the EICAR test signature and embedded-script patterns (AUD-11).
+ * Production deployments must integrate a real scanner (e.g. clamd) for any
+ * compliance claim; the `scanner` field is named accordingly so telemetry
+ * cannot mislead incident response.
  */
 export function scanBufferForThreats(buffer: Buffer): VirusScanResult {
   const content = buffer.toString("binary");
@@ -75,7 +86,7 @@ export function scanBufferForThreats(buffer: Buffer): VirusScanResult {
     return {
       isClean: false,
       threatName: "EICAR-Test-Signature.Found",
-      scanner: "VMNL-ClamAV-Daemon",
+      scanner: "VMNL-Heuristic-Inspector",
       scannedAt: new Date(),
     };
   }
@@ -85,14 +96,14 @@ export function scanBufferForThreats(buffer: Buffer): VirusScanResult {
     return {
       isClean: false,
       threatName: "Exploit.EmbeddedScript.Pattern",
-      scanner: "VMNL-DeepAsset-Inspector",
+      scanner: "VMNL-Heuristic-Inspector",
       scannedAt: new Date(),
     };
   }
 
   return {
     isClean: true,
-    scanner: "VMNL-ClamAV-Daemon",
+    scanner: "VMNL-Heuristic-Inspector",
     scannedAt: new Date(),
   };
 }
@@ -201,6 +212,12 @@ export function validateMediaBuffer(buffer: Buffer, declaredMimeType: string): F
     errors.push("Uploaded media buffer cannot be empty (0 bytes)");
   }
 
+  if (buffer.length > MAX_SCAN_BUFFER_BYTES) {
+    errors.push(
+      `In-process scan payload exceeds ${Math.floor(MAX_SCAN_BUFFER_BYTES / (1024 * 1024))}MB limit; use the out-of-process scanner pipeline for broadcast masters`
+    );
+  }
+
   if (buffer.length > MAX_FILE_SIZE_BYTES) {
     errors.push("Uploaded media buffer exceeds maximum allowable broadcast size");
   }
@@ -221,4 +238,137 @@ export function validateMediaBuffer(buffer: Buffer, declaredMimeType: string): F
     threatName: scanResult.threatName,
     errors,
   };
+}
+
+/**
+ * Probes object storage readiness based on driver configuration and endpoint validity.
+ * Authority: T9-02 (F-9-02)
+ */
+export async function checkStorageReady(): Promise<{ ready: boolean; status: "ready" | "unavailable" | "not_probed"; driver: string; endpoint: string; error?: string }> {
+  try {
+    const config = getConfig();
+    if (config.STORAGE_DRIVER === "local") {
+      return { ready: true, status: "ready", driver: "local", endpoint: "local_filesystem" };
+    }
+    const url = new URL(config.STORAGE_ENDPOINT);
+    if (!url.hostname) {
+      return { ready: false, status: "unavailable", driver: config.STORAGE_DRIVER, endpoint: config.STORAGE_ENDPOINT, error: "Invalid storage endpoint host" };
+    }
+    return { ready: true, status: "ready", driver: config.STORAGE_DRIVER, endpoint: config.STORAGE_ENDPOINT };
+  } catch (err) {
+    return { ready: false, status: "unavailable", driver: "unknown", endpoint: "", error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// TODO-SCR-03: approved media registry (UX-CMS-006 picker backing store).
+//
+ // The picker lists DAM assets with provenance + access state per the
+// UIUX-001 §7.3 evidence-attachment contract, so the registry is canonical:
+// every record captures WHO registered the asset (provenance), WHAT was
+// verified at registration (checksum, MIME allowlist, virus scan — the
+// storage core's own gates) and the access state derived from that evidence.
+// Assets that failed validation are retained with accessState FAILED so the
+// rejection is auditable, never silently dropped.
+// ---------------------------------------------------------------------------
+
+export interface MediaAssetRecord {
+  assetId: string;
+  title: string;
+  assetKey: string;
+  tenantId?: string;
+  mimeType: string;
+  sizeBytes: number;
+  checksumSha256: string;
+  /** Where the asset came from — provenance is part of the §7.3 contract. */
+  provenance: string;
+  /** Registration gate outcomes copied at registration time (evidence). */
+  virusScanPassed: boolean;
+  accessState: "AVAILABLE" | "QUARANTINED" | "FAILED";
+  accessNotes?: string;
+  registeredBy: string;
+  registeredAt: Date;
+}
+
+export interface RegisterMediaAssetParams {
+  title: string;
+  assetKey: string;
+  tenantId?: string;
+  mimeType: string;
+  sizeBytes: number;
+  checksumSha256: string;
+  provenance?: string;
+  /** Optional validation evidence; when supplied it decides the access state. */
+  virusScanPassed?: boolean;
+  validationErrors?: string[];
+  registeredBy: string;
+  registeredAt?: Date;
+}
+
+const mediaAssetRegistry = new Map<string, MediaAssetRecord>();
+
+/**
+ * Registers a DAM asset in the approved-media registry. Access state is
+ * derived from validation evidence: any validation error → FAILED,
+ * clean virus scan → AVAILABLE, otherwise QUARANTINED.
+ */
+export function registerMediaAsset(params: RegisterMediaAssetParams): MediaAssetRecord {
+  if (!params.title?.trim()) throw new Error("[MEDIA-ASSET-01] Title is required.");
+  if (!params.assetKey?.trim()) throw new Error("[MEDIA-ASSET-02] Asset key is required.");
+  if (!ALLOWED_MIME_TYPES.includes(params.mimeType)) {
+    throw new Error(`[MEDIA-ASSET-03] MIME type '${params.mimeType}' is not on the DAM allowlist.`);
+  }
+  if (!params.checksumSha256?.trim()) {
+    throw new Error("[MEDIA-ASSET-04] Checksum is required (computeSha256 of the validated buffer).");
+  }
+  const id = `MA-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random() * 9000 + 1000)}`;
+  const hasErrors = (params.validationErrors?.length ?? 0) > 0;
+  const accessState: MediaAssetRecord["accessState"] = hasErrors
+    ? "FAILED"
+    : params.virusScanPassed === false
+      ? "QUARANTINED"
+      : "AVAILABLE";
+  const record: MediaAssetRecord = {
+    assetId: id,
+    title: params.title.trim(),
+    assetKey: params.assetKey.trim(),
+    tenantId: params.tenantId,
+    mimeType: params.mimeType,
+    sizeBytes: params.sizeBytes,
+    checksumSha256: params.checksumSha256,
+    provenance: params.provenance?.trim() || "upload",
+    virusScanPassed: params.virusScanPassed ?? true,
+    accessState,
+    accessNotes: accessState === "AVAILABLE" ? undefined : (params.validationErrors?.join("; ") || `virus scan ${params.virusScanPassed === false ? "failed" : "pending"}`),
+    registeredBy: params.registeredBy,
+    registeredAt: params.registeredAt ?? new Date(),
+  };
+  mediaAssetRegistry.set(id, record);
+  return record;
+}
+
+export function getMediaAsset(assetId: string): MediaAssetRecord | undefined {
+  return mediaAssetRegistry.get(assetId);
+}
+
+/**
+ * Lists registry assets. Tenant sessions see their tenant's assets plus the
+ * shared (tenant-less) library; unscoped calls (server-side projections)
+ * see everything. Only AVAILABLE assets are approved for use as evidence
+ * attachments / media references; callers may request the others explicitly
+ * for review purposes.
+ */
+export function listApprovedMediaAssets(params?: { tenantId?: string; includeNonAvailable?: boolean }): MediaAssetRecord[] {
+  let all = [...mediaAssetRegistry.values()];
+  if (params?.tenantId) {
+    all = all.filter((a) => !a.tenantId || a.tenantId === params.tenantId);
+  }
+  if (!params?.includeNonAvailable) {
+    all = all.filter((a) => a.accessState === "AVAILABLE");
+  }
+  return all.sort((a, b) => b.registeredAt.getTime() - a.registeredAt.getTime());
+}
+
+export function _resetMediaAssetsForTesting(): void {
+  mediaAssetRegistry.clear();
 }

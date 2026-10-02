@@ -279,8 +279,20 @@ export class VirtualContentFundEngine {
     return this.pitches.get(id);
   }
 
+  public getAllPitches(): PitchSubmission[] {
+    return Array.from(this.pitches.values());
+  }
+
   public getSlateProject(id: string): SlateProject | undefined {
     return this.slate.get(id);
+  }
+
+  public getAllSlateProjects(): SlateProject[] {
+    return Array.from(this.slate.values());
+  }
+
+  public getActiveSlate(): SlateProject[] {
+    return Array.from(this.slate.values()).filter((p) => p.stage !== "RECOUPED");
   }
 
   private getPitchOrThrow(id: string): PitchSubmission {

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   validateControlAccessibility,
   ComponentRenderer,
+  renderStyleguideHtml,
 } from "../../src/web/components/index.js";
 import {
   CorporatePortalService,
@@ -9,6 +10,14 @@ import {
   HubShowcaseService,
   renderScreensCatalogHtml,
   renderScreenDetailHtml,
+  renderCrmQueueWorkspaceHtml,
+  renderAboutPageHtml,
+  renderPublicScheduleHtml,
+  renderAdvertisingSponsorshipHtml,
+  renderEnquiryContactHtml,
+  renderHelpPageHtml,
+  renderPrivacyPageHtml,
+  renderAccessibilityPageHtml,
 } from "../../src/web/public/index.js";
 import { getConfig } from "../../src/core/config/index.js";
 
@@ -180,6 +189,61 @@ describe("Phase 7: Public Digital Surfaces & User Experience", () => {
       expect(inquiry.acknowledgmentMessage).toContain("A representative will contact you within 24 business hours.");
       expect(hubService.getInquiries().length).toBe(1);
     });
+
+    it("enforces inquiry status transitions and enqueues notification acknowledgment (T-23, B-22)", () => {
+      const enqueuedJobs: any[] = [];
+      const mockQueue = {
+        enqueue: (type: string, payload: any) => {
+          enqueuedJobs.push({ type, payload });
+          return { id: "job-001", type, status: "QUEUED" };
+        },
+      };
+
+      const hubService = new HubShowcaseService({ queueWorker: mockQueue });
+      const inq = hubService.submitInquiry({
+        vertical: "TALENT_ACCELERATOR",
+        fullName: "Chidinma Nwosu",
+        email: "chidinma@soundstage.ng",
+        message: "Applying for the 2026 AFCA Sound Engineering Masterclass.",
+        autoRouteToCrm: false,
+      });
+
+      expect(inq.status).toBe("RECEIVED");
+      expect(enqueuedJobs.length).toBe(1);
+      expect(enqueuedJobs[0].type).toBe("NOTIFICATION_DELIVERY");
+      expect(enqueuedJobs[0].payload.to).toBe("chidinma@soundstage.ng");
+
+      // State transition 1: RECEIVED -> ROUTED_TO_CRM
+      const routed = hubService.transitionStatus(inq.id, "ROUTED_TO_CRM");
+      expect(routed.status).toBe("ROUTED_TO_CRM");
+
+      // Invalid transition: ROUTED_TO_CRM -> RECEIVED (not allowed)
+      expect(() => hubService.transitionStatus(inq.id, "RECEIVED")).toThrow(/Invalid inquiry status transition/);
+
+      // State transition 2: ROUTED_TO_CRM -> CONTACTED
+      const contacted = hubService.transitionStatus(inq.id, "CONTACTED");
+      expect(contacted.status).toBe("CONTACTED");
+
+      // Invalid transition from terminal state
+      expect(() => hubService.transitionStatus(inq.id, "ROUTED_TO_CRM")).toThrow(/Invalid inquiry status transition/);
+    });
+
+    it("renders CRM operations queue workspace view (T-23, B-22)", () => {
+      const hubService = new HubShowcaseService();
+      hubService.submitInquiry({
+        vertical: "ONE_STUDIOS",
+        fullName: "Emeka Okafor",
+        email: "emeka@filmworks.ng",
+        message: "Studio 2 soundstage reservation for 3-day commercial shoot.",
+      });
+
+      const html = renderCrmQueueWorkspaceHtml(hubService.getInquiries());
+      expect(html).toContain("CRM Inquiry & Onboarding Operations Queue");
+      expect(html).toContain("Emeka Okafor");
+      expect(html).toContain("ONE_STUDIOS");
+      expect(html).toContain("ROUTED_TO_CRM");
+      expect(html).toContain("Mark Contacted");
+    });
   });
 
   describe("Broadcast Operational Screen Surfaces (SCR-BCST-01 to 33)", () => {
@@ -211,6 +275,68 @@ describe("Phase 7: Public Digital Surfaces & User Experience", () => {
       const notFoundHtml = renderScreenDetailHtml("SCR-UNKNOWN-99");
       expect(notFoundHtml).toContain("Screen Surface Not Found");
       expect(notFoundHtml).toContain("SCR-UNKNOWN-99");
+    });
+
+    it("renders the living styleguide surface (DT-206)", () => {
+      const styleguideHtml = renderStyleguideHtml();
+      expect(styleguideHtml).toContain("VMNL Living Design System & Styleguide");
+      expect(styleguideHtml).toContain("Button State Matrix");
+      expect(styleguideHtml).toContain("Status Chips");
+    });
+  });
+
+  describe("Expanded Public Surface Screens (UX-PUB-002 to 028)", () => {
+    it("renders About page (UX-PUB-002) with governance and corporate mission", () => {
+      const html = renderAboutPageHtml();
+      expect(html).toContain("Virtual Media Network Limited");
+      expect(html).toContain("Corporate Governance");
+      expect(html).toContain("Enterprise Mission & Mandate");
+    });
+
+    it("renders Public Schedule page (UX-PUB-008) across broadcast channels", () => {
+      const html = renderPublicScheduleHtml();
+      expect(html).toContain("Linear Broadcast Schedule & EPG");
+      expect(html).toContain("ON AIR NOW (WAT)");
+      expect(html).toContain("Morning Afro-Beats Digest");
+    });
+
+    it("renders Advertising & Sponsorship page (UX-PUB-009) with rate cards and packages", () => {
+      const html = renderAdvertisingSponsorshipHtml();
+      expect(html).toContain("Advertising, Sponsorship & Brand Integration");
+      expect(html).toContain("Linear TV Spots");
+      expect(html).toContain("Programme Sponsorship");
+      expect(html).toContain("Fusion Events Activation");
+    });
+
+    it("renders Commercial Enquiry and Contact page (UX-PUB-025) with intake form", () => {
+      const html = renderEnquiryContactHtml();
+      expect(html).toContain("Commercial Enquiry & Partnership Request");
+      expect(html).toContain('name="fullName"');
+      expect(html).toContain('name="email"');
+      expect(html).toContain('name="vertical"');
+    });
+
+    it("renders Help Center (UX-PUB-026) with searchable FAQs and support links", () => {
+      const html = renderHelpPageHtml();
+      expect(html).toContain("VMN Help & Resource Directory");
+      expect(html).toContain("StarTimes");
+      expect(html).toContain("AFCA Film & Creative Arts Academy");
+      expect(html).toContain("Proof-of-Air Report");
+    });
+
+    it("renders Privacy Policy (UX-PUB-027) with NDPR compliance", () => {
+      const html = renderPrivacyPageHtml();
+      expect(html).toContain("Privacy Policy & Data Protection Notice");
+      expect(html).toContain("Nigeria Data Protection Act (NDPA)");
+      expect(html).toContain("Data Protection Officer");
+    });
+
+    it("renders Accessibility Statement (UX-PUB-028) with WCAG 2.2 Level AA conformance", () => {
+      const html = renderAccessibilityPageHtml();
+      expect(html).toContain("Accessibility Statement");
+      expect(html).toContain("WCAG 2.2 Level AA");
+      expect(html).toContain("Keyboard Navigation");
+      expect(html).toContain("Color Contrast");
     });
   });
 });

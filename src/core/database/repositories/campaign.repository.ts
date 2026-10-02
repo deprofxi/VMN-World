@@ -4,6 +4,7 @@
  */
 
 import { getPrismaClient, checkDatabaseConnection } from "../index.js";
+import { handleRepoError } from "../repository-mode.js";
 
 export interface CommercialCampaignRecord {
   id: string;
@@ -15,12 +16,17 @@ export interface CommercialCampaignRecord {
   status: "BOOKED" | "ACTIVE" | "COMPLETED" | "PAUSED" | "CANCELLED";
   startDate: Date;
   endDate: Date;
+  source?: "DB" | "MEMORY";
   createdAt: Date;
   updatedAt: Date;
 }
 
 export class CampaignRepository {
   private inMemoryStore = new Map<string, CommercialCampaignRecord>();
+
+  public getInMemoryCount(): number {
+    return this.inMemoryStore.size;
+  }
 
   public async createCampaign(data: {
     id?: string;
@@ -53,7 +59,7 @@ export class CampaignRepository {
     if (db.connected) {
       try {
         const client = getPrismaClient();
-        await (client as any).commercialCampaign.upsert({
+        const created = await client.commercialCampaign.upsert({
           where: { campaignCode: data.campaignCode },
           update: {
             clientName: record.clientName,
@@ -76,13 +82,29 @@ export class CampaignRepository {
             endDate: record.endDate,
           },
         });
-      } catch {
-        // Fall back to memory
+
+        return {
+          id: created.id,
+          campaignCode: created.campaignCode,
+          clientName: created.clientName,
+          brand: created.brand,
+          bookedSpots: created.bookedSpots,
+          totalContractValueNgn: Number(created.totalContractValueNgn || 0),
+          status: created.status as CommercialCampaignRecord["status"],
+          startDate: created.startDate,
+          endDate: created.endDate,
+          source: "DB",
+          createdAt: created.createdAt,
+          updatedAt: created.updatedAt,
+        };
+      } catch (err: any) {
+        await handleRepoError("commercialCampaign", "write", err);
       }
     }
 
-    this.inMemoryStore.set(record.campaignCode, record);
-    return record;
+    const memoryRecord: CommercialCampaignRecord = { ...record, source: "MEMORY" };
+    this.inMemoryStore.set(record.campaignCode, memoryRecord);
+    return memoryRecord;
   }
 
   public async getCampaignByCode(campaignCode: string): Promise<CommercialCampaignRecord | null> {
@@ -90,7 +112,7 @@ export class CampaignRepository {
     if (db.connected) {
       try {
         const client = getPrismaClient();
-        const found = await (client as any).commercialCampaign.findUnique({
+        const found = await client.commercialCampaign.findUnique({
           where: { campaignCode },
         });
         if (found) {
@@ -101,23 +123,53 @@ export class CampaignRepository {
             brand: found.brand,
             bookedSpots: found.bookedSpots,
             totalContractValueNgn: Number(found.totalContractValueNgn || 0),
-            status: found.status,
+            status: found.status as CommercialCampaignRecord["status"],
             startDate: found.startDate,
             endDate: found.endDate,
+            source: "DB",
             createdAt: found.createdAt,
             updatedAt: found.updatedAt,
           };
         }
-      } catch {
-        // Fall back to memory
+      } catch (err: any) {
+        await handleRepoError("commercialCampaign", "read", err);
       }
     }
 
-    return this.inMemoryStore.get(campaignCode) || null;
+    const mem = this.inMemoryStore.get(campaignCode);
+    return mem ? { ...mem, source: "MEMORY" } : null;
   }
 
   public async listCampaigns(status?: string): Promise<CommercialCampaignRecord[]> {
-    let list = Array.from(this.inMemoryStore.values());
+    const db = await checkDatabaseConnection();
+    if (db.connected) {
+      try {
+        const client = getPrismaClient();
+        const found = await client.commercialCampaign.findMany({
+          where: status ? { status: status as any } : undefined,
+        });
+        if (found.length > 0) {
+          return found.map((r) => ({
+            id: r.id,
+            campaignCode: r.campaignCode,
+            clientName: r.clientName,
+            brand: r.brand,
+            bookedSpots: r.bookedSpots,
+            totalContractValueNgn: Number(r.totalContractValueNgn || 0),
+            status: r.status as CommercialCampaignRecord["status"],
+            startDate: r.startDate,
+            endDate: r.endDate,
+            source: "DB",
+            createdAt: r.createdAt,
+            updatedAt: r.updatedAt,
+          }));
+        }
+      } catch (err: any) {
+        await handleRepoError("commercialCampaign", "list", err);
+      }
+    }
+
+    let list = Array.from(this.inMemoryStore.values()).map((c) => ({ ...c, source: "MEMORY" as const }));
     if (status) {
       list = list.filter((c) => c.status === status);
     }
@@ -128,30 +180,43 @@ export class CampaignRepository {
     campaignCode: string,
     status: "BOOKED" | "ACTIVE" | "COMPLETED" | "PAUSED" | "CANCELLED"
   ): Promise<CommercialCampaignRecord | null> {
-    const existing = await this.getCampaignByCode(campaignCode);
-    if (!existing) return null;
-
-    const updated: CommercialCampaignRecord = {
-      ...existing,
-      status,
-      updatedAt: new Date(),
-    };
-
     const db = await checkDatabaseConnection();
     if (db.connected) {
       try {
         const client = getPrismaClient();
-        await (client as any).commercialCampaign.update({
+        const updated = await client.commercialCampaign.update({
           where: { campaignCode },
           data: { status },
         });
-      } catch {
-        // Fall back to memory
+        return {
+          id: updated.id,
+          campaignCode: updated.campaignCode,
+          clientName: updated.clientName,
+          brand: updated.brand,
+          bookedSpots: updated.bookedSpots,
+          totalContractValueNgn: Number(updated.totalContractValueNgn || 0),
+          status: updated.status as CommercialCampaignRecord["status"],
+          startDate: updated.startDate,
+          endDate: updated.endDate,
+          source: "DB",
+          createdAt: updated.createdAt,
+          updatedAt: updated.updatedAt,
+        };
+      } catch (err: any) {
+        await handleRepoError("commercialCampaign", "update", err);
       }
     }
 
-    this.inMemoryStore.set(campaignCode, updated);
-    return updated;
+    const mem = this.inMemoryStore.get(campaignCode);
+    if (!mem) return null;
+    const updatedMem: CommercialCampaignRecord = {
+      ...mem,
+      status,
+      updatedAt: new Date(),
+      source: "MEMORY",
+    };
+    this.inMemoryStore.set(campaignCode, updatedMem);
+    return updatedMem;
   }
 
   public async deleteCampaign(campaignCode: string): Promise<boolean> {
@@ -159,9 +224,9 @@ export class CampaignRepository {
     if (db.connected) {
       try {
         const client = getPrismaClient();
-        await (client as any).commercialCampaign.delete({ where: { campaignCode } });
-      } catch {
-        // Fall back
+        await client.commercialCampaign.delete({ where: { campaignCode } });
+      } catch (err: any) {
+        await handleRepoError("commercialCampaign", "delete", err);
       }
     }
     return this.inMemoryStore.delete(campaignCode);

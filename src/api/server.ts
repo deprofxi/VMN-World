@@ -16,9 +16,27 @@ import { Cr8TechCreativeEngine } from "../modules/intelligence/cr8tech/index.js"
 import { AgenticOperatingSystem } from "../modules/intelligence/aos/index.js";
 import { QuoteToCashSalesEngine } from "../modules/finance/sales/index.js";
 import { TalentPayoutEngine } from "../modules/finance/payouts/index.js";
-import { BankReconciliationEngine } from "../modules/finance/reconciliation/index.js";
+import { BankReconciliationEngine, InvoiceReconciliationTarget } from "../modules/finance/reconciliation/index.js";
+import { EnterpriseQueueWorker, configureRollingEpgScheduler } from "../core/queue/index.js";
+import { NotificationService, EmailDispatchOptions, SmsDispatchOptions } from "../core/notifications/index.js";
+import { TalentRepository } from "../core/database/repositories/talent.repository.js";
+import { RollingEpgScheduler } from "../modules/broadcast/epg/scheduler.js";
+import { VirtualContentFundEngine } from "../modules/hub/vcf/index.js";
+import { OneStudiosEngine } from "../modules/hub/onestudios/index.js";
+import { TendDistributionEngine } from "../modules/hub/tend/index.js";
+import { AfroFusionCommunityHub } from "../modules/hub/community/index.js";
+import { BroadcastRightsGate } from "../modules/broadcast/rights/index.js";
+import { BroadcastTrafficEngine } from "../modules/broadcast/traffic/index.js";
+import { PlayoutAutomationEngine } from "../modules/broadcast/playout/index.js";
+import { SponsorshipEngine } from "../modules/broadcast/sponsorship/index.js";
+import { CarriageMonitoringEngine } from "../modules/broadcast/carriage/index.js";
+import { BroadcastBillingEngine } from "../modules/broadcast/billing/index.js";
+import { PlayoutExportEngine } from "../modules/broadcast/export/index.js";
 import { handleApiRequest, RequestHandlerContext } from "./router.js";
 import { loadConfig } from "../core/config/index.js";
+import { CommercialProposalStore } from "../web/workspace/commercial-proposal.js";
+import { wireMediaAssetLookup } from "../core/content/index.js";
+import { getMediaAsset } from "../core/storage/index.js";
 
 export interface ApiServerInstance {
   server: Server;
@@ -45,7 +63,7 @@ export function createApiServer(port?: number, envOverrides: Record<string, stri
     };
     config = loadConfig({ ...testDefaults, ...process.env, ...envOverrides });
   }
-  const serverPort = port || config.PORT || 4000;
+  const serverPort = port !== undefined ? port : config.PORT || 5500;
   const telemetry = new TelemetryService();
   const azeeboBridge = new AzeeboFederationBridge(config.AZEEBO_WEBHOOK_SECRET);
   const azeeboLinks = new AzeeboLinkGateway({
@@ -62,6 +80,65 @@ export function createApiServer(port?: number, envOverrides: Record<string, stri
   const salesEngine = new QuoteToCashSalesEngine();
   const payoutEngine = new TalentPayoutEngine();
   const bankRecon = new BankReconciliationEngine();
+  // SCR-17: canonical proposal store bound to the Quote-to-Cash engine.
+  const proposalStore = new CommercialProposalStore(salesEngine);
+
+  // Instantiate background queue worker, notification service, and DB repository (T-09, T-10, T-11)
+  const queueWorker = new EnterpriseQueueWorker({ concurrency: 5, telemetry });
+  const notificationService = new NotificationService({ telemetry });
+  const talentRepository = new TalentRepository();
+
+  // SCR-03 (UX-CMS-006): the CMS revision domain validates mediaAssetIds
+  // against the canonical DAM registry — wire the lookup seam at boot.
+  wireMediaAssetLookup(getMediaAsset);
+
+  // Register production job handlers (T-09, T-10)
+  queueWorker.registerHandler("EPG_GENERATION", async (job) => {
+    const channels = ["NXTR", "ORIS", "IMBD"];
+    const payload = job.payload as { baseDate?: string } | undefined;
+    const baseDate = payload?.baseDate ? new Date(payload.baseDate) : new Date();
+    const feeds = channels.map((code) => RollingEpgScheduler.generate7DayRollingFeed(code, baseDate));
+    const totalSlots = feeds.reduce((sum, f) => sum + f.totalSlots, 0);
+    const xmltvTotalLength = feeds.reduce((sum, f) => sum + f.xmltvContent.length, 0);
+
+    telemetry.recordMetric("epg_syndication_generation_total", 1, { status: "success" });
+    return {
+      status: "SUCCESS",
+      channelsProcessed: channels,
+      totalSlots,
+      xmltvTotalLength,
+      generatedAt: new Date().toISOString(),
+    };
+  });
+
+  queueWorker.registerHandler("NOTIFICATION_DELIVERY", async (job) => {
+    const payload = job.payload as (EmailDispatchOptions & { channel?: string }) | (SmsDispatchOptions & { channel?: string });
+    if (payload && payload.channel === "SMS") {
+      return await notificationService.sendSms(payload as unknown as SmsDispatchOptions);
+    }
+    return await notificationService.sendEmail(payload as EmailDispatchOptions);
+  });
+
+  queueWorker.registerHandler("WEBHOOK_DISPATCH", async (job) => {
+    const payload = (job.payload || {}) as { endpoint?: string };
+    telemetry.recordMetric("webhook_dispatch_total", 1, { endpoint: payload.endpoint || "default" });
+    return {
+      dispatched: true,
+      endpoint: payload.endpoint,
+      timestamp: new Date().toISOString(),
+    };
+  });
+
+  queueWorker.registerHandler("RECONCILIATION_RUN", async (job) => {
+    const payload = job.payload as { invoices?: InvoiceReconciliationTarget[] } | undefined;
+    const invoices = payload?.invoices || [];
+    const results = bankRecon.reconcileAgainstInvoices(invoices);
+    telemetry.recordMetric("nightly_recon_run_total", 1, { matchedCount: String(results.length) });
+    return {
+      reconciledCount: results.length,
+      timestamp: new Date().toISOString(),
+    };
+  });
 
   // Register a default agent for AOS
   aos.registerAgent({
@@ -77,6 +154,19 @@ export function createApiServer(port?: number, envOverrides: Record<string, stri
     registeredAt: new Date(),
   });
 
+  // Domain service instances (T9-05)
+  const vcfEngine = new VirtualContentFundEngine();
+  const oneStudios = new OneStudiosEngine();
+  const tendEngine = new TendDistributionEngine();
+  const communityHub = new AfroFusionCommunityHub();
+  const rightsGate = new BroadcastRightsGate();
+  const trafficEngine = new BroadcastTrafficEngine();
+  const playoutEngine = new PlayoutAutomationEngine();
+  const sponsorshipEngine = new SponsorshipEngine();
+  const carriageEngine = new CarriageMonitoringEngine();
+  const billingEngine = new BroadcastBillingEngine();
+  const exportEngine = new PlayoutExportEngine();
+
   const context: RequestHandlerContext = {
     telemetry,
     azeeboBridge,
@@ -91,6 +181,21 @@ export function createApiServer(port?: number, envOverrides: Record<string, stri
     salesEngine,
     payoutEngine,
     bankRecon,
+    proposalStore,
+    queueWorker,
+    notificationService,
+    talentRepository,
+    vcfEngine,
+    oneStudios,
+    tendEngine,
+    communityHub,
+    rightsGate,
+    trafficEngine,
+    playoutEngine,
+    sponsorshipEngine,
+    carriageEngine,
+    billingEngine,
+    exportEngine,
   };
 
   const server = http.createServer((req, res) => {
@@ -104,6 +209,16 @@ export function createApiServer(port?: number, envOverrides: Record<string, stri
     start: () =>
       new Promise<void>((resolve, reject) => {
         server.listen(serverPort, () => {
+          queueWorker.start();
+          configureRollingEpgScheduler(queueWorker);
+          queueWorker.enqueue(
+            "EPG_GENERATION",
+            {
+              channelCodes: ["NXTR", "ORIS", "IMBD"],
+              baseDate: new Date().toISOString(),
+            },
+            { priority: 1 }
+          );
           const span = TelemetryService.createSpanContext("server_bootstrap");
           telemetry.logStructured("INFO", `VMNL Enterprise Server listening on port ${serverPort}`, span, {
             port: serverPort,
@@ -115,6 +230,7 @@ export function createApiServer(port?: number, envOverrides: Record<string, stri
       }),
     stop: () =>
       new Promise<void>((resolve, reject) => {
+        queueWorker.stop();
         server.close((err) => {
           if (err) return reject(err);
           resolve();

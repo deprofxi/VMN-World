@@ -36,6 +36,8 @@ export interface SponsorImpressionLog {
 export class SponsorshipEngine {
   private entitlements = new Map<string, SponsorEntitlement>();
   private impressions: SponsorImpressionLog[] = [];
+  private bindings = new Map<string, SponsorBinding>();
+  private fulfillmentRecords: SponsorBindingFulfillment[] = [];
 
   public createEntitlement(entitlement: Omit<SponsorEntitlement, "deliveredOnScreenSeconds" | "deliveredBillboardsCount" | "deliveredLowerThirdsCount" | "status">): SponsorEntitlement {
     const fullEntitlement: SponsorEntitlement = {
@@ -110,4 +112,161 @@ export class SponsorshipEngine {
       deficitSeconds,
     };
   }
+
+  // -------------------------------------------------------------------------
+  // TODO-BCST-12: Promos/interstitials & sponsorship binding engine
+  // (TASK-P2-07)
+  //
+  // A SponsorBinding ties a sponsor asset (sting, lower-third, billboard,
+  // verbal mention) to a programme/daypart so playlist exports carry the
+  // bound sponsor asset, and fulfillment reporting reconciles contracted vs
+  // delivered placements per binding (not only per raw impression log).
+  // -------------------------------------------------------------------------
+
+  public createBinding(binding: {
+    id: string;
+    entitlementId: string;
+    programmeCode: string;
+    daypart: string;
+    assetType: "STING" | "LOWER_THIRD" | "BILLBOARD" | "VERBAL_MENTION" | "GRAPHIC_BUG";
+    assetId: string;
+    assetDurationSeconds: number;
+    requiredPlacementsPerEpisode: number;
+  }): SponsorBinding {
+    if (!this.entitlements.has(binding.entitlementId)) {
+      throw new Error(`[SPONSOR-BIND-01] Binding '${binding.id}' references unknown entitlement '${binding.entitlementId}'.`);
+    }
+    if (binding.requiredPlacementsPerEpisode <= 0) {
+      throw new Error(`[SPONSOR-BIND-02] Binding '${binding.id}' requires at least one placement per episode.`);
+    }
+    const full: SponsorBinding = { ...binding, fulfilledPlacements: 0 };
+    this.bindings.set(full.id, full);
+    return full;
+  }
+
+  public getBinding(id: string): SponsorBinding | undefined {
+    return this.bindings.get(id);
+  }
+
+  public listBindings(params?: { programmeCode?: string; daypart?: string }): SponsorBinding[] {
+    let all = [...this.bindings.values()];
+    if (params?.programmeCode) all = all.filter((b) => b.programmeCode === params.programmeCode);
+    if (params?.daypart) all = all.filter((b) => b.daypart === params.daypart);
+    return all;
+  }
+
+  /**
+   * Records fulfillment of a bound sponsor placement for one episode airing.
+   * Counts toward the binding and (for seconds-based types) the entitlement's
+   * delivered seconds so the existing audit report stays authoritative.
+   */
+  public recordBindingFulfillment(params: { bindingId: string; episodeCode: string; asRunLogId: string; airedAt: Date }): SponsorBindingFulfillment {
+    const binding = this.bindings.get(params.bindingId);
+    if (!binding) {
+      throw new Error(`[SPONSOR-BIND-03] Binding '${params.bindingId}' not found.`);
+    }
+    binding.fulfilledPlacements += 1;
+
+    // VERBAL_MENTION has no impression-type analogue in the entitlement log
+    // (it is fulfilled by count on the binding, not by on-screen seconds).
+    const impressionType: SponsorImpressionLog["impressionType"] | null =
+      binding.assetType === "STING"
+        ? "BILLBOARD"
+        : binding.assetType === "VERBAL_MENTION"
+          ? null
+          : (binding.assetType as SponsorImpressionLog["impressionType"]);
+    if (impressionType) {
+      this.logImpression({
+        entitlementId: binding.entitlementId,
+        asRunLogId: params.asRunLogId,
+        impressionType,
+        durationSeconds: binding.assetDurationSeconds,
+        loggedAt: params.airedAt,
+      });
+    }
+
+    const required = binding.requiredPlacementsPerEpisode;
+    const fulfilled = binding.fulfilledPlacements;
+    const fulfillmentPercent = Math.min(100, Math.round((fulfilled / required) * 100));
+    const record: SponsorBindingFulfillment = {
+      bindingId: binding.id,
+      episodeCode: params.episodeCode,
+      asRunLogId: params.asRunLogId,
+      airedAt: params.airedAt,
+      placementsFulfilled: 1,
+      placementsRequired: required,
+      isComplete: fulfilled >= required,
+      fulfillmentPercent,
+    };
+    this.fulfillmentRecords.push(record);
+    return record;
+  }
+
+  /**
+   * Fulfillment report per binding: contracted placements vs delivered,
+   * shortfall count, and the bound asset identity for playlist exports.
+   */
+  public getFulfillmentReport(params?: { programmeCode?: string; daypart?: string }): Array<{
+    binding: SponsorBinding;
+    entitlement?: SponsorEntitlement;
+    placementsRequiredTotal: number;
+    placementsDelivered: number;
+    shortfall: number;
+    fulfillmentPercent: number;
+    isFulfilled: boolean;
+  }> {
+    const bindings = this.listBindings(params);
+    return bindings.map((binding) => {
+      const records = this.fulfillmentRecords.filter((r) => r.bindingId === binding.id);
+      const delivered = records.reduce((s, r) => s + r.placementsFulfilled, 0);
+      const requiredTotal = binding.requiredPlacementsPerEpisode * Math.max(1, records.length === 0 ? 1 : new Set(records.map((r) => r.episodeCode)).size);
+      const shortfall = Math.max(0, requiredTotal - delivered);
+      return {
+        binding,
+        entitlement: this.entitlements.get(binding.entitlementId),
+        placementsRequiredTotal: requiredTotal,
+        placementsDelivered: delivered,
+        shortfall,
+        fulfillmentPercent: requiredTotal > 0 ? Math.min(100, Math.round((delivered / requiredTotal) * 100)) : 100,
+        isFulfilled: shortfall === 0,
+      };
+    });
+  }
+
+  /** Playlist-export helper: sponsor assets bound to a programme/daypart. */
+  public exportBoundSponsorAssets(params: { programmeCode: string; daypart: string }): Array<{ assetId: string; assetType: string; assetDurationSeconds: number; entitlementId: string; sponsorName?: string }> {
+    return this.listBindings({ programmeCode: params.programmeCode, daypart: params.daypart }).map((b) => {
+      const entitlement = this.entitlements.get(b.entitlementId);
+      return {
+        assetId: b.assetId,
+        assetType: b.assetType,
+        assetDurationSeconds: b.assetDurationSeconds,
+        entitlementId: b.entitlementId,
+        sponsorName: entitlement?.sponsorName,
+      };
+    });
+  }
+}
+
+export interface SponsorBinding {
+  id: string;
+  entitlementId: string;
+  programmeCode: string;
+  daypart: string;
+  assetType: "STING" | "LOWER_THIRD" | "BILLBOARD" | "VERBAL_MENTION" | "GRAPHIC_BUG";
+  assetId: string;
+  assetDurationSeconds: number;
+  requiredPlacementsPerEpisode: number;
+  fulfilledPlacements: number;
+}
+
+export interface SponsorBindingFulfillment {
+  bindingId: string;
+  episodeCode: string;
+  asRunLogId: string;
+  airedAt: Date;
+  placementsFulfilled: number;
+  placementsRequired: number;
+  isComplete: boolean;
+  fulfillmentPercent: number;
 }

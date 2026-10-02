@@ -6,9 +6,9 @@ dotenv.config();
 
 const configSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "staging", "production"]).default("development"),
-  PORT: z.coerce.number().default(4000),
+  PORT: z.coerce.number().default(5500),
   APP_NAME: z.string().default("VMNL Enterprise Orchestrator"),
-  APP_URL: z.string().url().default("http://localhost:4000"),
+  APP_URL: z.string().url().default("http://localhost:5500"),
 
   // Primary PostgreSQL Database
   DATABASE_URL: z.string({ required_error: "DATABASE_URL is required" }).min(1, "DATABASE_URL is required"),
@@ -41,7 +41,7 @@ const configSchema = z.object({
   AZEEBO_APP_SCHEME: z.string().default("azeeboplus"),
 
   // Security & CORS
-  ALLOWED_ORIGINS: z.string().default("http://localhost:3000,http://localhost:4000,https://vmnl.ng,https://azeebo.plus"),
+  ALLOWED_ORIGINS: z.string().default("http://localhost:3000,http://localhost:5500,https://vmnl.ng,https://azeebo.plus"),
   FUSION_EVENTS_HMAC_SECRET: z.string().min(16).default("vmnl_fusion_events_hmac_secret_key_prod"),
   CDN_BASE_URL: z.string().url().default("http://localhost:9000/vmnl-assets"),
 

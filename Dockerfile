@@ -6,12 +6,14 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# AUD-27: pnpm is pinned via the packageManager field (corepack reads it from
+# the copied package.json), guaranteeing reproducible installs across builds.
+RUN corepack enable
 
 COPY package.json pnpm-lock.yaml* tsconfig.json ./
 COPY prisma ./prisma/
 
-RUN pnpm install --frozen-lockfile || pnpm install
+RUN pnpm install --frozen-lockfile
 
 COPY src ./src/
 COPY tests ./tests/
@@ -24,7 +26,7 @@ FROM node:22-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
-ENV PORT=4000
+ENV PORT=5500
 
 # Install dumb-init for proper signal handling (SIGTERM/SIGINT) and curl for healthchecks
 RUN apk add --no-cache dumb-init curl
@@ -36,8 +38,8 @@ RUN addgroup -g 1001 -S vmnlgroup && \
 COPY package.json pnpm-lock.yaml* ./
 COPY prisma ./prisma/
 
-RUN corepack enable && corepack prepare pnpm@latest --activate && \
-    pnpm install --prod --frozen-lockfile || pnpm install --prod
+RUN corepack enable && \
+    pnpm install --prod --frozen-lockfile
 
 COPY --from=builder /app/dist ./dist
 
@@ -46,10 +48,10 @@ RUN chown -R vmnluser:vmnlgroup /app
 
 USER vmnluser
 
-EXPOSE 4000
+EXPOSE 5500
 
 HEALTHCHECK --interval=15s --timeout=5s --start-period=10s --retries=3 \
-  CMD curl -f http://localhost:4000/healthz || exit 1
+  CMD curl -f http://localhost:5500/healthz || exit 1
 
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["node", "dist/src/index.js"]

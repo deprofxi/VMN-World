@@ -93,6 +93,10 @@ export class AfroFusionCommunityHub {
     return location;
   }
 
+  public getLocations(): HubLocation[] {
+    return Array.from(this.locations.values());
+  }
+
   public addResource(resource: HubResource): HubResource {
     if (!this.locations.has(resource.hubLocationId)) {
       throw new Error(`[COMM-RES-01] Location '${resource.hubLocationId}' not found.`);
@@ -108,6 +112,21 @@ export class AfroFusionCommunityHub {
 
   public getMember(id: string): HubMember | undefined {
     return this.members.get(id);
+  }
+
+  /** Read accessor for guild-desk projections (SCR-18). */
+  public listMembers(): HubMember[] {
+    return Array.from(this.members.values());
+  }
+
+  /** Read accessor for guild-desk projections (SCR-18). */
+  public listResources(): HubResource[] {
+    return Array.from(this.resources.values());
+  }
+
+  /** Read accessor for guild-desk projections (SCR-18). */
+  public listBookings(): ResourceBooking[] {
+    return Array.from(this.bookings.values());
   }
 
   public bookResource(params: {

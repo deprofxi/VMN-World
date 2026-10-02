@@ -13,7 +13,20 @@ export type EnterpriseResource =
   | "finance"
   | "contract"
   | "audit"
-  | "agent";
+  | "agent"
+  // DAM resources introduced with the storage authorization fix (AUD-04):
+  // read/upload/delete are gated on existing role matrices, so no role-matrix
+  // rows need to change.
+  | "storage"
+  // Editorial content (UX-CMS) and restricted privacy/security cases
+  // (UX-GOV-009/010) — TODO-SCR-01..02 / TODO-SCR-08. Permissions are derived
+  // from existing role semantics via registerDerivedRolePermissions below.
+  | "content"
+  | "case"
+  // TODO-SCR-19: enterprise risk & issue registers (UX-REC-004/005).
+  // update:risk gates register mutations; reads stay on the feature-flagged
+  // workspace surfaces. Derived from broadcast/schedule operational authority.
+  | "risk";
 
 export type EnterpriseRole =
   | "SuperAdmin"
@@ -42,7 +55,10 @@ export type EnterpriseRole =
   | "SponsorshipManager"
   | "BroadcastRightsCoordinator"
   | "BroadcastFinanceAssurance"
-  | "CarriagePlatformOwner";
+  | "CarriagePlatformOwner"
+  // Core Operational Desks
+  | "MCRSupervisor"
+  | "Operator";
 
 export interface PermissionRule {
   action: EnterpriseAction;
@@ -348,7 +364,133 @@ export const ROLE_PERMISSIONS: Record<EnterpriseRole, PermissionRule[]> = {
     { action: "read", resource: "broadcast" },
     { action: "update", resource: "broadcast" },
   ],
+
+  MCRSupervisor: [
+    { action: "read", resource: "playout" },
+    { action: "execute", resource: "playout" },
+    { action: "update", resource: "playout" },
+    { action: "read", resource: "broadcast" },
+    { action: "execute", resource: "broadcast" },
+    { action: "read", resource: "schedule" },
+    { action: "read", resource: "traffic" },
+    { action: "read", resource: "audit" },
+  ],
+
+  Operator: [
+    { action: "read", resource: "playout" },
+    { action: "execute", resource: "playout" },
+    { action: "read", resource: "broadcast" },
+    { action: "read", resource: "schedule" },
+    { action: "read", resource: "traffic" },
+  ],
 };
+
+/**
+ * Programmatic permission seeding for resource families whose rules derive
+ * mechanically from existing role semantics (e.g. DAM storage operations).
+ * Keeps ROLE_PERMISSIONS declarative while avoiding hand-written duplication.
+ */
+export function registerDerivedRolePermissions(
+  resource: EnterpriseResource,
+  rulesForRole: (role: EnterpriseRole) => PermissionRule[]
+): void {
+  for (const role of Object.keys(ROLE_PERMISSIONS) as EnterpriseRole[]) {
+    const derived = rulesForRole(role);
+    const existing = ROLE_PERMISSIONS[role];
+    for (const rule of derived) {
+      const alreadyGranted = existing.some(
+        (perm) => perm.action === rule.action && perm.resource === rule.resource
+      );
+      if (!alreadyGranted) {
+        existing.push(rule);
+      }
+    }
+  }
+}
+
+// Storage permissions derive from existing broadcast permissions: any role that
+// may create or update broadcast assets may upload DAM assets; read access
+// follows read:broadcast; delete follows delete:broadcast.
+registerDerivedRolePermissions("storage", (role) => {
+  const perms = ROLE_PERMISSIONS[role];
+  const rules: PermissionRule[] = [];
+  if (perms.some((p) => p.resource === "broadcast" && (p.action === "create" || p.action === "update"))) {
+    rules.push({ action: "create", resource: "storage" });
+  }
+  if (perms.some((p) => p.resource === "broadcast" && p.action === "read")) {
+    rules.push({ action: "read", resource: "storage" });
+  }
+  if (perms.some((p) => p.resource === "broadcast" && p.action === "delete")) {
+    rules.push({ action: "delete", resource: "storage" });
+  }
+  return rules;
+});
+
+// Editorial content (UX-CMS): create/edit derives from broadcast authoring;
+// publication (update) requires schedule or broadcast mutation authority;
+// approval derives from schedule/broadcast approval rights.
+registerDerivedRolePermissions("content", (role) => {
+  const perms = ROLE_PERMISSIONS[role];
+  const rules: PermissionRule[] = [];
+  if (perms.some((p) => p.resource === "broadcast" && (p.action === "create" || p.action === "update"))) {
+    rules.push({ action: "create", resource: "content" });
+    rules.push({ action: "update", resource: "content" });
+  }
+  if (perms.some((p) => p.resource === "broadcast" && p.action === "read")) {
+    rules.push({ action: "read", resource: "content" });
+  }
+  if (perms.some((p) => (p.resource === "broadcast" || p.resource === "schedule") && p.action === "approve")) {
+    rules.push({ action: "approve", resource: "content" });
+  }
+  return rules;
+});
+
+// Restricted privacy/security cases (UX-GOV-009/010): only operators with
+// audit read may open/work cases; assignment and transitions require update.
+// Case CONTENT reads are further restricted to the assigned case owner by the
+// cases domain itself (canReadCase) — RBAC only admits the queue.
+registerDerivedRolePermissions("case", (role) => {
+  const perms = ROLE_PERMISSIONS[role];
+  const rules: PermissionRule[] = [];
+  if (perms.some((p) => p.resource === "audit" && p.action === "read")) {
+    rules.push({ action: "read", resource: "case" });
+    rules.push({ action: "create", resource: "case" });
+    rules.push({ action: "update", resource: "case" });
+  }
+  return rules;
+});
+
+// TODO-SCR-19: risk/issue register mutations derive from broadcast or schedule
+// update authority (operational governance), plus finance/approval authority.
+registerDerivedRolePermissions("risk", (role) => {
+  const perms = ROLE_PERMISSIONS[role];
+  const rules: PermissionRule[] = [];
+  if (
+    perms.some(
+      (p) =>
+        ((p.resource === "broadcast" || p.resource === "schedule") && p.action === "update") ||
+        (p.resource === "finance" && (p.action === "approve" || p.action === "update"))
+    )
+  ) {
+    rules.push({ action: "update", resource: "risk" });
+    rules.push({ action: "read", resource: "risk" });
+  }
+  return rules;
+});
+
+/**
+ * Startup and CI Invariant:
+ * Asserts that every role referenced in the credential store exists in the RBAC permissions matrix.
+ */
+export function assertSeedRolesConformToRbac(seedRoles: string[]): boolean {
+  const definedRoles = new Set(Object.keys(ROLE_PERMISSIONS));
+  for (const role of seedRoles) {
+    if (!definedRoles.has(role)) {
+      throw new Error(`[VMNL-RBAC-INVARIANT] Seeded role '${role}' is not defined in ROLE_PERMISSIONS matrix.`);
+    }
+  }
+  return true;
+}
 
 /**
  * Evaluates whether a user with given roles can perform an action on a resource.

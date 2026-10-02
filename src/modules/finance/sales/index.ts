@@ -146,26 +146,85 @@ export class QuoteToCashSalesEngine {
 
   /**
    * Cash collection and revenue recognition.
+   *
+   * FIN-01 / GVR-05 (DEC pending FinanceController ruling — FIN-01): revenue
+   * is never recognised on a cash-basis shortcut. Recognition requires BOTH:
+   *  - verified proof-of-performance (delivery obligation satisfied), and
+   *  - collected cash covering the recognised amount.
+   * Recognised revenue is additionally capped at the total contract value so
+   * over-collection cannot inflate consolidated external revenue (Canonical
+   * Law 7). Cash above the cap remains cash, not revenue.
    */
   public recordCashPayment(dealId: string, amountNgn: number): SalesDeal {
+    if (!Number.isFinite(amountNgn) || amountNgn <= 0) {
+      throw new Error("[QTC-CASH-01] Cash payment amount must be greater than zero.");
+    }
     const deal = this.getDealOrThrow(dealId);
     deal.cashCollectedAmountNgn += amountNgn;
     deal.stage = "CASH_COLLECTED";
 
-    // Recognize revenue once service delivered and cash collected
-    if (deal.proofOfPerformanceVerified) {
-      deal.recognizedRevenueNgn = deal.cashCollectedAmountNgn;
-      if (deal.recognizedRevenueNgn >= deal.totalContractValueNgn) {
-        deal.stage = "REVENUE_RECOGNIZED";
-      }
-    }
+    this.recalculateRecognizedRevenue(deal);
+    deal.updatedAt = new Date();
+    return deal;
+  }
 
+  /**
+   * Recognition recompute shared by cash and delivery events: revenue moves
+   * only when proof-of-performance is verified, and never beyond the
+   * contract value.
+   */
+  private recalculateRecognizedRevenue(deal: SalesDeal): void {
+    if (!deal.proofOfPerformanceVerified) {
+      return; // No verified delivery → no recognition (cash stays deferred).
+    }
+    const recognizable = Math.min(deal.cashCollectedAmountNgn, deal.totalContractValueNgn);
+    if (recognizable > deal.recognizedRevenueNgn) {
+      deal.recognizedRevenueNgn = recognizable;
+    }
+    if (deal.recognizedRevenueNgn >= deal.totalContractValueNgn) {
+      deal.stage = "REVENUE_RECOGNIZED";
+    }
+  }
+
+  /**
+   * FIN-01: explicit recognition event for delivered-and-invoiced value —
+   * e.g. milestone completion verified by proof-of-performance without a new
+   * cash movement. Recognition is delivery-gated and contract-capped; cash
+   * above the cap remains collected cash, not revenue.
+   */
+  public recognizeRevenue(dealId: string, amountNgn: number): SalesDeal {
+    if (!Number.isFinite(amountNgn) || amountNgn <= 0) {
+      throw new Error("[QTC-REC-01] Recognition amount must be greater than zero.");
+    }
+    const deal = this.getDealOrThrow(dealId);
+    if (!deal.proofOfPerformanceVerified) {
+      throw new Error("[QTC-REC-02] Revenue recognition requires verified proof-of-performance. Cash collected is not revenue until delivery is verified.");
+    }
+    const headroom = deal.totalContractValueNgn - deal.recognizedRevenueNgn;
+    if (amountNgn > headroom) {
+      throw new Error(
+        `[QTC-REC-03] Recognition of ${amountNgn} exceeds the remaining contract value headroom (${Math.max(headroom, 0)}). Consolidated revenue must not be inflated beyond the contract (Canonical Law 7).`
+      );
+    }
+    deal.recognizedRevenueNgn += amountNgn;
+    if (deal.recognizedRevenueNgn >= deal.totalContractValueNgn) {
+      deal.stage = "REVENUE_RECOGNIZED";
+    }
     deal.updatedAt = new Date();
     return deal;
   }
 
   public getDeal(id: string): SalesDeal | undefined {
     return this.deals.get(id);
+  }
+
+  /**
+   * Read accessor for workspace projections (SCR-17/SCR-19): returns all
+   * canonical deals. Callers must apply their own tenant/relationship scoping
+   * before rendering records to a counterparty.
+   */
+  public listDeals(): SalesDeal[] {
+    return Array.from(this.deals.values());
   }
 
   private getDealOrThrow(id: string): SalesDeal {

@@ -4,6 +4,7 @@
  */
 
 import { getPrismaClient, checkDatabaseConnection } from "../index.js";
+import { handleRepoError } from "../repository-mode.js";
 
 export interface TalentProfileRecord {
   id: string;
@@ -16,12 +17,17 @@ export interface TalentProfileRecord {
   rateCardCurrency: string;
   verificationStatus: "PENDING" | "IN_REVIEW" | "VERIFIED" | "REJECTED";
   verifiedAt?: Date;
+  source?: "DB" | "MEMORY";
   createdAt: Date;
   updatedAt: Date;
 }
 
 export class TalentRepository {
   private inMemoryStore = new Map<string, TalentProfileRecord>();
+
+  public getInMemoryCount(): number {
+    return this.inMemoryStore.size;
+  }
 
   public async createTalent(data: {
     id?: string;
@@ -53,7 +59,7 @@ export class TalentRepository {
     if (db.connected) {
       try {
         const client = getPrismaClient();
-        await (client as any).talentProfile.upsert({
+        const created = await client.talentProfile.upsert({
           where: { personId: data.personId },
           update: {
             stageName: record.stageName,
@@ -75,13 +81,32 @@ export class TalentRepository {
             verificationStatus: record.verificationStatus,
           },
         });
-      } catch {
-        // Fall back to memory
+
+        // DB authoritative: return DB record without polluting in-memory fallback store
+        return {
+          id: created.id,
+          personId: created.personId,
+          stageName: created.stageName ?? undefined,
+          tier: created.tier,
+          bio: created.bio ?? undefined,
+          skills: Array.isArray(created.skills) ? (created.skills as string[]) : [],
+          rateCardAmount: Number(created.rateCardAmount || 0),
+          rateCardCurrency: created.rateCardCurrency,
+          verificationStatus: created.verificationStatus,
+          verifiedAt: created.verifiedAt ?? undefined,
+          source: "DB",
+          createdAt: created.createdAt,
+          updatedAt: created.updatedAt,
+        };
+      } catch (err: any) {
+        await handleRepoError("talentProfile", "write", err);
       }
     }
 
-    this.inMemoryStore.set(record.id, record);
-    return record;
+    // Fall back to memory with source: "MEMORY"
+    const memoryRecord: TalentProfileRecord = { ...record, source: "MEMORY" };
+    this.inMemoryStore.set(record.id, memoryRecord);
+    return memoryRecord;
   }
 
   public async getTalentById(id: string): Promise<TalentProfileRecord | null> {
@@ -89,7 +114,7 @@ export class TalentRepository {
     if (db.connected) {
       try {
         const client = getPrismaClient();
-        const found = await (client as any).talentProfile.findUnique({
+        const found = await client.talentProfile.findUnique({
           where: { id },
         });
         if (found) {
@@ -99,20 +124,23 @@ export class TalentRepository {
             stageName: found.stageName ?? undefined,
             tier: found.tier,
             bio: found.bio ?? undefined,
-            skills: Array.isArray(found.skills) ? found.skills : [],
+            skills: Array.isArray(found.skills) ? (found.skills as string[]) : [],
             rateCardAmount: Number(found.rateCardAmount || 0),
             rateCardCurrency: found.rateCardCurrency,
             verificationStatus: found.verificationStatus,
             verifiedAt: found.verifiedAt ?? undefined,
+            source: "DB",
             createdAt: found.createdAt,
             updatedAt: found.updatedAt,
           };
         }
-      } catch {
-        // Fall back to memory
+      } catch (err: any) {
+        await handleRepoError("talentProfile", "read", err);
       }
     }
-    return this.inMemoryStore.get(id) || null;
+
+    const mem = this.inMemoryStore.get(id);
+    return mem ? { ...mem, source: "MEMORY" } : null;
   }
 
   public async getTalentByPersonId(personId: string): Promise<TalentProfileRecord | null> {
@@ -120,7 +148,7 @@ export class TalentRepository {
     if (db.connected) {
       try {
         const client = getPrismaClient();
-        const found = await (client as any).talentProfile.findUnique({
+        const found = await client.talentProfile.findUnique({
           where: { personId },
         });
         if (found) {
@@ -130,23 +158,24 @@ export class TalentRepository {
             stageName: found.stageName ?? undefined,
             tier: found.tier,
             bio: found.bio ?? undefined,
-            skills: Array.isArray(found.skills) ? found.skills : [],
+            skills: Array.isArray(found.skills) ? (found.skills as string[]) : [],
             rateCardAmount: Number(found.rateCardAmount || 0),
             rateCardCurrency: found.rateCardCurrency,
             verificationStatus: found.verificationStatus,
             verifiedAt: found.verifiedAt ?? undefined,
+            source: "DB",
             createdAt: found.createdAt,
             updatedAt: found.updatedAt,
           };
         }
-      } catch {
-        // Fall back to memory
+      } catch (err: any) {
+        await handleRepoError("talentProfile", "read", err);
       }
     }
 
     for (const record of this.inMemoryStore.values()) {
       if (record.personId === personId) {
-        return record;
+        return { ...record, source: "MEMORY" };
       }
     }
     return null;
@@ -156,7 +185,39 @@ export class TalentRepository {
     tier?: "EMERGING" | "VERIFIED" | "PROFESSIONAL" | "MASTER";
     verificationStatus?: "PENDING" | "IN_REVIEW" | "VERIFIED" | "REJECTED";
   }): Promise<TalentProfileRecord[]> {
-    let records = Array.from(this.inMemoryStore.values());
+    const db = await checkDatabaseConnection();
+    if (db.connected) {
+      try {
+        const client = getPrismaClient();
+        const found = await client.talentProfile.findMany({
+          where: {
+            ...(filter?.tier ? { tier: filter.tier } : {}),
+            ...(filter?.verificationStatus ? { verificationStatus: filter.verificationStatus } : {}),
+          },
+        });
+        if (found.length > 0) {
+          return found.map((r) => ({
+            id: r.id,
+            personId: r.personId,
+            stageName: r.stageName ?? undefined,
+            tier: r.tier,
+            bio: r.bio ?? undefined,
+            skills: Array.isArray(r.skills) ? (r.skills as string[]) : [],
+            rateCardAmount: Number(r.rateCardAmount || 0),
+            rateCardCurrency: r.rateCardCurrency,
+            verificationStatus: r.verificationStatus,
+            verifiedAt: r.verifiedAt ?? undefined,
+            source: "DB",
+            createdAt: r.createdAt,
+            updatedAt: r.updatedAt,
+          }));
+        }
+      } catch (err: any) {
+        await handleRepoError("talentProfile", "list", err);
+      }
+    }
+
+    let records = Array.from(this.inMemoryStore.values()).map((r) => ({ ...r, source: "MEMORY" as const }));
     if (filter?.tier) {
       records = records.filter((r) => r.tier === filter.tier);
     }
@@ -170,46 +231,63 @@ export class TalentRepository {
     id: string,
     status: "PENDING" | "IN_REVIEW" | "VERIFIED" | "REJECTED"
   ): Promise<TalentProfileRecord | null> {
-    const existing = await this.getTalentById(id);
-    if (!existing) return null;
-
-    const updated: TalentProfileRecord = {
-      ...existing,
-      verificationStatus: status,
-      verifiedAt: status === "VERIFIED" ? new Date() : existing.verifiedAt,
-      updatedAt: new Date(),
-    };
-
     const db = await checkDatabaseConnection();
     if (db.connected) {
       try {
         const client = getPrismaClient();
-        await (client as any).talentProfile.update({
+        const updated = await client.talentProfile.update({
           where: { id },
           data: {
             verificationStatus: status,
-            verifiedAt: updated.verifiedAt,
+            verifiedAt: status === "VERIFIED" ? new Date() : undefined,
           },
         });
-      } catch {
-        // Fall back to memory
+        return {
+          id: updated.id,
+          personId: updated.personId,
+          stageName: updated.stageName ?? undefined,
+          tier: updated.tier,
+          bio: updated.bio ?? undefined,
+          skills: Array.isArray(updated.skills) ? (updated.skills as string[]) : [],
+          rateCardAmount: Number(updated.rateCardAmount || 0),
+          rateCardCurrency: updated.rateCardCurrency,
+          verificationStatus: updated.verificationStatus,
+          verifiedAt: updated.verifiedAt ?? undefined,
+          source: "DB",
+          createdAt: updated.createdAt,
+          updatedAt: updated.updatedAt,
+        };
+      } catch (err: any) {
+        await handleRepoError("talentProfile", "update", err);
       }
     }
 
-    this.inMemoryStore.set(id, updated);
-    return updated;
+    const mem = this.inMemoryStore.get(id);
+    if (!mem) return null;
+    const updatedMem: TalentProfileRecord = {
+      ...mem,
+      verificationStatus: status,
+      verifiedAt: status === "VERIFIED" ? new Date() : mem.verifiedAt,
+      updatedAt: new Date(),
+      source: "MEMORY",
+    };
+    this.inMemoryStore.set(id, updatedMem);
+    return updatedMem;
   }
 
   public async deleteTalent(id: string): Promise<boolean> {
     const db = await checkDatabaseConnection();
+    let dbDeleted = false;
     if (db.connected) {
       try {
         const client = getPrismaClient();
-        await (client as any).talentProfile.delete({ where: { id } });
-      } catch {
-        // Fall back
+        await client.talentProfile.delete({ where: { id } });
+        dbDeleted = true;
+      } catch (err: any) {
+        await handleRepoError("talentProfile", "delete-failed", err);
       }
     }
-    return this.inMemoryStore.delete(id);
+    const memDeleted = this.inMemoryStore.delete(id);
+    return dbDeleted || memDeleted;
   }
 }

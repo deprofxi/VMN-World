@@ -119,7 +119,7 @@ export class AfcaAcademyService {
   private baseUrl: string;
 
   constructor(baseUrl?: string) {
-    this.baseUrl = (baseUrl || process.env.APP_URL || "http://localhost:4000").replace(/\/+$/, "");
+    this.baseUrl = (baseUrl || process.env.APP_URL || "http://localhost:5500").replace(/\/+$/, "");
   }
 
   public createCourse(course: Course): Course {

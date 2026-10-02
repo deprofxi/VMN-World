@@ -82,3 +82,6 @@ Thumbs.db
 # Temporary directories
 tmp/
 temp/
+
+# Sandbox backup/restore drill artifacts (evidence lives in docs/audit/)
+.drill-backups/

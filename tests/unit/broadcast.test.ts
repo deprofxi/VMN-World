@@ -16,6 +16,8 @@ import {
   CommercialBreak,
   PlaylistItem,
   AsRunLogItem,
+  BroadcastBillingEngine,
+  PROVISIONAL_RATE_CARDS,
 } from "../../src/modules/broadcast/index.js";
 import { RightsRecordEntity } from "../../src/core/domain/types.js";
 import { getConfig } from "../../src/core/config/index.js";
@@ -114,7 +116,87 @@ describe("Phase 2: Broadcast & Linear Television Operations", () => {
         rightsRecord: validRights,
       });
       expect(check.allowed).toBe(false);
+      expect(check.code).toBe("POST_EXPIRY_DATE");
       expect(check.reason).toContain("exceeds rights expiry date");
+    });
+
+    it("marks all default rate cards explicitly as PROVISIONAL / UNVERIFIED (T9-14, F-9-12)", () => {
+      const billing = new BroadcastBillingEngine();
+      expect(PROVISIONAL_RATE_CARDS.length).toBeGreaterThan(0);
+      for (const card of PROVISIONAL_RATE_CARDS) {
+        expect(card.isProvisional).toBe(true);
+        expect(card.notes).toContain("PROVISIONAL / UNVERIFIED");
+        const found = billing.getRateCard(card.channelCode, card.daypart);
+        expect(found).toBeDefined();
+        expect(found?.isProvisional).toBe(true);
+      }
+    });
+
+    it("should enforce territory clearance and block territory mismatches (T9-13, F-9-11)", () => {
+      // validRights has territory: "NG"
+      const checkUk = validateScheduleRights({
+        episodeId: "ep-001",
+        channelCode: "ORIS",
+        scheduledAirTime: new Date("2026-06-01T18:00:00Z"),
+        scheduledDurationSeconds: 1800,
+        rightsRecord: validRights,
+        targetTerritory: "GLOBAL",
+      });
+      expect(checkUk.allowed).toBe(false);
+      expect(checkUk.code).toBe("TERRITORY_MISMATCH");
+    });
+
+    it("should enforce channel scoping when rights record is restricted to specific channel (T9-13, F-9-11)", () => {
+      const channelRestrictedRights: RightsRecordEntity = {
+        ...validRights,
+        channelCode: "NXTR",
+      };
+
+      const check = validateScheduleRights({
+        episodeId: "ep-001",
+        channelCode: "ORIS", // requesting ORIS but restricted to NXTR
+        scheduledAirTime: new Date("2026-06-01T18:00:00Z"),
+        scheduledDurationSeconds: 1800,
+        rightsRecord: channelRestrictedRights,
+      });
+      expect(check.allowed).toBe(false);
+      expect(check.code).toBe("CHANNEL_NOT_PERMITTED");
+    });
+
+    it("should block sub-licensing attempt if rights record is not sub-licensable (T9-13, F-9-11)", () => {
+      // validRights has subLicensable: false
+      const check = validateScheduleRights({
+        episodeId: "ep-001",
+        channelCode: "ORIS",
+        scheduledAirTime: new Date("2026-06-01T18:00:00Z"),
+        scheduledDurationSeconds: 1800,
+        rightsRecord: validRights,
+        isSubLicenceAttempt: true,
+      });
+      expect(check.allowed).toBe(false);
+      expect(check.code).toBe("SUBLICENSE_NOT_PERMITTED");
+    });
+
+    it("should detect and block overlapping exclusive transmission windows (T9-13, F-9-11)", () => {
+      const existingWindows = [
+        {
+          channelCode: "NXTR",
+          startDate: new Date("2026-06-01T17:00:00Z"),
+          expiryDate: new Date("2026-06-01T19:00:00Z"),
+          exclusivity: true,
+        },
+      ];
+
+      const check = validateScheduleRights({
+        episodeId: "ep-001",
+        channelCode: "ORIS",
+        scheduledAirTime: new Date("2026-06-01T18:00:00Z"), // overlaps 17:00-19:00 window on NXTR
+        scheduledDurationSeconds: 1800,
+        rightsRecord: validRights,
+        existingExclusiveWindows: existingWindows,
+      });
+      expect(check.allowed).toBe(false);
+      expect(check.code).toBe("EXCLUSIVE_WINDOW_CONFLICT");
     });
   });
 

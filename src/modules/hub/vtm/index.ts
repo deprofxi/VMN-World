@@ -345,6 +345,21 @@ export class VirtualTalentManagementEngine {
     return this.contracts.get(id);
   }
 
+  /** Read accessor for workbench projections (SCR-18). */
+  public getBrief(id: string): OpportunityBrief | undefined {
+    return this.briefs.get(id);
+  }
+
+  /** Read accessor for workbench projections (SCR-18). */
+  public listBriefs(): OpportunityBrief[] {
+    return Array.from(this.briefs.values());
+  }
+
+  /** Read accessor for payment-visibility projections (SCR-18/SCR-20). */
+  public listContracts(): VtmContract[] {
+    return Array.from(this.contracts.values());
+  }
+
   private getContractOrThrow(id: string): VtmContract {
     const contract = this.contracts.get(id);
     if (!contract) {

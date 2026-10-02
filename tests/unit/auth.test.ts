@@ -1,9 +1,19 @@
 import { describe, it, expect } from "vitest";
-import { hashPassword, verifyPassword, signSessionToken, verifySessionToken, SessionUser } from "../../src/core/auth/index.js";
+import {
+  hashPassword,
+  verifyPassword,
+  signSessionToken,
+  verifySessionToken,
+  SessionUser,
+  setTokenRevocationStore,
+  InMemoryRevocationStore,
+  revokeToken,
+  isTokenRevoked,
+} from "../../src/core/auth/index.js";
 
 describe("Core Authentication Service (TASK-P1-02)", () => {
   it("should securely hash and verify passwords", async () => {
-    const rawPassword = "SuperSecretPassword123!";
+    const rawPassword = "SuperSecretAuthToken2026!";
     const hash = await hashPassword(rawPassword);
 
     expect(hash).not.toBe(rawPassword);
@@ -12,7 +22,7 @@ describe("Core Authentication Service (TASK-P1-02)", () => {
     const isMatch = await verifyPassword(rawPassword, hash);
     expect(isMatch).toBe(true);
 
-    const isWrong = await verifyPassword("WrongPassword123!", hash);
+    const isWrong = await verifyPassword("WrongAuthToken2026!", hash);
     expect(isWrong).toBe(false);
   });
 
@@ -43,5 +53,40 @@ describe("Core Authentication Service (TASK-P1-02)", () => {
 
   it("should reject tampered or invalid JWT tokens", () => {
     expect(() => verifySessionToken("tampered.fake.token")).toThrowError(/Invalid or expired session token/);
+  });
+
+  it("propagates token revocation across instances via shared TokenRevocationStore (T-26)", () => {
+    class SharedMockRevocationStore {
+      public blacklist = new Set<string>();
+      public revoke(token: string) {
+        this.blacklist.add(token);
+      }
+      public isRevoked(token: string) {
+        return this.blacklist.has(token);
+      }
+    }
+
+    const sharedStore = new SharedMockRevocationStore();
+    setTokenRevocationStore(sharedStore);
+
+    const token = signSessionToken({
+      userId: "usr-shared",
+      personId: "per-shared",
+      email: "operator@vmnl.ng",
+      roles: ["Operator"],
+    }).accessToken;
+
+    expect(isTokenRevoked(token)).toBe(false);
+    expect(verifySessionToken(token).email).toBe("operator@vmnl.ng");
+
+    // Revoke token
+    revokeToken(token);
+
+    // Verify token is revoked and verification fails
+    expect(isTokenRevoked(token)).toBe(true);
+    expect(() => verifySessionToken(token)).toThrow(/token has been revoked/);
+
+    // Reset back to default in-memory store
+    setTokenRevocationStore(new InMemoryRevocationStore());
   });
 });

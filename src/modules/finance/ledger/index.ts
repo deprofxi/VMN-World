@@ -46,6 +46,8 @@ export interface JournalEntry {
   postedAt: Date;
 }
 
+import { toKobo, fromKobo } from "../../../core/domain/types.js";
+
 export class SevenWayLedgerEngine {
   private entries: JournalEntry[] = [];
   private snapshot: SevenWayFinancialSnapshot = {
@@ -65,28 +67,28 @@ export class SevenWayLedgerEngine {
     description: string;
     lines: JournalLine[];
   }): JournalEntry {
-    let totalDebit = 0;
-    let totalCredit = 0;
+    let totalDebitKobo = 0;
+    let totalCreditKobo = 0;
 
     for (const line of params.lines) {
       if (line.debitNgn < 0 || line.creditNgn < 0) {
         throw new Error("[LEDGER-01] Debits and credits must be non-negative.");
       }
-      totalDebit += line.debitNgn;
-      totalCredit += line.creditNgn;
+      totalDebitKobo += toKobo(line.debitNgn);
+      totalCreditKobo += toKobo(line.creditNgn);
     }
 
-    // Invariant: Debits must strictly equal Credits
-    if (Math.abs(totalDebit - totalCredit) !== 0) {
+    // Invariant: Debits must strictly equal Credits down to the exact kobo/cent
+    if (totalDebitKobo !== totalCreditKobo) {
       throw new Error(
-        `[LEDGER-02] Unbalanced journal entry '${params.id}': Debits (${totalDebit}) do not equal Credits (${totalCredit}).`
+        `[LEDGER-02] Unbalanced journal entry '${params.id}': Debits (${fromKobo(totalDebitKobo)}) do not equal Credits (${fromKobo(totalCreditKobo)}).`
       );
     }
 
     const entry: JournalEntry = {
       ...params,
-      totalDebitNgn: totalDebit,
-      totalCreditNgn: totalCredit,
+      totalDebitNgn: fromKobo(totalDebitKobo),
+      totalCreditNgn: fromKobo(totalCreditKobo),
       isBalanced: true,
       postedAt: new Date(),
     };
@@ -96,13 +98,27 @@ export class SevenWayLedgerEngine {
   }
 
   public recordPillarAmounts(amounts: Partial<Omit<SevenWayFinancialSnapshot, "asOfDate">>): SevenWayFinancialSnapshot {
-    if (amounts.contractValueNgn !== undefined) this.snapshot.contractValueNgn += amounts.contractValueNgn;
-    if (amounts.gmvNgn !== undefined) this.snapshot.gmvNgn += amounts.gmvNgn;
-    if (amounts.invoicedRevenueNgn !== undefined) this.snapshot.invoicedRevenueNgn += amounts.invoicedRevenueNgn;
-    if (amounts.recognizedRevenueNgn !== undefined) this.snapshot.recognizedRevenueNgn += amounts.recognizedRevenueNgn;
-    if (amounts.cashCollectionsNgn !== undefined) this.snapshot.cashCollectionsNgn += amounts.cashCollectionsNgn;
-    if (amounts.talentPayablesNgn !== undefined) this.snapshot.talentPayablesNgn += amounts.talentPayablesNgn;
-    if (amounts.partnerSplitsNgn !== undefined) this.snapshot.partnerSplitsNgn += amounts.partnerSplitsNgn;
+    if (amounts.contractValueNgn !== undefined) {
+      this.snapshot.contractValueNgn = fromKobo(toKobo(this.snapshot.contractValueNgn) + toKobo(amounts.contractValueNgn));
+    }
+    if (amounts.gmvNgn !== undefined) {
+      this.snapshot.gmvNgn = fromKobo(toKobo(this.snapshot.gmvNgn) + toKobo(amounts.gmvNgn));
+    }
+    if (amounts.invoicedRevenueNgn !== undefined) {
+      this.snapshot.invoicedRevenueNgn = fromKobo(toKobo(this.snapshot.invoicedRevenueNgn) + toKobo(amounts.invoicedRevenueNgn));
+    }
+    if (amounts.recognizedRevenueNgn !== undefined) {
+      this.snapshot.recognizedRevenueNgn = fromKobo(toKobo(this.snapshot.recognizedRevenueNgn) + toKobo(amounts.recognizedRevenueNgn));
+    }
+    if (amounts.cashCollectionsNgn !== undefined) {
+      this.snapshot.cashCollectionsNgn = fromKobo(toKobo(this.snapshot.cashCollectionsNgn) + toKobo(amounts.cashCollectionsNgn));
+    }
+    if (amounts.talentPayablesNgn !== undefined) {
+      this.snapshot.talentPayablesNgn = fromKobo(toKobo(this.snapshot.talentPayablesNgn) + toKobo(amounts.talentPayablesNgn));
+    }
+    if (amounts.partnerSplitsNgn !== undefined) {
+      this.snapshot.partnerSplitsNgn = fromKobo(toKobo(this.snapshot.partnerSplitsNgn) + toKobo(amounts.partnerSplitsNgn));
+    }
 
     this.snapshot.asOfDate = new Date();
     return { ...this.snapshot };

@@ -50,7 +50,12 @@ The active PostgreSQL cluster hosts **55 databases**, including:
 
 ## 4. Component Classification Matrix
 
-In accordance with Section 2 of `VMNL-AZP-VMN-EXEC-001`, all system components are classified:
+> [!IMPORTANT]
+> **GOVERNANCE AMENDMENT (2026-09-28):**
+> Dispositions for `ravebroadcast`, `vmnl_control`, and `vmnltalentaccelerator` below are **SUPERSEDED** by formal EAB decision recorded in [ADR-013](file:///Users/deprof/www/vmng/docs/adrs/ADR-013-legacy-system-integration-supersede.md).
+> Open-standard native broadcast automation (SMPTE-2067, BXF, Harris CSV, Grass Valley XML) and canonical Prisma database repositories now govern these domains natively without legacy microservice or direct database dependencies.
+
+In accordance with Section 2 of `VMNL-AZP-VMN-EXEC-001`, initial system component classifications were recorded as follows:
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────┐

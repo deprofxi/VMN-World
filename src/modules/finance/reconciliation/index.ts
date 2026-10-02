@@ -38,12 +38,35 @@ export interface ReconciliationMatchResult {
 export class BankReconciliationEngine {
   private transactions = new Map<string, BankTransactionRecord>();
   private reconciliationResults = new Map<string, ReconciliationMatchResult>();
+  private replayLogs: Array<{ transactionId: string; timestamp: Date; reason: string }> = [];
 
   public ingestBankTransactions(records: BankTransactionRecord[]): number {
+    let newlyIngested = 0;
     for (const r of records) {
+      if (this.transactions.has(r.id)) {
+        this.replayLogs.push({
+          transactionId: r.id,
+          timestamp: new Date(),
+          reason: `Duplicate transaction event replay detected for ${r.id}`,
+        });
+        continue; // Reject/ignore duplicate event id within reconciliation window
+      }
       this.transactions.set(r.id, r);
+      newlyIngested++;
     }
-    return records.length;
+    return newlyIngested;
+  }
+
+  public getReplayLogs(): Array<{ transactionId: string; timestamp: Date; reason: string }> {
+    return [...this.replayLogs];
+  }
+
+  public getTransaction(id: string): BankTransactionRecord | undefined {
+    return this.transactions.get(id);
+  }
+
+  public getTransactionCount(): number {
+    return this.transactions.size;
   }
 
   /**
