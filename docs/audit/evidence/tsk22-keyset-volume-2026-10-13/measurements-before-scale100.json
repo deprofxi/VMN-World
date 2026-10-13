@@ -1,0 +1,556 @@
+{
+  "generatedAt": "2026-10-13T13:01:54.791Z",
+  "args": {
+    "reps": 100,
+    "scale": 100,
+    "refresh": true,
+    "episodeShape": "interleaved",
+    "label": "before",
+    "episodesPerProgramme": 4,
+    "adminUrl": "<redacted>",
+    "db": "vmnl_enterprise_perf"
+  },
+  "hostLoad": {
+    "start": {
+      "loadavg_1m": 176.74,
+      "loadavg_5m": 191.88,
+      "cpus": 8,
+      "uptime_seconds": 52397
+    },
+    "end": {
+      "loadavg_1m": 220.29,
+      "loadavg_5m": 207.08,
+      "cpus": 8,
+      "uptime_seconds": 52770
+    }
+  },
+  "dataset": {
+    "scale": 100,
+    "channels": 3,
+    "programmes": 15000,
+    "episodes": 60000,
+    "programmesPerChannel": 5000,
+    "channelProgrammes": {
+      "NXTR": 9000,
+      "ORIS": 3000,
+      "IMBD": 3000
+    }
+  },
+  "hostLoadStart": {
+    "loadavg_1m": 176.74,
+    "loadavg_5m": 191.88,
+    "cpus": 8,
+    "uptime_seconds": 52397
+  },
+  "info": {
+    "server_version": "18.3",
+    "shared_buffers": "128MB",
+    "max_parallel_workers_per_gather": "2"
+  },
+  "seedStats": {
+    "seconds": 21.67,
+    "programmes": "15000",
+    "episodes": "60000",
+    "episodeShape": "interleaved",
+    "firstProgrammeEpisodeSpread": {
+      "firstCode": "PERF-EPG-0000001",
+      "lastCode": "PERF-EPG-0045001",
+      "rowTotal": "4"
+    },
+    "channelSpreads": [
+      {
+        "channelCode": "IMBD",
+        "firstCode": "PERF-PRG-000003",
+        "lastCode": "PERF-PRG-014998",
+        "rowTotal": "3000"
+      },
+      {
+        "channelCode": "NXTR",
+        "firstCode": "PERF-PRG-000001",
+        "lastCode": "PERF-PRG-015000",
+        "rowTotal": "9000"
+      },
+      {
+        "channelCode": "ORIS",
+        "firstCode": "PERF-PRG-000002",
+        "lastCode": "PERF-PRG-014997",
+        "rowTotal": "3000"
+      }
+    ],
+    "targetProgramme": "PERF-PRG-000001"
+  },
+  "explain": {
+    "programmesFirst_NXTR": [
+      "Limit  (cost=0.29..9.44 rows=101 width=116) (actual time=0.034..0.083 rows=101.00 loops=1)",
+      "  Buffers: shared hit=6",
+      "  ->  Index Scan using \"Programme_code_key\" on \"Programme\"  (cost=0.29..816.28 rows=9000 width=116) (actual time=0.032..0.072 rows=101.00 loops=1)",
+      "        Index Cond: (code > ''::text)",
+      "        Filter: (\"channelCode\" = 'NXTR'::text)",
+      "        Rows Removed by Filter: 68",
+      "        Index Searches: 1",
+      "        Buffers: shared hit=6",
+      "Planning:",
+      "  Buffers: shared hit=30",
+      "Planning Time: 0.389 ms",
+      "Execution Time: 0.258 ms"
+    ],
+    "programmesDeep_NXTR": [
+      "Limit  (cost=0.29..9.82 rows=101 width=116) (actual time=0.029..0.083 rows=101.00 loops=1)",
+      "  Buffers: shared hit=7",
+      "  ->  Index Scan using \"Programme_code_key\" on \"Programme\"  (cost=0.29..85.28 rows=900 width=116) (actual time=0.028..0.072 rows=101.00 loops=1)",
+      "        Index Cond: (code > 'PERF-PRG-013501'::text)",
+      "        Filter: (\"channelCode\" = 'NXTR'::text)",
+      "        Rows Removed by Filter: 68",
+      "        Index Searches: 1",
+      "        Buffers: shared hit=7",
+      "Planning Time: 0.125 ms",
+      "Execution Time: 0.106 ms"
+    ],
+    "programmesFirst_ORIS": [
+      "Limit  (cost=0.29..27.76 rows=101 width=116) (actual time=0.037..0.155 rows=101.00 loops=1)",
+      "  Buffers: shared hit=13",
+      "  ->  Index Scan using \"Programme_code_key\" on \"Programme\"  (cost=0.29..816.28 rows=3000 width=116) (actual time=0.036..0.144 rows=101.00 loops=1)",
+      "        Index Cond: (code > ''::text)",
+      "        Filter: (\"channelCode\" = 'ORIS'::text)",
+      "        Rows Removed by Filter: 401",
+      "        Index Searches: 1",
+      "        Buffers: shared hit=13",
+      "Planning:",
+      "  Buffers: shared hit=3",
+      "Planning Time: 0.157 ms",
+      "Execution Time: 0.178 ms"
+    ],
+    "programmesDeep_ORIS": [
+      "Limit  (cost=0.29..28.90 rows=101 width=116) (actual time=0.033..0.188 rows=101.00 loops=1)",
+      "  Buffers: shared hit=14",
+      "  ->  Index Scan using \"Programme_code_key\" on \"Programme\"  (cost=0.29..85.28 rows=300 width=116) (actual time=0.032..0.177 rows=101.00 loops=1)",
+      "        Index Cond: (code > 'PERF-PRG-013502'::text)",
+      "        Filter: (\"channelCode\" = 'ORIS'::text)",
+      "        Rows Removed by Filter: 404",
+      "        Index Searches: 1",
+      "        Buffers: shared hit=14",
+      "Planning Time: 0.135 ms",
+      "Execution Time: 0.212 ms"
+    ],
+    "programmesFirst_IMBD": [
+      "Limit  (cost=0.29..27.76 rows=101 width=116) (actual time=0.036..8.348 rows=101.00 loops=1)",
+      "  Buffers: shared hit=13",
+      "  ->  Index Scan using \"Programme_code_key\" on \"Programme\"  (cost=0.29..816.28 rows=3000 width=116) (actual time=0.034..8.335 rows=101.00 loops=1)",
+      "        Index Cond: (code > ''::text)",
+      "        Filter: (\"channelCode\" = 'IMBD'::text)",
+      "        Rows Removed by Filter: 402",
+      "        Index Searches: 1",
+      "        Buffers: shared hit=13",
+      "Planning:",
+      "  Buffers: shared hit=3",
+      "Planning Time: 16.493 ms",
+      "Execution Time: 8.386 ms"
+    ],
+    "programmesDeep_IMBD": [
+      "Limit  (cost=0.29..28.90 rows=101 width=116) (actual time=0.041..0.392 rows=101.00 loops=1)",
+      "  Buffers: shared hit=14",
+      "  ->  Index Scan using \"Programme_code_key\" on \"Programme\"  (cost=0.29..85.28 rows=300 width=116) (actual time=0.040..0.379 rows=101.00 loops=1)",
+      "        Index Cond: (code > 'PERF-PRG-013503'::text)",
+      "        Filter: (\"channelCode\" = 'IMBD'::text)",
+      "        Rows Removed by Filter: 404",
+      "        Index Searches: 1",
+      "        Buffers: shared hit=14",
+      "Planning Time: 28.390 ms",
+      "Execution Time: 0.440 ms"
+    ],
+    "episodesFirst": [
+      "Limit  (cost=19.65..19.66 rows=4 width=130) (actual time=0.123..0.124 rows=4.00 loops=1)",
+      "  Buffers: shared hit=6",
+      "  ->  Sort  (cost=19.65..19.66 rows=4 width=130) (actual time=0.121..0.122 rows=4.00 loops=1)",
+      "        Sort Key: \"episodeCode\"",
+      "        Sort Method: quicksort  Memory: 25kB",
+      "        Buffers: shared hit=6",
+      "        ->  Index Scan using \"BroadcastEpisode_programmeCode_idx\" on \"BroadcastEpisode\"  (cost=0.29..19.61 rows=4 width=130) (actual time=0.028..0.110 rows=4.00 loops=1)",
+      "              Index Cond: (\"programmeCode\" = 'PERF-PRG-000001'::text)",
+      "              Filter: (\"episodeCode\" > ''::text)",
+      "              Index Searches: 1",
+      "              Buffers: shared hit=6",
+      "Planning:",
+      "  Buffers: shared hit=33",
+      "Planning Time: 0.647 ms",
+      "Execution Time: 0.150 ms"
+    ],
+    "episodesDeep": [
+      "Limit  (cost=19.65..19.66 rows=4 width=130) (actual time=0.035..0.036 rows=3.00 loops=1)",
+      "  Buffers: shared hit=6",
+      "  ->  Sort  (cost=19.65..19.66 rows=4 width=130) (actual time=0.034..0.034 rows=3.00 loops=1)",
+      "        Sort Key: \"episodeCode\"",
+      "        Sort Method: quicksort  Memory: 25kB",
+      "        Buffers: shared hit=6",
+      "        ->  Index Scan using \"BroadcastEpisode_programmeCode_idx\" on \"BroadcastEpisode\"  (cost=0.29..19.61 rows=4 width=130) (actual time=0.018..0.023 rows=3.00 loops=1)",
+      "              Index Cond: (\"programmeCode\" = 'PERF-PRG-000001'::text)",
+      "              Filter: (\"episodeCode\" > 'PERF-EPG-0000001'::text)",
+      "              Rows Removed by Filter: 1",
+      "              Index Searches: 1",
+      "              Buffers: shared hit=6",
+      "Planning:",
+      "  Buffers: shared hit=4",
+      "Planning Time: 0.349 ms",
+      "Execution Time: 0.158 ms"
+    ],
+    "episodesDeepOtherProgramme": [
+      "Limit  (cost=19.62..19.63 rows=2 width=130) (actual time=0.841..0.842 rows=2.00 loops=1)",
+      "  Buffers: shared hit=6",
+      "  ->  Sort  (cost=19.62..19.63 rows=2 width=130) (actual time=0.839..0.840 rows=2.00 loops=1)",
+      "        Sort Key: \"episodeCode\"",
+      "        Sort Method: quicksort  Memory: 25kB",
+      "        Buffers: shared hit=6",
+      "        ->  Index Scan using \"BroadcastEpisode_programmeCode_idx\" on \"BroadcastEpisode\"  (cost=0.29..19.61 rows=2 width=130) (actual time=0.799..0.828 rows=2.00 loops=1)",
+      "              Index Cond: (\"programmeCode\" = 'PERF-PRG-013502'::text)",
+      "              Filter: (\"episodeCode\" > 'PERF-EPG-0028502'::text)",
+      "              Rows Removed by Filter: 2",
+      "              Index Searches: 1",
+      "              Buffers: shared hit=6",
+      "Planning Time: 0.287 ms",
+      "Execution Time: 0.900 ms"
+    ]
+  },
+  "latencies": [
+    {
+      "label": "listProgrammes NXTR first page",
+      "n": 100,
+      "min": 1.533,
+      "p50": 7.725,
+      "p95": 78.071,
+      "p99": 225.801,
+      "max": 290.745
+    },
+    {
+      "label": "listProgrammes NXTR deep cursor",
+      "n": 100,
+      "min": 1.472,
+      "p50": 3.778,
+      "p95": 73.46,
+      "p99": 101.769,
+      "max": 169.723
+    },
+    {
+      "label": "listProgrammes ORIS first page",
+      "n": 100,
+      "min": 1.296,
+      "p50": 6.917,
+      "p95": 80.728,
+      "p99": 123.06,
+      "max": 163.732
+    },
+    {
+      "label": "listProgrammes ORIS deep cursor",
+      "n": 100,
+      "min": 1.29,
+      "p50": 8.088,
+      "p95": 106.657,
+      "p99": 178.29,
+      "max": 254.539
+    },
+    {
+      "label": "listProgrammes IMBD first page",
+      "n": 100,
+      "min": 1.373,
+      "p50": 12.895,
+      "p95": 108.202,
+      "p99": 277.346,
+      "max": 307.786
+    },
+    {
+      "label": "listProgrammes IMBD deep cursor",
+      "n": 100,
+      "min": 1.451,
+      "p50": 16.278,
+      "p95": 101.019,
+      "p99": 200.558,
+      "max": 212.776
+    },
+    {
+      "label": "listEpisodes first page",
+      "n": 100,
+      "min": 0.436,
+      "p50": 5.983,
+      "p95": 96.254,
+      "p99": 190.2,
+      "max": 347.481
+    },
+    {
+      "label": "listEpisodes deep cursor",
+      "n": 100,
+      "min": 0.38,
+      "p50": 2.205,
+      "p95": 150.096,
+      "p99": 582.026,
+      "max": 675.552
+    }
+  ],
+  "applicationSide": {
+    "appSideMs": {
+      "n": 100,
+      "min": 0.969,
+      "p50": 9.009,
+      "p95": 123.133,
+      "p99": 170.367,
+      "max": 361.551
+    },
+    "reps": 100,
+    "projectedRefreshQueries": 30153,
+    "refreshPageArithmetic": {
+      "programmePages": 153,
+      "episodePagesPerProgramme": 2,
+      "channels": 3,
+      "programmes": 15000,
+      "episodesPerProgramme": 4
+    },
+    "emptyProgrammePage": {
+      "requestedFor": "PERF-PRG-015001",
+      "rows": 0,
+      "sources": []
+    },
+    "shapeVerified": {
+      "programmeCodes": [
+        "PERF-PRG-000001",
+        "PERF-PRG-000004",
+        "PERF-PRG-000005",
+        "PERF-PRG-000006",
+        "PERF-PRG-000009",
+        "PERF-PRG-000010",
+        "PERF-PRG-000011",
+        "PERF-PRG-000014",
+        "PERF-PRG-000015",
+        "PERF-PRG-000016",
+        "PERF-PRG-000019",
+        "PERF-PRG-000020",
+        "PERF-PRG-000021",
+        "PERF-PRG-000024",
+        "PERF-PRG-000025",
+        "PERF-PRG-000026",
+        "PERF-PRG-000029",
+        "PERF-PRG-000030",
+        "PERF-PRG-000031",
+        "PERF-PRG-000034",
+        "PERF-PRG-000035",
+        "PERF-PRG-000036",
+        "PERF-PRG-000039",
+        "PERF-PRG-000040",
+        "PERF-PRG-000041",
+        "PERF-PRG-000044",
+        "PERF-PRG-000045",
+        "PERF-PRG-000046",
+        "PERF-PRG-000049",
+        "PERF-PRG-000050",
+        "PERF-PRG-000051",
+        "PERF-PRG-000054",
+        "PERF-PRG-000055",
+        "PERF-PRG-000056",
+        "PERF-PRG-000059",
+        "PERF-PRG-000060",
+        "PERF-PRG-000061",
+        "PERF-PRG-000064",
+        "PERF-PRG-000065",
+        "PERF-PRG-000066",
+        "PERF-PRG-000069",
+        "PERF-PRG-000070",
+        "PERF-PRG-000071",
+        "PERF-PRG-000074",
+        "PERF-PRG-000075",
+        "PERF-PRG-000076",
+        "PERF-PRG-000079",
+        "PERF-PRG-000080",
+        "PERF-PRG-000081",
+        "PERF-PRG-000084",
+        "PERF-PRG-000085",
+        "PERF-PRG-000086",
+        "PERF-PRG-000089",
+        "PERF-PRG-000090",
+        "PERF-PRG-000091",
+        "PERF-PRG-000094",
+        "PERF-PRG-000095",
+        "PERF-PRG-000096",
+        "PERF-PRG-000099",
+        "PERF-PRG-000100",
+        "PERF-PRG-000101",
+        "PERF-PRG-000104",
+        "PERF-PRG-000105",
+        "PERF-PRG-000106",
+        "PERF-PRG-000109",
+        "PERF-PRG-000110",
+        "PERF-PRG-000111",
+        "PERF-PRG-000114",
+        "PERF-PRG-000115",
+        "PERF-PRG-000116",
+        "PERF-PRG-000119",
+        "PERF-PRG-000120",
+        "PERF-PRG-000121",
+        "PERF-PRG-000124",
+        "PERF-PRG-000125",
+        "PERF-PRG-000126",
+        "PERF-PRG-000129",
+        "PERF-PRG-000130",
+        "PERF-PRG-000131",
+        "PERF-PRG-000134",
+        "PERF-PRG-000135",
+        "PERF-PRG-000136",
+        "PERF-PRG-000139",
+        "PERF-PRG-000140",
+        "PERF-PRG-000141",
+        "PERF-PRG-000144",
+        "PERF-PRG-000145",
+        "PERF-PRG-000146",
+        "PERF-PRG-000149",
+        "PERF-PRG-000150",
+        "PERF-PRG-000151",
+        "PERF-PRG-000154",
+        "PERF-PRG-000155",
+        "PERF-PRG-000156",
+        "PERF-PRG-000159",
+        "PERF-PRG-000160",
+        "PERF-PRG-000161",
+        "PERF-PRG-000164",
+        "PERF-PRG-000165",
+        "PERF-PRG-000166"
+      ],
+      "episodesPage": [
+        {
+          "id": "ep-perf-0000001",
+          "episodeCode": "PERF-EPG-0000001",
+          "programmeCode": "PERF-PRG-000001",
+          "episodeNumber": 1,
+          "title": "Perf episode 1",
+          "durationSeconds": 1800,
+          "segmentCount": 4,
+          "complianceRating": "15",
+          "source": "DB",
+          "createdAt": "2026-10-13T13:56:41.367Z",
+          "updatedAt": "2026-10-13T13:56:41.367Z"
+        },
+        {
+          "id": "ep-perf-0015001",
+          "episodeCode": "PERF-EPG-0015001",
+          "programmeCode": "PERF-PRG-000001",
+          "episodeNumber": 2,
+          "title": "Perf episode 15001",
+          "durationSeconds": 1800,
+          "segmentCount": 4,
+          "complianceRating": "15",
+          "source": "DB",
+          "createdAt": "2026-10-13T13:56:41.367Z",
+          "updatedAt": "2026-10-13T13:56:41.367Z"
+        },
+        {
+          "id": "ep-perf-0030001",
+          "episodeCode": "PERF-EPG-0030001",
+          "programmeCode": "PERF-PRG-000001",
+          "episodeNumber": 3,
+          "title": "Perf episode 30001",
+          "durationSeconds": 1800,
+          "segmentCount": 4,
+          "complianceRating": "15",
+          "source": "DB",
+          "createdAt": "2026-10-13T13:56:41.367Z",
+          "updatedAt": "2026-10-13T13:56:41.367Z"
+        },
+        {
+          "id": "ep-perf-0045001",
+          "episodeCode": "PERF-EPG-0045001",
+          "programmeCode": "PERF-PRG-000001",
+          "episodeNumber": 4,
+          "title": "Perf episode 45001",
+          "durationSeconds": 1800,
+          "segmentCount": 4,
+          "complianceRating": "15",
+          "source": "DB",
+          "createdAt": "2026-10-13T13:56:41.367Z",
+          "updatedAt": "2026-10-13T13:56:41.367Z"
+        }
+      ],
+      "firstProgrammeCode": "PERF-PRG-000001"
+    }
+  },
+  "refreshRuns": [
+    {
+      "seconds": 107.087,
+      "channels": 3,
+      "programmes": 15000,
+      "episodes": 60000,
+      "hostLoad": {
+        "loadavg_1m": 216.78,
+        "loadavg_5m": 198.36,
+        "cpus": 8,
+        "uptime_seconds": 52619
+      }
+    },
+    {
+      "seconds": 74.503,
+      "channels": 3,
+      "programmes": 15000,
+      "episodes": 60000,
+      "hostLoad": {
+        "loadavg_1m": 218.41,
+        "loadavg_5m": 202.36,
+        "cpus": 8,
+        "uptime_seconds": 52693
+      }
+    },
+    {
+      "seconds": 76.919,
+      "channels": 3,
+      "programmes": 15000,
+      "episodes": 60000,
+      "hostLoad": {
+        "loadavg_1m": 220.29,
+        "loadavg_5m": 207.08,
+        "cpus": 8,
+        "uptime_seconds": 52770
+      }
+    }
+  ],
+  "indexUsage": [
+    {
+      "relname": "BroadcastEpisode",
+      "indexrelname": "BroadcastEpisode_programmeCode_idx",
+      "idx_scan": "91998",
+      "size": "936 kB"
+    },
+    {
+      "relname": "BroadcastEpisode",
+      "indexrelname": "BroadcastEpisode_episodeCode_key",
+      "idx_scan": "739",
+      "size": "2400 kB"
+    },
+    {
+      "relname": "BroadcastEpisode",
+      "indexrelname": "BroadcastEpisode_mediaAssetId_idx",
+      "idx_scan": "0",
+      "size": "392 kB"
+    },
+    {
+      "relname": "BroadcastEpisode",
+      "indexrelname": "BroadcastEpisode_pkey",
+      "idx_scan": "0",
+      "size": "1856 kB"
+    },
+    {
+      "relname": "Programme",
+      "indexrelname": "Programme_code_key",
+      "idx_scan": "244747",
+      "size": "480 kB"
+    },
+    {
+      "relname": "Programme",
+      "indexrelname": "Programme_channelCode_idx",
+      "idx_scan": "9",
+      "size": "128 kB"
+    },
+    {
+      "relname": "Programme",
+      "indexrelname": "Programme_pkey",
+      "idx_scan": "0",
+      "size": "480 kB"
+    }
+  ],
+  "shapeCheck": {
+    "programmeCheck": true,
+    "episodeCheck": true
+  }
+}

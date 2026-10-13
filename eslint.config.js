@@ -11,27 +11,40 @@ export default tseslint.config(
       "coverage/**",
       "archive/**",
       "prisma/**",
+      "scripts/**",
       "*.config.js",
       "*.config.ts",
+      "docs/audit/evidence/**/*.mjs",
+      "docs/audit/evidence/**/*.js",
     ],
+  },
+  {
+    // TSK-17's restart child is a plain Node ESM helper: it runs the compiled
+    // artifact in a second process, so it cannot be TypeScript and it is not
+    // part of the tsconfig program. Declare the Node globals it legitimately
+    // uses instead of turning rules off.
+    files: ["**/*.mjs"],
+    languageOptions: {
+      sourceType: "module",
+      globals: {
+        process: "readonly",
+        URL: "readonly",
+        console: "readonly",
+      },
+    },
   },
   {
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-unused-vars": [
-        "warn",
-        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+        "error",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
       ],
       "prefer-const": "error",
-    },
-  },
-  // AUD-28: trust boundaries (API transport + core services) must not use
-  // untyped `any`. Per-module override keeps the rule targeted while the
-  // wider codebase migrates.
-  {
-    files: ["src/api/**/*.ts", "src/core/**/*.ts"],
-    rules: {
-      "@typescript-eslint/no-explicit-any": "warn",
     },
   }
 );

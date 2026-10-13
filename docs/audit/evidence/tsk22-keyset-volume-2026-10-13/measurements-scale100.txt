@@ -1,0 +1,113 @@
+TSK-22 keyset/N+1 volume harness — 2026-10-13T12:00:34.154Z
+repo ref: refs/heads/main · baseline commit ce098f8 + dirty tree
+target database vmnl_enterprise_perf (scratch; never the gates or developer database)
+dataset: scale 100 == 3 channels x 5000 programmes x 4 episodes = 60,000 episode rows
+database vmnl_enterprise_perf already exists
+prisma migrate deploy -> exit 0
+
+
+No pending migrations to apply.
+server {"server_version":"18.3","shared_buffers":"128MB","max_parallel_workers_per_gather":"2"}
+seed: 15000 programmes / 60000 episodes in 22.28s (interleaved episode-key layout; PERF-PRG-000001's 4 codes run undefined…undefined; NXTR's 5000 programme codes run undefined…undefined)
+
+--- indexes on the two tables (pg_indexes)
+    BroadcastEpisode: BroadcastEpisode_episodeCode_key  ::  CREATE UNIQUE INDEX "BroadcastEpisode_episodeCode_key" ON public."BroadcastEpisode" USING btree ("episodeCode")
+    BroadcastEpisode: BroadcastEpisode_mediaAssetId_idx  ::  CREATE INDEX "BroadcastEpisode_mediaAssetId_idx" ON public."BroadcastEpisode" USING btree ("mediaAssetId")
+    BroadcastEpisode: BroadcastEpisode_pkey  ::  CREATE UNIQUE INDEX "BroadcastEpisode_pkey" ON public."BroadcastEpisode" USING btree (id)
+    BroadcastEpisode: BroadcastEpisode_programmeCode_idx  ::  CREATE INDEX "BroadcastEpisode_programmeCode_idx" ON public."BroadcastEpisode" USING btree ("programmeCode")
+    Programme: Programme_channelCode_idx  ::  CREATE INDEX "Programme_channelCode_idx" ON public."Programme" USING btree ("channelCode")
+    Programme: Programme_code_key  ::  CREATE UNIQUE INDEX "Programme_code_key" ON public."Programme" USING btree (code)
+    Programme: Programme_pkey  ::  CREATE UNIQUE INDEX "Programme_pkey" ON public."Programme" USING btree (id)
+deep positions: programme PERF-PRG-013501 · episode cursor PERF-EPG-0028501
+
+--- EXPLAIN (ANALYZE, BUFFERS): listProgrammes shape, first page
+    parameters: ["NXTR",""]
+    Limit  (cost=0.29..16.77 rows=101 width=116) (actual time=0.046..0.165 rows=101.00 loops=1)
+      Buffers: shared hit=9
+      ->  Index Scan using "Programme_code_key" on "Programme"  (cost=0.29..816.28 rows=5000 width=116) (actual time=0.045..0.147 rows=101.00 loops=1)
+            Index Cond: (code > ''::text)
+            Filter: ("channelCode" = 'NXTR'::text)
+            Rows Removed by Filter: 200
+            Index Searches: 1
+            Buffers: shared hit=9
+    Planning:
+      Buffers: shared hit=30
+    Planning Time: 0.434 ms
+    Execution Time: 0.199 ms
+
+--- EXPLAIN (ANALYZE, BUFFERS): listProgrammes shape, deep cursor
+    parameters: ["NXTR","PERF-PRG-013501"]
+    Limit  (cost=0.29..17.46 rows=101 width=116) (actual time=0.046..0.130 rows=101.00 loops=1)
+      Buffers: shared hit=9
+      ->  Index Scan using "Programme_code_key" on "Programme"  (cost=0.29..85.28 rows=500 width=116) (actual time=0.044..0.119 rows=101.00 loops=1)
+            Index Cond: (code > 'PERF-PRG-013501'::text)
+            Filter: ("channelCode" = 'NXTR'::text)
+            Rows Removed by Filter: 202
+            Index Searches: 1
+            Buffers: shared hit=9
+    Planning Time: 3.764 ms
+    Execution Time: 0.170 ms
+
+--- EXPLAIN (ANALYZE, BUFFERS): listEpisodes shape, first page
+    parameters: ["PERF-PRG-000001",""]
+    Limit  (cost=19.65..19.66 rows=4 width=130) (actual time=0.116..0.118 rows=4.00 loops=1)
+      Buffers: shared hit=6
+      ->  Sort  (cost=19.65..19.66 rows=4 width=130) (actual time=0.114..0.116 rows=4.00 loops=1)
+            Sort Key: "episodeCode"
+            Sort Method: quicksort  Memory: 25kB
+            Buffers: shared hit=6
+            ->  Index Scan using "BroadcastEpisode_programmeCode_idx" on "BroadcastEpisode"  (cost=0.29..19.61 rows=4 width=130) (actual time=0.017..0.025 rows=4.00 loops=1)
+                  Index Cond: ("programmeCode" = 'PERF-PRG-000001'::text)
+                  Filter: ("episodeCode" > ''::text)
+                  Index Searches: 1
+                  Buffers: shared hit=6
+    Planning:
+      Buffers: shared hit=31
+    Planning Time: 2.068 ms
+    Execution Time: 0.160 ms
+
+--- EXPLAIN (ANALYZE, BUFFERS): listEpisodes shape, deep cursor
+    parameters: ["PERF-PRG-013501","PERF-EPG-0028501"]
+    Limit  (cost=19.62..19.62 rows=2 width=130) (actual time=0.042..0.043 rows=2.00 loops=1)
+      Buffers: shared hit=6
+      ->  Sort  (cost=19.62..19.62 rows=2 width=130) (actual time=0.041..0.041 rows=2.00 loops=1)
+            Sort Key: "episodeCode"
+            Sort Method: quicksort  Memory: 25kB
+            Buffers: shared hit=6
+            ->  Index Scan using "BroadcastEpisode_programmeCode_idx" on "BroadcastEpisode"  (cost=0.29..19.61 rows=2 width=130) (actual time=0.028..0.031 rows=2.00 loops=1)
+                  Index Cond: ("programmeCode" = 'PERF-PRG-013501'::text)
+                  Filter: ("episodeCode" > 'PERF-EPG-0028501'::text)
+                  Rows Removed by Filter: 2
+                  Index Searches: 1
+                  Buffers: shared hit=6
+    Planning Time: 0.144 ms
+    Execution Time: 0.067 ms
+
+--- latency listProgrammes first page (200 reps, DB-side, ms)
+    min 1.439 · p50 6.851 · p95 194.346 · p99 276.664 · max 822.239
+
+--- latency listProgrammes deep cursor (200 reps, DB-side, ms)
+    min 1.316 · p50 28.264 · p95 209.228 · p99 353.858 · max 387.163
+
+--- latency listEpisodes first page (200 reps, DB-side, ms)
+    min 0.513 · p50 1.8 · p95 66.415 · p99 134.357 · max 173.715
+
+--- latency listEpisodes deep cursor (200 reps, DB-side, ms)
+    min 0.474 · p50 1.853 · p95 63.605 · p99 136.5 · max 181.394
+
+--- reconstructed SQL vs repository rows
+    Programme.code: raw 101 vs repository 100 (+1 probe row allowed) — prefix identical: true
+    BroadcastEpisode.episodeCode: raw 4 vs repository 4 (+1 probe row allowed) — prefix identical: true
+application-side (Prisma/repository) listEpisodes, 100 reps: {"n":100,"min":1.491,"p50":12.536,"p95":86.948,"p99":113.611,"max":116.184}
+projected DB round-trips for one boot refresh at this volume: 30,153
+empty-episode-page probe (a programme with zero rows): {"requestedFor":"PERF-PRG-015001","rows":0,"sources":[]}
+refreshEpisodeMasterIndex (real boot path, 3 runs): [{"seconds":83.25,"channels":3,"programmes":15001,"episodes":60000},{"seconds":71.19,"channels":3,"programmes":15001,"episodes":60000},{"seconds":83.651,"channels":3,"programmes":15001,"episodes":60000}]
+
+--- index usage after the run (pg_stat_user_indexes)
+    BroadcastEpisode.BroadcastEpisode_programmeCode_idx: idx_scan 46317 size 936 kB
+    BroadcastEpisode.BroadcastEpisode_episodeCode_key: idx_scan 333 size 2400 kB
+    BroadcastEpisode.BroadcastEpisode_mediaAssetId_idx: idx_scan 0 size 392 kB
+    BroadcastEpisode.BroadcastEpisode_pkey: idx_scan 0 size 1856 kB
+    Programme.Programme_code_key: idx_scan 122460 size 480 kB
+    Programme.Programme_channelCode_idx: idx_scan 3 size 112 kB
+    Programme.Programme_pkey: idx_scan 0 size 480 kB

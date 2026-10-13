@@ -87,6 +87,17 @@ model Person {
   firstName      String
   lastName       String
   kycStatus      KycStatus      @default(PENDING)
+  // AUD-06: envelope-only column. Values must be sealed with the AES-256-GCM
+  // field helper (src/core/websecurity `sealSensitiveField`, format
+  // `enc:v1:<ct>:<iv>:<tag>`) before any write; plaintext national IDs must
+  // never be stored. No current write path touches this column.
+  // TSK-30: the envelope is now enforced here as well as by convention —
+  // `Person_nationalId_sealed_envelope` (migration
+  // 20261009200000_add_pii_sealed_envelope_checks) rejects any value that is
+  // neither NULL nor a well-formed envelope. Prisma cannot declare a CHECK, so
+  // the constraint lives in SQL and this comment is the pointer to it; changing
+  // the envelope format means changing `SEALED_FIELD_ENVELOPE` and the
+  // constraint together.
   nationalId     String?
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
@@ -104,6 +115,10 @@ model User {
   passwordHash   String
   status         UserStatus     @default(ACTIVE)
   mfaEnabled     Boolean        @default(false)
+  // TSK-30 (CA-18): envelope-only, same rule as Person.nationalId —
+  // `User_mfaSecret_sealed_envelope` refuses a plaintext TOTP seed at the
+  // database, and `persistUserToSharedStore` (src/core/auth) asserts the
+  // envelope before the KV mirror write.
   mfaSecret      String?
   lastLoginAt    DateTime?
   createdAt      DateTime       @default(now())
@@ -111,7 +126,6 @@ model User {
 
   person         Person         @relation(fields: [personId], references: [id], onDelete: Cascade)
   userRoles      UserRole[]
-  auditLogs      AuditLog[]
 }
 
 model Role {
@@ -145,6 +159,7 @@ model RolePermission {
   permission     Permission     @relation(fields: [permissionId], references: [id], onDelete: Cascade)
 
   @@unique([roleId, permissionId])
+@@index([permissionId])
 }
 
 model UserRole {
@@ -159,6 +174,7 @@ model UserRole {
   role           Role           @relation(fields: [roleId], references: [id], onDelete: Cascade)
 
   @@unique([userId, roleId, tenantId])
+@@index([roleId])
 }
 
 model Organisation {
@@ -253,6 +269,10 @@ model RightsRecord {
   rightsType         RightsType
   territory          String         // e.g. "NG", "WEST_AFRICA", "GLOBAL"
   mediaType          String         // "LINEAR_TV", "SVOD", "THEATRICAL"
+  // TSK-14: the clearance gate scopes by channel (`CHANNEL_NOT_PERMITTED`), so the
+  // durable record must carry the scope or a channel-limited clearance would load
+  // back as unrestricted. Additive, nullable: NULL = every channel permitted.
+  channelCode        String?
   exclusivity        Boolean        @default(false)
   startDate          DateTime
   expiryDate         DateTime
@@ -311,7 +331,14 @@ model Agent {
 
 model AuditLog {
   id                 String         @id @default(uuid())
+  // TSK-18: the ledger records who acted; it does not vouch that the actor is a
+  // row that still exists. `AuditLog_userId_fkey` sat here and refused every
+  // write whose actor had no `User` row, while `onDelete: SetNull` erased the
+  // actor from rows whose user was later deleted. Measured on the dev database
+  // before this change: 1783 of 1783 durable rows carried `userId = NULL` — the
+  // constraint destroyed the evidence it claimed to protect.
   userId             String?
+  tenantId           String?
   action             String
   resource           String
   resourceId         String?
@@ -320,7 +347,10 @@ model AuditLog {
   changesJson        Json?
   createdAt          DateTime       @default(now())
 
-  user               User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+@@index([createdAt])
+@@index([userId, createdAt])
+@@index([action, resource])
+@@index([tenantId, createdAt])
 }
 
 // ---------------------------------------------------------
@@ -359,6 +389,7 @@ model Programme {
 
   channel            BroadcastChannel  @relation(fields: [channelCode], references: [code])
   episodes           BroadcastEpisode[]
+@@index([channelCode, code])
 }
 
 model BroadcastEpisode {
@@ -377,6 +408,8 @@ model BroadcastEpisode {
   updatedAt          DateTime       @updatedAt
 
   programme          Programme      @relation(fields: [programmeCode], references: [code])
+@@index([programmeCode, episodeCode])
+@@index([mediaAssetId])
 }
 
 model AsRunLogRecord {
@@ -390,6 +423,7 @@ model AsRunLogRecord {
   reconciliationStatus  String
   certificateHashSha256 String?
   createdAt             DateTime       @default(now())
+@@index([channelCode, transmissionDate])
 }
 
 // ---------------------------------------------------------
@@ -425,6 +459,8 @@ model FusionEvent {
   updatedAt          DateTime       @updatedAt
 
   tickets            EventTicket[]
+
+@@index([isPublished, eventDate])
 }
 
 model EventTicket {
@@ -441,6 +477,9 @@ model EventTicket {
   checkedInAt        DateTime?
 
   event              FusionEvent    @relation(fields: [eventId], references: [id])
+
+@@index([eventId, status])
+@@index([attendeeEmail])
 }
 
 // ---------------------------------------------------------
@@ -459,6 +498,9 @@ model CommercialCampaign {
   endDate               DateTime
   createdAt             DateTime       @default(now())
   updatedAt             DateTime       @updatedAt
+
+@@index([status])
+@@index([startDate, endDate])
 }
 
 model TalentPayoutBatch {
@@ -472,6 +514,8 @@ model TalentPayoutBatch {
   executedAt         DateTime?
   createdAt          DateTime       @default(now())
   updatedAt          DateTime       @updatedAt
+
+@@index([status, createdAt])
 }
 
 model BankStatementRecord {
@@ -484,5 +528,384 @@ model BankStatementRecord {
   narrative          String
   reconciledStatus   String         @default("UNMATCHED")
   createdAt          DateTime       @default(now())
+
+@@index([transactionDate])
+@@index([reconciledStatus])
+}
+
+// AUD-08: durable Data Subject Request ledger. The table records requests and
+// operator-driven status transitions only — no processing queue, SLA clock or
+// archive generation is implied until those workflows are approved and built.
+model DataSubjectRequest {
+  id          String    @id @default(uuid())
+  requestRef  String    @unique
+  userId      String
+  email       String
+  requestType String    @default("EXPORT")
+  status      String    @default("RECEIVED")
+  requestedAt DateTime  @default(now())
+  resolvedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+@@index([userId])
+@@index([status])
+}
+
+// ---------------------------------------------------------------------------
+// TSK-17 — durable tables for the release-critical domains report.md CA-12
+// measured as process-memory only. Deliberate design rules for this block:
+//   * No foreign keys. These rows reference producers/consumers by id string
+//     only, so a durable write cannot 503 because a test or backfill wrote the
+//     entity before its parent (the precedent is DataSubjectRequest above).
+//   * No column defaults for state. Every state value is written explicitly by
+//     the repository, so a row can never claim a status nobody assigned it
+//     (data-dictionary.md §3 counts the pre-existing defaulted String columns;
+//     this block adds none).
+//   * Ids are application-minted: the domain id is the primary key, so the
+//     durable row and the in-process read index address records identically.
+//   * Nested structures (audit trails, response bodies) are Json payloads
+//     beside typed columns for everything a query filters or gates on.
+// ---------------------------------------------------------------------------
+
+/// VS-RL1-01 / HX-01 commercial enquiry intake — the flagship release slice.
+model CommercialEnquiry {
+  id               String   @id
+  reference        String   @unique
+  idempotencyKey   String?  @unique
+  vertical         String
+  fullName         String
+  email            String
+  phone            String?
+  organisationName String?
+  message          String
+  ndprConsent      Boolean
+  submissionStatus String
+  routingStatus    String
+  downstreamLeadId String?
+  assignedOperator String?
+  routingError     String?
+  retryCount       Int
+  createdAt        DateTime
+  updatedAt        DateTime
+
+@@index([vertical, createdAt])
+@@index([routingStatus, createdAt])
+}
+
+/// SCR-06 four-eyes approval item: the decision, its revision and its SoD pair.
+model ApprovalItem {
+  id                String    @id
+  category          String
+  subject           String
+  justification     String
+  financialScopeNgn Decimal   @db.Decimal(14, 2)
+  currency          String
+  initiatorId       String
+  initiatorName     String
+  objectRevision    Int
+  requiresFourEyes  Boolean
+  status            String
+  decidedBy         String?
+  decidedByName     String?
+  decidedAt         DateTime?
+  decisionReason    String?
+  decisionRevision  Int?
+  createdAt         DateTime
+  updatedAt         DateTime
+
+@@index([status, category])
+@@index([initiatorId])
+}
+
+/// SCR-08 privacy / security case ledger, including its append-only audit trail.
+model PrivacySecurityCase {
+  id                String    @id
+  type              String
+  subject           String
+  detail            String
+  reporterContact   String
+  dataSubjects      Json?
+  slaDueAt          DateTime
+  status            String
+  assignedCaseOwner String?
+  auditTrail        Json
+  createdAt         DateTime
+  updatedAt         DateTime
+
+@@index([status, type])
+@@index([assignedCaseOwner])
+}
+
+/// Enterprise risk register row (governance desk).
+model RiskRecord {
+  id          String   @id
+  title       String
+  category    String
+  likelihood  Int
+  impact      Int
+  mitigation  String
+  owner       String
+  status      String
+  reviewDueAt DateTime
+  createdAt   DateTime
+  updatedAt   DateTime
+
+@@index([status])
+@@index([owner])
+}
+
+/// Enterprise issue register row; `linkedRiskId` is an id reference, not an FK.
+model IssueRecord {
+  id           String    @id
+  title        String
+  description  String
+  severity     String
+  raisedBy     String
+  assignedTo   String?
+  status       String
+  linkedRiskId String?
+  resolvedAt   DateTime?
+  createdAt    DateTime
+  updatedAt    DateTime
+
+@@index([status, severity])
+@@index([linkedRiskId])
+}
+
+/// Azeebo+ federation destination registry: verification state is data, not a
+/// process-local assertion.
+model AzeeboDestination {
+  id                     String    @id
+  universe               String
+  universalUrl           String
+  status                 String
+  verifiedAt             DateTime?
+  verifiedBy             String?
+  statusReason           String?
+  stateChangedAt         DateTime
+  campaignContextAllowed Boolean
+  registeredBy           String
+  createdAt              DateTime
+  updatedAt              DateTime
+
+@@index([universe, status])
+@@index([status])
+}
+
+/// DAM media asset registry (SCR-03): the row twelve src files read through
+/// `getMediaAsset`, so a picker cannot resolve an asset the process forgot.
+model MediaAssetRecord {
+  id              String    @id
+  title           String
+  assetKey        String
+  tenantId        String?
+  mimeType        String
+  sizeBytes       BigInt
+  checksumSha256  String
+  provenance      String
+  virusScanPassed Boolean
+  accessState     String
+  accessNotes     String?
+  registeredBy    String
+  registeredAt    DateTime
+  updatedAt       DateTime
+
+@@index([tenantId, accessState])
+@@index([checksumSha256])
+}
+
+/// SEC-03 session registry: revocation has to outlive the process that issued it.
+model SessionRecord {
+  id          String    @id
+  userId      String
+  email       String
+  deviceLabel String
+  ipAddress   String
+  createdAt   DateTime
+  lastSeenAt  DateTime
+  revokedAt   DateTime?
+
+@@index([userId, createdAt])
+@@index([revokedAt])
+}
+
+/// SEC-08 operation-identity ledger: a replayed mutation must see the outcome
+/// the first attempt recorded, after a restart as well as within one process.
+model IdempotencyRecord {
+  id           String   @id
+  outcome      String
+  responseBody Json?
+  recordedAt   DateTime
+  updatedAt    DateTime
+
+@@index([recordedAt])
+}
+
+// ---------------------------------------------------------------------------
+// TSK-17, second block — the three CA-12 rows the first block left standing as
+// process memory: the CMS revision chain, the double-entry journal and the
+// sponsor binding/fulfilment ledger. Same design rules as the block above:
+// no foreign keys, no state defaults, application-minted ids, Json for nested
+// payloads, and a `reference`-style id string wherever the domain links by id.
+// ---------------------------------------------------------------------------
+
+/// CMS master (SCR-04): item-level governance state. The revision chain lives in
+/// ContentRevisionRecord; `publication`/`withdrawal` are the single-record
+/// outcomes the desk shows, kept as Json beside the filtered `status` column.
+model ContentItemRecord {
+  id              String    @id
+  currentRevision Int
+  status          String
+  destinationId   String?
+  publication     Json?
+  withdrawal      Json?
+  createdAt       DateTime
+  updatedAt       DateTime
+
+@@index([status, updatedAt])
+}
+
+/// One immutable revision of a CMS master. Slug, media references and claim
+/// sources are the §7.3 public-provenance contract, so they are columns/Json
+/// rather than a blob the reader has to interpret.
+model ContentRevisionRecord {
+  id                   String    @id
+  contentId            String
+  revision             Int
+  title                String
+  slug                 String
+  summary              String
+  body                 String
+  relatedUnit          String
+  mediaAssetIds        Json
+  claimSources         Json
+  alternativeText      String
+  authorId             String
+  createdAt            DateTime
+  submittedForReviewAt DateTime?
+  approvedAt           DateTime?
+  approvedBy           String?
+  reviewNotes          String?
+  updatedAt            DateTime
+
+@@unique([contentId, revision])
+@@index([slug])
+@@index([authorId])
+}
+
+/// FIN ledger journal entry (law 5 — one consolidated financial truth). The
+/// lines are the double-entry pair set; `isBalanced` is recorded, never implied,
+/// so a hydrated ledger can still prove debits equal credits.
+model JournalEntryRecord {
+  id             String   @id
+  reference      String
+  description    String
+  lines          Json
+  currency       String
+  totalDebitNgn  Decimal  @db.Decimal(14, 2)
+  totalCreditNgn Decimal  @db.Decimal(14, 2)
+  isBalanced     Boolean
+  postedAt       DateTime
+  updatedAt      DateTime
+
+@@index([reference])
+@@index([postedAt])
+}
+
+/// §32 sponsor asset binding: which contracted entitlement rides which
+/// programme/daypart slot, and how much of it has actually been fulfilled.
+model SponsorBindingRecord {
+  id                         String   @id
+  entitlementId              String
+  programmeCode              String
+  daypart                    String
+  assetType                  String
+  assetId                    String
+  assetDurationSeconds       Int
+  requiredPlacementsPerEpisode Int
+  fulfilledPlacements        Int
+  createdAt                  DateTime
+  updatedAt                  DateTime
+
+@@index([programmeCode, daypart])
+@@index([entitlementId])
+}
+
+/// Per-episode fulfilment evidence behind a binding's `fulfilledPlacements`.
+model SponsorFulfillmentRecord {
+  id                  String   @id
+  bindingId           String
+  episodeCode         String
+  asRunLogId          String
+  airedAt             DateTime
+  placementsFulfilled Int
+  placementsRequired  Int
+  isComplete          Boolean
+  fulfillmentPercent  Float
+  updatedAt           DateTime
+
+@@unique([bindingId, episodeCode, asRunLogId])
+@@index([bindingId])
+}
+
+/// TSK-19 (AUD-07 remainder): the durable half of the provider-event replay
+/// claim. The KV `setIfAbsent` claim is only as durable as the shared backend
+/// it lives in, so a Redis loss plus a restart let a provider retry be ingested
+/// twice. This row's composite unique key is the constraint that makes that
+/// impossible.
+/// The claim is two-phase: it is written *before* ingestion with `ingestedAt`
+/// null and stamped once ingestion completes. A retry that finds a stamped claim
+/// is a replay and is refused; a retry that finds an unstamped claim is an
+/// abandoned attempt (the process died between claim and ingest), so it takes
+/// the claim over atomically. Without the second phase a crash after the claim
+/// would refuse every later retry and permanently strand a genuine payment —
+/// the failure mode the KV TTL used to heal by expiry.
+/// Rows are append-only: nothing in the application prunes them, because replay
+/// protection has to outlast any provider retry window. Growth is one small row
+/// per accepted webhook; `claimedAt` is indexed so an operational retention job
+/// can be added without a schema change (no such job exists yet — recorded as a
+/// residual under TSK-19).
+model ProviderEventClaim {
+  id         String    @id
+  provider   String
+  eventId    String
+  claimedAt  DateTime
+  updatedAt  DateTime
+  ingestedAt DateTime?
+
+@@unique([provider, eventId])
+@@index([claimedAt])
+}
+
+/// TSK-60 (box 3): the Quote-to-Cash portfolio the client portal projects.
+/// Until this row existed `QuoteToCashSalesEngine` kept deals in a process `Map`
+/// with no durable store, so a restart emptied every counterparty's portfolio
+/// while the portal's `SOURCE:` line still presented the records as canonical.
+/// The row is keyed by the minted deal id, so hydration cannot renumber a deal
+/// any more than the other release-critical stores can.
+/// Money columns state their unit and are `Decimal(14,2)`: a portfolio total that
+/// came back rounded to the naira would not be the same financial record.
+model SalesDealRecord {
+  id                        String    @id
+  clientOrgId               String
+  dealName                  String
+  stage                     String
+  totalContractValueNgn     Decimal   @db.Decimal(14, 2)
+  salesLeadId               String
+  salesLeadApprovedAt       DateTime?
+  financeApproverId         String?
+  financeApprovedAt         DateTime?
+  depositAmountNgn          Decimal   @db.Decimal(14, 2)
+  depositPaidAt             DateTime?
+  invoicedAmountNgn         Decimal   @db.Decimal(14, 2)
+  cashCollectedAmountNgn    Decimal   @db.Decimal(14, 2)
+  recognizedRevenueNgn      Decimal   @db.Decimal(14, 2)
+  proofOfPerformanceVerified Boolean
+  proofDocumentUrl          String?
+  createdAt                 DateTime
+  updatedAt                 DateTime
+
+@@index([clientOrgId, stage])
+@@index([updatedAt])
 }
 

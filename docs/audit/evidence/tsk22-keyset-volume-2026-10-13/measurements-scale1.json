@@ -1,0 +1,271 @@
+{
+  "generatedAt": "2026-10-13T10:50:02.404Z",
+  "args": {
+    "reps": 50,
+    "scale": 1,
+    "refresh": true,
+    "keep": true,
+    "episodeShape": "interleaved",
+    "adminUrl": "<redacted>",
+    "db": "vmnl_enterprise_perf"
+  },
+  "dataset": {
+    "scale": 1,
+    "channels": 3,
+    "programmes": 150,
+    "episodes": 600,
+    "programmesPerChannel": 50
+  },
+  "info": {
+    "server_version": "18.3",
+    "shared_buffers": "128MB",
+    "max_parallel_workers_per_gather": "2"
+  },
+  "seedStats": {
+    "seconds": 1.03,
+    "programmes": "150",
+    "episodes": "600",
+    "firstProgrammeCodeSpan": {
+      "programmes": "1",
+      "firstcode": "PERF-EPG-NXTR-000000001",
+      "lastcode": "PERF-EPG-NXTR-000000151"
+    }
+  },
+  "explain": {
+    "programmesFirst": [
+      "Limit  (cost=6.66..6.79 rows=50 width=123) (actual time=0.063..0.072 rows=50.00 loops=1)",
+      "  Buffers: shared hit=3",
+      "  ->  Sort  (cost=6.66..6.79 rows=50 width=123) (actual time=0.062..0.065 rows=50.00 loops=1)",
+      "        Sort Key: code",
+      "        Sort Method: quicksort  Memory: 37kB",
+      "        Buffers: shared hit=3",
+      "        ->  Seq Scan on \"Programme\"  (cost=0.00..5.25 rows=50 width=123) (actual time=0.013..0.045 rows=50.00 loops=1)",
+      "              Filter: ((code > ''::text) AND (\"channelCode\" = 'NXTR'::text))",
+      "              Rows Removed by Filter: 100",
+      "              Buffers: shared hit=3",
+      "Planning:",
+      "  Buffers: shared hit=29",
+      "Planning Time: 0.217 ms",
+      "Execution Time: 0.099 ms"
+    ],
+    "programmesDeep": [
+      "Limit  (cost=5.63..5.67 rows=18 width=123) (actual time=0.115..0.116 rows=4.00 loops=1)",
+      "  Buffers: shared hit=3",
+      "  ->  Sort  (cost=5.63..5.67 rows=18 width=123) (actual time=0.114..0.114 rows=4.00 loops=1)",
+      "        Sort Key: code",
+      "        Sort Method: quicksort  Memory: 26kB",
+      "        Buffers: shared hit=3",
+      "        ->  Seq Scan on \"Programme\"  (cost=0.00..5.25 rows=18 width=123) (actual time=0.043..0.067 rows=4.00 loops=1)",
+      "              Filter: ((code > 'PERF-PRG-NXTR-000046'::text) AND (\"channelCode\" = 'NXTR'::text))",
+      "              Rows Removed by Filter: 146",
+      "              Buffers: shared hit=3",
+      "Planning Time: 0.130 ms",
+      "Execution Time: 0.136 ms"
+    ],
+    "episodesFirst": [
+      "Limit  (cost=13.48..13.49 rows=4 width=147) (actual time=0.124..0.126 rows=4.00 loops=1)",
+      "  Buffers: shared hit=5",
+      "  ->  Sort  (cost=13.48..13.49 rows=4 width=147) (actual time=0.122..0.123 rows=4.00 loops=1)",
+      "        Sort Key: \"episodeCode\"",
+      "        Sort Method: quicksort  Memory: 26kB",
+      "        Buffers: shared hit=5",
+      "        ->  Bitmap Heap Scan on \"BroadcastEpisode\"  (cost=4.31..13.44 rows=4 width=147) (actual time=0.100..0.106 rows=4.00 loops=1)",
+      "              Recheck Cond: (\"programmeCode\" = 'PERF-PRG-NXTR-000001'::text)",
+      "              Filter: (\"episodeCode\" > ''::text)",
+      "              Heap Blocks: exact=3",
+      "              Buffers: shared hit=5",
+      "              ->  Bitmap Index Scan on \"BroadcastEpisode_programmeCode_idx\"  (cost=0.00..4.31 rows=4 width=0) (actual time=0.024..0.024 rows=4.00 loops=1)",
+      "                    Index Cond: (\"programmeCode\" = 'PERF-PRG-NXTR-000001'::text)",
+      "                    Index Searches: 1",
+      "                    Buffers: shared hit=2",
+      "Planning:",
+      "  Buffers: shared hit=42",
+      "Planning Time: 143.779 ms",
+      "Execution Time: 0.179 ms"
+    ],
+    "episodesDeep": [
+      "Limit  (cost=13.45..13.45 rows=2 width=147) (actual time=0.229..0.230 rows=2.00 loops=1)",
+      "  Buffers: shared hit=6",
+      "  ->  Sort  (cost=13.45..13.45 rows=2 width=147) (actual time=0.228..0.229 rows=2.00 loops=1)",
+      "        Sort Key: \"episodeCode\"",
+      "        Sort Method: quicksort  Memory: 25kB",
+      "        Buffers: shared hit=6",
+      "        ->  Bitmap Heap Scan on \"BroadcastEpisode\"  (cost=4.31..13.44 rows=2 width=147) (actual time=0.216..0.218 rows=2.00 loops=1)",
+      "              Recheck Cond: (\"programmeCode\" = 'PERF-PRG-NXTR-000046'::text)",
+      "              Filter: (\"episodeCode\" > 'PERF-EPG-NXTR-000000096'::text)",
+      "              Rows Removed by Filter: 2",
+      "              Heap Blocks: exact=4",
+      "              Buffers: shared hit=6",
+      "              ->  Bitmap Index Scan on \"BroadcastEpisode_programmeCode_idx\"  (cost=0.00..4.31 rows=4 width=0) (actual time=0.021..0.021 rows=4.00 loops=1)",
+      "                    Index Cond: (\"programmeCode\" = 'PERF-PRG-NXTR-000046'::text)",
+      "                    Index Searches: 1",
+      "                    Buffers: shared hit=2",
+      "Planning Time: 14.914 ms",
+      "Execution Time: 0.269 ms"
+    ]
+  },
+  "latencies": [
+    {
+      "label": "listProgrammes first page",
+      "n": 50,
+      "min": 1.846,
+      "p50": 16.156,
+      "p95": 83.351,
+      "p99": 100.107,
+      "max": 100.107
+    },
+    {
+      "label": "listProgrammes deep cursor",
+      "n": 50,
+      "min": 0.387,
+      "p50": 2.414,
+      "p95": 95.629,
+      "p99": 409.663,
+      "max": 409.663
+    },
+    {
+      "label": "listEpisodes first page",
+      "n": 50,
+      "min": 0.598,
+      "p50": 1.989,
+      "p95": 210.625,
+      "p99": 544.361,
+      "max": 544.361
+    },
+    {
+      "label": "listEpisodes deep cursor",
+      "n": 50,
+      "min": 0.509,
+      "p50": 2.134,
+      "p95": 76.332,
+      "p99": 94.998,
+      "max": 94.998
+    }
+  ],
+  "applicationSide": {
+    "appSideMs": {
+      "n": 50,
+      "min": 2.428,
+      "p50": 32.596,
+      "p95": 285.228,
+      "p99": 323.796,
+      "max": 323.796
+    },
+    "reps": 50,
+    "projectedRefreshQueries": 156,
+    "emptyProgrammePage": {
+      "requestedFor": "PERF-PRG-NXTR-999999",
+      "rows": 0,
+      "sources": []
+    },
+    "shapeVerified": {
+      "programmeCodes": [
+        "PERF-PRG-NXTR-000001",
+        "PERF-PRG-NXTR-000002",
+        "PERF-PRG-NXTR-000003",
+        "PERF-PRG-NXTR-000004",
+        "PERF-PRG-NXTR-000005",
+        "PERF-PRG-NXTR-000006",
+        "PERF-PRG-NXTR-000007",
+        "PERF-PRG-NXTR-000008",
+        "PERF-PRG-NXTR-000009",
+        "PERF-PRG-NXTR-000010",
+        "PERF-PRG-NXTR-000011",
+        "PERF-PRG-NXTR-000012",
+        "PERF-PRG-NXTR-000013",
+        "PERF-PRG-NXTR-000014",
+        "PERF-PRG-NXTR-000015",
+        "PERF-PRG-NXTR-000016",
+        "PERF-PRG-NXTR-000017",
+        "PERF-PRG-NXTR-000018",
+        "PERF-PRG-NXTR-000019",
+        "PERF-PRG-NXTR-000020",
+        "PERF-PRG-NXTR-000021",
+        "PERF-PRG-NXTR-000022",
+        "PERF-PRG-NXTR-000023",
+        "PERF-PRG-NXTR-000024",
+        "PERF-PRG-NXTR-000025",
+        "PERF-PRG-NXTR-000026",
+        "PERF-PRG-NXTR-000027",
+        "PERF-PRG-NXTR-000028",
+        "PERF-PRG-NXTR-000029",
+        "PERF-PRG-NXTR-000030",
+        "PERF-PRG-NXTR-000031",
+        "PERF-PRG-NXTR-000032",
+        "PERF-PRG-NXTR-000033",
+        "PERF-PRG-NXTR-000034",
+        "PERF-PRG-NXTR-000035",
+        "PERF-PRG-NXTR-000036",
+        "PERF-PRG-NXTR-000037",
+        "PERF-PRG-NXTR-000038",
+        "PERF-PRG-NXTR-000039",
+        "PERF-PRG-NXTR-000040",
+        "PERF-PRG-NXTR-000041",
+        "PERF-PRG-NXTR-000042",
+        "PERF-PRG-NXTR-000043",
+        "PERF-PRG-NXTR-000044",
+        "PERF-PRG-NXTR-000045",
+        "PERF-PRG-NXTR-000046",
+        "PERF-PRG-NXTR-000047",
+        "PERF-PRG-NXTR-000048",
+        "PERF-PRG-NXTR-000049",
+        "PERF-PRG-NXTR-000050"
+      ],
+      "episodesPage": [
+        {
+          "id": "ep-perf-NXTR-000000001",
+          "episodeCode": "PERF-EPG-NXTR-000000001",
+          "programmeCode": "PERF-PRG-NXTR-000001",
+          "episodeNumber": 1,
+          "title": "Perf episode 1",
+          "durationSeconds": 1800,
+          "segmentCount": 4,
+          "complianceRating": "15",
+          "source": "DB",
+          "createdAt": "2026-10-13T11:49:31.775Z",
+          "updatedAt": "2026-10-13T11:49:31.775Z"
+        },
+        {
+          "id": "ep-perf-NXTR-000000051",
+          "episodeCode": "PERF-EPG-NXTR-000000051",
+          "programmeCode": "PERF-PRG-NXTR-000001",
+          "episodeNumber": 3,
+          "title": "Perf episode 51",
+          "durationSeconds": 1800,
+          "segmentCount": 4,
+          "complianceRating": "15",
+          "source": "DB",
+          "createdAt": "2026-10-13T11:49:31.775Z",
+          "updatedAt": "2026-10-13T11:49:31.775Z"
+        },
+        {
+          "id": "ep-perf-NXTR-000000101",
+          "episodeCode": "PERF-EPG-NXTR-000000101",
+          "programmeCode": "PERF-PRG-NXTR-000001",
+          "episodeNumber": 1,
+          "title": "Perf episode 101",
+          "durationSeconds": 1800,
+          "segmentCount": 4,
+          "complianceRating": "15",
+          "source": "DB",
+          "createdAt": "2026-10-13T11:49:31.775Z",
+          "updatedAt": "2026-10-13T11:49:31.775Z"
+        },
+        {
+          "id": "ep-perf-NXTR-000000151",
+          "episodeCode": "PERF-EPG-NXTR-000000151",
+          "programmeCode": "PERF-PRG-NXTR-000001",
+          "episodeNumber": 3,
+          "title": "Perf episode 151",
+          "durationSeconds": 1800,
+          "segmentCount": 4,
+          "complianceRating": "15",
+          "source": "DB",
+          "createdAt": "2026-10-13T11:49:31.775Z",
+          "updatedAt": "2026-10-13T11:49:31.775Z"
+        }
+      ],
+      "firstProgrammeCode": "PERF-PRG-NXTR-000001"
+    }
+  }
+}
