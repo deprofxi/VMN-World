@@ -76,7 +76,7 @@ In accordance with Section 2 of `VMNL-AZP-VMN-EXEC-001`, initial system componen
 │ (Cohorts & Rubrics)      │ EXTEND       │ applicant evaluation to VMN Canonical ID.    │
 ├──────────────────────────┼──────────────┼──────────────────────────────────────────────┤
 │ afca Landing Assets      │ EXTEND       │ Extract Figma/PDF token design systems into  │
-│                          │              │ WCAG 2.2 AA compliant React/Web components.  │
+│                          │              │ React/Web components built to WCAG 2.2 AA.   │
 ├──────────────────────────┼──────────────┼──────────────────────────────────────────────┤
 │ Azeebo+ Direct Endpoints │ WRAP /       │ Connect strictly through Level 1–4           │
 │                          │ INTEGRATE    │ Federation Contracts (Universal links, webhooks).│

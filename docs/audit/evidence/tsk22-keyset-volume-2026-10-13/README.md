@@ -116,4 +116,30 @@ EXPLAIN shows Index Scan + Sort of 100 rows (trivial cost). At 25 programmes per
 
 ## Test isolation caveat
 
-The harness seeds directly into PostgreSQL without cleaning up afterward. This leaves 53 programmes and 203 episodes in the test database (`vmnl_enterprise_gates`), which causes unrelated unit tests that expect a minimal fixture (2 programmes, 3 episodes) to fail with count mismatches. This is a pre-existing test isolation issue in the suite — tests reset in-memory state via `_reset*ForTesting()` functions but do not truncate database tables between runs. Not fixed here as it is beyond TSK-22's two-box scope per Rule 0.5. To reproduce cleanly, drop and re-seed the database before running the full suite: `DROP SCHEMA public CASCADE; CREATE SCHEMA public; pnpm db:migrate-and-seed`.
+**Corrected 2026-10-14.** An earlier revision of this section blamed TSK-22 for ten
+count-asserting unit-test failures and told the reader to drop and re-seed the schema. That
+diagnosis was wrong on the mechanism, the database and the numbers, and it is withdrawn.
+
+Measured facts:
+
+- The harness **cannot** seed the suite's database. `--db` is checked against a forbidden list
+  of `vmnl_enterprise_gates`, `vmnl_enterprise`, `postgres` and `template1`
+  (`measure-keyset-volume.mjs:125-128`), and the guard's own comment states why: a synthetic load
+  in the gates database would poison every count-asserting test. All volume lives in the scratch
+  database named on the command line (`vmnl_enterprise_perf` in the recorded runs; it now holds
+  15,000 `Programme` and 60,000 `BroadcastEpisode` rows), which the Vitest suite never opens.
+- The gates database is empty of seed data and stayed that way: direct count on 2026-10-14 after
+  the recorded runs and a full suite returned `Programme = 0`, `BroadcastEpisode = 0`.
+- The real cause of the failures was database *selection*, not residue. `src/core/config/index.ts:5`
+  calls `dotenv.config()` without `override`, so a plain `pnpm test` reads `.env`, whose
+  `DATABASE_URL` is the developer database `vmnl_enterprise` — measured 2026-10-14 to hold the
+  golden seed (51 programmes, 200 episodes). Tests that assert against the unseeded gates fixture
+  then see the golden seed and fail. Running the same tree with the gates URL explicitly selected
+  (`CI=1 DATABASE_URL=postgresql://root@localhost:5432/vmnl_enterprise_gates?schema=public NODE_ENV=test pnpm test`)
+  gave 71 of 72 files green, the one failure being an unrelated new guard.
+
+No drop/re-seed is required to reproduce these measurements; re-seeding the developer database is
+unnecessary and destructive. What is required is pinning `DATABASE_URL` to the unseeded gates
+database for gate runs — a pre-existing property of this repository's configuration, unrelated to
+TSK-22, and already documented in this register at `tasks.md:874` (TSK-18's environment note,
+including the same `dotenv.config()` without `override` at `src/core/config/index.ts:5`).

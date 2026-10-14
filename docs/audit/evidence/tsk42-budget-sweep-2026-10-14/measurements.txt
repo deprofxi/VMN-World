@@ -1,0 +1,56 @@
+# TSK-42 / TSK-50 budget sweep — raw measurement output
+
+candidate HEAD: 46aa6b66cc09fd7a56fc32edc73393c54d8a334c
+date: 2026-10-14T04:11:40Z
+database: vmnl_enterprise_gates (migrated, unseeded golden catalogue)
+bundle: pnpm build (tsc) -> dist/, served by createApiServer(0)
+encoding: Accept-Encoding: identity unless noted; 3 samples per surface, median reported
+
+## Served sizes and TTFB (from .scratch/measure-perf.mjs, re-run below)
+public shell /                 200 bytes   20308 gzip   4714 ttfb_ms    14 | text/html; charset=utf-8
+public shell /channels/nxtr    200 bytes   17945 gzip   4411 ttfb_ms     4 | text/html; charset=utf-8
+critical HTML SCR-BCST-01      200 bytes   21162 gzip   4748 ttfb_ms     8 | text/html; charset=utf-8
+operational screen SCR-BCST-23 403 bytes   16329 gzip   3879 ttfb_ms     7 | text/html; charset=utf-8
+shipped stylesheet             200 bytes  212853 gzip  39885 ttfb_ms     4 | text/css; charset=utf-8
+operational screen view total (identity): 250409 bytes
+operational screen view total (gzip): 48589 bytes
+---- census rule recount
+unescaped interpolation ceiling: 299 across 32 files
+  33 src/web/public/hub.ts
+  25 src/web/broadcast/index.ts
+  24 src/web/public/screens-view.ts
+  20 src/web/workspace/creative-hub-extended.ts
+  19 src/web/workspace/surface-bc.ts
+  15 src/web/portal/vtm-portal.ts
+  14 src/web/public/dashboard.ts
+  13 src/web/public/admin-feature-flags.ts
+  12 src/web/public/schedule-presentation.ts
+  10 src/web/public/auth-screens.ts
+  10 src/web/public/prototypes.ts
+   8 src/web/components/index.ts
+   8 src/web/federation/surface-e.ts
+   8 src/web/public/surface-a.ts
+   8 src/web/workspace/admin-consoles.ts
+   8 src/web/workspace/counterparty-portals.ts
+   8 src/web/workspace/governance-registers.ts
+   7 src/web/components/icons.ts
+   7 src/web/workspace/governance-and-operations.ts
+   6 src/web/portal/vtm-payment-visibility.ts
+   6 src/web/workspace/intelligence-and-tech.ts
+   4 src/web/components/episode-masters.ts
+   4 src/web/public/admissions.ts
+   4 src/web/workspace/work-hub.ts
+   3 src/web/public/channels.ts
+   3 src/web/workspace/afca-extended-lms.ts
+   3 src/web/workspace/commercial-proposal.ts
+   3 src/web/workspace/media-picker.ts
+   2 src/web/public/verification.ts
+   2 src/web/workspace/content-editor.ts
+   1 src/web/public/corporate.ts
+   1 src/web/public/pub-screens.ts
+
+## Encoding negotiation check (why the per-view verdict is encoding-dependent)
+stylesheet identity : undefined 212853 B
+stylesheet gzip   : gzip 40611 B
+per-view total identity : 250409 B  -> over the 120 KB budget
+per-view total gzip     : 47352 B  -> within the 120 KB budget

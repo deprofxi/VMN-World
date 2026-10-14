@@ -3,12 +3,14 @@
  * Authority: docs/decisions/design-task-de-citation.md (legacy "design-task" DT reference) WS-1 / AGENTS.md UI/UX Rules
  *
  * Provides:
- * 1. Unified high-contrast color tokens and 4px spacing scale (WCAG 2.2 AA compliant >= 4.5:1 / 3:1)
+ * 1. Unified high-contrast color tokens and 4px spacing scale (automated contrast check >= 4.5:1 / 3:1)
  * 2. Mobile-first responsive grids and reflow rules
  * 3. Component state classes and operational console styling
  * 4. Linear channel widget classes (.vmn-on-air-widget, .vmn-live-badge, etc. - closes DS-04)
  * 5. Utility classes (.grid, .flex, .text-*, .p-*, .mb-*, etc. - closes DS-02)
  */
+
+import { GENERATED_UTILITY_CSS } from "./generated-utilities.js";
 
 export const CANONICAL_STYLESHEET = `
   /* -------------------------------------------------------------------------- */
@@ -2509,5 +2511,53 @@ export const CANONICAL_STYLESHEET = `
     a.card, button.card, .screen-card, [role="button"].card,
     .btn, .vmn-btn, .button { transition: none; }
   }
+
+  /* AUD-20: utility classes migrated from static inline style attributes
+     (scripts/migrate-inline-styles.mjs); enables CSP style-src without
+     'unsafe-inline'. */
+  ${GENERATED_UTILITY_CSS}
 `;
+
+/**
+ * Partitioned CSS bundles (AUD-32 / Frontend Architecture)
+ * Enables shell-targeted CSS delivery to reduce stylesheet parse overhead on public landing pages.
+ */
+export const CORE_DESIGN_TOKENS_CSS = `
+  /* Core design tokens & typography scale */
+  :root {
+    --vmn-color-primary: #174C3C;
+    --vmn-color-primary-hover: #0E2B20;
+    --vmn-color-primary-text: #FFFFFF;
+    --vmn-color-secondary: #172434;
+    --vmn-color-brand: #E50914;
+    --vmn-color-accent: #FFB800;
+    --vmn-font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  body {
+    margin: 0;
+    font-family: var(--vmn-font-sans);
+    color: var(--vmn-color-secondary);
+    background-color: #FAFAFA;
+  }
+`;
+
+export const PUBLIC_SHELL_CSS = `
+  /* Public Landing & Marketing Shell Styles */
+  .vmn-navbar { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; }
+  .vmn-public-hero { padding: 48px 24px; text-align: center; }
+  .vmn-footer { padding: 32px 24px; border-top: 1px solid #E5E7EB; }
+`;
+
+export const WORKSPACE_SHELL_CSS = `
+  /* Operator Workspace & Console Styles */
+  .vmn-shell-work-layout { display: flex; min-height: 100vh; }
+  .vmn-work-rail { width: 260px; flex-shrink: 0; background: #FFFFFF; border-right: 1px solid #E5E7EB; }
+  .vmn-work-content { flex: 1; padding: 24px; }
+`;
+
+export const IDENTITY_SHELL_CSS = `
+  /* Authentication & Identity Shell Styles */
+  .vmn-shell-identity { max-width: 480px; margin: 40px auto; padding: 32px; background: #FFFFFF; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+`;
+
 

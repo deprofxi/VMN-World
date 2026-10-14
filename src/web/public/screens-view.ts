@@ -6,7 +6,7 @@
  * - Visual grid catalog of all 33 screen surfaces
  * - Operational role filtering (ExecutiveLeader, BroadcastDirector, RightsManager, TrafficManager, PlayoutOperator, FinanceController)
  * - Individual screen surface detail view with route mapping, permitted actions, and simulated test actions
- * - WCAG 2.2 AA compliant tokens, touch targets >= 44x44px, semantic HTML
+ * - Contrast-checked tokens, touch targets >= 44x44px, semantic HTML (automated checks; manual §7.5 coverage NOT_RUN)
  */
 
 import { BROADCAST_SCREEN_INVENTORY, getScreenDescriptorById } from "../../modules/broadcast/screens/index.js";
@@ -44,33 +44,33 @@ export function renderScreensCatalogHtml(selectedRole?: string): string {
   const cardsHtml = filtered
     .map((s) => {
       const actions = s.permittedActions
-        .map((a) => `<span style="background:#F1F5F9; color:#475569; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:600;">${a}</span>`)
+        .map((a) => `<span class="s-X260Zgjd7H">${a}</span>`)
         .join(" ");
 
       return `
-      <article class="card screen-card" style="display:flex; flex-direction:column; justify-content:space-between; transition:transform 0.15s ease, box-shadow 0.15s ease; border-top: 4px solid var(--vmn-secondary);">
+      <article class="card screen-card s-spUOT7_p0i">
         <div>
-          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
-            <span style="font-family:monospace; font-weight:700; font-size:0.85rem; color:#0284C7; background:#E0F2FE; padding:3px 8px; border-radius:4px;">${s.screenId}</span>
-            <span style="font-size:0.8rem; font-weight:700; color:var(--vmn-text-muted);">#${s.screenNumber}</span>
+          <div class="s-NUy8-yU6ON">
+            <span class="s-t92pYwkrKO">${s.screenId}</span>
+            <span class="s-54HfO3lJ9A">#${s.screenNumber}</span>
           </div>
-          <h3 style="font-size:1.15rem; margin-bottom:8px; line-height:1.3;">
+          <h3 class="s-XSOc80whyS">
             <a href="/broadcast/screens/${s.screenId}" style="text-decoration:none; color:var(--vmn-text-main); font-weight:700;">${s.name}</a>
           </h3>
-          <p style="font-size:0.875rem; color:var(--vmn-text-muted); margin-bottom:16px; min-height:40px;">${s.description}</p>
+          <p class="s-q7pcEDpDO4">${s.description}</p>
         </div>
         
         <div>
-          <div style="margin-bottom:12px;">
-            <code style="font-size:0.8rem; color:#64748B; background:#F8FAFC; padding:4px 8px; border-radius:4px; display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; border:1px solid #E2E8F0;">${s.route}</code>
+          <div class="s-PvH6GqES8f">
+            <code class="s-X2rkPCg1Qw">${s.route}</code>
           </div>
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <div class="s-wUW2k9hp6I">
             ${getRoleBadge(s.primaryRole)}
           </div>
-          <div style="display:flex; flex-wrap:wrap; gap:4px; margin-bottom:16px;">
+          <div class="s-H3bqxJt2a0">
             ${actions}
           </div>
-          <div style="display:flex; gap:8px;">
+          <div class="s-UK2dEq5_xu">
             <a href="/broadcast/screens/${s.screenId}" class="btn btn-outline" style="flex:1; min-height:44px; text-align:center; font-size:0.875rem;">View Spec</a>
             <a href="${s.route.includes(":") ? `/broadcast/screens/${s.screenId}` : s.route}" class="btn btn-primary" style="flex:1; min-height:44px; text-align:center; font-size:0.875rem;">Launch &rarr;</a>
           </div>
@@ -81,27 +81,27 @@ export function renderScreensCatalogHtml(selectedRole?: string): string {
     .join("\n");
 
   return `
-  <section style="display:flex; flex-direction:column; gap:24px;">
-    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;">
+  <section class="s-hJqXKfH1_e">
+    <div class="s-eNztNGULjh">
       <div>
-        <nav aria-label="Breadcrumb" style="font-size:0.85rem; color:var(--vmn-text-muted); margin-bottom:8px;">
-          <a href="/" style="color:var(--vmn-secondary); text-decoration:none;">Home</a> &gt; 
-          <a href="/broadcast/dashboard" style="color:var(--vmn-secondary); text-decoration:none;">Broadcast</a> &gt; 
+        <nav class="s-SFIks6VJ6b" aria-label="Breadcrumb">
+          <a class="s-v8cyEOQoqd" href="/">Home</a> &gt; 
+          <a class="s-v8cyEOQoqd" href="/broadcast/dashboard">Broadcast</a> &gt; 
           <span>Screens</span>
         </nav>
-        <h1 style="font-size:2rem; font-weight:800; color:var(--vmn-primary);">Broadcast Operational Screen Inventory</h1>
-        <p style="color:var(--vmn-text-muted); margin-top:4px;">
+        <h1 class="s-6qUvL7-0sm">Broadcast Operational Screen Inventory</h1>
+        <p class="s-NLOlqgzjPV">
           Complete 33-screen operational surface registry mandated by <strong>VMNL-AZP-VMN-BRD-PRD-001 — R1.2A (§46)</strong>.
         </p>
       </div>
-      <div style="display:flex; gap:12px; align-items:center;">
-        <span class="vmn-badge badge-ready">33 of 33 Screens Ready</span>
+      <div class="s-iJRgfp58Su">
+        <span class="vmn-badge badge-warning" title="Measured 2026-10-11 by tests/unit/broadcast-provenance-coverage.test.ts: all 33 registered surfaces serve the demonstration-data banner and the provenance-badged KPI strip; 1 (SCR-BCST-02, channel registry) emits a live SOURCE: badge; 0 are fully engine-sourced, because no engine snapshot reaches the renderer.">33 registered &middot; 0 fully engine-sourced &middot; 1 live-source badge &middot; demonstration data</span>
         <a href="/broadcast/dashboard" class="btn btn-primary">&larr; Operator Dashboard</a>
       </div>
     </div>
 
     <!-- Summary Statistics Grid -->
-    <div class="grid-3" style="margin-top:0;">
+    <div class="grid-3 s-KRt7uwFSzR">
       <div class="card stat-box">
         <span class="stat-val">33</span>
         <span class="stat-lbl">Mandated Screen Surfaces (R1.2A §46)</span>
@@ -111,23 +111,23 @@ export function renderScreensCatalogHtml(selectedRole?: string): string {
         <span class="stat-lbl">Broadcast Capability Roles (R1.2A §48)</span>
       </div>
       <div class="card stat-box">
-        <span class="stat-val">S2</span>
-        <span class="stat-lbl">Operating Environment Tier</span>
+        <span class="stat-val">Sandbox</span>
+        <span class="stat-lbl">Operating Environment &mdash; S2 tier claim withdrawn pending TSK-06</span>
       </div>
     </div>
 
     <!-- Filter Bar -->
-    <div class="card" style="padding:16px;">
-      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-        <span style="font-weight:700; font-size:0.9rem; color:var(--vmn-text-main);">Filter by Operational Role:</span>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+    <div class="card s-zzcDR1Eaak">
+      <div class="s--DZbB8jCDJ">
+        <span class="s-ORCo37wOlQ">Filter by Operational Role:</span>
+        <div class="s-g441DDTE9g">
           ${roleFilterButtons}
         </div>
       </div>
     </div>
 
     <!-- Screen Cards Grid -->
-    <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap:20px;">
+    <div class="s--l6eWBnke5">
       ${cardsHtml}
     </div>
   </section>
@@ -139,13 +139,13 @@ export function renderScreenDetailHtml(screenId: string): string {
 
   if (!descriptor) {
     return `
-    <section class="card" style="max-width:640px; margin:40px auto; text-align:center; padding:48px 24px;">
-      <div style="margin-bottom:16px; color:#DC2626;">${renderIcon("alert", { size: 48 })}</div>
-      <h1 style="font-size:1.75rem; font-weight:800; color:var(--vmn-primary); margin-bottom:8px;">Screen Surface Not Found</h1>
-      <p style="color:var(--vmn-text-muted); margin-bottom:24px;">
+    <section class="card s-eZw0sOrsT9">
+      <div class="s-2zt_VCDZro">${renderIcon("alert", { size: 48 })}</div>
+      <h1 class="s-ZUjcf9NYmn">Screen Surface Not Found</h1>
+      <p class="s-PID--WkAe7">
         No operational screen was found matching identifier "<strong>${screenId}</strong>" in the VMNL R1.2A (§46) inventory.
       </p>
-      <a href="/broadcast/screens" class="btn btn-primary" style="display:inline-flex;">Return to Screen Inventory</a>
+      <a href="/broadcast/screens" class="btn btn-primary s-YWPkqV3VsB">Return to Screen Inventory</a>
     </section>
     `;
   }
@@ -154,9 +154,9 @@ export function renderScreenDetailHtml(screenId: string): string {
   const actionsList = descriptor.permittedActions
     .map(
       (a) => `
-      <li style="display:flex; align-items:center; gap:8px; padding:8px 12px; background:#F8FAFC; border-radius:6px; border:1px solid #E2E8F0;">
-        <span style="color:#0284C7; font-weight:700;">&bull;</span>
-        <code style="font-weight:700; color:#0F172A;">${a}</code>
+      <li class="s-5Pe8l22-rN">
+        <span class="s-Vj9aNyBJeO">&bull;</span>
+        <code class="s-MO_TsUeSK7">${a}</code>
       </li>
     `
     )
@@ -167,68 +167,68 @@ export function renderScreenDetailHtml(screenId: string): string {
 
   const prevLink = prevScreenNum
     ? `<a href="/broadcast/screens/SCR-BCST-${String(prevScreenNum).padStart(2, "0")}" class="btn btn-outline" style="font-size:0.875rem;">&larr; Prev (#${prevScreenNum})</a>`
-    : `<span class="btn btn-outline" style="opacity:0.5; cursor:not-allowed; font-size:0.875rem;">&larr; Prev</span>`;
+    : `<span class="btn btn-outline s-fUoqNgXNkS">&larr; Prev</span>`;
 
   const nextLink = nextScreenNum
     ? `<a href="/broadcast/screens/SCR-BCST-${String(nextScreenNum).padStart(2, "0")}" class="btn btn-outline" style="font-size:0.875rem;">Next (#${nextScreenNum}) &rarr;</a>`
-    : `<span class="btn btn-outline" style="opacity:0.5; cursor:not-allowed; font-size:0.875rem;">Next &rarr;</span>`;
+    : `<span class="btn btn-outline s-fUoqNgXNkS">Next &rarr;</span>`;
 
   return `
-  <section style="display:flex; flex-direction:column; gap:24px; max-width:960px; margin:0 auto;">
+  <section class="s-Ap7e8x-cvm">
     <!-- Top Breadcrumbs & Nav -->
-    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
-      <nav aria-label="Breadcrumb" style="font-size:0.85rem; color:var(--vmn-text-muted);">
-        <a href="/" style="color:var(--vmn-secondary); text-decoration:none;">Home</a> &gt; 
-        <a href="/broadcast/dashboard" style="color:var(--vmn-secondary); text-decoration:none;">Broadcast</a> &gt; 
-        <a href="/broadcast/screens" style="color:var(--vmn-secondary); text-decoration:none;">Screens</a> &gt; 
+    <div class="s-7siY-5mpRK">
+      <nav class="s-37h9gF_4Xa" aria-label="Breadcrumb">
+        <a class="s-v8cyEOQoqd" href="/">Home</a> &gt; 
+        <a class="s-v8cyEOQoqd" href="/broadcast/dashboard">Broadcast</a> &gt; 
+        <a class="s-v8cyEOQoqd" href="/broadcast/screens">Screens</a> &gt; 
         <span>${descriptor.screenId}</span>
       </nav>
-      <div style="display:flex; gap:8px;">
+      <div class="s-UK2dEq5_xu">
         ${prevLink}
-        <a href="/broadcast/screens" class="btn btn-outline" style="font-size:0.875rem;">All Screens</a>
+        <a href="/broadcast/screens" class="btn btn-outline s-5ZYJkVWULV">All Screens</a>
         ${nextLink}
       </div>
     </div>
 
     <!-- Main Screen Header Card -->
-    <article class="card" style="border-top:5px solid var(--vmn-secondary);">
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
+    <article class="card s-ZOFAYSaIa1">
+      <div class="s-oQe8fPOoPX">
         <div>
-          <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
-            <span style="font-family:monospace; font-weight:800; font-size:1.1rem; color:#0284C7; background:#E0F2FE; padding:4px 10px; border-radius:6px;">
+          <div class="s-8BhWLFy0Sw">
+            <span class="s-kgjsJK4ewZ">
               ${descriptor.screenId}
             </span>
-            <span style="font-weight:700; color:var(--vmn-text-muted); font-size:0.9rem;">
+            <span class="s-vRbL09if9G">
               Screen #${descriptor.screenNumber} of 33
             </span>
           </div>
-          <h1 style="font-size:2rem; font-weight:800; color:var(--vmn-primary); margin-bottom:8px;">
+          <h1 class="s-AB_wCtDT5L">
             ${descriptor.name}
           </h1>
-          <p style="font-size:1.1rem; color:var(--vmn-text-muted);">
+          <p class="s-EdjnyvpuOU">
             ${descriptor.description}
           </p>
         </div>
-        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
+        <div class="s-numIUTWRO1">
           ${getRoleBadge(descriptor.primaryRole)}
-          <span class="vmn-badge badge-ready">PRD R1.2A (§46) Verified</span>
+          <span class="vmn-badge badge-neutral">PRD R1.2A §46 registered &mdash; data-source wiring NOT_VERIFIED</span>
         </div>
       </div>
 
-      <hr style="border:none; border-top:1px solid var(--vmn-surface-border); margin:16px 0;" />
+      <hr class="s-NjQUWrb1vc" />
 
       <!-- Specifications Grid -->
-      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:20px;">
+      <div class="s-tjxm4VdntH">
         <div>
-          <h2 style="font-size:0.85rem; font-weight:700; text-transform:uppercase; color:var(--vmn-text-muted); margin-bottom:8px;">
+          <h2 class="s-htKo0vsOr5">
             Operational Route / URI
           </h2>
-          <code style="font-size:0.95rem; display:block; padding:10px 14px; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:6px; color:#0F172A; font-weight:600;">
+          <code class="s-M4HT1j7Y4a">
             ${descriptor.route}
           </code>
         </div>
         <div>
-          <h2 style="font-size:0.85rem; font-weight:700; text-transform:uppercase; color:var(--vmn-text-muted); margin-bottom:8px;">
+          <h2 class="s-htKo0vsOr5">
             Primary Responsible Role
           </h2>
           <div style="padding:10px 14px; background:${roleStyle.bg}; border:1px solid ${roleStyle.border}; border-radius:6px; color:${roleStyle.text}; font-weight:700; font-size:0.95rem;">
@@ -237,24 +237,24 @@ export function renderScreenDetailHtml(screenId: string): string {
         </div>
       </div>
 
-      <div style="margin-top:20px;">
-        <h2 style="font-size:0.85rem; font-weight:700; text-transform:uppercase; color:var(--vmn-text-muted); margin-bottom:8px;">
+      <div class="s-nrEl9S9lpH">
+        <h2 class="s-htKo0vsOr5">
           Permitted RBAC Actions
         </h2>
-        <ul style="list-style:none; display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:8px;">
+        <ul class="s-0toYtkukcP">
           ${actionsList}
         </ul>
       </div>
 
       <!-- Action Footer -->
-      <div style="margin-top:28px; padding-top:20px; border-top:1px solid var(--vmn-surface-border); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+      <div class="s-woxFD2qJM8">
         <div>
-          <span style="font-size:0.85rem; color:var(--vmn-text-muted);">
+          <span class="s-37h9gF_4Xa">
             Governing Specification: <strong>VMNL-AZP-VMN-BRD-PRD-001 — R1.2A (§46)</strong>
           </span>
         </div>
-        <div style="display:flex; gap:12px;">
-          <a href="/broadcast/screens" class="btn btn-outline" style="min-height:44px;">&larr; Back to Inventory</a>
+        <div class="s-cSCcrniXzw">
+          <a href="/broadcast/screens" class="btn btn-outline s-Ts1j-uJVgn">&larr; Back to Inventory</a>
           <a href="${descriptor.route.includes(":") ? `/broadcast/dashboard` : descriptor.route}" class="btn btn-primary" style="min-height:44px;">
             Launch Operational Surface &rarr;
           </a>
@@ -262,19 +262,17 @@ export function renderScreenDetailHtml(screenId: string): string {
       </div>
     </article>
 
-    <!-- Operational Context & Audit Drill -->
-    <div class="card" style="background:#F8FAFC;">
-      <h3 style="font-size:1.1rem; font-weight:700; color:var(--vmn-primary); margin-bottom:8px;">
-        Audit & Quality Gate Clearance
+    <!-- Operational Context & Registration Status -->
+    <div class="card s-fuXrHI51DM">
+      <h3 class="s-XlAQYZBF-N">
+        Registration &amp; gate status
       </h3>
-      <p style="font-size:0.9rem; color:var(--vmn-text-muted); margin-bottom:16px;">
-        This operational screen surface is registered in the VMNL release gate registry (Gate 0, Gate 1, Gate 2, Gate 3) and validated under tri-party sign-off protocols (CEO, COO, StarTimes Lead).
+      <p class="s-YgZVN-kWD2">
+        This surface is <strong>registered</strong> in the broadcast screen inventory. Registration is not clearance: design gate <strong>DG-RL1-06</strong> (broadcast operational screens) is <strong>OPEN</strong> &mdash; owner Broadcast Director, review expiry 2026-10-31 &mdash; and no tri-party sign-off has been recorded for it. Record: <code>docs/audit/design-gate-closure-records.md</code>.
       </p>
-      <div style="display:flex; gap:8px; flex-wrap:wrap;">
-        <span class="vmn-badge badge-ready">Gate 0 (Pre-Flight)</span>
-        <span class="vmn-badge badge-ready">Gate 1 (Dry-Run)</span>
-        <span class="vmn-badge badge-ready">Gate 2 (Parallel Run)</span>
-        <span class="vmn-badge badge-ready">Gate 3 (Transmission Authorization)</span>
+      <div class="s-g441DDTE9g">
+        <span class="vmn-badge badge-warning">DG-RL1-06 OPEN</span>
+        <span class="vmn-badge badge-neutral">Gate 0&ndash;3 clearance NOT_RECORDED</span>
       </div>
     </div>
   </section>

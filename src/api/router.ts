@@ -1,13 +1,35 @@
 /**
  * VMNL Enterprise Unified API Router & Request Dispatcher
- * Authority: VMNL-AZP-VMN-BRD-PRD-001 — R1.2A / VMNL-AZP-VMN-CCPP-001 §19, §21
+ * Authority: VMNL-AZP-VMN-BRD-PRD-001 — R1.2A / VMNL-AZP-VMN-CCPP-001 §19, §21 / docs/decisions/design-task-de-citation.md (legacy "design-task" DT reference)
  */
 
 import { IncomingMessage, ServerResponse } from "node:http";
+import { gzipSync, gzip as gzipCallback } from "node:zlib";
+import { promisify } from "node:util";
+
+// AUD-17: compression above this size runs off the event loop (async zlib);
+// smaller bodies compress synchronously (sub-millisecond) so hot small
+// responses keep their existing timing profile.
+const gzipAsync = promisify(gzipCallback);
+const ASYNC_COMPRESS_THRESHOLD_BYTES = 64 * 1024;
 import { URL } from "node:url";
+import {
+  ListEnquiriesQuerySchema,
+  AdmissionsQueueQuerySchema,
+  FeatureFlagToggleSchema,
+  SubmitEnquirySchema,
+  SaveApplicationDraftSchema,
+  SubmitApplicationSchema,
+  AdmissionsDecisionSchema,
+  PaystackWebhookSchema,
+  FlutterwaveWebhookSchema,
+} from "./schemas/index.js";
+import { dispatchDomainRoute } from "./routes/index.js";
+import { PUBLIC_INDEXABLE_ROUTES } from "../web/public/public-route-registry.js";
 import { TelemetryService } from "../core/observability/index.js";
 import { getAllActiveChannels, getChannelByCode } from "../modules/broadcast/channels/index.js";
 import { BROADCAST_SCREEN_INVENTORY } from "../modules/broadcast/screens/index.js";
+import type { ScreenDataContext } from "../modules/broadcast/screens/data.js";
 import { reconcileAsRunLogs, getProofOfAirCertificate } from "../modules/broadcast/asrun/index.js";
 import { TalentAcceleratorRegistry } from "../modules/hub/talent/index.js";
 import { AfcaAcademyService } from "../modules/hub/afca/index.js";
@@ -23,17 +45,27 @@ import { QuoteToCashSalesEngine } from "../modules/finance/sales/index.js";
 import { TalentPayoutEngine } from "../modules/finance/payouts/index.js";
 import { BankReconciliationEngine } from "../modules/finance/reconciliation/index.js";
 import { PaymentGatewayWebhookValidator, Mt940Parser } from "../modules/finance/reconciliation/mt940.js";
+import { LedgerPostingService } from "../modules/finance/ledger/posting.js";
 import { ReleaseGatePipeline } from "../modules/quality/gates.js";
 import {
   signSessionToken,
   verifySessionToken,
   revokeToken,
-  checkRateLimit,
+  // checkRateLimit (process-local) is retained in core/auth for unit tests
+  // and as the un-bound-adapter fallback inside checkSharedRateLimit.
+  checkSharedRateLimit,
   createSessionCookie,
   authenticateUser,
+  signMfaLoginChallenge,
+  verifyMfaLoginChallenge,
+  consumeMfaLoginChallenge,
+  primeSessionRevocation,
+  updateUserMfaEnrollment,
+  findUserByEmail,
   SessionUser,
 } from "../core/auth/index.js";
-import { RepositoryUnavailableError } from "../core/database/repository-mode.js";
+import { RepositoryUnavailableError, getRepositoryMode } from "../core/database/repository-mode.js";
+import { durableJournalStats, flushDurableJournal, pendingDurableWrites } from "../core/database/durable-journal.js";
 import { getConfig } from "../core/config/index.js";
 import {
   canPerform,
@@ -98,7 +130,8 @@ import {
   renderVtmMarketplaceHtml,
   renderClientProjectsListHtml,
   renderClientProjectDetailHtml,
-  MOCK_CLIENT_PROJECTS,
+  projectClientPortfolio,
+  toClientProject,
   renderBroadcastScheduleReviewHtml,
   renderRightsReviewRequestHtml,
   renderPoaExceptionsWorkbenchHtml,
@@ -121,9 +154,6 @@ import {
   renderHeadspaceIntelligenceHtml,
   renderCr8TechOperationsHtml,
   renderAgenticOsConsoleHtml,
-  renderPartnerPortalHtml,
-  renderCreatorPortalHtml,
-  renderVendorPortalHtml,
   renderManagementOverviewHtml,
   renderRiskRegisterHtml,
   renderIssueTrackerHtml,
@@ -132,10 +162,15 @@ import {
   escapeHtml,
   renderIcon,
 } from "../web/index.js";
-import { VMN_FAVICON_SVG, VMN_OG_IMAGE_SVG } from "../web/assets/index.js";
+import { VMN_FAVICON_SVG, VMN_OG_IMAGE_SVG, CLIENT_BOOTSTRAP_JS, VMN_OG_IMAGE_PNG } from "../web/assets/index.js";
 import { OPENAPI_SPEC, renderDocsHtml } from "./docs.js";
 import { getScreenDescriptorById as getScreenDescriptor } from "../modules/broadcast/screens/index.js";
-import { CANONICAL_STYLESHEET } from "../web/styles/index.js";
+import {
+  CANONICAL_STYLESHEET,
+  PUBLIC_SHELL_CSS,
+  WORKSPACE_SHELL_CSS,
+  IDENTITY_SHELL_CSS,
+} from "../web/styles/index.js";
 import {
   renderSignInHtml,
   renderMfaStepUpHtml,
@@ -171,9 +206,6 @@ import {
   revokeSessionById,
   revokeAllSessions,
   computeSessionId,
-  markTokenIdRevoked,
-  isTokenIdRevoked,
-  getNotificationPreferences,
   saveNotificationPreferences,
   saveFirstUseProfile,
   listInAppNotifications,
@@ -183,7 +215,6 @@ import {
   createApproval,
   decideApproval,
   listAllApprovals,
-  reviseApprovalObject,
 } from "../core/approvals/index.js";
 import {
   createContent,
@@ -213,12 +244,14 @@ import {
   CSRF_COOKIE_NAME,
   checkIdempotency,
   recordIdempotentOutcome,
+  claimProviderEventOnce,
+  confirmProviderEventIngested,
+  releaseProviderEventClaim,
 } from "../core/websecurity/index.js";
 import {
   aggregateMyWork,
   registerWorkTaskSource,
   authorisedSearch,
-  indexSearchRecord,
   createRisk,
   listRisks,
   createIssue,
@@ -227,7 +260,10 @@ import {
 } from "../core/work/index.js";
 import {
   registerDestination,
+  verifyDestination,
   revokeDestination,
+  deprecateDestination,
+  blockDestination,
   isVerifiedDestination,
   listDestinations,
   setRoutingRule,
@@ -235,7 +271,7 @@ import {
   deactivateRoutingRule,
 } from "../core/federation/destinations.js";
 import { exportXmltv, pushToStarTimes } from "../modules/broadcast/export/epg.js";
-import { getScreenData, renderScreenKpis, renderMockDataBanner } from "../modules/broadcast/screens/data.js";
+import { engineScheduleSource } from "../modules/broadcast/export/approved-schedules.js";
 import { registerVersion, markReadyForAir } from "../modules/broadcast/versions/index.js";
 import {
   renderMyWorkHtml,
@@ -268,7 +304,9 @@ import {
   recordAuditLog,
   getAuditLogs,
   verifyAuditLogChainIntegrity,
+  getAuditHealth,
 } from "../core/audit/index.js";
+import { resolveKeyValueAdapter } from "../core/cache/index.js";
 import {
   getAllFeatureFlags,
   getFeatureFlagState,
@@ -283,10 +321,7 @@ import { projectContentEditorForm, renderContentEditorFormHtml } from "../web/wo
 import { listAllSessions } from "../core/auth/sessions.js";
 import {
   submitCommercialEnquiry,
-  recoverEnquiryOutcome,
-  getEnquiryByReference,
   listEnquiries,
-  retryDownstreamRouting,
 } from "../modules/hub/enquiry/index.js";
 import { AfcaAdmissionsService } from "../modules/hub/afca/admissions.js";
 
@@ -297,12 +332,28 @@ import { TendDistributionEngine } from "../modules/hub/tend/index.js";
 import { AfroFusionCommunityHub } from "../modules/hub/community/index.js";
 import { validateBroadcastMasterQc } from "../modules/broadcast/programmes/index.js";
 import { validateDailySchedule, ScheduleSlot } from "../modules/broadcast/scheduling/index.js";
-import { BroadcastRightsGate, validateScheduleRights } from "../modules/broadcast/rights/index.js";
+import {
+  BroadcastRightsGate,
+  validateScheduleRights,
+  openRightsReviewRequest,
+  transitionRightsReviewRequest,
+  resolveRightsReviewRequest,
+  rightsRepository,
+  getRegisteredRightsRecord,
+  findExclusiveWindowsForAsset,
+  type ReviewDecision,
+  type RightsReviewRequestStatus,
+} from "../modules/broadcast/rights/index.js";
 import { BroadcastTrafficEngine, validateCommercialBreak } from "../modules/broadcast/traffic/index.js";
+import {
+  raisePoaExceptionsFromAsRun,
+  resolvePoaException,
+  type PoaResolutionType,
+} from "../modules/broadcast/asrun/exceptions.js";
 import { PlayoutAutomationEngine, insertEmergencyFiller } from "../modules/broadcast/playout/index.js";
 import { SponsorshipEngine } from "../modules/broadcast/sponsorship/index.js";
 import { CarriageMonitoringEngine, recordTransmissionOutage } from "../modules/broadcast/carriage/index.js";
-import { BroadcastBillingEngine } from "../modules/broadcast/billing/index.js";
+import { BroadcastBillingEngine, DaypartClassification } from "../modules/broadcast/billing/index.js";
 import { PlayoutExportEngine } from "../modules/broadcast/export/index.js";
 
 export interface RequestHandlerContext {
@@ -335,7 +386,45 @@ export interface RequestHandlerContext {
   sponsorshipEngine?: SponsorshipEngine;
   carriageEngine?: CarriageMonitoringEngine;
   billingEngine?: BroadcastBillingEngine;
+  /** TSK-33: the seven-way ledger the POA credit remedy posts against. */
+  ledgerService?: LedgerPostingService;
   exportEngine?: PlayoutExportEngine;
+}
+
+/**
+ * TSK-11 box 6: the snapshot the served broadcast desks render from.
+ *
+ * Only engines this process actually holds are projected. Two panels are
+ * deliberately left unsupplied, and their screens then render NOT_CONNECTED:
+ *  - `playoutStatus` — PlayoutAutomationEngine holds playlist composition, not
+ *    an on-air/lock state, and there is no machine interface to read one from;
+ *  - `asRunSummary` — reconciliation is request-scoped over posted logs, and no
+ *    route ingests as-run logs here (`ScheduleRepository.recordAsRun` has no
+ *    `src/` caller), so the only summarisable rows would be seed fixtures.
+ * Supplying either would be an invented figure on an operational surface.
+ */
+export function buildScreenEngineSnapshot(
+  context: Pick<RequestHandlerContext, "billingEngine" | "sponsorshipEngine">
+): NonNullable<ScreenDataContext["engines"]> {
+  const snapshot: NonNullable<ScreenDataContext["engines"]> = {};
+
+  const schedules = context.billingEngine?.listBillingSchedules();
+  if (schedules && schedules.length > 0) {
+    snapshot.billingTotals = schedules.map((s) => ({
+      campaignCode: s.campaignCode,
+      totalValueNgn: s.totalContractValueNgn,
+    }));
+  }
+
+  const report = context.sponsorshipEngine?.getFulfillmentReport();
+  if (report && report.length > 0) {
+    snapshot.sponsorshipAudit = report.map((r) => ({
+      entitlementId: r.binding.entitlementId,
+      fulfillmentPercent: r.fulfillmentPercent,
+    }));
+  }
+
+  return snapshot;
 }
 
 export class PayloadTooLargeError extends Error {
@@ -399,33 +488,159 @@ async function stashFormBody(req: IncomingMessage): Promise<string> {
   return body;
 }
 
-export async function parseJsonBody(req: IncomingMessage, pathname = ""): Promise<any> {
+/**
+ * AUD-12: parsed JSON bodies are `Record<string, unknown>` — never `any`.
+ * Values leaving the request boundary must be narrowed (Zod schema, explicit
+ * coercion or a local interface) before they reach domain logic, so unknown
+ * fields cannot flow through unvalidated casts.
+ */
+export async function parseJsonBody(req: IncomingMessage, pathname = ""): Promise<Record<string, unknown>> {
   const body = await readBodyWithLimit(req, maxBodyBytesForPath(pathname));
   if (!body.trim()) {
     return {};
   }
   try {
-    return JSON.parse(body);
-  } catch (_err) {
-    throw new Error("Invalid JSON body payload", { cause: _err });
+    const parsed: unknown = JSON.parse(body);
+    if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
+      throw new Error("JSON body must be an object");
+    }
+    return parsed as Record<string, unknown>;
+  } catch (err) {
+    if (err instanceof Error && err.message === "JSON body must be an object") throw err;
+    throw new Error("Invalid JSON body payload", { cause: err });
   }
 }
 
-export function sendJson(res: ServerResponse, statusCode: number, data: any): void {
+// AUD-12: explicit narrowing helpers for untrusted JSON fields. Values never
+// reach domain logic as `unknown`/`{}` — each boundary states what it accepts.
+/** Coerce an untrusted JSON field to a string ("" when absent/mistyped). */
+function jsonTextField(value: unknown): string {
+  return typeof value === "string" ? value : "";
+}
+/** Coerce an untrusted JSON field to a finite number (fallback when absent/mistyped). */
+function jsonNumberField(value: unknown, fallback: number): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+/** Coerce an untrusted JSON field to an array ([] when absent/mistyped). */
+function jsonArrayField(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : [];
+}
+/** Coerce an untrusted JSON field to a plain object ({} when absent/mistyped). */
+function jsonObjectField(value: unknown): Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
+}
+/**
+ * AUD-12: coerce an untrusted JSON field to a whitelisted union member;
+ * anything the domain does not admit falls back (callers choose fail-closed
+ * fallbacks so mistyped values never widen domain permissions).
+ */
+function jsonEnumField<T extends string>(value: unknown, allowed: readonly T[], fallback: T): T {
+  return typeof value === "string" && (allowed as readonly string[]).includes(value) ? (value as T) : fallback;
+}
+/**
+ * TSK-10: the fields that make up a RightsRecord's clearance. A rights
+ * validation request may name a record and describe the *slot*; it may not
+ * describe the record. Any of these appearing in the body — nested under
+ * `rightsRecord` or flat on the request — is returned so the route can refuse
+ * the claim instead of checking its arithmetic.
+ *
+ * `channelCode` is deliberately absent from the flat list: it is a legitimate
+ * request field (the channel being scheduled) and only counts as a record field
+ * when it arrives inside `rightsRecord`.
+ */
+const RIGHTS_RECORD_CLEARANCE_FIELDS = [
+  "assetId", "title", "rightsType", "territory", "mediaType",
+  "exclusivity", "startDate", "expiryDate", "subLicensable", "createdAt", "updatedAt",
+] as const;
+const RIGHTS_RECORD_NESTED_FIELDS = [...RIGHTS_RECORD_CLEARANCE_FIELDS, "id", "channelCode"] as const;
+
+function suppliedRightsRecordFields(request: Record<string, unknown>): string[] {
+  const present = new Set<string>();
+  const nested = request.rightsRecord;
+  if (nested !== undefined) {
+    const record = jsonObjectField(nested);
+    for (const field of RIGHTS_RECORD_NESTED_FIELDS) if (record[field] !== undefined) present.add(field);
+    if (present.size === 0) present.add("rightsRecord");
+  }
+  for (const field of RIGHTS_RECORD_CLEARANCE_FIELDS) if (request[field] !== undefined) present.add(field);
+  return [...present].sort();
+}
+/** Whitelist mirror of CreativeSkillCategory (hub talent domain). */
+const TALENT_SKILL_CATEGORIES = [  "ACTING", "DIRECTING", "CINEMATOGRAPHY", "EDITING", "SOUND_DESIGN", "SCREENWRITING",
+  "VFX_ANIMATION", "PRODUCTION_MANAGEMENT", "COSTUME_STYLING", "HAIR_MAKEUP", "VOICEOVER",
+] as const;
+
+export async function sendJson(res: ServerResponse, statusCode: number, data: any): Promise<void> {
+  // TSK-17: no response may report success while a durable write is still
+  // staged. This is the single choke point every handler answers through, so a
+  // store whose synchronous domain function only updated the read index still
+  // cannot tell a caller "ok" for a row the database rejected: that entry is
+  // rolled back and the request becomes a 503 (`REPOSITORY_UNAVAILABLE`).
+  try {
+    await flushDurableJournal();
+  } catch (err) {
+    if (!(err instanceof RepositoryUnavailableError)) throw err;
+    if (statusCode < 500) {
+      statusCode = 503;
+      data = {
+        error: "Service Unavailable",
+        message: "The persistence layer rejected a staged write; the request was not processed fail-closed.",
+        code: err.code,
+      };
+    }
+  }
+  const isHead = (res as any).__isHead || res.req?.method === "HEAD";
   const payload = JSON.stringify(data);
-  res.writeHead(statusCode, {
-    "Content-Type": "application/json",
-    "Content-Length": Buffer.byteLength(payload),
-  });
-  res.end(payload);
+  const rawBuffer = Buffer.from(payload, "utf-8");
+  const acceptsGzip = rawBuffer.length > 1024 && String(res.req?.headers["accept-encoding"] || "").includes("gzip");
+  const body = acceptsGzip
+    ? rawBuffer.length > ASYNC_COMPRESS_THRESHOLD_BYTES
+      ? await gzipAsync(rawBuffer)
+      : gzipSync(rawBuffer)
+    : rawBuffer;
+
+  const headers: Record<string, string | number> = {
+    "Content-Type": "application/json; charset=utf-8",
+    "Content-Length": body.length,
+    Vary: "Accept-Encoding",
+  };
+  if (acceptsGzip) {
+    headers["Content-Encoding"] = "gzip";
+  }
+
+  res.writeHead(statusCode, headers);
+  if (isHead) {
+    res.end();
+  } else {
+    res.end(body);
+  }
 }
 
-export function sendText(res: ServerResponse, statusCode: number, text: string, contentType = "text/plain"): void {
-  res.writeHead(statusCode, {
+export async function sendText(res: ServerResponse, statusCode: number, text: string, contentType = "text/plain"): Promise<void> {
+  const isHead = (res as any).__isHead || res.req?.method === "HEAD";
+  const rawBuffer = Buffer.from(text, "utf-8");
+  const acceptsGzip = rawBuffer.length > 1024 && String(res.req?.headers["accept-encoding"] || "").includes("gzip");
+  const body = acceptsGzip
+    ? rawBuffer.length > ASYNC_COMPRESS_THRESHOLD_BYTES
+      ? await gzipAsync(rawBuffer)
+      : gzipSync(rawBuffer)
+    : rawBuffer;
+
+  const headers: Record<string, string | number> = {
     "Content-Type": contentType,
-    "Content-Length": Buffer.byteLength(text),
-  });
-  res.end(text);
+    "Content-Length": body.length,
+    Vary: "Accept-Encoding",
+  };
+  if (acceptsGzip) {
+    headers["Content-Encoding"] = "gzip";
+  }
+
+  if (!(await flushOrFailure(res, statusCode, headers))) return;
+  if (isHead) {
+    res.end();
+  } else {
+    res.end(body);
+  }
 }
 
 import crypto from "node:crypto";
@@ -435,34 +650,74 @@ import crypto from "node:crypto";
  * the body hash, If-None-Match revalidation (304), and must-revalidate
  * caching. Rendered pages are dynamic; long caching would risk stale
  * operational surfaces, so revalidation keeps repeat visits cheap without
- * staleness. The stylesheet asset itself is immutable-cached separately.
+ * staleness. Authenticated pages use private, no-store (AUD-19).
+ * Large responses are transparently gzip-compressed (AUD-18).
  */
-export function sendHtml(res: ServerResponse, statusCode: number, html: string): void {
+export async function sendHtml(res: ServerResponse, statusCode: number, html: string, opts?: { private?: boolean }): Promise<void> {
+  const isHead = (res as any).__isHead || res.req?.method === "HEAD";
   const etag = `W/"${crypto.createHash("sha1").update(html).digest("base64url")}"`;
   const ifNoneMatch = res.req?.headers["if-none-match"];
+
+  const rawBuffer = Buffer.from(html, "utf-8");
+  const acceptsGzip = rawBuffer.length > 1024 && String(res.req?.headers["accept-encoding"] || "").includes("gzip");
+  const body = acceptsGzip
+    ? rawBuffer.length > ASYNC_COMPRESS_THRESHOLD_BYTES
+      ? await gzipAsync(rawBuffer)
+      : gzipSync(rawBuffer)
+    : rawBuffer;
+
+  const pathname = res.req?.url ? new URL(res.req.url, "http://localhost").pathname : "";
+  const isPrivate = opts?.private ?? (
+    pathname.startsWith("/workspace") ||
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/account") ||
+    pathname.startsWith("/select-workspace") ||
+    pathname.startsWith("/broadcast/screens/") ||
+    pathname.startsWith("/portal/")
+  );
+
   res.setHeader("ETag", etag);
-  res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
+  res.setHeader("Vary", "Accept-Encoding");
+  res.setHeader(
+    "Cache-Control",
+    isPrivate ? "private, no-store" : "public, max-age=0, must-revalidate"
+  );
+
   if (ifNoneMatch && ifNoneMatch === etag && statusCode === 200) {
     res.writeHead(304);
     res.end();
     return;
   }
-  res.writeHead(statusCode, {
+
+  const headers: Record<string, string | number> = {
     "Content-Type": "text/html; charset=utf-8",
-    "Content-Length": Buffer.byteLength(html),
-  });
-  res.end(html);
+    "Content-Length": body.length,
+  };
+  if (acceptsGzip) {
+    headers["Content-Encoding"] = "gzip";
+  }
+
+  if (!(await flushOrFailure(res, statusCode, headers))) return;
+  if (isHead) {
+    res.end();
+  } else {
+    res.end(body);
+  }
+}
+
+/** The bearer/cookie session token a request carries, if any. */
+function sessionTokenFrom(req: IncomingMessage): string | undefined {
+  const authHeader = req.headers["authorization"];
+  if (authHeader && authHeader.startsWith("Bearer ")) return authHeader.substring(7);
+  if (req.headers["cookie"]) {
+    const match = (req.headers["cookie"] as string).match(/vmnl_session=([^;]+)/);
+    if (match) return match[1];
+  }
+  return undefined;
 }
 
 export function resolveSessionUser(req: IncomingMessage): SessionUser | null {
-  const authHeader = req.headers["authorization"];
-  let token: string | undefined;
-  if (authHeader && authHeader.startsWith("Bearer ")) {
-    token = authHeader.substring(7);
-  } else if (req.headers["cookie"]) {
-    const match = (req.headers["cookie"] as string).match(/vmnl_session=([^;]+)/);
-    if (match) token = match[1];
-  }
+  const token = sessionTokenFrom(req);
   if (token) {
     try {
       return verifySessionToken(token);
@@ -515,7 +770,7 @@ export function assertRoutePermission(
   if (!allowed) {
     sendJson(res, 403, {
       error: "Forbidden",
-      message: `User '${user.email}' with roles [${user.roles.join(", ")}] lacks required permission '${action}:${resource}'`,
+      message: `Access denied: lacks required permission '${action}:${resource}'`,
       code: "INSUFFICIENT_PERMISSIONS",
     });
     return null;
@@ -585,6 +840,17 @@ export const ROUTE_GUARDS: Array<{
   { pathname: "/api/v1/storage/scan", method: "POST", action: "read", resource: "storage" },
   { pathname: "/api/v1/cms/media-assets", method: "POST", action: "create", resource: "storage" },
   { pathname: "/api/v1/cms/media-assets", method: "GET", action: "read", resource: "storage" },
+  // PII collection read guards (AUD-03)
+  { pathname: "/api/v1/enquiries", method: "GET", action: "read", resource: "enquiry" },
+  { pathname: "/api/v1/admissions/queue", method: "GET", action: "read", resource: "talent" },
+  { pathname: "/api/v1/feature-flags", method: "GET", action: "read", resource: "audit" },
+  { pathname: "/api/v1/feature-flags/:key/toggle", method: "POST", action: "update", resource: "audit" },
+  { pathname: "/api/v1/feature-flags/:key", method: "POST", action: "update", resource: "audit" },
+  { pathname: "/api/v1/feature-flags/:key", method: "PATCH", action: "update", resource: "audit" },
+  { pathname: "/api/v1/enquiries/:reference/retry-routing", method: "POST", action: "update", resource: "enquiry" },
+  // Privacy export routes enforce authenticated self-service ownership in the
+  // domain handler; a global audit permission would incorrectly block ordinary
+  // users from requesting their own data.
   // Todo register remediation routes (SEC/SCR/FIN/BCST) — every mutating
   // enterprise endpoint declares its guard here (AUD-01 invariant).
   { pathname: "/api/v1/workspace/approvals", method: "POST", action: "create", resource: "contract" },
@@ -617,7 +883,44 @@ export const ROUTE_GUARDS: Array<{
   { pathname: "/api/v1/workspace/events/scan", method: "POST", action: "execute", resource: "talent" },
   { pathname: "/api/v1/workspace/tend/license", method: "POST", action: "create", resource: "rights" },
   { pathname: "/api/v1/workspace/headspace/documents", method: "POST", action: "create", resource: "talent" },
+  // TSK-29: closes the routes the parity scan found with no enforcement at all.
+  // Rights review requests (J-RL1-09) feed the workflow the clearance gate reads,
+  // so they are staff authority rather than public form intake.
+  // The AFCA submission and grading routes were previously reachable anonymously.
+  { pathname: "/api/v1/broadcast/rights/review-requests", method: "POST", action: "create", resource: "rights" },
+  // TSK-14: resolving a review request is the only route that writes a RightsRecord.
+  { pathname: "/api/v1/broadcast/rights/review-requests/:requestId/resolve", method: "POST", action: "update", resource: "rights" },
+  { pathname: "/api/v1/broadcast/rights/review-requests/:requestId/transition", method: "POST", action: "update", resource: "rights" },
+  { pathname: "/api/v1/workspace/afca/assignments", method: "POST", action: "create", resource: "academy" },
+  { pathname: "/api/v1/workspace/afca/grading", method: "POST", action: "update", resource: "academy" },
 ];
+
+/**
+ * Compiled guard matchers (TSK-29). A guard pathname may declare `:param`
+ * segments, which match exactly one path segment. Compiling the table replaces
+ * the three path shapes that were previously hard-coded inside the enforcement
+ * loop, so the central enforcement point holds no route-specific knowledge.
+ */
+const COMPILED_ROUTE_GUARDS: Array<{
+  method: string;
+  action: EnterpriseAction;
+  resource: EnterpriseResource;
+  regex: RegExp;
+}> = ROUTE_GUARDS.map((g) => ({
+  method: g.method,
+  action: g.action,
+  resource: g.resource,
+  regex: new RegExp(
+    "^" +
+      g.pathname
+        .split("/")
+        .map((segment) =>
+          segment.startsWith(":") ? "[^/]+" : segment.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+        )
+        .join("/") +
+      "$"
+  ),
+}));
 
 /**
  * TODO-SEC-06: server-side authorization for restricted operator HTML
@@ -632,6 +935,7 @@ export const WORKSPACE_HTML_GUARDS: Array<{ prefix: string; roles: string[] }> =
   { prefix: "/workspace/executive", roles: ["SuperAdmin", "ExecutiveLeader"] },
   { prefix: "/workspace/governance/audit", roles: ["SuperAdmin", "ExecutiveLeader", "Auditor", "FinanceController"] },
   { prefix: "/workspace/admin", roles: ["SuperAdmin"] },
+  { prefix: "/admin", roles: ["SuperAdmin"] },
 ];
 
 /**
@@ -670,23 +974,15 @@ function sendFeatureDisabled(res: ServerResponse, err: any, contentType: string,
  */
 type ClientOrgRelationship = "STAFF_ACCESS" | "CLIENT_MEMBER" | "UNAUTHENTICATED" | "FORBIDDEN";
 
-const SANDBOX_CLIENT_ORG_MEMBERS: Record<string, string[]> = {
-  "org-dangote": ["audit@dangote.com", "procurement@dangote.com"],
-};
-
 const CLIENT_PORTAL_STAFF_ROLES = ["SuperAdmin", "ExecutiveLeader", "BroadcastDirector", "FinanceController"];
 
-function getClientOrgRelationship(sessionUser: SessionUser | null, orgId: string): ClientOrgRelationship {
+function getClientOrgRelationship(sessionUser: SessionUser | null): ClientOrgRelationship {
   if (!sessionUser) return "UNAUTHENTICATED";
   // Staff access is role-based ONLY — an email domain is never proof of a
   // staff relationship.
   if (sessionUser.roles.some((r) => CLIENT_PORTAL_STAFF_ROLES.includes(r))) return "STAFF_ACCESS";
-  const email = sessionUser.email.toLowerCase();
-  const members = SANDBOX_CLIENT_ORG_MEMBERS[orgId] || [];
-  if (members.includes(email)) return "CLIENT_MEMBER";
-  // Sandbox convenience: a client-org email domain match implies membership.
-  const orgDomain = orgId.replace(/^org-/, "");
-  if (orgDomain && email.endsWith(`@${orgDomain}.com`)) return "CLIENT_MEMBER";
+  // This checkout has no verified canonical organisation-membership source.
+  // Never infer client access from email text or a sandbox-only map.
   return "FORBIDDEN";
 }
 
@@ -754,6 +1050,13 @@ export function ensureContentDemoSeed(): void {
   approveRevision("CNT-LAGOS-201", "usr-content-approver-demo");
 }
 
+function projectPublicChannel(channel: ReturnType<typeof getAllActiveChannels>[number]) {
+  // A deployment flag and configured numbers do not constitute independent
+  // carriage evidence; keep public projection unavailable until a source adapter
+  // can attach accountable verification records.
+  return { ...channel, starTimesCarriage: undefined, carriageStatus: "UNVERIFIED" as const };
+}
+
 export function resolveClientIp(req: IncomingMessage): string {
   // Identity for rate limiting and audit records (AUD-03). Only the first hop
   // of a comma-separated X-Forwarded-For chain is considered, and the header is
@@ -785,30 +1088,37 @@ export async function handleApiRequest(
   const reqStart = Date.now();
   const parsedUrl = new URL(req.url || "/", `http://${req.headers.host || "localhost"}`);
   const pathname = parsedUrl.pathname;
-  const method = req.method?.toUpperCase() || "GET";
+  const isHead = (req.method || "").toUpperCase() === "HEAD";
+  const method = isHead ? "GET" : req.method?.toUpperCase() || "GET";
+  (res as any).__isHead = isHead;
+  (res as any).__req = req;
+  if (!res.req) {
+    (res as any).req = req;
+  }
   const span = TelemetryService.createSpanContext("api_router", req.headers["x-trace-id"] as string | undefined);
   const clientIp = resolveClientIp(req);
 
   // Set CORS headers validated against configured ALLOWED_ORIGINS (D-30)
   const origin = req.headers.origin as string | undefined;
-  const CSRF_ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || "http://localhost:3000,http://localhost:5500,https://vmnl.ng,https://azeebo.plus")
-    .split(",")
+  // TSK-35: resolve from configuration rather than a duplicated in-code
+  // default, so a deployment's origin allowlist is the single source of truth.
+  const CSRF_ALLOWED_ORIGINS = getConfig()
+    .ALLOWED_ORIGINS.split(",")
     .map((s) => s.trim());
   const allowedOrigins = CSRF_ALLOWED_ORIGINS;
 
-  if (origin && allowedOrigins.includes(origin)) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
+  if (origin) {
     res.setHeader("Vary", "Origin");
-    res.setHeader("Access-Control-Allow-Credentials", "true");
-  } else {
-    res.setHeader("Access-Control-Allow-Origin", allowedOrigins[0] || "http://localhost:5500");
+    if (allowedOrigins.includes(origin)) {
+      res.setHeader("Access-Control-Allow-Origin", origin);
+      res.setHeader("Access-Control-Allow-Credentials", "true");
+    }
   }
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
   res.setHeader(
     "Access-Control-Allow-Headers",
-    "Content-Type, Authorization, X-Trace-Id, X-Azeebo-Signature, X-Test-Role, X-Require-Auth"
+    "Content-Type, Authorization, X-CSRF-Token, X-Trace-Id, X-Azeebo-Signature, X-Test-Role, X-Require-Auth"
   );
-
   // Mandatory HTTP Security Headers (T9-16, F-9-14)
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "DENY");
@@ -817,90 +1127,132 @@ export async function handleApiRequest(
     "Content-Security-Policy",
     "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https:; frame-ancestors 'none';"
   );
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()");
+  res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
+  res.setHeader("Cross-Origin-Resource-Policy", "same-site");
   if (process.env.NODE_ENV === "production") {
     res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
   }
 
   if (method === "OPTIONS") {
-    res.writeHead(204);
+    res.writeHead(origin && !allowedOrigins.includes(origin) ? 403 : 204);
     res.end();
     return;
   }
 
   try {
+    // TSK-27 (CA-26): a session revoked by another instance is only recorded in
+    // the shared store, which the synchronous verification path cannot reach.
+    // Consult it once per request before any authorization decision — after this,
+    // every sync `verifySessionToken` on the path rejects the same token.
+    await primeSessionRevocation(sessionTokenFrom(req));
+
     // Centralized route authorization (AUD-01): every guarded route resolves
     // its required action+resource from ROUTE_GUARDS before any handler body
     // runs, so authorization can no longer be forgotten per route. Adding a
     // new mutating route WITHOUT a guard entry fails the route-guard test.
-    const routeGuard = ROUTE_GUARDS.find((g) => g.method === method && g.pathname === pathname);
+    const routeGuard = COMPILED_ROUTE_GUARDS.find((g) => g.method === method && g.regex.test(pathname));
+
     if (routeGuard) {
       const guardUser = assertRoutePermission(req, res, routeGuard.action, routeGuard.resource);
       if (!guardUser) return; // 401/403 response already sent
     }
 
-    // TODO-SEC-11: CSRF protection on browser form mutations. Form POSTs
-    // (urlencoded) must present the double-submit token pair; browsers that
-    // send an Origin header must match the allow-list. JSON API mutations are
-    // excluded — they are Authorization/RBAC-guarded and CORS-constrained.
-    // GET and sign-in/logout form routes are exempt (no session mutation
-    // surface / CSRF bootstrap ordering).
-    if (method === "POST" && (req.headers["content-type"] || "").toString().includes("application/x-www-form-urlencoded")) {
-      const exemptPrefixes = ["/sign-in", "/login", "/auth/mfa", "/sign-out", "/auth/recovery", "/access-request", "/auth/invitation"];
-      const isExempt = exemptPrefixes.some((p) => pathname === p || pathname.startsWith(`${p}?`) || pathname.startsWith(p));
-      if (!isExempt) {
-        const rawPreview = req.headers["content-length"] ? await stashFormBody(req) : "";
-        const formToken = extractCsrfFromForm(rawPreview);
-        const verdict = verifyFormCsrf({
-          headers: req.headers as Record<string, unknown>,
-          cookieHeader: req.headers.cookie,
-          formToken,
-          allowedOrigins: CSRF_ALLOWED_ORIGINS,
-        });
-        if (!verdict.ok) {
-          const contentTypeHdr = (req.headers["content-type"] || "").toString();
-          if (contentTypeHdr.includes("application/x-www-form-urlencoded")) {
-            res.writeHead(403, { "Content-Type": "text/html; charset=utf-8" });
-            res.end(
-              `<html><body style="font-family: sans-serif; padding: 40px; text-align: center;"><h2>403 — Request blocked</h2><p>Form submission failed the CSRF integrity check (${verdict.reason}). Reload the page and try again.</p><a href="/">Return home</a></body></html>`
-            );
-          } else {
-            sendJson(res, 403, { error: "Forbidden", code: "CSRF_CHECK_FAILED", reason: verdict.reason });
-          }
-          return;
+    // AUD-01: require double-submit CSRF for unsafe requests authenticated by
+    // ambient browser cookies, including MFA login challenges. Bearer-only
+    // API clients do not use ambient auth. Unauthenticated public intake forms
+    // intentionally remain usable without a pre-issued CSRF cookie; they do
+    // not act on an existing browser identity and retain input/rate controls.
+    const unsafeMethod = !["GET", "HEAD", "OPTIONS"].includes(method);
+    const contentType = String(req.headers["content-type"] || "").toLowerCase();
+    const isUrlEncodedForm = contentType.includes("application/x-www-form-urlencoded");
+    const cookieHeader = req.headers.cookie || "";
+    const hasSessionCookie = /(?:^|;\s*)vmnl_session=[^;]+/.test(cookieHeader);
+    const hasMfaChallengeCookie = /(?:^|;\s*)vmnl_mfa_challenge=[^;]+/.test(cookieHeader);
+    const hasBearerAuthorization = /^Bearer\s+\S+/i.test(String(req.headers.authorization || ""));
+    const requiresCsrf = unsafeMethod && !hasBearerAuthorization &&
+      (hasSessionCookie || hasMfaChallengeCookie);
+    const exemptRoutes = ["/sign-in", "/login", "/auth/recovery"];
+
+    if (requiresCsrf && !exemptRoutes.includes(pathname)) {
+      const rawPreview = isUrlEncodedForm ? await stashFormBody(req) : "";
+      const csrfToken = isUrlEncodedForm
+        ? extractCsrfFromForm(rawPreview)
+        : String(req.headers["x-csrf-token"] || "") || undefined;
+      const verdict = verifyFormCsrf({
+        headers: req.headers as Record<string, unknown>,
+        cookieHeader: req.headers.cookie,
+        formToken: csrfToken,
+        allowedOrigins: CSRF_ALLOWED_ORIGINS,
+      });
+      if (!verdict.ok) {
+        if (isUrlEncodedForm) {
+          res.writeHead(403, { "Content-Type": "text/html; charset=utf-8" });
+          res.end(
+ `<html><body class="s-X_-pFh57rF"><h2>403 — Request blocked</h2><p>Form submission failed the CSRF integrity check (${verdict.reason}). Reload the page and try again.</p><a href="/">Return home</a></body></html>`
+          );
+        } else {
+          sendJson(res, 403, { error: "Forbidden", code: "CSRF_CHECK_FAILED", reason: verdict.reason });
         }
+        return;
       }
     }
 
     // =========================================================================
-    // TODO-SEC-06: server-side authorization on operator HTML surfaces.
-    // "A visible control never constitutes permission" (UIUX-001 §9.1): the
-    // WORKSPACE_HTML_GUARDS table below re-evaluates access server-side on
-    // every protected workspace GET. Restricted governance surfaces (cases,
-    // audit, executive) require real roles; general workspace desks stay
-    // authenticated-access with the feature flags as the capability gate.
     // =========================================================================
-    if (method === "GET" && (pathname.startsWith("/workspace/") || pathname === "/workspace")) {
-      const user = resolveSessionUser(req);
-      const restricted = WORKSPACE_HTML_GUARDS.find((g) => pathname.startsWith(g.prefix));
+    // AUD-01 / AUD-02 (Default-deny operator HTML surfaces):
+    // Require authenticated session for every /workspace/*, /admin/*, and
+    // /broadcast/dashboard surface. Restricted desks further enforce role constraints.
+    // =========================================================================
+    const ADMIN_ALIASES = new Map<string, string>([
+      ["/admin/feature-flags", "/workspace/admin/feature-flags"],
+    ]);
+    const canonicalPath = ADMIN_ALIASES.get(pathname) ?? pathname;
+
+    const sessionUser = resolveSessionUser(req);
+    const isOperatorDesk =
+      method === "GET" &&
+      (canonicalPath === "/workspace" ||
+        canonicalPath.startsWith("/workspace/") ||
+        canonicalPath.startsWith("/admin/") ||
+        canonicalPath === "/admin" ||
+        canonicalPath === "/broadcast/dashboard");
+
+    if (isOperatorDesk) {
+      if (!sessionUser) {
+        res.writeHead(302, { Location: `/sign-in?returnUrl=${encodeURIComponent(pathname)}` });
+        res.end();
+        return;
+      }
+
+      const restricted = WORKSPACE_HTML_GUARDS.find(
+        (g) => canonicalPath.startsWith(g.prefix) || pathname.startsWith(g.prefix)
+      );
       if (restricted) {
-        if (!user) {
-          res.writeHead(302, { Location: `/sign-in?returnUrl=${encodeURIComponent(pathname)}` });
-          res.end();
-          return;
-        }
-        const allowed = user.roles.some((r) => restricted.roles.includes(r));
+        const allowed = sessionUser.roles.some((r) => restricted.roles.includes(r));
         if (!allowed) {
           const html = renderMasterLayout(
             `403 Forbidden - ${pathname}`,
-            renderAccessDeniedHtml(user, restricted.roles.join(" / "), pathname),
+            renderAccessDeniedHtml(sessionUser, restricted.roles.join(" / "), pathname),
             pathname,
-            { shell: "identity", sessionUser: user }
+            { shell: "identity", sessionUser }
           );
           sendHtml(res, 403, html);
           return;
         }
       }
     }
+
+    // Modular Domain Route Dispatcher (AUD-24)
+    const domainDispatched = await dispatchDomainRoute({
+      req,
+      res,
+      pathname,
+      method,
+      parsedUrl,
+      user: sessionUser,
+    });
+    if (domainDispatched) return;
 
     // =========================================================================
     // S-IDENTITY Presentation Shell & UX-SYS-001 to 014 (J-RL1-02, R02, R16-17)
@@ -939,8 +1291,14 @@ export async function handleApiRequest(
         ? body.returnUrl
         : "/select-workspace";
 
+      // Sandbox persona login is never available in production-like runtimes.
+      if ((body.quickPersona === "true" || body.quickPersona === true) && !["development", "test"].includes(process.env.NODE_ENV || "")) {
+        sendJson(res, 404, { error: "Not Found" });
+        return;
+      }
+
       // 1. One-click Sandbox Persona Quick-Login
-      if (body.quickPersona === "true" || body.quickPersona === true) {
+      if ((body.quickPersona === "true" || body.quickPersona === true) && ["development", "test"].includes(process.env.NODE_ENV || "")) {
         const persona = SANDBOX_PERSONAS.find(
           (p) => p.email.toLowerCase() === (body.email || "").toLowerCase().trim()
         );
@@ -957,12 +1315,12 @@ export async function handleApiRequest(
             action: "auth.login.sandbox_persona",
             resource: "auth",
             resourceId: user.userId,
-            changes: { email: user.email, role: persona.role },
+            changes: { role: persona.role },
             ipAddress: clientIp,
             userAgent: req.headers["user-agent"] || null,
           });
           const tokens = signSessionToken(user);
-          res.setHeader("Set-Cookie", createSessionCookie(tokens.accessToken));
+          res.setHeader("Set-Cookie", [createSessionCookie(tokens.accessToken), csrfCookieHeader(issueCsrfToken())]);
           // TODO-SEC-03: register the issued token in the session registry so
           // "Active Sessions" reflects real sessions and revocation sticks.
           registerSession({
@@ -999,12 +1357,12 @@ export async function handleApiRequest(
         return;
       }
 
-      const { user } = await authenticateUser(body.email, body.password);
+      const { user, lockedForMs } = await authenticateUser(jsonTextField(body.email), jsonTextField(body.password));
       if (!user) {
         recordAuditLog({
           action: "auth.login.failed",
           resource: "auth",
-          changes: { email: body.email, reason: "INVALID_CREDENTIALS" },
+          changes: { reason: lockedForMs > 0 ? "ACCOUNT_LOCKED" : "INVALID_CREDENTIALS" },
           ipAddress: clientIp,
           userAgent: req.headers["user-agent"] || null,
         });
@@ -1022,18 +1380,40 @@ export async function handleApiRequest(
         return;
       }
 
+      const configuredUser = await findUserByEmail(user.email);
+      const hasMfaEnrollment = Boolean(user.mfaEnabled || getMfaSecret(user.email) || configuredUser?.mfaSecret);
+      if (user.mfaEnabled && !configuredUser?.mfaSecret && !getMfaSecret(user.email)) {
+        const message = "MFA enrollment is unavailable. Password-only sign-in is blocked; contact an administrator.";
+        if (contentType.includes("application/json")) sendJson(res, 503, { error: "Service Unavailable", message });
+        else sendHtml(res, 503, renderMasterLayout("Sign In | VMNL Enterprise", renderSignInHtml({ error: message, returnUrl, email: user.email }), "/sign-in", { shell: "identity" }));
+        return;
+      }
+
       recordAuditLog({
         userId: user.userId,
         action: "auth.login.success",
         resource: "auth",
         resourceId: user.userId,
-        changes: { email: user.email, roles: user.roles },
+        changes: { roles: user.roles },
         ipAddress: clientIp,
         userAgent: req.headers["user-agent"] || null,
       });
 
+      if (hasMfaEnrollment) {
+        const challenge = signMfaLoginChallenge(user);
+        if (contentType.includes("application/json")) {
+          sendJson(res, 202, { success: true, mfaRequired: true, mfaChallenge: challenge, redirect: "/auth/mfa" });
+        } else {
+          const challengeCookie = `vmnl_mfa_challenge=${encodeURIComponent(challenge)}; HttpOnly; Path=/auth/mfa; Max-Age=300; SameSite=Strict${process.env.NODE_ENV === "production" ? "; Secure" : ""}`;
+          res.setHeader("Set-Cookie", challengeCookie);
+          res.writeHead(302, { Location: `/auth/mfa?returnUrl=${encodeURIComponent(returnUrl)}` });
+          res.end();
+        }
+        return;
+      }
+
       const tokens = signSessionToken(user);
-      res.setHeader("Set-Cookie", createSessionCookie(tokens.accessToken));
+      res.setHeader("Set-Cookie", [createSessionCookie(tokens.accessToken), csrfCookieHeader(issueCsrfToken())]);
       registerSession({
         token: tokens.accessToken,
         userId: user.userId,
@@ -1051,19 +1431,40 @@ export async function handleApiRequest(
       return;
     }
 
-    if ((pathname === "/sign-out" || pathname === "/logout") && (method === "GET" || method === "POST")) {
-      const authHeader = req.headers["authorization"];
-      const bearerToken = authHeader?.startsWith("Bearer ") ? authHeader.substring(7) : undefined;
-      const cookieMatch = (req.headers["cookie"] as string | undefined)?.match(/vmnl_session=([^;]+)/);
-      const token = bearerToken || cookieMatch?.[1];
+    if ((pathname === "/sign-out" || pathname === "/logout") && method === "GET") {
+      const csrfToken = issueCsrfToken();
+      res.setHeader("Set-Cookie", csrfCookieHeader(csrfToken));
+      const html = renderMasterLayout(
+        "Confirm Sign Out | VMNL",
+ `<section class="vmn-card" >
+          <h1>Sign out of this session?</h1>
+          <p>Your session will be revoked on this device.</p>
+ <form method="POST" action="/sign-out" class="s-h5-7-EzGoK">
+            <input type="hidden" name="csrfToken" value="${escapeHtml(csrfToken)}" />
+            <button class="btn btn-primary" type="submit">Sign Out</button>
+            <a class="btn btn-outline" href="/select-workspace">Cancel</a>
+          </form>
+        </section>`,
+        "/sign-out",
+        { shell: "identity", sessionUser: resolveSessionUser(req) }
+      );
+      sendHtml(res, 200, html, { private: true });
+      return;
+    }
+
+    if ((pathname === "/sign-out" || pathname === "/logout") && method === "POST") {
+      const token = sessionTokenFrom(req);
       const sessionUser = resolveSessionUser(req);
       const clientIp = resolveClientIp(req);
 
       if (token) {
+        // TSK-27: revokeToken marks the sha-256 token id as well, which is the key
+        // the shared store and every other instance checks. (This site used to
+        // hand the raw token to markTokenIdRevoked, storing a key nothing reads.)
         revokeToken(token);
-        // TODO-SEC-03: mark the registry row revoked so it no longer appears
-        // as an active session.
-        markTokenIdRevoked(token);
+        // TODO-SEC-03: mark the registry row revoked so it no longer appears as an
+        // active session.
+        if (sessionUser) revokeSessionById(sessionUser.userId, computeSessionId(token));
       }
       recordAuditLog({
         userId: sessionUser?.userId || null,
@@ -1105,11 +1506,18 @@ export async function handleApiRequest(
 
     if (pathname === "/auth/mfa" && method === "GET") {
       const user = resolveSessionUser(req);
+      const challengeCookie = (req.headers.cookie || "").split(";").map((cookie) => cookie.trim()).find((cookie) => cookie.startsWith("vmnl_mfa_challenge="))?.slice("vmnl_mfa_challenge=".length);
+      let challengeUser: SessionUser | null = null;
+      if (challengeCookie) {
+        try { challengeUser = verifyMfaLoginChallenge(decodeURIComponent(challengeCookie)); } catch { challengeUser = null; }
+      }
       const urlObj = new URL(req.url || "/", "http://localhost");
       const returnUrl = urlObj.searchParams.get("returnUrl") || "/workspace";
+      const csrfToken = issueCsrfToken();
+      res.setHeader("Set-Cookie", csrfCookieHeader(csrfToken));
       const html = renderMasterLayout(
         "Step-Up Authentication | VMNL",
-        renderMfaStepUpHtml({ returnUrl, userEmail: user?.email }),
+        renderMfaStepUpHtml({ returnUrl, userEmail: challengeUser?.email || user?.email, challenge: challengeUser && challengeCookie ? decodeURIComponent(challengeCookie) : undefined, csrfToken }),
         "/auth/mfa",
         { shell: "identity", sessionUser: user }
       );
@@ -1118,18 +1526,29 @@ export async function handleApiRequest(
     }
 
     if (pathname === "/auth/mfa" && method === "POST") {
-      // TODO-SEC-01: server-side TOTP verification (RFC 6238). A code is only
-      // accepted when the account has an enrolled secret and the presented
-      // 6-digit code verifies against the current/drift window; replay of a
-      // consumed code is rejected by the verifier. Unenrolled sandbox accounts
-      // are auto-provisioned so the demo journey works, but the verification
-      // itself is always real.
-      const raw = await parseRawBody(req, pathname);
-      const params = new URLSearchParams(raw);
-      const returnUrl = params.get("returnUrl") || "/workspace";
-      const code = params.get("mfaCode") || params.get("code") || "";
-      const email = params.get("email") || resolveSessionUser(req)?.email || "";
+      // MFA verification exchanges a short-lived pre-auth challenge for a full
+      // session only after the enrolled account's TOTP code validates.
       const contentType = req.headers["content-type"] || "";
+      const raw = contentType.includes("application/json")
+        ? JSON.stringify(await parseJsonBody(req, pathname))
+        : await parseRawBody(req, pathname);
+      const params = new URLSearchParams(raw);
+      let jsonBody: any = {};
+      if (contentType.includes("application/json")) {
+        try { jsonBody = JSON.parse(raw); } catch { jsonBody = {}; }
+      }
+      const returnUrlCandidate = jsonBody.returnUrl || params.get("returnUrl") || "/workspace";
+      const returnUrl = typeof returnUrlCandidate === "string" && returnUrlCandidate.startsWith("/") && !returnUrlCandidate.startsWith("//") ? returnUrlCandidate : "/workspace";
+      const code = jsonBody.mfaCode || jsonBody.code || params.get("mfaCode") || params.get("code") || "";
+      const signedInUser = resolveSessionUser(req);
+      const rawChallengeToken = jsonBody.challenge || params.get("challenge") || (req.headers.cookie || "").split(";").map((cookie) => cookie.trim()).find((cookie) => cookie.startsWith("vmnl_mfa_challenge="))?.slice("vmnl_mfa_challenge=".length);
+      let challengeToken: string | undefined;
+      try { challengeToken = rawChallengeToken ? decodeURIComponent(rawChallengeToken) : undefined; } catch { challengeToken = "invalid"; }
+      let challengeUser: SessionUser | null = null;
+      if (challengeToken) {
+        try { challengeUser = verifyMfaLoginChallenge(challengeToken); } catch { challengeUser = null; }
+      }
+      const email = challengeUser?.email || signedInUser?.email || "";
       const isJson = contentType.includes("application/json") || (req.headers["accept"] || "").includes("application/json");
 
       const failMfa = (message: string, status = 403) => {
@@ -1146,9 +1565,11 @@ export async function handleApiRequest(
           sendJson(res, status, { error: "Forbidden", message, code: "MFA_VERIFICATION_FAILED" });
           return;
         }
+        const csrfToken = issueCsrfToken();
+        res.setHeader("Set-Cookie", csrfCookieHeader(csrfToken));
         const html = renderMasterLayout(
           "Step-Up Authentication | VMNL",
-          renderMfaStepUpHtml({ returnUrl, userEmail: email || undefined, error: message }),
+          renderMfaStepUpHtml({ returnUrl, userEmail: email || undefined, error: message, challenge: challengeUser && challengeToken ? challengeToken : undefined, csrfToken }),
           "/auth/mfa",
           { shell: "identity", sessionUser: resolveSessionUser(req) }
         );
@@ -1160,21 +1581,30 @@ export async function handleApiRequest(
         return;
       }
 
-      const secret = getMfaSecret(email);
+      const secret = getMfaSecret(email) || (await findUserByEmail(email))?.mfaSecret || undefined;
       if (!secret) {
-        // Sandbox convenience: enroll on first step-up so the demo flow works.
-        // Production enrollment is an explicit, audited act on the User record.
-        enrollMfaSecret(email);
+        failMfa("MFA is not enrolled for this account.");
+        return;
+      }
+      if (challengeToken && !challengeUser) {
+        failMfa("MFA login challenge is invalid or expired.");
+        return;
+      }
+
+      if (!challengeToken && !signedInUser) {
+        failMfa("An authenticated session or valid MFA login challenge is required.", 401);
+        return;
       }
 
       // Anti-brute-force: 5 attempts per code window per account.
-      const mfaRate = checkRateLimit(`mfa:${email.toLowerCase()}`, 5, 30_000);
+      // AUD-14: shared budget — one limit across all instances.
+      const mfaRate = await checkSharedRateLimit(`mfa:${email.toLowerCase()}`, 5, 30_000);
       if (!mfaRate.allowed) {
         failMfa("Too many verification attempts. Please wait before retrying.", 429);
         return;
       }
 
-      const verification = verifyStepUpCode(email, code);
+      const verification = verifyStepUpCode(email, code, (await findUserByEmail(email))?.mfaSecret || undefined);
       if (!verification.valid) {
         failMfa(verification.error || "Verification failed.");
         return;
@@ -1188,6 +1618,21 @@ export async function handleApiRequest(
         ipAddress: clientIp,
         userAgent: req.headers["user-agent"] || null,
       });
+
+      if (challengeUser && challengeToken) {
+        const consumedChallenge = await consumeMfaLoginChallenge(challengeToken);
+        if (!consumedChallenge) {
+          failMfa("MFA login challenge has already been used. Sign in again.");
+          return;
+        }
+        const tokens = signSessionToken(consumedChallenge);
+        res.setHeader("Set-Cookie", [
+          createSessionCookie(tokens.accessToken),
+          csrfCookieHeader(issueCsrfToken()),
+          `vmnl_mfa_challenge=; HttpOnly; Path=/auth/mfa; Max-Age=0; SameSite=Strict${process.env.NODE_ENV === "production" ? "; Secure" : ""}`,
+        ]);
+        registerSession({ token: tokens.accessToken, userId: challengeUser.userId, email: challengeUser.email, deviceLabel: "MFA-verified workstation", ipAddress: clientIp });
+      }
 
       if (isJson || contentType.includes("application/json")) {
         sendJson(res, 200, { status: "SUCCESS", verified: true, redirect: returnUrl });
@@ -1205,7 +1650,12 @@ export async function handleApiRequest(
         sendJson(res, 401, { error: "Unauthorized", message: "Sign in before enrolling in step-up verification.", code: "AUTH_TOKEN_REQUIRED" });
         return;
       }
+      if (user.mfaEnabled || getMfaSecret(user.email)) {
+        sendJson(res, 409, { error: "Conflict", message: "MFA is already enrolled for this account." });
+        return;
+      }
       const secret = enrollMfaSecret(user.email);
+      await updateUserMfaEnrollment(user.email, secret);
       recordAuditLog({
         userId: user.userId,
         action: "auth.mfa.enrolled",
@@ -1236,6 +1686,26 @@ export async function handleApiRequest(
     }
 
     if (pathname === "/auth/recovery" && method === "POST") {
+      const clientIp = resolveClientIp(req);
+      const recRate = await checkSharedRateLimit(`recovery:${clientIp}`, 10, 60_000);
+      if (!recRate.allowed) {
+        const isJson = (req.headers["accept"] || "").includes("application/json");
+        if (isJson) {
+          sendJson(res, 429, { error: "Too Many Requests", message: "Too many recovery attempts. Please wait before retrying." });
+        } else {
+          sendHtml(
+            res,
+            429,
+            renderMasterLayout(
+              "Account Recovery | VMNL",
+              renderAccountRecoveryHtml({ error: "Too many recovery attempts. Please wait before retrying." }),
+              "/auth/recovery",
+              { shell: "identity" }
+            )
+          );
+        }
+        return;
+      }
       // TODO-SEC-04: recovery dispatch through the MFA recovery store with
       // anti-enumeration semantics — the response is identical whether or not
       // the account exists. The NotificationService dispatch happens inside
@@ -1264,7 +1734,7 @@ export async function handleApiRequest(
         });
         return "SANDBOX";
       };
-      const outcome = requestAccountRecovery(email, dispatchChannel);
+      requestAccountRecovery(email, dispatchChannel);
       const sessionUser = resolveSessionUser(req);
       const html = renderMasterLayout(
         "Account Recovery | VMNL",
@@ -1301,12 +1771,14 @@ export async function handleApiRequest(
         res.end();
         return;
       }
+      const csrf = issueCsrfToken();
+      res.setHeader("Set-Cookie", csrfCookieHeader(csrf));
       const urlObj = new URL(req.url || "/", "http://localhost");
       const defaultRole = urlObj.searchParams.get("role") || "MCRSupervisor";
       const attemptedUrl = urlObj.searchParams.get("url") || "/broadcast/screens";
       const html = renderMasterLayout(
         "Request Access Elevation | VMNL",
-        renderAccessRequestHtml(user, defaultRole, attemptedUrl),
+        renderAccessRequestHtml(user, defaultRole, attemptedUrl, csrf),
         "/access-request",
         { shell: "identity", sessionUser: user }
       );
@@ -1315,6 +1787,12 @@ export async function handleApiRequest(
     }
 
     if (pathname === "/access-request" && method === "POST") {
+      const clientIp = resolveClientIp(req);
+      const rate = await checkSharedRateLimit(`access-req:${clientIp}`, 10, 60_000);
+      if (!rate.allowed) {
+        sendJson(res, 429, { error: "Too Many Requests", message: "Too many access requests. Please wait before retrying." });
+        return;
+      }
       const user = resolveSessionUser(req);
       const raw = await parseRawBody(req, pathname);
       const params = new URLSearchParams(raw);
@@ -1356,12 +1834,14 @@ export async function handleApiRequest(
     // UX-SYS-004: Invitation Acceptance
     if (pathname === "/auth/invitation" && method === "GET") {
       const sessionUser = resolveSessionUser(req);
+      const csrf = issueCsrfToken();
+      res.setHeader("Set-Cookie", csrfCookieHeader(csrf));
       const urlObj = new URL(req.url || "/", "http://localhost");
       const token = urlObj.searchParams.get("token") || undefined;
       const email = urlObj.searchParams.get("email") || undefined;
       const html = renderMasterLayout(
         "Accept Invitation | VMNL",
-        renderInvitationAcceptanceHtml(token, email),
+        renderInvitationAcceptanceHtml(token, email, undefined, csrf),
         "/auth/invitation",
         { shell: "identity", sessionUser }
       );
@@ -1370,6 +1850,18 @@ export async function handleApiRequest(
     }
 
     if (pathname === "/auth/invitation/accept" && method === "POST") {
+      const clientIp = resolveClientIp(req);
+      const rate = await checkSharedRateLimit(`invitation:${clientIp}`, 10, 60_000);
+      if (!rate.allowed) {
+        const html = renderMasterLayout(
+          "Accept Invitation | VMNL",
+          renderInvitationAcceptanceHtml(undefined, undefined, "Too many invitation attempts. Please wait before retrying."),
+          "/auth/invitation",
+          { shell: "identity" }
+        );
+        sendHtml(res, 429, html);
+        return;
+      }
       // TODO-SEC-02: full acceptance validation chain (UIUX-001 §8.4):
       // validity → recipient binding → expiry → granting authority → role.
       // Single-use; the granted role is exactly the invited role — never the
@@ -1379,7 +1871,6 @@ export async function handleApiRequest(
       const token = params.get("token") || "";
       const email = params.get("email") || "";
       const password = params.get("password") || "";
-      const contentType = req.headers["content-type"] || "";
 
       const failInvitation = (message: string) => {
         const html = renderMasterLayout(
@@ -1634,15 +2125,13 @@ export async function handleApiRequest(
       const raw = await parseRawBody(req, pathname);
       const form = new URLSearchParams(raw);
       const targetTokenId = form.get("tokenId") || undefined;
-      const cookieMatch = (req.headers["cookie"] as string | undefined)?.match(/vmnl_session=([^;]+)/);
-      const currentToken = cookieMatch?.[1];
+      const currentToken = sessionTokenFrom(req);
 
       if (pathname === "/account/sessions/revoke-all") {
         const count = revokeAllSessions(user.userId);
-        if (currentToken) {
-          revokeToken(currentToken);
-          markTokenIdRevoked(currentToken);
-        }
+        // TSK-27: revokeToken marks the sha-256 id in the shared store, so the
+        // current session is dead on every instance, not only this one.
+        if (currentToken) revokeToken(currentToken);
         recordAuditLog({
           userId: user.userId,
           action: "auth.sessions.revoke_all",
@@ -1691,8 +2180,9 @@ export async function handleApiRequest(
 
     // 0. Public Web Pages & Operator Dashboard
     if (pathname === "/" && method === "GET") {
-      const html = renderMasterLayout("Home", renderHomePageHtml(), "/", { sessionUser: resolveSessionUser(req) });
-      sendHtml(res, 200, html);
+      const sessionUser = resolveSessionUser(req);
+      const html = renderMasterLayout("Home", renderHomePageHtml(), "/", { sessionUser });
+      sendHtml(res, 200, html, { private: Boolean(sessionUser) });
       return;
     }
 
@@ -1706,19 +2196,19 @@ export async function handleApiRequest(
     // BCST-08: viewer-timezone presentation via the Time-Zone request header)
     const tzHeader = typeof req.headers["time-zone"] === "string" ? (req.headers["time-zone"] as string) : undefined;
     if (pathname === "/channels/nxtr" && method === "GET") {
-      const html = renderMasterLayout("Nigezie Xtreme (NXTR)", renderChannelDetailPageHtml("NXTR", tzHeader), "/channels");
+      const html = renderMasterLayout("Nigezie Xtreme (NXTR)", renderChannelDetailPageHtml("NXTR", tzHeader), "/channels/nxtr");
       sendHtml(res, 200, html);
       return;
     }
 
     if (pathname === "/channels/orisun" && method === "GET") {
-      const html = renderMasterLayout("Orisun (ORIS)", renderChannelDetailPageHtml("ORIS", tzHeader), "/channels");
+      const html = renderMasterLayout("Orisun (ORIS)", renderChannelDetailPageHtml("ORIS", tzHeader), "/channels/orisun");
       sendHtml(res, 200, html);
       return;
     }
 
     if (pathname === "/channels/isimbido" && method === "GET") {
-      const html = renderMasterLayout("Isi Mbido (IMBD)", renderChannelDetailPageHtml("IMBD", tzHeader), "/channels");
+      const html = renderMasterLayout("Isi Mbido (IMBD)", renderChannelDetailPageHtml("IMBD", tzHeader), "/channels/isimbido");
       sendHtml(res, 200, html);
       return;
     }
@@ -1729,7 +2219,7 @@ export async function handleApiRequest(
       // so crawlers do not index empty shells. The sample programme surface is
       // served only for the canonical demo identifier.
       const isKnownProgramme = programmeId === "PRG-001";
-      const html = renderMasterLayout(`Programme ${programmeId}`, renderPublicProgrammeDetailHtml(programmeId), "/channels");
+      const html = renderMasterLayout(`Programme ${programmeId}`, renderPublicProgrammeDetailHtml(programmeId), `/programmes/${encodeURIComponent(programmeId)}`);
       sendHtml(res, isKnownProgramme ? 200 : 404, html);
       return;
     }
@@ -1912,17 +2402,23 @@ export async function handleApiRequest(
     // UX-APP-006: AFCA Application Status Tracker
     if (pathname.startsWith("/apply/status") && method === "GET") {
       const queryRef = pathname.replace("/apply/status", "").replace(/^\//, "").trim() || parsedUrl.searchParams.get("ref") || "";
-      const app = queryRef ? await AfcaAdmissionsService.getByReference(queryRef) : null;
+      const app = null; // Applicant status requires authenticated ownership; sequential references are not capabilities.
       const html = renderMasterLayout("Application Status Tracker", renderApplicationStatusHtml(app, queryRef), "/apply");
-      sendHtml(res, 200, html);
+      sendHtml(res, 200, html, { private: true });
       return;
     }
 
     // UX-APP-007: AFCA Admissions Evaluation Queue
     if ((pathname === "/admissions/queue" || pathname === "/workspace/admissions") && method === "GET") {
+      const user = resolveSessionUser(req);
+      if (!user || !user.roles.some((role) => ["SuperAdmin", "AcademyDirector", "ExecutiveLeader"].includes(role))) {
+        res.writeHead(user ? 403 : 302, user ? { "Content-Type": "text/plain; charset=utf-8" } : { Location: "/sign-in?returnUrl=%2Fadmissions%2Fqueue" });
+        res.end(user ? "Forbidden" : undefined);
+        return;
+      }
       const apps = await AfcaAdmissionsService.listQueue();
-      const html = renderMasterLayout("Admissions Review Queue", renderAdmissionsQueueHtml(apps), "/workspace");
-      sendHtml(res, 200, html);
+      const html = renderMasterLayout("Admissions Review Queue", renderAdmissionsQueueHtml(apps), "/workspace/admissions", { sessionUser: user });
+      sendHtml(res, 200, html, { private: true });
       return;
     }
 
@@ -1942,6 +2438,15 @@ export async function handleApiRequest(
 
     // UX-VTM-008 to 010: VTM Talent Engagement Terms Review & Signing
     if ((pathname === "/vtm/terms" || pathname === "/portal/vtm/terms") && method === "GET") {
+      const sessionUser = resolveSessionUser(req);
+      if (!sessionUser) {
+        sendJson(res, 401, { error: "Unauthorized", message: "Sign in to access engagement terms." });
+        return;
+      }
+      if (!sessionUser.roles.some((role) => ["SuperAdmin", "ExecutiveLeader", "FinanceController", "TalentManager"].includes(role))) {
+        sendJson(res, 403, { error: "Forbidden", message: "Engagement terms access is restricted." });
+        return;
+      }
       const mockContract = {
         id: "ctr-2026-vtm-001",
         contractNumber: "VTM-CTR-2026-0042",
@@ -1960,13 +2465,22 @@ export async function handleApiRequest(
           { title: "Principal Photography Wrap & Pickups", amountNgn: 1125000, deliverable: "Wrap Sign-off Certificate", status: "FUNDS_ESCROWED" },
         ],
       };
-      const html = renderMasterLayout("Talent Engagement Agreement", renderVtmTermsReviewHtml(mockContract), "/portal/vtm");
-      sendHtml(res, 200, html);
+      const html = renderMasterLayout("Talent Engagement Agreement — DEMO SAMPLE (not an agreement)", `<div role="note" class="vmn-card"><strong>DEMO ONLY:</strong> Sample values below are fabricated and are not an offer, canonical agreement, escrow record, or evidence of rights clearance.</div>${renderVtmTermsReviewHtml(mockContract)}`, pathname, { sessionUser });
+      sendHtml(res, 200, html, { private: true });
       return;
     }
 
     // UX-VTM-005 to 006: VTM Talent Marketplace Opportunities
     if ((pathname === "/vtm/marketplace" || pathname === "/portal/vtm/marketplace") && method === "GET") {
+      const marketplaceUser = pathname === "/portal/vtm/marketplace" ? resolveSessionUser(req) : undefined;
+      if (pathname === "/portal/vtm/marketplace" && !marketplaceUser) {
+        sendJson(res, 401, { error: "Unauthorized", message: "Sign in to access talent opportunities." });
+        return;
+      }
+      if (pathname === "/portal/vtm/marketplace" && !marketplaceUser?.roles.some((role) => ["SuperAdmin", "ExecutiveLeader", "FinanceController", "TalentManager"].includes(role))) {
+        sendJson(res, 403, { error: "Forbidden", message: "Talent opportunity access is restricted." });
+        return;
+      }
       const mockOpportunities = [
         {
           id: "opp-01",
@@ -1987,8 +2501,8 @@ export async function handleApiRequest(
           buyoutTier: "LOCAL_LINEAR_TV" as const,
         },
       ];
-      const html = renderMasterLayout("Talent Marketplace Opportunities", renderVtmMarketplaceHtml(mockOpportunities), "/portal/vtm");
-      sendHtml(res, 200, html);
+      const html = renderMasterLayout("Talent Marketplace Opportunities — DEMO SAMPLE", `<div role="note" class="vmn-card"><strong>DEMO ONLY:</strong> These sample opportunities are fabricated and not verified engagements.</div>${renderVtmMarketplaceHtml(mockOpportunities)}`, pathname, { sessionUser: marketplaceUser || undefined });
+      sendHtml(res, 200, html, { private: pathname.startsWith("/portal/") });
       return;
     }
 
@@ -2002,7 +2516,15 @@ export async function handleApiRequest(
       const match = pathname.match(/^\/portal\/client\/organisations\/([^/]+)\/projects$/);
       const orgId = match ? match[1] : "default-org";
       const sessionUser = resolveSessionUser(req);
-      const relationship = getClientOrgRelationship(sessionUser ?? null, orgId);
+      const relationship = getClientOrgRelationship(sessionUser ?? null);
+      if (relationship === "UNAUTHENTICATED") {
+        sendJson(res, 401, { error: "Unauthorized", message: "Sign in to access client projects." });
+        return;
+      }
+      if (relationship === "STAFF_ACCESS") {
+        sendJson(res, 503, { error: "Service Unavailable", code: "ORGANISATION_RELATIONSHIP_UNAVAILABLE", message: "Client project access is disabled until canonical organisation membership and audited staff access are connected." });
+        return;
+      }
       if (relationship === "FORBIDDEN") {
         const deniedHtml = renderMasterLayout(
           "403 Forbidden | Client Portal",
@@ -2014,20 +2536,17 @@ export async function handleApiRequest(
           pathname,
           { shell: "identity", sessionUser: sessionUser || undefined }
         );
-        sendHtml(res, 403, deniedHtml);
+        sendHtml(res, 403, deniedHtml, { private: true });
         return;
       }
-      const projects =
-        relationship === "CLIENT_MEMBER" || relationship === "STAFF_ACCESS"
-          ? Object.values(MOCK_CLIENT_PROJECTS).filter((p) => p.orgId === orgId)
-          : [];
+      const projects = projectClientPortfolio(context.salesEngine.listDeals(), orgId);
       const html = renderMasterLayout(
         "Client Commercial Projects | VMNL",
         renderClientProjectsListHtml(orgId, projects),
         pathname,
         { shell: "identity", sessionUser }
       );
-      sendHtml(res, 200, html);
+      sendHtml(res, 200, html, { private: true });
       return;
     }
 
@@ -2039,7 +2558,15 @@ export async function handleApiRequest(
       const orgId = match ? match[1] : "org-dangote";
       const projectId = match ? match[2] : "PRJ-VMN-2026-088";
       const sessionUser = resolveSessionUser(req);
-      const relationship = getClientOrgRelationship(sessionUser ?? null, orgId);
+      const relationship = getClientOrgRelationship(sessionUser ?? null);
+      if (relationship === "UNAUTHENTICATED") {
+        sendJson(res, 401, { error: "Unauthorized", message: "Sign in to access client projects." });
+        return;
+      }
+      if (relationship === "STAFF_ACCESS") {
+        sendJson(res, 503, { error: "Service Unavailable", code: "ORGANISATION_RELATIONSHIP_UNAVAILABLE", message: "Client project access is disabled until canonical organisation membership and audited staff access are connected." });
+        return;
+      }
       if (relationship === "FORBIDDEN") {
         const deniedHtml = renderMasterLayout(
           "403 Forbidden | Client Portal",
@@ -2051,27 +2578,28 @@ export async function handleApiRequest(
           pathname,
           { shell: "identity", sessionUser: sessionUser || undefined }
         );
-        sendHtml(res, 403, deniedHtml);
+        sendHtml(res, 403, deniedHtml, { private: true });
         return;
       }
-      const project =
-        relationship === "CLIENT_MEMBER" || relationship === "STAFF_ACCESS"
-          ? MOCK_CLIENT_PROJECTS[projectId]
-          : undefined;
+      const project = context.salesEngine
+        .listDeals()
+        .filter((d) => d.clientOrgId === orgId)
+        .map(toClientProject)
+        .find((p) => p.id === projectId);
 
       if (!project) {
         // Honest soft-404: unknown or non-member project within one's own org.
         const notFoundHtml = renderMasterLayout(
           "404 Not Found | Client Portal",
-          `<div class="vmn-card" style="max-width: 600px; margin: 40px auto; text-align: center; padding: 36px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg);">
-            <h2 style="font-size: var(--vmn-font-size-2xl); font-weight: 800; margin-bottom: 8px;">Project Not Available</h2>
-            <p style="color: var(--vmn-color-secondary-text); margin-bottom: 24px;">This project reference does not exist within your organisation's portfolio.</p>
+ `<div class="vmn-card s-WXNdVeV-l5" >
+ <h2 class="s--MpQSSd9gO">Project Not Available</h2>
+ <p class="s-ywnZrRwXf4">This project reference does not exist within your organisation's portfolio.</p>
             <a href="/portal/client/organisations/${encodeURIComponent(orgId)}/projects" class="btn btn-primary">Back to Projects</a>
           </div>`,
           pathname,
           { shell: "identity", sessionUser }
         );
-        sendHtml(res, 404, notFoundHtml);
+        sendHtml(res, 404, notFoundHtml, { private: true });
         return;
       }
 
@@ -2084,7 +2612,7 @@ export async function handleApiRequest(
         pathname,
         { shell: "identity", sessionUser }
       );
-      sendHtml(res, 200, html);
+      sendHtml(res, 200, html, { private: true });
       return;
     }
 
@@ -2100,6 +2628,9 @@ export async function handleApiRequest(
         "Disallow: /api/",
         "Disallow: /verify/",
         "Disallow: /metrics",
+        "Disallow: /broadcast/dashboard",
+        "Disallow: /admin/",
+        "Disallow: /prototypes",
         "Disallow: /readyz",
         "Disallow: /healthz",
         "Sitemap: https://vmnl.ng/sitemap.xml",
@@ -2109,38 +2640,13 @@ export async function handleApiRequest(
     }
 
     if (pathname === "/sitemap.xml" && method === "GET") {
-      const publicRoutes = [
-        "/",
-        "/channels",
-        "/channels/nxtr",
-        "/channels/orisun",
-        "/channels/isimbido",
-        "/programmes/PRG-001",
-        "/hub",
-        "/hub/talent",
-        "/hub/afca",
-        "/hub/creators",
-        "/hub/community",
-        "/hub/vtm",
-        "/hub/onestudios",
-        "/hub/production",
-        "/hub/vcf",
-        "/hub/events",
-        "/hub/technology",
-        "/hub/distribution",
-        "/partners",
-        "/insights",
-        "/careers",
-        "/azeebo",
-      ];
-      const today = new Date().toISOString().slice(0, 10);
+      const publicRoutes = PUBLIC_INDEXABLE_ROUTES;
       const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${publicRoutes
   .map(
     (route) => `  <url>
     <loc>https://vmnl.ng${route}</loc>
-    <lastmod>${today}</lastmod>
   </url>`
   )
   .join("\n")}
@@ -2149,29 +2655,82 @@ ${publicRoutes
       return;
     }
 
-    // AUD-20: the canonical stylesheet is served as a static, content-hashed,
-    // immutably cached asset instead of being re-inlined into every page.
-    if (pathname === "/assets/styles.css" && method === "GET") {
-      const etag = `"${crypto.createHash("sha256").update(CANONICAL_STYLESHEET).digest("base64url")}"`;
+    // Stylesheet variants are separately served with ETags; stable URL paths
+    // must revalidate rather than carry an immutable year-long cache policy.
+    if ((pathname === "/assets/styles.css" || pathname.startsWith("/assets/styles/")) && (method === "GET" || method === "HEAD")) {
+      const sheet =
+        pathname === "/assets/styles/public.css" ? PUBLIC_SHELL_CSS :
+        pathname === "/assets/styles/workspace.css" ? WORKSPACE_SHELL_CSS :
+        pathname === "/assets/styles/identity.css" ? IDENTITY_SHELL_CSS :
+        CANONICAL_STYLESHEET;
+
+      const etag = `"${crypto.createHash("sha256").update(sheet).digest("base64url")}"`;
       res.setHeader("ETag", etag);
-      res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
-      if (res.req?.headers["if-none-match"] === etag) {
+    res.setHeader("Vary", "Accept-Encoding");
+    res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
+    if (res.req?.headers["if-none-match"] === etag) {
         res.writeHead(304);
         res.end();
         return;
       }
-      sendText(res, 200, CANONICAL_STYLESHEET, "text/css; charset=utf-8");
+      sendText(res, 200, sheet, "text/css; charset=utf-8");
+      return;
+    }
+
+    // AUD-04: Client bootstrap JS served as external CSP-'self'-compliant asset
+    if (pathname === "/assets/app.js" && (method === "GET" || method === "HEAD")) {
+      const etag = `"${crypto.createHash("sha256").update(CLIENT_BOOTSTRAP_JS).digest("base64url")}"`;
+      res.setHeader("ETag", etag);
+    res.setHeader("Vary", "Accept-Encoding");
+    res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
+    if (res.req?.headers["if-none-match"] === etag) {
+        res.writeHead(304);
+        res.end();
+        return;
+      }
+      sendText(res, 200, CLIENT_BOOTSTRAP_JS, "text/javascript; charset=utf-8");
       return;
     }
 
     // Favicon & Brand Asset Resolvers (DT-107, DT-306, DS-22)
-    if (pathname === "/favicon.ico" && method === "GET") {
+    if (pathname === "/favicon.ico" && (method === "GET" || method === "HEAD")) {
       sendText(res, 200, VMN_FAVICON_SVG, "image/svg+xml");
       return;
     }
 
-    if ((pathname === "/assets/og-vmnl-master.jpg" || pathname === "/assets/og-vmnl-master.svg") && method === "GET") {
+    // AUD-28: Serve genuine PNG for social media preview scrapers (og:image)
+    if (pathname === "/assets/og-vmnl-master.png" && (method === "GET" || method === "HEAD")) {
+      // Stable URL: require revalidation because asset bytes can change.
+      res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
+      res.writeHead(200, {
+        "Content-Type": "image/png",
+        "Content-Length": VMN_OG_IMAGE_PNG.length,
+      });
+      if (method === "HEAD") {
+        res.end();
+        return;
+      }
+      res.end(VMN_OG_IMAGE_PNG);
+      return;
+    }
+
+    if (pathname === "/assets/og-vmnl-master.svg" && (method === "GET" || method === "HEAD")) {
       sendText(res, 200, VMN_OG_IMAGE_SVG, "image/svg+xml");
+      return;
+    }
+
+    if (pathname === "/assets/og-vmnl-master.jpg" && (method === "GET" || method === "HEAD")) {
+      // Legacy stable alias serves real PNG binary; require revalidation.
+      res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
+      res.writeHead(200, {
+        "Content-Type": "image/png",
+        "Content-Length": VMN_OG_IMAGE_PNG.length,
+      });
+      if (method === "HEAD") {
+        res.end();
+        return;
+      }
+      res.end(VMN_OG_IMAGE_PNG);
       return;
     }
 
@@ -2203,31 +2762,38 @@ ${publicRoutes
     if (pathname.startsWith("/verify/poa/") && method === "GET") {
       const certId = pathname.replace("/verify/poa/", "").trim();
       const cert = getProofOfAirCertificate(certId);
+      const validProof = cert?.isVerified === true && cert.carrierLockVerified === true;
       const acceptsJson = (req.headers["accept"] || "").includes("application/json") || parsedUrl.searchParams.get("format") === "json";
       if (acceptsJson) {
-        sendJson(res, cert ? 200 : 404, {
+        sendJson(res, validProof ? 200 : 404, {
           certificateId: certId,
-          valid: Boolean(cert),
-          certificate: cert,
+          valid: validProof,
+          certificate: validProof ? cert : undefined,
         });
         return;
       }
       const html = renderMasterLayout(
         "Proof-of-Air Performance Verification",
         renderPoaVerificationHtml({
-          valid: Boolean(cert),
-          certificate: cert,
+          valid: validProof,
+          certificate: validProof ? cert : undefined,
           id: certId,
         }),
         "/channels"
       );
-      sendHtml(res, cert ? 200 : 404, html);
+      sendHtml(res, validProof ? 200 : 404, html);
       return;
     }
 
     // Surface B & C: Enterprise Workspaces
     if (pathname === "/workspace" && method === "GET") {
-      const html = renderMasterLayout("Enterprise Workspaces", renderWorkspaceDirectoryHtml(), "/workspace");
+      const user = resolveSessionUser(req);
+      if (!user) {
+        res.writeHead(302, { Location: "/sign-in?returnUrl=%2Fworkspace" });
+        res.end();
+        return;
+      }
+      const html = renderMasterLayout("Enterprise Workspaces", renderWorkspaceDirectoryHtml(), "/workspace", { sessionUser: user });
       sendHtml(res, 200, html);
       return;
     }
@@ -2244,6 +2810,12 @@ ${publicRoutes
 
     // UX-ADM-004: Release Availability & Feature Flag Console
     if ((pathname === "/admin/feature-flags" || pathname === "/workspace/admin/feature-flags") && method === "GET") {
+      const user = resolveSessionUser(req);
+      if (!user || !user.roles.includes("SuperAdmin")) {
+        res.writeHead(user ? 403 : 302, user ? { "Content-Type": "text/plain; charset=utf-8" } : { Location: `/sign-in?returnUrl=${encodeURIComponent(pathname)}` });
+        res.end(user ? "Forbidden" : undefined);
+        return;
+      }
       const domainFilter = parsedUrl.searchParams.get("domain") || undefined;
       const html = renderMasterLayout(
         "Release Availability & Feature Flag Console (UX-ADM-004)",
@@ -2289,7 +2861,6 @@ ${publicRoutes
         res.end();
         return;
       }
-      const urlObj = new URL(req.url || "/", "http://localhost");
       const csrfToken = issueCsrfToken();
       const html = renderMasterLayout(
         "Create Content (UX-CMS-006)",
@@ -2437,14 +3008,14 @@ ${publicRoutes
       return;
     }
 
-    // J-RL1-09: Rights Clearance & Waiver Request (UX-GOV-004)
+    // J-RL1-09: Rights Review Request (UX-GOV-004)
     if (pathname === "/broadcast/rights/review-request" && method === "GET") {
       const sessionUser = resolveSessionUser(req);
       const urlObj = new URL(req.url || "/", "http://localhost");
       const slotId = urlObj.searchParams.get("slotId") || undefined;
       const submitted = urlObj.searchParams.get("submitted") === "true";
       const html = renderMasterLayout(
-        "Rights Waiver Request | VMNL",
+        "Rights Review Request | VMNL",
         renderRightsReviewRequestHtml({ slotId, submitted }),
         pathname,
         { operatorRole: sessionUser?.roles[0] || "BroadcastRightsCoordinator", sessionUser }
@@ -2458,9 +3029,10 @@ ${publicRoutes
       const sessionUser = resolveSessionUser(req);
       const urlObj = new URL(req.url || "/", "http://localhost");
       const resolvedId = urlObj.searchParams.get("resolvedId") || undefined;
+      const resolutionError = urlObj.searchParams.get("resolutionError") || undefined;
       const html = renderMasterLayout(
         "Proof-of-Air Exceptions Workbench | VMNL",
-        renderPoaExceptionsWorkbenchHtml({ resolvedId }),
+        renderPoaExceptionsWorkbenchHtml({ resolvedId, resolutionError }),
         pathname,
         { operatorRole: sessionUser?.roles[0] || "CommercialTrafficOfficer", sessionUser }
       );
@@ -2515,10 +3087,10 @@ ${publicRoutes
       if (proposalId && !proposal) {
         const html = renderMasterLayout(
           "Commercial Proposal Builder | VMNL",
-          `<div class="vmn-card" style="max-width: 640px; margin: 40px auto; text-align: center; padding: 36px;">
-            <h2 style="font-size: var(--vmn-font-size-2xl); font-weight: 800; margin-bottom: 8px;">Proposal not found</h2>
-            <p style="color: var(--vmn-color-secondary-text);">No canonical proposal '${escapeHtml(proposalId)}' exists.</p>
-            <a href="/workspace/commercial/proposals/builder" class="btn btn-primary" style="margin-top: 16px;">Open Proposal Builder</a>
+ `<div class="vmn-card s-JlzzSCY6Hp" >
+ <h2 class="s--MpQSSd9gO">Proposal not found</h2>
+ <p class="s-O2IoxGRHS_">No canonical proposal '${escapeHtml(proposalId)}' exists.</p>
+ <a href="/workspace/commercial/proposals/builder" class="btn btn-primary s-0mWmubkRs3" >Open Proposal Builder</a>
           </div>`,
           pathname,
           { sessionUser }
@@ -2793,67 +3365,55 @@ ${publicRoutes
       const orgId = pathname.replace(/^\/portal\/partner\/?/, "").trim() || "ORG-PART-01";
       const sessionUser = resolveSessionUser(req);
       // SCR-19 tenant scoping: a non-staff caller may only see their own org.
-      const relationship = getClientOrgRelationship(sessionUser, orgId);
+      const relationship = getClientOrgRelationship(sessionUser);
+      if (relationship === "UNAUTHENTICATED") {
+        sendJson(res, 401, { error: "Unauthorized", message: "Sign in to access the partner portal." });
+        return;
+      }
       if (relationship === "FORBIDDEN") {
         const html = renderMasterLayout(
           "403 Forbidden - Partner Portal",
-          `<div class="vmn-card" style="max-width: 600px; margin: 40px auto; text-align: center; padding: 36px;">
-            <div class="vmn-badge badge-danger" style="margin-bottom: 12px; font-weight: 700;">COUNTERPARTY SCOPE ENFORCED</div>
-            <h2 style="font-size: var(--vmn-font-size-2xl); font-weight: 800; margin-bottom: 8px;">Access Denied</h2>
-            <p style="color: var(--vmn-color-secondary-text);">Your session does not hold a client relationship with organisation '${escapeHtml(orgId)}'. Portals render only your own organisation's canonical records.</p>
+ `<div class="vmn-card s-dw21G14akv" >
+ <div class="vmn-badge badge-danger s-3CrzrsuCx5" >COUNTERPARTY SCOPE ENFORCED</div>
+ <h2 class="s--MpQSSd9gO">Access Denied</h2>
+ <p class="s-O2IoxGRHS_">Your session does not hold a client relationship with organisation '${escapeHtml(orgId)}'. Portals render only your own organisation's canonical records.</p>
           </div>`,
           pathname,
           { shell: "identity", sessionUser }
         );
-        sendHtml(res, 403, html);
+        sendHtml(res, 403, html, { private: true });
         return;
       }
-      const deals = context.salesEngine
-        .listDeals()
-        .filter((d) => d.clientOrgId === orgId || relationship === "STAFF_ACCESS")
-        .map((d) => ({
-          id: d.id,
-          dealName: d.dealName,
-          stage: d.stage,
-          totalContractValueNgn: d.totalContractValueNgn,
-          invoicedAmountNgn: d.invoicedAmountNgn,
-          cashCollectedAmountNgn: d.cashCollectedAmountNgn,
-          createdAt: d.createdAt.toISOString().substring(0, 10),
-        }));
-      const snapshot = { partnerOrgId: orgId, partnerName: orgId, deals };
-      const html = renderMasterLayout("Strategic Partner Portal | VMNL", renderPartnerPortalHtml(snapshot, sessionUser || undefined), pathname, { sessionUser });
-      sendHtml(res, 200, html);
+      sendJson(res, 503, { error: "Service Unavailable", code: "ORGANISATION_RELATIONSHIP_UNAVAILABLE", message: "Partner portfolio access is disabled until a canonical organisation membership and audited access workflow are connected." });
       return;
     }
 
     // UX-POR-004: Creator Portal (SCR-19: payout batches scoped to beneficiary)
     if (pathname.startsWith("/portal/creator") && method === "GET") {
-      const creatorId = pathname.replace(/^\/portal\/creator\/?/, "").trim() || "CRT-2026-09";
       const sessionUser = resolveSessionUser(req);
-      const settlements = context.payoutEngine
-        .listBatches()
-        .flatMap((b) =>
-          b.items
-            .filter((it) => it.beneficiaryId === creatorId)
-            .map((it) => ({
-              batchReference: b.batchReference,
-              batchStatus: b.status,
-              grossAmountNgn: it.grossAmountNgn,
-              platformFeeNgn: it.platformFeeNgn,
-              whtDeductionNgn: it.whtDeductionNgn,
-              netDisbursementNgn: it.netDisbursementNgn,
-              createdAt: b.createdAt.toISOString().substring(0, 10),
-            }))
-        );
-      const snapshot = { creatorId, settlements };
-      const html = renderMasterLayout("Creator Settlement Portal | VMNL", renderCreatorPortalHtml(snapshot, sessionUser || undefined), pathname, { sessionUser });
-      sendHtml(res, 200, html);
+      if (!sessionUser) {
+        sendJson(res, 401, { error: "Unauthorized", message: "Sign in to access creator settlements." });
+        return;
+      }
+      if (!sessionUser.roles.some((role) => ["SuperAdmin", "ExecutiveLeader", "FinanceController"].includes(role))) {
+        sendJson(res, 403, { error: "Forbidden", message: "Creator settlement ownership is not verified." });
+        return;
+      }
+      sendJson(res, 503, { error: "Service Unavailable", code: "BENEFICIARY_RELATIONSHIP_UNAVAILABLE", message: "Creator settlement access is disabled until canonical beneficiary ownership is connected." });
       return;
     }
 
     // TODO-SCR-20 (UX-VTM-011): VTM Deployment Readiness & Payment Visibility.
     if (pathname === "/portal/vtm/payment-visibility" && method === "GET") {
       const sessionUser = resolveSessionUser(req);
+      if (!sessionUser) {
+        sendJson(res, 401, { error: "Unauthorized", message: "Sign in to access VTM payment visibility." });
+        return;
+      }
+      if (!sessionUser.roles.some((role) => ["SuperAdmin", "ExecutiveLeader", "FinanceController"].includes(role))) {
+        sendJson(res, 403, { error: "Forbidden", message: "VTM payment visibility access is restricted." });
+        return;
+      }
       const projection = projectVtmPaymentVisibility(context.vtmEngine);
       const html = renderMasterLayout(
         "VTM Deployment Readiness & Payment Visibility | VMNL",
@@ -2861,17 +3421,22 @@ ${publicRoutes
         pathname,
         { sessionUser }
       );
-      sendHtml(res, 200, html);
+      sendHtml(res, 200, html, { private: true });
       return;
     }
 
     // UX-POR-005: Vendor Portal (SCR-19: canonical POs only — honest empty)
     if (pathname.startsWith("/portal/vendor") && method === "GET") {
-      const vendorId = pathname.replace(/^\/portal\/vendor\/?/, "").trim() || "VND-2026-04";
       const sessionUser = resolveSessionUser(req);
-      const snapshot = { vendorId, vendorName: vendorId, purchaseOrders: [] as Array<{ poNumber: string; description: string; amountNgn: number; dateIssued: string; paymentTerms: string; status: string }> };
-      const html = renderMasterLayout("Vendor Procurement Portal | VMNL", renderVendorPortalHtml(snapshot, sessionUser || undefined), pathname, { sessionUser });
-      sendHtml(res, 200, html);
+      if (!sessionUser) {
+        sendJson(res, 401, { error: "Unauthorized", message: "Sign in to access vendor procurement." });
+        return;
+      }
+      if (!sessionUser.roles.some((role) => ["SuperAdmin", "ExecutiveLeader", "FinanceController"].includes(role))) {
+        sendJson(res, 403, { error: "Forbidden", message: "Vendor procurement access is restricted." });
+        return;
+      }
+      sendJson(res, 503, { error: "Service Unavailable", code: "COUNTERPARTY_RELATIONSHIP_UNAVAILABLE", message: "Vendor procurement access is disabled until canonical vendor ownership is connected." });
       return;
     }
 
@@ -2939,13 +3504,8 @@ ${publicRoutes
       return;
     }
 
-    // AUD-32: Unmatched workspace sub-routes fall back to truthful 404
-    if (pathname.startsWith("/workspace/") && method === "GET") {
-      const deskKey = pathname.replace("/workspace/", "").trim();
-      const html = renderMasterLayout(`Workspace / ${deskKey}`, renderWorkspaceDeskHtml(deskKey), "/workspace");
-      sendHtml(res, 404, html);
-      return;
-    }
+    // AUD-32: the unmatched-/workspace catch-all was moved below every specific
+    // GET handler; here it shadowed routes registered later in this chain.
 
     // Match any of the 33 operational broadcast screen routes (T-19, B-15, R1.2A §46, T9-01)
     if (pathname.startsWith("/broadcast/") && method === "GET") {
@@ -2955,13 +3515,13 @@ ${publicRoutes
         if (!user) {
           const unauthorizedHtml = renderMasterLayout(
             `401 Unauthorized - ${match.screen.name}`,
-            `<div class="vmn-card" style="max-width: 600px; margin: 40px auto; text-align: center; padding: 36px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg);">
-              <div class="vmn-badge badge-warning" style="margin-bottom: 12px; font-weight: 700;">AUTHENTICATION REQUIRED</div>
-              <h2 style="font-size: var(--vmn-font-size-2xl); font-weight: 800; margin-bottom: 8px;">Sign In Required</h2>
-              <p style="color: var(--vmn-color-secondary-text); margin-bottom: 24px; line-height: 1.5;">An authenticated operator session is required to access broadcast operational desk <strong>${escapeHtml(match.screen.name)}</strong>.</p>
-              <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
-                <a href="/sign-in?returnUrl=${encodeURIComponent(pathname)}" class="btn btn-primary" style="min-height: 44px; padding: 0 24px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center;">Sign In to Workstation &rarr;</a>
-                <a href="/broadcast/screens" class="btn btn-secondary" style="min-height: 44px; padding: 0 20px; display: inline-flex; align-items: center; justify-content: center;">Back to Directory</a>
+ `<div class="vmn-card s-WXNdVeV-l5" >
+ <div class="vmn-badge badge-warning s-3CrzrsuCx5" >AUTHENTICATION REQUIRED</div>
+ <h2 class="s--MpQSSd9gO">Sign In Required</h2>
+ <p class="s-_fF01FzVbf">An authenticated operator session is required to access broadcast operational desk <strong>${escapeHtml(match.screen.name)}</strong>.</p>
+ <div class="s-wt_QBGg-Bt">
+ <a href="/sign-in?returnUrl=${encodeURIComponent(pathname)}" class="btn btn-primary s-0viI2tXqJY" >Sign In to Workstation &rarr;</a>
+ <a href="/broadcast/screens" class="btn btn-secondary s-qh1S6viOxx" >Back to Directory</a>
               </div>
             </div>`,
             pathname,
@@ -2990,7 +3550,7 @@ ${publicRoutes
 
         const screenHtml = renderMasterLayout(
           match.screen.name,
-          renderBroadcastScreenHtml(match.screen, match.params, userRole),
+          renderBroadcastScreenHtml(match.screen, match.params, userRole, buildScreenEngineSnapshot(context)),
           pathname,
           { operatorRole: userRole, sessionUser: user }
         );
@@ -3027,12 +3587,26 @@ ${publicRoutes
       const storageCheck = await checkStorageReady();
       const isDbConnected = dbCheck.connected;
       const isStorageReady = storageCheck.ready;
+      // AUD-05/AUD-04: audit-ledger durability and the KV backend are part of
+      // the observable readiness payload. Audit degradation does not flip the
+      // pod out of rotation (entries remain buffered and verifiable); alert
+      // rules page on the emitted WARN + this field.
+      const auditHealth = getAuditHealth();
+      const kvBackend = resolveKeyValueAdapter();
+      const kvHealthy = await kvBackend.isHealthy().catch(() => false);
+      const journal = { ...durableJournalStats(), staged: pendingDurableWrites() };
       // AUD-09: storage is part of the readiness contract. A broken object
       // store means DAM uploads cannot succeed, so the pod is not "ready" to
       // receive upload traffic. Storage becomes non-gating ONLY when an
       // operator explicitly opts out (STORAGE_READINESS_GATING=false).
       const storageGatingEnabled = process.env.STORAGE_READINESS_GATING !== "false";
-      const isReady = isDbConnected && (!storageGatingEnabled || isStorageReady);
+      // TSK-27 (CA-26): an unreachable shared backend means this pod cannot read
+      // the fleet's session revocations, account lockouts or MFA challenge
+      // claims, so it must not take traffic. Operators opt out the same way
+      // storage gating is opted out (KV_READINESS_GATING=false).
+      const kvGatingEnabled = process.env.KV_READINESS_GATING !== "false";
+      const isReady =
+        isDbConnected && (!storageGatingEnabled || isStorageReady) && (!kvGatingEnabled || kvHealthy);
       const httpStatus = isReady ? 200 : 503;
 
       context.telemetry.recordMetric("http_requests_total", 1, { path: "/readyz", status: String(httpStatus) });
@@ -3041,21 +3615,56 @@ ${publicRoutes
         checks: {
           database: isDbConnected ? "connected" : "unavailable",
           databaseLatencyMs: dbCheck.latencyMs,
-          databaseError: dbCheck.error || null,
+          databaseErrorCode: dbCheck.connected ? null : "DATABASE_UNAVAILABLE",
           playout: "not_probed",
           storage: isStorageReady ? "ready" : "unavailable",
           storageGating: storageGatingEnabled ? "enforced" : "disabled",
           storageDriver: storageCheck.driver,
           federationBridge: context.azeeboBridge.getCircuitState(),
           queueWorker: context.queueWorker ? (context.queueWorker.getIsRunning() ? "running" : "idle") : "disabled",
+          auditPersistence: auditHealth.persistenceMode,
+          auditChainSequence: auditHealth.chainSequence,
+          auditBufferedEntries: auditHealth.bufferedEntries, auditDurableFailures: auditHealth.durableFailures,
+          kvBackend: kvBackend.backend,
+          kvHealthy,
+          kvGating: kvGatingEnabled ? "enforced" : "disabled",
+          // TSK-17: the write-behind journal's own counters. `staged` is writes
+          // not yet in the database; `sandboxDeferred` is the honest count of
+          // rows that only exist in this process because no database answered —
+          // sandbox state, never reported as persistence (Rule 0.4a).
+          durableJournalStaged: journal.staged,
+          durableJournalPersisted: journal.persisted,
+          durableJournalFailed: journal.failed,
+          durableJournalSandboxDeferred: journal.sandboxDeferred,
+          durableJournalMode: getRepositoryMode(),
         },
         timestamp: new Date().toISOString(),
       });
       return;
     }
 
-    // 2. Prometheus Metrics Endpoint
+    // 2. Prometheus Metrics Endpoint (AUD-06)
     if (pathname === "/metrics" && method === "GET") {
+      const metricsToken = process.env.METRICS_TOKEN;
+      const authHeader = (req.headers["authorization"] || "").toString();
+      const bearer = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : "";
+      const xMetricsToken = (req.headers["x-metrics-token"] || "").toString();
+      const sessionUser = resolveSessionUser(req);
+      const isAuthorizedOperator =
+        Boolean(sessionUser &&
+        (sessionUser.roles.includes("SuperAdmin") ||
+          sessionUser.roles.includes("Auditor") ||
+          sessionUser.roles.includes("ExecutiveLeader")));
+
+      const requiresAuth = Boolean(metricsToken || process.env.NODE_ENV === "production");
+      const isTokenValid = Boolean(metricsToken && (bearer === metricsToken || xMetricsToken === metricsToken));
+
+      if (requiresAuth && !isTokenValid && !isAuthorizedOperator) {
+        res.setHeader("WWW-Authenticate", 'Bearer realm="metrics"');
+        sendJson(res, 401, { error: "Unauthorized", message: "Metrics endpoint requires authorization token or operator session." });
+        return;
+      }
+
       if (context.queueWorker) {
         const qm = context.queueWorker.getMetrics();
         context.telemetry.recordMetric("queue_total_enqueued", qm.totalEnqueued);
@@ -3073,7 +3682,7 @@ ${publicRoutes
     // 2.5 Authentication & Session Endpoints (B-7)
     if (pathname === "/api/v1/auth/login" && method === "POST") {
       const clientIp = resolveClientIp(req);
-      const rate = checkRateLimit(`login:${clientIp}`, 10, 60_000);
+      const rate = await checkSharedRateLimit(`login:${clientIp}`, 10, 60_000);
       if (!rate.allowed) {
         sendJson(res, 429, {
           error: "Too Many Requests",
@@ -3091,13 +3700,12 @@ ${publicRoutes
 
       // Authentic credential verification with real bcrypt password verification against stored credentials (CR-1)
       // plus per-account exponential lockout after repeated failures (AUD-05).
-      const { user, lockedForMs } = await authenticateUser(body.email, body.password);
+      const { user, lockedForMs } = await authenticateUser(jsonTextField(body.email), jsonTextField(body.password));
       if (!user) {
         recordAuditLog({
           action: "auth.login.failed",
           resource: "auth",
           changes: {
-            email: body.email,
             reason: lockedForMs > 0 ? "ACCOUNT_LOCKED" : "INVALID_CREDENTIALS",
           },
           ipAddress: clientIp,
@@ -3116,18 +3724,34 @@ ${publicRoutes
         return;
       }
 
+      const configuredUser = await findUserByEmail(user.email);
+      const hasMfaEnrollment = Boolean(user.mfaEnabled || getMfaSecret(user.email) || configuredUser?.mfaSecret);
+      if (user.mfaEnabled && !configuredUser?.mfaSecret && !getMfaSecret(user.email)) {
+        sendJson(res, 503, { error: "Service Unavailable", message: "MFA enrollment is unavailable. Password-only sign-in is blocked; contact an administrator." });
+        return;
+      }
+
       recordAuditLog({
         userId: user.userId,
         action: "auth.login.success",
         resource: "auth",
         resourceId: user.userId,
-        changes: { email: user.email, roles: user.roles },
+        changes: { roles: user.roles },
         ipAddress: clientIp,
         userAgent: req.headers["user-agent"] || null,
       });
 
+      if (hasMfaEnrollment) {
+        sendJson(res, 202, {
+          success: true,
+          mfaRequired: true,
+          mfaChallenge: signMfaLoginChallenge(user),
+          expiresIn: 300,
+        });
+        return;
+      }
       const tokens = signSessionToken(user);
-      res.setHeader("Set-Cookie", createSessionCookie(tokens.accessToken));
+      res.setHeader("Set-Cookie", [createSessionCookie(tokens.accessToken), csrfCookieHeader(issueCsrfToken())]);
       sendJson(res, 200, {
         success: true,
         user,
@@ -3183,7 +3807,7 @@ ${publicRoutes
       const userId = parsed.get("userId") || undefined;
       const limit = parsed.get("limit") ? parseInt(parsed.get("limit")!, 10) : 50;
 
-      const logs = getAuditLogs({ resource, action, userId, limit });
+      const logs = await getAuditLogs({ resource, action, userId, limit });
       sendJson(res, 200, { logs, count: logs.length });
       return;
     }
@@ -3202,14 +3826,31 @@ ${publicRoutes
     }
 
     // 2.8 Feature Flag Management & Release Configuration (UX-ADM-004)
+    const requireFeatureFlagAdmin = (): SessionUser | null => {
+      const user = resolveSessionUser(req);
+      if (!user) {
+        sendJson(res, 401, { error: "Unauthorized", message: "Authentication required." });
+        return null;
+      }
+      if (!user.roles.includes("SuperAdmin")) {
+        sendJson(res, 403, { error: "Forbidden", message: "SuperAdmin role required." });
+        return null;
+      }
+      return user;
+    };
+
     if (pathname === "/api/v1/feature-flags" && method === "GET") {
+      if (!requireFeatureFlagAdmin()) return;
       const flags = getAllFeatureFlags();
       sendJson(res, 200, { status: "SUCCESS", flags, count: Object.keys(flags).length });
       return;
     }
 
     if (pathname.startsWith("/api/v1/feature-flags/") && pathname.endsWith("/toggle") && method === "POST") {
-      const key = pathname.replace("/api/v1/feature-flags/", "").replace("/toggle", "").trim() as FeatureFlagKey;
+
+      const user = requireFeatureFlagAdmin();
+      if (!user) return;
+      const key = pathname.replace("/api/v1/feature-flags/", "").replace(/\/toggle$/, "").trim() as FeatureFlagKey;
       let body: any = {};
       try {
         const contentType = req.headers["content-type"] || "";
@@ -3220,16 +3861,19 @@ ${publicRoutes
           const params = new URLSearchParams(raw);
           body = Object.fromEntries(params.entries());
         }
-      } catch (_err) {
+      } catch {
         body = {};
       }
 
-      const user = resolveSessionUser(req);
-      const actor = user?.email || user?.userId || "admin:ui";
-      const targetEnabled = body.enabled === "true" || body.enabled === true;
-      const updated = await setFeatureFlagOverride(key, targetEnabled, actor, body.reason || "Toggled via UX-ADM-004");
+      const parsed = FeatureFlagToggleSchema.safeParse(body);
+      if (!parsed.success) {
+        sendJson(res, 422, { error: "Unprocessable Entity", issues: parsed.error.issues });
+        return;
+      }
+      const actor = user.email || user.userId;
+      const updated = await setFeatureFlagOverride(key, parsed.data.enabled, actor, parsed.data.reason || "Toggled via UX-ADM-004");
 
-      if (body.redirect) {
+      if (typeof body.redirect === "string" && body.redirect.startsWith("/") && !body.redirect.startsWith("//")) {
         res.writeHead(302, { Location: body.redirect });
         res.end();
         return;
@@ -3239,6 +3883,7 @@ ${publicRoutes
     }
 
     if (pathname.startsWith("/api/v1/feature-flags/") && method === "GET") {
+      if (!requireFeatureFlagAdmin()) return;
       const key = pathname.replace("/api/v1/feature-flags/", "").trim() as FeatureFlagKey;
       try {
         const state = getFeatureFlagState(key);
@@ -3249,13 +3894,25 @@ ${publicRoutes
       return;
     }
 
-    if (pathname.startsWith("/api/v1/feature-flags/") && (method === "PATCH" || method === "POST")) {
-      const key = pathname.replace("/api/v1/feature-flags/", "").trim() as FeatureFlagKey;
+    if (pathname.startsWith("/api/v1/feature-flags/") && (method === "PATCH" || method === "POST") && !pathname.endsWith("/toggle")) {
+      const user = requireFeatureFlagAdmin();
+      if (!user) return;
+      const key = pathname.replace("/api/v1/feature-flags/", "").replace(/\/toggle$/, "").trim() as FeatureFlagKey;
       try {
-        const body = await parseJsonBody(req, pathname);
-        const user = resolveSessionUser(req);
-        const actor = user?.email || user?.userId || "admin:api";
-        const updated = await setFeatureFlagOverride(key, Boolean(body.enabled), actor, body.reason);
+        const contentType = req.headers["content-type"] || "";
+        let body: unknown;
+        if (contentType.includes("application/x-www-form-urlencoded")) {
+          const raw = await parseRawBody(req, pathname);
+          body = Object.fromEntries(new URLSearchParams(raw).entries());
+        } else {
+          body = await parseJsonBody(req, pathname);
+        }
+        const parsed = FeatureFlagToggleSchema.safeParse(body);
+        if (!parsed.success) {
+          sendJson(res, 422, { error: "Unprocessable Entity", issues: parsed.error.issues });
+          return;
+        }
+        const updated = await setFeatureFlagOverride(key, parsed.data.enabled, user.userId, parsed.data.reason);
         sendJson(res, 200, { status: "SUCCESS", flag: updated });
       } catch (err: any) {
         sendJson(res, 400, { error: "Bad Request", message: err.message });
@@ -3267,19 +3924,37 @@ ${publicRoutes
     if (pathname === "/api/v1/enquiries" && method === "POST") {
       try {
         const contentType = req.headers["content-type"] || "";
-        let body: any;
-        if (contentType.includes("application/json")) {
-          body = await parseJsonBody(req, pathname);
-        } else {
-          const raw = await parseRawBody(req, pathname);
-          const params = new URLSearchParams(raw);
-          body = Object.fromEntries(params.entries());
+      let body: Record<string, unknown>;
+      if (contentType.includes("application/json")) {
+        const parsedBody = await parseJsonBody(req, pathname);
+        if (!parsedBody || typeof parsedBody !== "object" || Array.isArray(parsedBody)) {
+          sendJson(res, 422, { error: "Unprocessable Entity", message: "Request body must be a JSON object." });
+          return;
         }
+        body = parsedBody as Record<string, unknown>;
+      } else {
+        const raw = await parseRawBody(req, pathname);
+        body = Object.fromEntries(new URLSearchParams(raw).entries());
+      }
 
-        const idempotencyKey = (req.headers["x-idempotency-key"] as string) || body.idempotencyKey;
+      const normalizedBody = {
+        ...body,
+        ndprConsent: body.ndprConsent === "on" || body.ndprConsent === "true" || body.ndprConsent === true,
+      };
+        const parsed = SubmitEnquirySchema.safeParse(normalizedBody);
+        if (!parsed.success) {
+          sendJson(res, 422, { error: "Unprocessable Entity", issues: parsed.error.issues });
+          return;
+        }
+        const headerIdempotencyKey = req.headers["x-idempotency-key"];
+        const idempotencyKey = typeof headerIdempotencyKey === "string" ? headerIdempotencyKey : parsed.data.idempotencyKey;
+        if (idempotencyKey !== undefined && (idempotencyKey.length < 1 || idempotencyKey.length > 200)) {
+          sendJson(res, 422, { error: "Unprocessable Entity", message: "Idempotency key must be between 1 and 200 characters." });
+          return;
+        }
         const result = await submitCommercialEnquiry(
           {
-            ...body,
+            ...parsed.data,
             idempotencyKey,
           },
           clientIp
@@ -3288,7 +3963,8 @@ ${publicRoutes
         sendJson(res, result.duplicate ? 200 : 201, {
           status: "SUCCESS",
           duplicate: result.duplicate,
-          enquiry: result.enquiry,
+          reference: result.enquiry.reference,
+          submissionStatus: result.enquiry.submissionStatus,
         });
       } catch (err: any) {
         const statusCode = err.statusCode || (err.code === "FEATURE_DISABLED" ? 403 : 400);
@@ -3303,35 +3979,29 @@ ${publicRoutes
     }
 
     if (pathname === "/api/v1/enquiries/recovery" && method === "GET") {
-      const key = parsedUrl.searchParams.get("key") || parsedUrl.searchParams.get("idempotencyKey");
-      if (!key) {
-        sendJson(res, 400, { error: "Bad Request", message: "Idempotency key parameter required for recovery" });
-        return;
-      }
-      const record = recoverEnquiryOutcome(key);
-      if (!record) {
-        sendJson(res, 404, { error: "Not Found", message: `No enquiry outcome found for idempotency key '${key}'` });
-        return;
-      }
-      sendJson(res, 200, { status: "SUCCESS", enquiry: record });
+      // An idempotency key deduplicates writes; it is not an access capability.
+      // No server-issued, expiring recovery capability exists yet, so do not
+      // disclose whether an enquiry exists or return any applicant data.
+      sendJson(res, 410, {
+        status: "UNAVAILABLE",
+        code: "ENQUIRY_RECOVERY_CAPABILITY_REQUIRED",
+        message: "Public recovery is unavailable. Contact the service team using your receipt reference.",
+      });
       return;
     }
 
     if (pathname === "/api/v1/enquiries" && method === "GET") {
-      const vertical = parsedUrl.searchParams.get("vertical") as any;
-      const enquiries = listEnquiries(vertical || undefined);
-      sendJson(res, 200, { enquiries, count: enquiries.length });
-      return;
-    }
-
-    if (pathname.startsWith("/api/v1/enquiries/") && pathname.endsWith("/retry-routing") && method === "POST") {
-      const reference = pathname.replace("/api/v1/enquiries/", "").replace("/retry-routing", "").trim();
-      try {
-        const updated = await retryDownstreamRouting(reference);
-        sendJson(res, 200, { status: "SUCCESS", enquiry: updated });
-      } catch (err: any) {
-        sendJson(res, 400, { error: "Bad Request", message: err.message });
+      const user = assertRoutePermission(req, res, "read", "enquiry");
+      if (!user) return;
+      const parsed = ListEnquiriesQuerySchema.safeParse({
+        vertical: parsedUrl.searchParams.get("vertical") || undefined,
+      });
+      if (!parsed.success) {
+        sendJson(res, 422, { error: "Unprocessable Entity", issues: parsed.error.issues });
+        return;
       }
+      const enquiries = listEnquiries(parsed.data.vertical);
+      sendJson(res, 200, { enquiries, count: enquiries.length });
       return;
     }
 
@@ -3339,7 +4009,12 @@ ${publicRoutes
     if (pathname === "/api/v1/applications/draft" && method === "POST") {
       try {
         const body = await parseJsonBody(req);
-        const result = await AfcaAdmissionsService.saveDraft(body);
+        const parsed = SaveApplicationDraftSchema.safeParse(body);
+        if (!parsed.success) {
+          sendJson(res, 422, { error: "Unprocessable Entity", issues: parsed.error.issues });
+          return;
+        }
+        const result = await AfcaAdmissionsService.saveDraft(parsed.data);
         sendJson(res, 200, { success: true, ...result });
       } catch (err: any) {
         const status = err.statusCode || (err.message.includes("VMNL-FEATURE-DISABLED") ? 403 : 400);
@@ -3361,7 +4036,18 @@ ${publicRoutes
           body = await parseJsonBody(req, pathname);
         }
 
-        const submission = await AfcaAdmissionsService.submitApplication(body);
+        const parsed = SubmitApplicationSchema.safeParse(body);
+        if (!parsed.success) {
+          sendJson(res, 422, { error: "Unprocessable Entity", issues: parsed.error.issues });
+          return;
+        }
+        const submission = await AfcaAdmissionsService.submitApplication({
+          ...parsed.data,
+          phone: parsed.data.phone || "",
+          experienceLevel: parsed.data.experienceLevel || "BEGINNER",
+          financialAidRequested: parsed.data.financialAidRequested || false,
+          stepCompleted: parsed.data.stepCompleted || 5,
+        });
 
         if (contentType.includes("application/x-www-form-urlencoded")) {
           // Redirect to status tracker on browser form submit
@@ -3380,19 +4066,37 @@ ${publicRoutes
 
     if (pathname.startsWith("/api/v1/applications/") && method === "GET") {
       const reference = pathname.replace("/api/v1/applications/", "").trim();
+      const user = resolveSessionUser(req);
+      if (!user) {
+        sendJson(res, 404, { error: "Not Found", message: "Application not found" });
+        return;
+      }
       const app = await AfcaAdmissionsService.getByReference(reference);
-      if (app) {
+      if (app && (user.roles.includes("SuperAdmin") || user.roles.includes("AcademyDirector") || app.email === user.email)) {
         sendJson(res, 200, { status: "SUCCESS", application: app });
       } else {
-        sendJson(res, 404, { error: "Not Found", message: `Application ${reference} not found` });
+        sendJson(res, 404, { error: "Not Found", message: "Application not found" });
       }
       return;
     }
 
     if (pathname === "/api/v1/admissions/queue" && method === "GET") {
+      const user = resolveSessionUser(req);
+      if (!user || !user.roles.some((role) => ["SuperAdmin", "AcademyDirector", "ExecutiveLeader"].includes(role))) {
+        sendJson(res, user ? 403 : 401, { error: user ? "Forbidden" : "Unauthorized", message: "Admissions reviewer role required." });
+        return;
+      }
       try {
-        const status = parsedUrl.searchParams.get("status") as any || undefined;
-        const creativeTrack = parsedUrl.searchParams.get("creativeTrack") as any || undefined;
+        const parsed = AdmissionsQueueQuerySchema.safeParse({
+          status: parsedUrl.searchParams.get("status") || undefined,
+          creativeTrack: parsedUrl.searchParams.get("creativeTrack") || undefined,
+        });
+        if (!parsed.success) {
+          sendJson(res, 422, { error: "Unprocessable Entity", issues: parsed.error.issues });
+          return;
+        }
+        const status = parsed.data.status;
+        const creativeTrack = parsed.data.creativeTrack;
         const queue = await AfcaAdmissionsService.listQueue({ status, creativeTrack });
         sendJson(res, 200, { status: "SUCCESS", count: queue.length, queue });
       } catch (err: any) {
@@ -3403,15 +4107,29 @@ ${publicRoutes
     }
 
     if (pathname.startsWith("/api/v1/admissions/") && pathname.endsWith("/decision") && method === "POST") {
+      const user = resolveSessionUser(req);
+      if (!user) {
+        sendJson(res, 401, { error: "Unauthorized", message: "Authentication required." });
+        return;
+      }
+      if (!user.roles.some((role) => ["SuperAdmin", "AcademyDirector", "ExecutiveLeader"].includes(role))) {
+        sendJson(res, 403, { error: "Forbidden", message: "Admissions reviewer role required." });
+        return;
+      }
       const reference = pathname.replace("/api/v1/admissions/", "").replace("/decision", "").trim();
       try {
         const body = await parseJsonBody(req);
+        const parsed = AdmissionsDecisionSchema.safeParse(body);
+        if (!parsed.success) {
+          sendJson(res, 422, { error: "Unprocessable Entity", issues: parsed.error.issues });
+          return;
+        }
         const updated = await AfcaAdmissionsService.recordDecision({
           reference,
-          reviewerId: body.reviewerId || "SYSTEM",
-          decision: body.decision,
-          notes: body.notes || "",
-          scores: body.scores,
+          reviewerId: user.userId,
+          decision: parsed.data.decision,
+          notes: parsed.data.notes,
+          scores: parsed.data.scores,
         });
         sendJson(res, 200, { status: "SUCCESS", application: updated });
       } catch (err: any) {
@@ -3421,102 +4139,37 @@ ${publicRoutes
       return;
     }
 
-    // VTM Contract Digital Signing (UX-VTM-010)
+    // VTM signing is disabled until canonical parties, rights and contract state
+    // can be resolved and persisted. Never represent a client string as a signature.
     if (pathname.startsWith("/api/v1/vtm/contracts/") && pathname.endsWith("/sign") && method === "POST") {
-      const contractId = pathname.replace("/api/v1/vtm/contracts/", "").replace("/sign", "").trim();
-      try {
-        const contentType = req.headers["content-type"] || "";
-        let legalSignature = "";
-        let termsAffirmation = false;
-        let idempotencyKey = "";
-        if (contentType.includes("application/x-www-form-urlencoded")) {
-          const formText = await parseRawBody(req, pathname);
-          const params = new URLSearchParams(formText);
-          legalSignature = params.get("legalSignature") || "";
-          termsAffirmation = params.get("termsAffirmation") === "true";
-          idempotencyKey = params.get("idempotencyKey") || "";
-        } else {
-          const body = await parseJsonBody(req, pathname);
-          legalSignature = body.legalSignature || "";
-          termsAffirmation = Boolean(body.termsAffirmation);
-          idempotencyKey = body.idempotencyKey || "";
-        }
-
-        if (!legalSignature || !termsAffirmation) {
-          throw new Error("Validation failed: legalSignature and termsAffirmation are mandatory.");
-        }
-
-        // (TODO-SEC-08): signature replay protection — the same operation
-        // key returns the original acceptance result instead of minting a
-        // second hash for the same contract.
-        const vtmIdemKey = idempotencyKey ? `vtm-sign:${contractId}:${idempotencyKey}` : undefined;
-        const vtmReplay = checkIdempotency(vtmIdemKey);
-        if (vtmReplay.status === "recorded") {
-          const recorded = (vtmReplay.record.responseBody ?? {}) as { signedHash?: string; signedAt?: string };
-          if (contentType.includes("application/x-www-form-urlencoded")) {
-            res.writeHead(303, { Location: `/vtm/terms?signed=true&replay=true` });
-            res.end();
-            return;
-          }
-          sendJson(res, 200, {
-            status: "SUCCESS",
-            contractId,
-            isSigned: true,
-            signedHash: recorded.signedHash,
-            signedAt: recorded.signedAt,
-            replay: true,
-          });
-          return;
-        }
-
-        const signedHash = crypto
-          .createHash("sha256")
-          .update(`${contractId}:${legalSignature}:${Date.now()}`)
-          .digest("hex");
-
-        await recordAuditLog({
-          action: "VTM_CONTRACT_DIGITALLY_SIGNED",
-          resource: "vtm_contract",
-          resourceId: contractId,
-          tenantId: "vtm_talent",
-          changes: {
-            contractId,
-            legalSignature,
-            signedHash,
-            termsAffirmed: true,
-          },
-        });
-
-        const signedAtIso = new Date().toISOString();
-        if (vtmIdemKey) recordIdempotentOutcome(vtmIdemKey, "SUCCESS", { signedHash, signedAt: signedAtIso });
-
-        if (contentType.includes("application/x-www-form-urlencoded")) {
-          res.writeHead(303, { Location: `/vtm/terms?signed=true` });
-          res.end();
-          return;
-        }
-
-        sendJson(res, 200, {
-          status: "SUCCESS",
-          contractId,
-          isSigned: true,
-          signedHash,
-          signedAt: signedAtIso,
-        });
-      } catch (err: any) {
-        sendJson(res, 400, { error: "Signature Error", message: err.message });
+      const signingUser = resolveSessionUser(req);
+      if (!signingUser) {
+        sendJson(res, 401, { error: "Unauthorized", message: "Authentication is required for contract signing." });
+        return;
       }
+      if (!signingUser.roles.some((role) => ["SuperAdmin", "ExecutiveLeader", "FinanceController", "TalentManager"].includes(role))) {
+        sendJson(res, 403, { error: "Forbidden", message: "Contract signing access is restricted." });
+        return;
+      }
+      sendJson(res, 503, {
+        status: "UNAVAILABLE",
+        code: "CANONICAL_CONTRACT_WORKFLOW_UNAVAILABLE",
+        message: "Signing is disabled until canonical contract ownership, rights clearance, and durable dual-signature evidence are available.",
+      });
       return;
     }
 
     // J-RL1-07: Client Project Question Submission
     if (pathname.startsWith("/api/v1/client/projects/") && pathname.endsWith("/questions") && method === "POST") {
+      // TSK-29: the counterparty inquiry route accepted anonymous submissions and
+      // took the tenant from the request body. A discrepancy inquiry enters the
+      // commercial workflow, so it now requires the same authority as deal writes.
+      const inquirer = assertRoutePermission(req, res, "create", "contract");
+      if (!inquirer) return;
       const projectId = pathname.replace("/api/v1/client/projects/", "").replace("/questions", "").trim();
       const contentType = req.headers["content-type"] || "";
       let topic = "GENERAL";
       let priority = "NORMAL";
-      let contactEmail = "";
-      let message = "";
       let orgId = "org-dangote";
       let idempotencyKey: string | undefined;
 
@@ -3525,18 +4178,14 @@ ${publicRoutes
         const params = new URLSearchParams(formText);
         topic = params.get("topic") || topic;
         priority = params.get("priority") || priority;
-        contactEmail = params.get("contactEmail") || contactEmail;
-        message = params.get("message") || message;
         orgId = params.get("orgId") || orgId;
         idempotencyKey = params.get("idempotencyKey") || undefined;
       } else {
         const body = await parseJsonBody(req, pathname);
-        topic = body.topic || topic;
-        priority = body.priority || priority;
-        contactEmail = body.contactEmail || contactEmail;
-        message = body.message || message;
-        orgId = body.orgId || orgId;
-        idempotencyKey = body.idempotencyKey || undefined;
+        topic = jsonTextField(body.topic) || topic;
+        priority = jsonTextField(body.priority) || priority;
+        orgId = jsonTextField(body.orgId) || orgId;
+        idempotencyKey = jsonTextField(body.idempotencyKey) || undefined;
       }
 
       // (TODO-SEC-08): duplicate-question dedupe — the same operation key
@@ -3560,11 +4209,13 @@ ${publicRoutes
       const ticketId = `INQ-2026-${Math.floor(Math.random() * 90000 + 10000)}`;
       if (questionIdemKey) recordIdempotentOutcome(questionIdemKey, ticketId, { ticketId });
       await recordAuditLog({
+        userId: inquirer.userId,
         action: "CLIENT_DISCREPANCY_INQUIRY_SUBMITTED",
         resource: "client_project",
         resourceId: projectId,
         tenantId: orgId,
-        changes: { topic, priority, contactEmail, message, ticketId },
+        // Do not copy contact details or free-text message into the long-lived audit ledger.
+        changes: { topic, priority, ticketId },
         ipAddress: resolveClientIp(req),
         userAgent: req.headers["user-agent"] || null,
       });
@@ -3586,14 +4237,29 @@ ${publicRoutes
       return;
     }
 
-    // J-RL1-09: Rights Waiver & Clearance Request
+    // J-RL1-09: Rights Review Request (UX-GOV-004) — request tracking, not clearance.
+    // TSK-14: this route used to mint `RW-*` tickets that nothing downstream read,
+    // while the clearance gate in the same domain was fed a caller-supplied record.
+    // The request is now opened through the rights context workflow, which requires
+    // the RightsRecord it concerns, the intended use, the observed blocker and a
+    // receiving owner. Opening a request never touches the record: the gate stays
+    // blocked until POST /api/v1/broadcast/rights/review-requests/{id}/resolve
+    // records authoritative evidence against it.
     if (pathname === "/api/v1/broadcast/rights/review-requests" && method === "POST") {
       const contentType = req.headers["content-type"] || "";
       let slotId = "SLOT-4102";
       let carrier = "STARTIMES_DTT";
       let distributor = "";
       let justification = "";
+      let rightsRecordId = "";
+      let intendedUse = "";
+      let observedBlocker = "";
+      let receivingOwner = "";
+      let evidenceReferences: string[] = [];
       let idempotencyKey: string | undefined;
+
+      const splitList = (value: string | null): string[] =>
+        (value || "").split(",").map((item) => item.trim()).filter(Boolean);
 
       if (contentType.includes("application/x-www-form-urlencoded")) {
         const formText = await parseRawBody(req, pathname);
@@ -3602,38 +4268,76 @@ ${publicRoutes
         carrier = params.get("carrier") || carrier;
         distributor = params.get("distributor") || distributor;
         justification = params.get("justification") || justification;
+        rightsRecordId = params.get("rightsRecordId") || "";
+        intendedUse = params.get("intendedUse") || "";
+        observedBlocker = params.get("observedBlocker") || "";
+        receivingOwner = params.get("receivingOwner") || "";
+        evidenceReferences = splitList(params.get("evidenceReferences"));
         idempotencyKey = params.get("idempotencyKey") || undefined;
       } else {
         const body = await parseJsonBody(req, pathname);
-        slotId = body.slotId || slotId;
-        carrier = body.carrier || carrier;
-        distributor = body.distributor || distributor;
-        justification = body.justification || justification;
-        idempotencyKey = body.idempotencyKey || undefined;
+        slotId = jsonTextField(body.slotId) || slotId;
+        carrier = jsonTextField(body.carrier) || carrier;
+        distributor = jsonTextField(body.distributor) || distributor;
+        justification = jsonTextField(body.justification) || justification;
+        rightsRecordId = jsonTextField(body.rightsRecordId);
+        intendedUse = jsonTextField(body.intendedUse);
+        observedBlocker = jsonTextField(body.observedBlocker);
+        receivingOwner = jsonTextField(body.receivingOwner);
+        evidenceReferences = jsonArrayField(body.evidenceReferences).map(jsonTextField).filter(Boolean);
+        idempotencyKey = jsonTextField(body.idempotencyKey) || undefined;
       }
 
       // (TODO-SEC-08): duplicate-request dedupe for expedited rights review.
       const rightsIdemKey = idempotencyKey ? `rights-review:${slotId}:${idempotencyKey}` : undefined;
       const rightsReplay = checkIdempotency(rightsIdemKey);
       if (rightsReplay.status === "recorded") {
-        const recorded = (rightsReplay.record.responseBody ?? {}) as { ticketId?: string };
+        const recorded = (rightsReplay.record.responseBody ?? {}) as { ticketId?: string; requestId?: string };
         const replayTicket = recorded.ticketId || rightsReplay.record.outcome;
         if (contentType.includes("application/x-www-form-urlencoded")) {
           res.writeHead(303, { Location: "/broadcast/rights/review-request?submitted=true&replay=true" });
           res.end();
           return;
         }
-        sendJson(res, 200, { status: "SUCCESS", ticketId: replayTicket, slotId, replay: true });
+        sendJson(res, 200, { status: "SUCCESS", ticketId: replayTicket, requestId: recorded.requestId, slotId, replay: true });
         return;
       }
 
-      const ticketId = `RW-2026-${Math.floor(Math.random() * 9000 + 1000)}`;
-      if (rightsIdemKey) recordIdempotentOutcome(rightsIdemKey, ticketId, { ticketId });
+      // The revision is read from the registered record, never supplied by the
+      // caller, so a request cannot claim to track a state the store does not hold.
+      const registeredRecord = rightsRecordId ? await rightsRepository.findById(rightsRecordId) : null;
+      const requestId = `rrr-${crypto.randomUUID()}`;
+      let ticketId: string;
+      try {
+        const opened = openRightsReviewRequest({
+          id: requestId,
+          affectedRecordId: rightsRecordId,
+          recordRevision: registeredRecord ? registeredRecord.updatedAt.toISOString() : "UNREGISTERED",
+          intendedUse,
+          observedBlocker,
+          requestReason: justification,
+          evidenceReferences,
+          requesterId: resolveSessionUser(req)?.userId ?? "anonymous",
+          receivingOwner,
+        });
+        ticketId = opened.ticketId;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        sendJson(res, 400, {
+          error: "Bad Request",
+          message,
+          code: /^\[([\w-]+)\]/.exec(message)?.[1] ?? "RIGHTS_REVIEW_REQUEST_INVALID",
+        });
+        return;
+      }
+
+      if (rightsIdemKey) recordIdempotentOutcome(rightsIdemKey, ticketId, { ticketId, requestId });
       await recordAuditLog({
-        action: "EXPEDITED_RIGHTS_WAIVER_REQUESTED",
+        userId: resolveSessionUser(req)?.userId,
+        action: "RIGHTS_REVIEW_REQUEST_OPENED",
         resource: "rights",
-        resourceId: slotId,
-        changes: { slotId, carrier, distributor, justification, ticketId },
+        resourceId: requestId,
+        changes: { slotId, carrier, distributor, justification, ticketId, affectedRecordId: rightsRecordId, recordRevision: registeredRecord ? registeredRecord.updatedAt.toISOString() : "UNREGISTERED", receivingOwner },
         ipAddress: resolveClientIp(req),
         userAgent: req.headers["user-agent"] || null,
       });
@@ -3647,44 +4351,222 @@ ${publicRoutes
       sendJson(res, 200, {
         status: "SUCCESS",
         ticketId,
+        requestId,
         slotId,
-        message: "Emergency rights review ticket created",
+        affectedRecordId: rightsRecordId,
+        requestStatus: "RECEIVED",
+        rightsBlockIntact: true,
+        message: "Rights review request opened. The rights block stays in force until the request is resolved with authoritative evidence.",
       });
       return;
     }
 
-    // J-RL1-10: Proof-of-Air Exception Resolution
+    // J-RL1-09 / TSK-14: the workflow's intermediate states. The lifecycle module
+    // implemented these transitions but nothing in the product could reach them —
+    // the other half of CA-32, where a wired-looking domain had no reachable path.
+    // Only the three non-terminal targets are accepted here; resolution is a
+    // separate route because it is the only act that may write a RightsRecord.
+    if (pathname.startsWith("/api/v1/broadcast/rights/review-requests/") && pathname.endsWith("/transition") && method === "POST") {
+      const actor = assertRoutePermission(req, res, "update", "rights");
+      if (!actor) return;
+      const requestId = pathname
+        .replace("/api/v1/broadcast/rights/review-requests/", "")
+        .replace("/transition", "")
+        .trim();
+      const body = await parseJsonBody(req, pathname);
+      const targetStatus = jsonTextField(body.targetStatus);
+      const forwardTargets = ["ASSIGNED", "EVIDENCE_REVIEW", "REFERRED"] as const;
+      if (!(forwardTargets as readonly string[]).includes(targetStatus)) {
+        sendJson(res, 400, {
+          error: "Bad Request",
+          message: `targetStatus must be one of ${forwardTargets.join(", ")}. Resolution uses POST .../resolve.`,
+          code: "RIGHTS_REVIEW_TRANSITION_INVALID",
+        });
+        return;
+      }
+
+      try {
+        const request = transitionRightsReviewRequest(requestId, targetStatus as RightsReviewRequestStatus, actor.userId);
+        await recordAuditLog({
+          userId: actor.userId,
+          action: "RIGHTS_REVIEW_TRANSITIONED",
+          resource: "rights",
+          resourceId: requestId,
+          changes: { requestId, targetStatus, ticketId: request.ticketId, affectedRecordId: request.affectedRecordId },
+          ipAddress: resolveClientIp(req),
+          userAgent: req.headers["user-agent"] || null,
+        });
+        sendJson(res, 200, { status: "SUCCESS", requestId, ticketId: request.ticketId, requestStatus: request.status });
+        return;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        const code = /^\[([\w-]+)\]/.exec(message)?.[1] ?? "RIGHTS_REVIEW_TRANSITION_FAILED";
+        const status = code === "RRR-03" ? 404 : 400;
+        sendJson(res, status, { error: status === 404 ? "Not Found" : "Bad Request", message, code });
+        return;
+      }
+    }
+
+    // J-RL1-09 / TSK-14: resolving a review request is the only path that changes a
+    // RightsRecord. RESOLVED_CLEARED_BY_SOURCE writes the authorised window through
+    // RightsRepository — the same durable record /api/v1/broadcast/rights/validate
+    // reads — and requires at least one evidence reference ([RRR-06]) plus a recorded
+    // note ([RRR-05]). RESOLVED_BLOCK_RETAINED writes nothing: the block stays intact.
+    // HD-02 (the §62 C-1 override interpretation) is NOT implemented here: clearing
+    // from source evidence is not an override and no wording claims it is.
+    if (pathname.startsWith("/api/v1/broadcast/rights/review-requests/") && pathname.endsWith("/resolve") && method === "POST") {
+      const target = assertRoutePermission(req, res, "update", "rights");
+      if (!target) return;
+      const requestId = pathname
+        .replace("/api/v1/broadcast/rights/review-requests/", "")
+        .replace("/resolve", "")
+        .trim();
+
+      const body = await parseJsonBody(req, pathname);
+      const decision = jsonTextField(body.decision);
+      const resolutionNote = jsonTextField(body.resolutionNote);
+      const clearedExpiryDate = jsonTextField(body.clearedExpiryDate);
+      const evidenceReferences = jsonArrayField(body.evidenceReferences).map(jsonTextField).filter(Boolean);
+
+      const allowedDecisions: ReviewDecision[] = ["RESOLVED_BLOCK_RETAINED", "RESOLVED_CLEARED_BY_SOURCE"];
+      if (!(allowedDecisions as string[]).includes(decision)) {
+        sendJson(res, 400, {
+          error: "Bad Request",
+          message: `decision must be one of ${allowedDecisions.join(", ")}.`,
+          code: "RIGHTS_REVIEW_DECISION_INVALID",
+        });
+        return;
+      }
+
+      try {
+        const resolved = await resolveRightsReviewRequest({
+          requestId,
+          decision: decision as ReviewDecision,
+          resolutionNote,
+          actor: target.userId,
+          evidenceReferences,
+          clearedExpiryDate: clearedExpiryDate ? new Date(clearedExpiryDate) : undefined,
+        });
+
+        await recordAuditLog({
+          userId: target.userId,
+          action: decision === "RESOLVED_CLEARED_BY_SOURCE" ? "RIGHTS_REVIEW_RESOLVED_CLEARED_BY_SOURCE" : "RIGHTS_REVIEW_BLOCK_RETAINED",
+          resource: "rights",
+          resourceId: requestId,
+          changes: {
+            requestId,
+            decision,
+            resolutionNote,
+            evidenceReferences,
+            affectedRecordId: resolved.request.affectedRecordId,
+            clearedExpiryDate: resolved.request.clearedExpiryDate?.toISOString() ?? null,
+            rightsRecordSource: resolved.rightsRecord?.source ?? null,
+          },
+          ipAddress: resolveClientIp(req),
+          userAgent: req.headers["user-agent"] || null,
+        });
+
+        sendJson(res, 200, {
+          status: "SUCCESS",
+          requestId,
+          ticketId: resolved.request.ticketId,
+          decision,
+          requestStatus: resolved.request.status,
+          evidenceReferences: resolved.request.evidenceReferences,
+          rightsRecord: resolved.rightsRecord
+            ? { id: resolved.rightsRecord.id, expiryDate: resolved.rightsRecord.expiryDate.toISOString(), source: resolved.rightsRecord.source }
+            : null,
+          gateRechecked: resolved.gateRechecked,
+        });
+        return;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        const code = /^\[([\w-]+)\]/.exec(message)?.[1] ?? "RIGHTS_REVIEW_RESOLUTION_FAILED";
+        const status = code === "RRR-03" ? 404 : 400;
+        sendJson(res, status, { error: status === 404 ? "Not Found" : "Bad Request", message, code });
+        return;
+      }
+    }
+
+    // J-RL1-10: Proof-of-Air Exception Resolution — TSK-16 (CA-16)
+    // The desk no longer claims a reservation or a ledger entry; it calls the
+    // traffic and billing engines that actually own inventory and credit notes.
     if (pathname.startsWith("/api/v1/broadcast/asrun/exceptions/") && pathname.endsWith("/resolve") && method === "POST") {
+      const resolver = assertRoutePermission(req, res, "update", "broadcast");
+      if (!resolver) return;
       const exceptionId = pathname.replace("/api/v1/broadcast/asrun/exceptions/", "").replace("/resolve", "").trim();
       const contentType = req.headers["content-type"] || "";
-      let resolutionType = "APPROVE_MAKE_GOOD";
+      let resolutionType: PoaResolutionType = "APPROVE_MAKE_GOOD";
+      let targetBreakId: string | undefined;
 
       if (contentType.includes("application/x-www-form-urlencoded")) {
         const formText = await parseRawBody(req, pathname);
         const params = new URLSearchParams(formText);
-        resolutionType = params.get("resolutionType") || resolutionType;
+        resolutionType = (params.get("resolutionType") as PoaResolutionType) || resolutionType;
+        targetBreakId = params.get("targetBreakId") || undefined;
       } else {
         const body = await parseJsonBody(req, pathname);
-        resolutionType = body.resolutionType || resolutionType;
+        resolutionType = (jsonTextField(body.resolutionType) as PoaResolutionType) || resolutionType;
+        targetBreakId = jsonTextField(body.targetBreakId) || undefined;
       }
 
-      await recordAuditLog({
-        action: "POA_EXCEPTION_RESOLVED",
-        resource: "broadcast_asrun",
-        resourceId: exceptionId,
-        changes: { exceptionId, resolutionType },
-        ipAddress: resolveClientIp(req),
-        userAgent: req.headers["user-agent"] || null,
-      });
+      try {
+        const resolved = resolvePoaException({
+          exceptionId,
+          resolutionType,
+          actor: resolver.userId,
+          targetBreakId,
+          traffic: context.trafficEngine!,
+          billing: context.billingEngine!,
+          ledger: context.ledgerService!,
+        });
 
-      if (contentType.includes("application/x-www-form-urlencoded")) {
-        res.writeHead(303, { Location: `/broadcast/asrun/exceptions?resolvedId=${encodeURIComponent(exceptionId)}` });
-        res.end();
+        await recordAuditLog({
+          userId: resolver.userId,
+          action: resolutionType === "APPROVE_MAKE_GOOD" ? "POA_EXCEPTION_REBOOKED" : "POA_EXCEPTION_CREDITED",
+          resource: "broadcast_asrun",
+          resourceId: exceptionId,
+          changes: {
+            exceptionId,
+            resolutionType,
+            status: resolved.status,
+            allocatedBreakId: resolved.allocatedBreakId,
+            creditNoteId: resolved.creditNoteId,
+            journalEntryId: resolved.journalEntryId,
+          },
+          ipAddress: resolveClientIp(req),
+          userAgent: req.headers["user-agent"] || null,
+        });
+
+        if (contentType.includes("application/x-www-form-urlencoded")) {
+          res.writeHead(303, { Location: `/broadcast/asrun/exceptions?resolvedId=${encodeURIComponent(exceptionId)}` });
+          res.end();
+          return;
+        }
+
+        sendJson(res, 200, {
+          status: "SUCCESS",
+          exceptionId,
+          resolutionType,
+          outcome: resolved.status,
+          allocatedBreakId: resolved.allocatedBreakId,
+          creditNoteId: resolved.creditNoteId,
+          journalEntryId: resolved.journalEntryId,
+        });
+        return;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        const code = /^\[([\w-]+)\]/.exec(message)?.[1] ?? "POA_EXCEPTION_RESOLUTION_FAILED";
+        if (contentType.includes("application/x-www-form-urlencoded")) {
+          res.writeHead(303, {
+            Location: `/broadcast/asrun/exceptions?resolutionError=${encodeURIComponent(message)}`,
+          });
+          res.end();
+          return;
+        }
+        sendJson(res, 400, { error: "Bad Request", message, code });
         return;
       }
-
-      sendJson(res, 200, { status: "SUCCESS", exceptionId, resolutionType });
-      return;
     }
 
     // J-RL1-11: Content Review & Publication — real CMS revision domain
@@ -3693,7 +4575,11 @@ ${publicRoutes
     if (pathname.startsWith("/api/v1/workspace/content/") && pathname.endsWith("/publish") && method === "POST") {
       const contentId = pathname.replace("/api/v1/workspace/content/", "").replace("/publish", "").trim();
       const contentType = req.headers["content-type"] || "";
-      const sessionUser = resolveSessionUser(req);
+      // TSK-29: publication was previously reachable by an anonymous caller and
+      // recorded the publisher as "anonymous". Publication is the final editorial
+      // authority act, so it requires approve:content like /approve does.
+      const sessionUser = assertRoutePermission(req, res, "approve", "content");
+      if (!sessionUser) return;
       let destinationId: string | undefined;
       let idempotencyKey: string | undefined;
       if (contentType.includes("application/x-www-form-urlencoded")) {
@@ -3703,8 +4589,8 @@ ${publicRoutes
         idempotencyKey = params.get("idempotencyKey") || undefined;
       } else {
         const body = await parseJsonBody(req, pathname);
-        destinationId = body.destinationId || undefined;
-        idempotencyKey = body.idempotencyKey || undefined;
+        destinationId = jsonTextField(body.destinationId) || undefined;
+        idempotencyKey = jsonTextField(body.idempotencyKey) || undefined;
       }
 
       // (TODO-SEC-08): publication idempotency — a replayed publish returns
@@ -3742,19 +4628,19 @@ ${publicRoutes
         }
         const { publication } = publishContent({
           id: contentId,
-          publisherId: sessionUser?.userId || "anonymous",
+          publisherId: sessionUser.userId,
           destinationRegistry: { isVerified: isVerifiedDestination },
         });
 
         await recordAuditLog({
-          userId: sessionUser?.userId || null,
+          userId: sessionUser.userId,
           action: "CONTENT_EDITORIAL_PUBLISHED",
           resource: "content_item",
           resourceId: contentId,
           changes: {
             contentId,
             revision: publication.revision,
-            publishedBy: sessionUser?.email || "anonymous",
+            publishedBy: sessionUser.email,
             destinationId: publication.destinationId || null,
           },
           ipAddress: resolveClientIp(req),
@@ -3780,7 +4666,7 @@ ${publicRoutes
       } catch (err: any) {
         const code = (err?.message?.match(/\[(CMS-\d+)\]/)?.[1] || "CMS_ERROR") as string;
         await recordAuditLog({
-          userId: sessionUser?.userId || null,
+          userId: sessionUser.userId,
           action: "CONTENT_EDITORIAL_PUBLISH_REJECTED",
           resource: "content_item",
           resourceId: contentId,
@@ -3806,7 +4692,7 @@ ${publicRoutes
       const body = await parseJsonBody(req, pathname);
       try {
         const item = createContent({
-          id: body.id || `CNT-${Date.now().toString(36).toUpperCase()}`,
+          id: jsonTextField(body.id) || `CNT-${Date.now().toString(36).toUpperCase()}`,
           title: String(body.title || ""),
           slug: String(body.slug || ""),
           summary: String(body.summary || ""),
@@ -4042,10 +4928,10 @@ ${publicRoutes
         idempotencyKey = params.get("idempotencyKey") || undefined;
       } else {
         const body = await parseJsonBody(req, pathname);
-        decision = body.decision || decision;
-        reason = body.reason || "";
+        decision = jsonTextField(body.decision) || decision;
+        reason = jsonTextField(body.reason) || "";
         currentObjectRevision = typeof body.currentObjectRevision === "number" ? body.currentObjectRevision : undefined;
-        idempotencyKey = body.idempotencyKey || undefined;
+        idempotencyKey = jsonTextField(body.idempotencyKey) || undefined;
       }
 
       // (TODO-SEC-08): decision replay protection.
@@ -4360,7 +5246,7 @@ ${publicRoutes
         score = parseInt(params.get("lightingOpticsScore") || "90", 10);
       } else {
         const body = await parseJsonBody(req, pathname);
-        score = body.score || score;
+        score = jsonNumberField(body.score, score);
       }
 
       const sessionUser = resolveSessionUser(req);
@@ -4989,7 +5875,7 @@ ${publicRoutes
 
     // 3. Broadcast Endpoints
     if (pathname === "/api/v1/broadcast/channels" && method === "GET") {
-      const channels = getAllActiveChannels();
+      const channels = getAllActiveChannels().map(projectPublicChannel);
       sendJson(res, 200, { channels, count: channels.length });
       return;
     }
@@ -4998,7 +5884,7 @@ ${publicRoutes
       const code = pathname.replace("/api/v1/broadcast/channels/", "").trim().toUpperCase();
       const channel = getChannelByCode(code);
       if (channel) {
-        sendJson(res, 200, { channel });
+        sendJson(res, 200, { channel: projectPublicChannel(channel) });
       } else {
         sendJson(res, 404, { error: "Not Found", message: `Channel with code '${code}' not found` });
       }
@@ -5010,15 +5896,17 @@ ${publicRoutes
       return;
     }
 
-    // TODO-BCST-02: XMLTV download & StarTimes push endpoints, honesty-gated:
-    // sample scheduler data is never published as an operational feed
-    // (APPROVED_SCHEDULE_UNAVAILABLE until a real schedule source connects).
+    // TODO-BCST-02 / TSK-10: XMLTV download & StarTimes push endpoints,
+    // honesty-gated twice over — sample scheduler data is never published as an
+    // operational feed (only a schedule that cleared APPROVED through the real
+    // lifecycle), and clearance is re-decided against the registered RightsRecord
+    // at export time rather than trusted from the approval timestamp.
     if (pathname === "/broadcast/export/epg/xmltv" && method === "GET") {
       const urlObj = new URL(req.url || "/", "http://localhost");
       const channelCode = (urlObj.searchParams.get("channel") || "NXTR").toUpperCase();
       const dateIso = urlObj.searchParams.get("date") || new Date().toISOString().substring(0, 10);
       const wantsJson = (req.headers["accept"] || "").includes("application/json") || urlObj.searchParams.get("format") === "json";
-      const result = exportXmltv(channelCode, dateIso);
+      const result = exportXmltv(channelCode, dateIso, engineScheduleSource);
       if (result.status === "EXPORTED" && result.xmltv) {
         sendText(res, 200, result.xmltv, "application/xml; charset=utf-8");
         return;
@@ -5028,9 +5916,9 @@ ${publicRoutes
       } else {
         const html = renderMasterLayout(
           "EPG Export Unavailable",
-          `<div class="vmn-card" style="max-width: 640px; margin: 40px auto; text-align: center; padding: 36px; border: 1px solid #F59E0B; border-radius: var(--vmn-radius-lg); background: #FFFBEB;">
-            <h2 style="font-size: var(--vmn-font-size-2xl); font-weight: 800; color: #92400E; margin-bottom: 8px;">EPG Export Unavailable</h2>
-            <p style="color: #92400E; margin-bottom: 16px;">${escapeHtml(result.message || "No approved schedule source is connected.")}</p>
+ `<div class="vmn-card s-arDtdsJ-qB" >
+ <h2 class="s-gb13FUE9nY">EPG Export Unavailable</h2>
+ <p class="s-irvrDQa17p">${escapeHtml(result.message || "No approved schedule source is connected.")}</p>
             <a href="/broadcast/epg/syndication" class="btn btn-primary">Back to EPG Inspector</a>
           </div>`,
           "/broadcast/epg/syndication",
@@ -5047,7 +5935,7 @@ ${publicRoutes
       const body = await parseJsonBody(req, pathname);
       const channelCode = String(body.channelCode || "NXTR").toUpperCase();
       const dateIso = String(body.date || new Date().toISOString().substring(0, 10));
-      const push = pushToStarTimes(channelCode, dateIso);
+      const push = pushToStarTimes(channelCode, dateIso, engineScheduleSource);
       recordAuditLog({
         userId: user.userId,
         action: "broadcast.epg.push_attempted",
@@ -5090,20 +5978,58 @@ ${publicRoutes
       if (!user) return;
 
       const body = await parseJsonBody(req, pathname);
-      const items = (body.asRunItems || []).map((it: any) => ({
-        ...it,
-        actualStartTime: new Date(it.actualStartTime || Date.now()),
-      }));
-      const report = reconcileAsRunLogs(body.channelCode || "NXTR", items);
-      sendJson(res, 200, { report });
+      const channelCode = jsonTextField(body.channelCode) || "NXTR";
+      const items = jsonArrayField(body.asRunItems).map((raw) => {
+        const it = jsonObjectField(raw);
+        const rawDaypart = jsonTextField(it.daypart);
+        return {
+          spotId: jsonTextField(it.spotId),
+          clientName: jsonTextField(it.clientName),
+          campaignId: jsonTextField(it.campaignId),
+          actualStartTime: new Date(jsonTextField(it.actualStartTime) || Date.now()),
+          actualDurationSeconds: jsonNumberField(it.actualDurationSeconds, 0),
+          expectedDurationSeconds: jsonNumberField(it.expectedDurationSeconds, 0),
+          status: jsonEnumField(it.status, ["AIRED_FULL", "AIRED_PARTIAL", "PREEMPTED", "TECHNICAL_ERROR"] as const, "TECHNICAL_ERROR"),
+          daypart: rawDaypart ? (jsonEnumField(rawDaypart, ["EARLY_MORNING", "DAYTIME", "EARLY_FRINGE", "PRIME_TIME", "LATE_NIGHT"] as const, "DAYTIME") as DaypartClassification | undefined) : undefined,
+          brandCategory: jsonTextField(it.brandCategory) || undefined,
+          qcStatus: jsonTextField(it.qcStatus) || undefined,
+        };
+      });
+      const report = reconcileAsRunLogs(channelCode, items);
+      // TSK-16 (CA-16): raise the delivery exceptions and their make-good /
+      // credit linkage into the register so the workbench shows real rows.
+      let poaResult: ReturnType<typeof raisePoaExceptionsFromAsRun> | undefined;
+      try {
+        poaResult = raisePoaExceptionsFromAsRun({
+          channelCode,
+          items,
+          traffic: context.trafficEngine!,
+          billing: context.billingEngine!,
+        });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        sendJson(res, 400, { error: "Bad Request", message, code: "POA_EXCEPTION_RAISE_FAILED" });
+        return;
+      }
+      sendJson(res, 200, { report, poaExceptions: poaResult.raised });
       return;
     }
 
     // Broadcast Programmes Technical QC (T9-05)
     if (pathname === "/api/v1/broadcast/programmes/qc" && method === "POST") {
       const body = await parseJsonBody(req, pathname);
-      const report = body.report || body;
-      const qcResult = validateBroadcastMasterQc(report);
+      // AUD-12: reconstruct the QC report with explicit field narrowing; the
+      // domain gate still performs the authoritative technical validation.
+      const report = jsonObjectField(body.report ?? body);
+      const qcResult = validateBroadcastMasterQc({
+        videoStandard: (jsonTextField(report.videoStandard) || "1080i50") as "1080i50" | "720p50",
+        aspectRatio: (jsonTextField(report.aspectRatio) || "16:9") as "16:9",
+        audioLoudnessLufs: jsonNumberField(report.audioLoudnessLufs, -70),
+        hasCountdownSlate: report.hasCountdownSlate === true,
+        hasBlackGaps: report.hasBlackGaps === true,
+        isCompliant: report.isCompliant === true,
+        notes: jsonArrayField(report.notes).map(String),
+      });
       sendJson(res, 200, {
         compliant: qcResult.isCompliant,
         isCompliant: qcResult.isCompliant,
@@ -5115,26 +6041,111 @@ ${publicRoutes
     // Broadcast Daily Schedule Grid Validation (T9-05)
     if (pathname === "/api/v1/broadcast/scheduling/validate" && method === "POST") {
       const body = await parseJsonBody(req, pathname);
-      const slots = (body.slots || []) as ScheduleSlot[];
-      const dayStart = new Date(body.dayStart || Date.now());
+      // AUD-12: explicit slot reconstruction; the schedule validator still
+      // performs the authoritative overlap/gap checks.
+      const slots: ScheduleSlot[] = jsonArrayField(body.slots).map((raw) => {
+        const s = jsonObjectField(raw);
+        return {
+          id: jsonTextField(s.id),
+          channelId: jsonTextField(s.channelId),
+          startTime: new Date(jsonTextField(s.startTime) || Date.now()),
+          durationSeconds: jsonNumberField(s.durationSeconds, 0),
+          episodeId: jsonTextField(s.episodeId),
+          title: jsonTextField(s.title),
+          isLocked: s.isLocked === true,
+        };
+      });
+      const dayStart = new Date(jsonTextField(body.dayStart) || Date.now());
       const validation = validateDailySchedule(slots, dayStart);
       sendJson(res, 200, validation);
       return;
     }
 
-    // Broadcast Rights Gate (T9-05)
+    // Broadcast Rights Gate (T9-05) — TSK-10: authoritative path.
     if (pathname === "/api/v1/broadcast/rights/validate" && method === "POST") {
       const body = await parseJsonBody(req, pathname);
-      const validation = validateScheduleRights(body);
-      sendJson(res, 200, validation);
+      const rightsRequest = jsonObjectField(body.request ?? body);
+
+      // The gate decides on the registered RightsRecord, never on a copy handed
+      // over with the request. Before TSK-10 this endpoint built the whole record
+      // from the body, i.e. the caller asserted its own rights facts and the
+      // server validated the arithmetic of that claim (report.md CA-07 defect 3).
+      // A body that still carries clearance fields is refused, not trusted.
+      const rightsRecordId = jsonTextField(rightsRequest.rightsRecordId);
+      const suppliedFields = suppliedRightsRecordFields(rightsRequest);
+      if (suppliedFields.length > 0) {
+        sendJson(res, 400, {
+          error: "Bad Request",
+          code: "RIGHTS_RECORD_FIELDS_NOT_TRUSTED",
+          message:
+            `Rights clearance fields must not be supplied by the caller (${suppliedFields.join(", ")}). ` +
+            "Send rightsRecordId and the slot to check; the gate reads the registered RightsRecord from the durable store.",
+        });
+        return;
+      }
+      if (!rightsRecordId) {
+        sendJson(res, 400, {
+          error: "Bad Request",
+          code: "RIGHTS_RECORD_ID_REQUIRED",
+          message: "A rights validation must name the registered RightsRecord it wants cleared (rightsRecordId).",
+        });
+        return;
+      }
+      const registered = getRegisteredRightsRecord(rightsRecordId);
+      if (!registered) {
+        sendJson(res, 404, {
+          error: "Not Found",
+          message: `RightsRecord '${rightsRecordId}' is not registered, so there is nothing to clear the slot against.`,
+          code: "RIGHTS_RECORD_NOT_REGISTERED",
+        });
+        return;
+      }
+
+      const validation = validateScheduleRights({
+        episodeId: jsonTextField(rightsRequest.episodeId),
+        channelCode: jsonTextField(rightsRequest.channelCode),
+        scheduledAirTime: new Date(jsonTextField(rightsRequest.scheduledAirTime) || Date.now()),
+        scheduledDurationSeconds: jsonNumberField(rightsRequest.scheduledDurationSeconds, 0),
+        rightsRecord: registered,
+        isSubLicenceAttempt: rightsRequest.isSubLicenceAttempt === true,
+        targetTerritory: jsonTextField(rightsRequest.targetTerritory) || undefined,
+        // Exclusive windows come from the register too: a caller cannot clear a
+        // conflict by omitting the competing window.
+        existingExclusiveWindows: findExclusiveWindowsForAsset(registered.assetId, registered.id),
+      });
+      // Provenance of the record the decision was taken on: always the registered
+      // row the store holds (TSK-10 retired the caller-supplied branch).
+      sendJson(res, 200, {
+        ...validation,
+        recordProvenance: { source: "REGISTERED_RIGHTS_RECORD", rightsRecordId: registered.id, recordSource: registered.source ?? null, expiryDate: registered.expiryDate.toISOString(), updatedAt: registered.updatedAt.toISOString() },
+      });
       return;
     }
 
     // Broadcast Traffic Commercial Break Validation (T9-05)
     if (pathname === "/api/v1/broadcast/traffic/breaks/validate" && method === "POST") {
       const body = await parseJsonBody(req, pathname);
-      const brk = body.commercialBreak || body;
-      const validation = validateCommercialBreak(brk);
+      // AUD-12: break reconstructed with narrowed fields; the traffic validator
+      // still performs the authoritative category-clash checks.
+      const brk = jsonObjectField(body.commercialBreak ?? body);
+      const validation = validateCommercialBreak({
+        id: jsonTextField(brk.id),
+        channelId: jsonTextField(brk.channelId),
+        scheduledTime: new Date(jsonTextField(brk.scheduledTime) || Date.now()),
+        maxDurationSeconds: jsonNumberField(brk.maxDurationSeconds, 0),
+        spots: jsonArrayField(brk.spots).map((raw) => {
+          const sp = jsonObjectField(raw);
+          return {
+            id: jsonTextField(sp.id),
+            campaignId: jsonTextField(sp.campaignId),
+            clientName: jsonTextField(sp.clientName),
+            category: jsonEnumField(sp.category, ["BANKING_FINTECH", "TELECOMMUNICATIONS", "FMCG_FOOD", "BEVERAGE_ALCOHOLIC", "BEVERAGE_NON_ALCOHOLIC", "BETTING_GAMING", "AUTOMOTIVE", "PUBLIC_SERVICE"] as const, "PUBLIC_SERVICE"),
+            title: jsonTextField(sp.title),
+            durationSeconds: jsonNumberField(sp.durationSeconds, 0),
+            rateAmount: jsonNumberField(sp.rateAmount, 0),
+          };
+        }),
+      });
       sendJson(res, 200, validation);
       return;
     }
@@ -5151,7 +6162,21 @@ ${publicRoutes
 
     if (pathname === "/api/v1/broadcast/playout/filler" && method === "POST") {
       const body = await parseJsonBody(req, pathname);
-      const items = insertEmergencyFiller(body.items || [], body.targetDurationSeconds);
+      const items = insertEmergencyFiller(
+        jsonArrayField(body.items).map((raw) => {
+          const it = jsonObjectField(raw);
+          return {
+            id: jsonTextField(it.id),
+            itemType: jsonEnumField(it.itemType, ["PROGRAMME", "COMMERCIAL_SPOT", "STATION_PROMO", "STATION_IDENT", "EMERGENCY_FILLER"] as const, "PROGRAMME"),
+            title: jsonTextField(it.title),
+            assetUrl: jsonTextField(it.assetUrl),
+            durationSeconds: jsonNumberField(it.durationSeconds, 0),
+            expectedStartTime: new Date(jsonTextField(it.expectedStartTime) || Date.now()),
+            isFiller: it.isFiller === true,
+          };
+        }),
+        jsonNumberField(body.targetDurationSeconds, 86400)
+      );
       sendJson(res, 200, { items, count: items.length });
       return;
     }
@@ -5162,11 +6187,11 @@ ${publicRoutes
       if (context.sponsorshipEngine) {
         try {
           const result = context.sponsorshipEngine.logImpression({
-            entitlementId: body.entitlementId || "ENT-001",
-            asRunLogId: body.asRunLogId || "LOG-001",
-            impressionType: body.impressionType || "BILLBOARD",
-            durationSeconds: body.durationSeconds || 10,
-            loggedAt: new Date(body.loggedAt || Date.now()),
+            entitlementId: jsonTextField(body.entitlementId) || "ENT-001",
+            asRunLogId: jsonTextField(body.asRunLogId) || "LOG-001",
+            impressionType: jsonEnumField(body.impressionType, ["BILLBOARD", "LOWER_THIRD", "SEGMENT_SPONSOR", "GRAPHIC_BUG"] as const, "BILLBOARD"),
+            durationSeconds: jsonNumberField(body.durationSeconds, 10),
+            loggedAt: new Date(jsonTextField(body.loggedAt) || Date.now()),
           });
           sendJson(res, 200, { success: true, result });
         } catch (err: any) {
@@ -5195,14 +6220,12 @@ ${publicRoutes
       return;
     }
 
-    // Broadcast Carriage Monitoring (StarTimes DTT/DTH) (T9-05)
+    // Carriage status is unavailable until connected to an approved source.
     if (pathname === "/api/v1/broadcast/carriage/status" && method === "GET") {
-      sendJson(res, 200, {
-        platforms: [
-          { platform: "StarTimes DTT", channelNumber: 428, status: "TRANSMITTING" },
-          { platform: "StarTimes DTH", channelNumber: 312, status: "TRANSMITTING" },
-        ],
-        timestamp: new Date().toISOString(),
+      sendJson(res, 503, {
+        status: "UNAVAILABLE",
+        code: "CARRIAGE_STATUS_SOURCE_UNAVAILABLE",
+        message: "No verified carriage monitoring source is connected.",
       });
       return;
     }
@@ -5210,12 +6233,12 @@ ${publicRoutes
     if (pathname === "/api/v1/broadcast/carriage/incidents" && method === "POST") {
       const body = await parseJsonBody(req, pathname);
       const incident = recordTransmissionOutage(
-        body.channelCode || "NXTR",
-        body.platform || "STARTIMES_DTT",
-        new Date(body.startedAt || Date.now() - 60000),
-        new Date(body.resolvedAt || Date.now()),
-        body.rootCause || "Signal loss",
-        body.affectedSpots || 0
+        jsonTextField(body.channelCode) || "NXTR",
+        jsonEnumField(body.platform, ["STARTIMES_DTT", "STARTIMES_DTH", "PLAYOUT_SERVER"] as const, "STARTIMES_DTT"),
+        new Date(jsonTextField(body.startedAt) || Date.now() - 60000),
+        new Date(jsonTextField(body.resolvedAt) || Date.now()),
+        jsonTextField(body.rootCause) || "Signal loss",
+        jsonNumberField(body.affectedSpots, 0)
       );
       sendJson(res, 201, { incident });
       return;
@@ -5226,13 +6249,21 @@ ${publicRoutes
       const body = await parseJsonBody(req, pathname);
       if (context.billingEngine) {
         const schedule = context.billingEngine.createBillingSchedule({
-          campaignCode: body.campaignCode || `CMP-${Date.now()}`,
-          clientName: body.clientName || "Client",
-          brand: body.brand || "Brand",
-          channelCode: body.channelCode || "NXTR",
-          spots: body.spots || [{ daypart: "PRIME_TIME", durationSeconds: 30 }],
-          startDate: new Date(body.startDate || Date.now()),
-          endDate: new Date(body.endDate || Date.now() + 86400000),
+          campaignCode: jsonTextField(body.campaignCode) || `CMP-${Date.now()}`,
+          clientName: jsonTextField(body.clientName) || "Client",
+          brand: jsonTextField(body.brand) || "Brand",
+          channelCode: jsonTextField(body.channelCode) || "NXTR",
+          spots: jsonArrayField(body.spots).length
+            ? jsonArrayField(body.spots).map((raw) => {
+                const sp = jsonObjectField(raw);
+                return {
+                  daypart: jsonEnumField(sp.daypart, ["EARLY_MORNING", "DAYTIME", "EARLY_FRINGE", "PRIME_TIME", "LATE_NIGHT"] as const, "PRIME_TIME"),
+                  durationSeconds: jsonNumberField(sp.durationSeconds, 30),
+                };
+              })
+            : [{ daypart: "PRIME_TIME", durationSeconds: 30 }],
+          startDate: new Date(jsonTextField(body.startDate) || Date.now()),
+          endDate: new Date(jsonTextField(body.endDate) || Date.now() + 86400000),
         });
         sendJson(res, 200, { schedule });
       } else {
@@ -5244,14 +6275,38 @@ ${publicRoutes
     // Broadcast Export Engine (SMPTE-2067 & BXF) (T9-05)
     if (pathname === "/api/v1/broadcast/export/smpte" && method === "POST") {
       const body = await parseJsonBody(req, pathname);
-      const xml = PlayoutExportEngine.toSmpte2067Xml(body.channelCode || "NXTR", body.scheduleDate || "2026-05-01", body.items || []);
+      const exportItems = jsonArrayField(body.items).map((raw) => {
+        const it = jsonObjectField(raw);
+        return {
+          id: jsonTextField(it.id),
+          itemType: jsonEnumField(it.itemType, ["PROGRAMME", "COMMERCIAL_SPOT", "STATION_PROMO", "STATION_IDENT", "EMERGENCY_FILLER"] as const, "PROGRAMME"),
+          title: jsonTextField(it.title),
+          assetUrl: jsonTextField(it.assetUrl),
+          durationSeconds: jsonNumberField(it.durationSeconds, 0),
+          expectedStartTime: new Date(jsonTextField(it.expectedStartTime) || Date.now()),
+          isFiller: it.isFiller === true,
+        };
+      });
+      const xml = PlayoutExportEngine.toSmpte2067Xml(jsonTextField(body.channelCode) || "NXTR", jsonTextField(body.scheduleDate) || "2026-05-01", exportItems);
       sendText(res, 200, xml, "application/xml; charset=utf-8");
       return;
     }
 
     if (pathname === "/api/v1/broadcast/export/bxf" && method === "POST") {
       const body = await parseJsonBody(req, pathname);
-      const bxf = PlayoutExportEngine.toBxfXml(body.channelCode || "NXTR", body.scheduleDate || "2026-05-01", body.items || []);
+      const bxfItems = jsonArrayField(body.items).map((raw) => {
+        const it = jsonObjectField(raw);
+        return {
+          id: jsonTextField(it.id),
+          itemType: jsonEnumField(it.itemType, ["PROGRAMME", "COMMERCIAL_SPOT", "STATION_PROMO", "STATION_IDENT", "EMERGENCY_FILLER"] as const, "PROGRAMME"),
+          title: jsonTextField(it.title),
+          assetUrl: jsonTextField(it.assetUrl),
+          durationSeconds: jsonNumberField(it.durationSeconds, 0),
+          expectedStartTime: new Date(jsonTextField(it.expectedStartTime) || Date.now()),
+          isFiller: it.isFiller === true,
+        };
+      });
+      const bxf = PlayoutExportEngine.toBxfXml(jsonTextField(body.channelCode) || "NXTR", jsonTextField(body.scheduleDate) || "2026-05-01", bxfItems);
       sendText(res, 200, bxf, "application/xml; charset=utf-8");
       return;
     }
@@ -5260,7 +6315,7 @@ ${publicRoutes
     if (pathname === "/api/v1/hub/inquiries" && method === "POST") {
       try {
         const contentType = req.headers["content-type"] || "";
-        let body: any;
+        let body: Record<string, unknown>;
         if (contentType.includes("application/json")) {
           body = await parseJsonBody(req, pathname);
         } else {
@@ -5269,29 +6324,28 @@ ${publicRoutes
           body = Object.fromEntries(params.entries());
         }
 
-        const vertical = (body.vertical || "TALENT_ACCELERATOR") as HubVertical;
-        const fullName = body.fullName || "Anonymous Creator";
-        const email = body.email;
-        const phone = body.phone;
-        const organisationName = body.organisationName;
-        const message = body.message;
+        const vertical = (jsonTextField(body.vertical) || "TALENT_ACCELERATOR") as HubVertical;
+        const fullName = jsonTextField(body.fullName) || "Anonymous Creator";
+        const email = jsonTextField(body.email);
+        const phone = jsonTextField(body.phone);
+        const organisationName = jsonTextField(body.organisationName);
+        const message = jsonTextField(body.message);
 
-        // AUD-26: NDPR consent is a server-enforced precondition, not a
-        // client-side courtesy. The checkbox value arrives as "on" (form
-        // encoding) or true (JSON); any other value fails the request.
+        // Submission acknowledgement is required at the server boundary. The
+        // value arrives as "on" (form encoding) or true (JSON).
         const consentGiven = body.ndprConsent === "on" || body.ndprConsent === true || body.ndprConsent === "true";
         if (!consentGiven) {
           sendJson(res, 400, {
             error: "Bad Request",
-            message: "NDPR data-processing consent is required before an inquiry can be recorded",
-            code: "NDPR_CONSENT_REQUIRED",
+            message: "Submission acknowledgement is required before an inquiry can be recorded",
+            code: "SUBMISSION_ACKNOWLEDGEMENT_REQUIRED",
           });
           return;
         }
 
         // Public inquiry capture is unauthenticated by design; keep it from
         // becoming an unthrottled spam vector.
-        const inquiryRate = checkRateLimit(`inquiry:${clientIp}`, 5, 60 * 60_000);
+        const inquiryRate = await checkSharedRateLimit(`inquiry:${clientIp}`, 5, 60 * 60_000);
         if (!inquiryRate.allowed) {
           sendJson(res, 429, {
             error: "Too Many Requests",
@@ -5317,18 +6371,18 @@ ${publicRoutes
           const confirmationHtml = renderMasterLayout(
             "Inquiry Submitted — VMNL Creative Hub",
             `
-            <section style="max-width: 640px; margin: 40px auto; text-align: center;" class="card">
-              <div style="color: var(--vmn-color-success-text); margin-bottom: 16px;">
+ <section class="s-NpaiBgA8Dx card">
+ <div class="s-kZvLN-QiX0">
                 ${renderIcon("check", { size: 56 })}
               </div>
-              <h1 style="font-size: 2rem; font-weight: 800; color: var(--vmn-primary); margin-bottom: 8px;">
+ <h1 class="s-cOV6VcvPBy">
                 Inquiry Received
               </h1>
-              <p style="font-size: 1.1rem; color: var(--vmn-text-muted); margin-bottom: 16px;">
+ <p class="s-O3206_RXSG">
                 ${inquiry.acknowledgmentMessage}
               </p>
-              <div style="background: var(--vmn-surface-alt); padding: 12px; border-radius: 6px; font-family: monospace; font-size: 0.9rem; margin-bottom: 24px;">
-                Tracking Reference: <strong>${inquiry.id}</strong>
+ <div class="s-Ml473Qh3zh">
+                Environment-local Reference (not durable): <strong>${inquiry.id}</strong>
               </div>
               <a href="/hub" class="btn btn-primary">&larr; Return to Creative Hub</a>
             </section>
@@ -5349,16 +6403,16 @@ ${publicRoutes
 
       const body = await parseJsonBody(req, pathname);
       const talent = context.talentRegistry.registerTalent({
-        id: body.id || `tal-${Date.now()}`,
-        personId: body.personId || `per-${Date.now()}`,
-        fullName: body.fullName || body.name || "Anonymous Creator",
-        stageName: body.stageName,
-        primaryCategory: body.primaryCategory || body.category || "ACTING",
-        secondaryCategories: body.secondaryCategories,
-        locationCity: body.locationCity || body.hubLocation || "Lagos",
-        locationState: body.locationState || "Lagos State",
-        partnerHubId: body.partnerHubId,
-        dayRateNgn: body.dayRateNgn,
+        id: jsonTextField(body.id) || `tal-${Date.now()}`,
+        personId: jsonTextField(body.personId) || `per-${Date.now()}`,
+        fullName: jsonTextField(body.fullName) || jsonTextField(body.name) || "Anonymous Creator",
+        stageName: jsonTextField(body.stageName) || undefined,
+        primaryCategory: jsonEnumField(body.primaryCategory, TALENT_SKILL_CATEGORIES, "ACTING") || jsonEnumField(body.category, TALENT_SKILL_CATEGORIES, "ACTING"),
+        secondaryCategories: jsonArrayField(body.secondaryCategories).map((c) => jsonEnumField(c, TALENT_SKILL_CATEGORIES, "ACTING")),
+        locationCity: jsonTextField(body.locationCity) || jsonTextField(body.hubLocation) || "Lagos",
+        locationState: jsonTextField(body.locationState) || "Lagos State",
+        partnerHubId: jsonTextField(body.partnerHubId) || undefined,
+        dayRateNgn: typeof body.dayRateNgn === "number" && Number.isFinite(body.dayRateNgn) ? body.dayRateNgn : undefined,
       });
 
       // Database repository write path with resilient fallback (T-11, T-12)
@@ -5416,7 +6470,7 @@ ${publicRoutes
       if (!user) return;
 
       const body = await parseJsonBody(req, pathname);
-      const cert = context.afcaService.issueCertificate(body.cohortId, body.studentId);
+      const cert = context.afcaService.issueCertificate(jsonTextField(body.cohortId), jsonTextField(body.studentId));
 
       recordAuditLog({
         userId: user.userId,
@@ -5439,9 +6493,16 @@ ${publicRoutes
       const body = await parseJsonBody(req, pathname);
       try {
         const submission = context.afcaService.gradeProjectSubmission(
-          body.submissionId,
+          jsonTextField(body.submissionId),
           user.userId,
-          body.scores || []
+          jsonArrayField(body.scores).map((raw) => {
+            const sc = jsonObjectField(raw);
+            return {
+              criterionId: jsonTextField(sc.criterionId),
+              score: jsonNumberField(sc.score, 0),
+              feedback: jsonTextField(sc.feedback) || undefined,
+            };
+          })
         );
         sendJson(res, 200, { submission, message: "Submission graded successfully" });
       } catch (err: any) {
@@ -5456,9 +6517,9 @@ ${publicRoutes
 
       const body = await parseJsonBody(req, pathname);
       const result = context.eventsEngine.scanGateTicket({
-        ticketNumber: body.ticketNumber,
-        eventId: body.eventId,
-        gateStaffId: body.gateStaffId || "STAFF-01",
+        ticketNumber: jsonTextField(body.ticketNumber),
+        eventId: jsonTextField(body.eventId),
+        gateStaffId: jsonTextField(body.gateStaffId) || "STAFF-01",
       });
       sendJson(res, result.valid ? 200 : 400, result);
       return;
@@ -5466,7 +6527,19 @@ ${publicRoutes
 
     if (pathname === "/api/v1/hub/vtm/match" && method === "POST") {
       const body = await parseJsonBody(req, pathname);
-      const matches = context.vtmEngine.matchTalent(body.briefId, body.candidates || []);
+      const matches = context.vtmEngine.matchTalent(
+        jsonTextField(body.briefId),
+        jsonArrayField(body.candidates).map((raw) => {
+          const c = jsonObjectField(raw);
+          return {
+            id: jsonTextField(c.id),
+            primaryCategory: jsonEnumField(c.primaryCategory, TALENT_SKILL_CATEGORIES, "ACTING"),
+            secondaryCategories: jsonArrayField(c.secondaryCategories).map((s) => jsonEnumField(s, TALENT_SKILL_CATEGORIES, "ACTING")),
+            tier: jsonEnumField(c.tier, ["EMERGING", "VERIFIED", "PROFESSIONAL", "MASTER"] as const, "EMERGING"),
+            locationCity: jsonTextField(c.locationCity) || "Lagos",
+          };
+        })
+      );
       sendJson(res, 200, { matches, count: matches.length });
       return;
     }
@@ -5475,7 +6548,19 @@ ${publicRoutes
     if (pathname === "/api/v1/hub/vcf/pitches" && method === "POST") {
       const body = await parseJsonBody(req, pathname);
       if (context.vcfEngine) {
-        const pitch = context.vcfEngine.submitPitch(body);
+        // AUD-12: pitch reconstructed with narrowed fields; status/submittedAt
+        // are assigned by the domain.
+        const pitch = context.vcfEngine.submitPitch({
+          id: jsonTextField(body.id) || `pitch-${Date.now()}`,
+          creatorId: jsonTextField(body.creatorId),
+          title: jsonTextField(body.title),
+          logline: jsonTextField(body.logline),
+          synopsis: jsonTextField(body.synopsis),
+          format: jsonEnumField(body.format, ["FEATURE_FILM", "EPISODIC_SERIES", "DOCUMENTARY", "CREATOR_SHORT", "FORMAT_REALITY"] as const, "DOCUMENTARY"),
+          targetAudience: jsonTextField(body.targetAudience),
+          budgetEstimateNgn: jsonNumberField(body.budgetEstimateNgn, 0),
+          treatmentDeckUrl: jsonTextField(body.treatmentDeckUrl),
+        });
         sendJson(res, 201, { pitch });
       } else {
         sendJson(res, 201, { pitch: body });
@@ -5497,7 +6582,10 @@ ${publicRoutes
       const body = await parseJsonBody(req, pathname);
       if (context.vcfEngine) {
         try {
-          const waterfall = context.vcfEngine.calculateWaterfall(body.projectId || "PRJ-001", body.grossRevenueNgn || body.grossReceiptsNgn || 0);
+          const waterfall = context.vcfEngine.calculateWaterfall(
+            jsonTextField(body.projectId) || "PRJ-001",
+            jsonNumberField(body.grossRevenueNgn, jsonNumberField(body.grossReceiptsNgn, 0))
+          );
           sendJson(res, 200, { waterfall });
         } catch {
           sendJson(res, 200, { waterfall: null });
@@ -5513,13 +6601,13 @@ ${publicRoutes
       const body = await parseJsonBody(req, pathname);
       if (context.oneStudios) {
         const booking = context.oneStudios.createBooking({
-          id: body.id || `bkg-${Date.now()}`,
-          productionName: body.productionName || "Production",
-          producerId: body.producerId || "PROD-01",
-          assetIds: body.assetIds || ["AST-STG-A"],
-          startDate: new Date(body.startDate || Date.now()),
-          endDate: new Date(body.endDate || Date.now() + 86400000),
-          securityDepositNgn: body.securityDepositNgn || 50000,
+          id: jsonTextField(body.id) || `bkg-${Date.now()}`,
+          productionName: jsonTextField(body.productionName) || "Production",
+          producerId: jsonTextField(body.producerId) || "PROD-01",
+          assetIds: jsonArrayField(body.assetIds).length ? jsonArrayField(body.assetIds).map(String) : ["AST-STG-A"],
+          startDate: new Date(jsonTextField(body.startDate) || Date.now()),
+          endDate: new Date(jsonTextField(body.endDate) || Date.now() + 86400000),
+          securityDepositNgn: jsonNumberField(body.securityDepositNgn, 50000),
         });
         sendJson(res, 201, { booking });
       } else {
@@ -5541,7 +6629,34 @@ ${publicRoutes
     if (pathname === "/api/v1/hub/onestudios/callsheets" && method === "POST") {
       const body = await parseJsonBody(req, pathname);
       if (context.oneStudios) {
-        const callSheet = context.oneStudios.publishCallSheet(body);
+        // AUD-12: call sheet reconstructed with narrowed fields.
+        const callSheet = context.oneStudios.publishCallSheet({
+          id: jsonTextField(body.id) || `sheet-${Date.now()}`,
+          productionName: jsonTextField(body.productionName) || "Production",
+          shootDate: new Date(jsonTextField(body.shootDate) || Date.now()),
+          generalCallTime: jsonTextField(body.generalCallTime) || "06:30",
+          location: jsonTextField(body.location) || "VMNL Studios, Lagos",
+          weatherForecast: jsonTextField(body.weatherForecast) || undefined,
+          keyCast: jsonArrayField(body.keyCast).map((raw) => {
+            const c = jsonObjectField(raw);
+            return { character: jsonTextField(c.character), actorName: jsonTextField(c.actorName), callTime: jsonTextField(c.callTime) };
+          }),
+          keyCrew: jsonArrayField(body.keyCrew).map((raw) => {
+            const c = jsonObjectField(raw);
+            return { department: jsonTextField(c.department), name: jsonTextField(c.name), callTime: jsonTextField(c.callTime) };
+          }),
+          scenesToShoot: jsonArrayField(body.scenesToShoot).map((raw) => {
+            const s = jsonObjectField(raw);
+            return {
+              sceneNumber: jsonTextField(s.sceneNumber),
+              dayNight: jsonEnumField(s.dayNight, ["DAY", "NIGHT"] as const, "DAY"),
+              description: jsonTextField(s.description),
+            };
+          }),
+          nearestHospital: jsonTextField(body.nearestHospital),
+          safetyNotes: jsonTextField(body.safetyNotes) || undefined,
+          publishedAt: new Date(),
+        });
         sendJson(res, 201, { callSheet });
       } else {
         sendJson(res, 201, { callSheet: body });
@@ -5554,11 +6669,11 @@ ${publicRoutes
       const body = await parseJsonBody(req, pathname);
       if (context.tendEngine) {
         const results = context.tendEngine.checkAvails({
-          titleId: body.titleId || "TIT-001",
-          territory: body.territory || "NG",
-          medium: body.medium || "FREE_TV",
-          startDate: new Date(body.startDate || Date.now()),
-          endDate: new Date(body.endDate || Date.now() + 86400000),
+          titleId: jsonTextField(body.titleId) || "TIT-001",
+          territory: jsonEnumField(body.territory, ["NG", "GH", "WEST_AFRICA", "PAN_AFRICA", "UK_DIASPORA", "NORTH_AMERICA", "GLOBAL"] as const, "NG"),
+          medium: jsonEnumField(body.medium, ["FREE_TV", "PAY_TV", "SVOD", "AVOD", "AIRLINE_INFLIGHT", "THEATRICAL"] as const, "FREE_TV"),
+          startDate: new Date(jsonTextField(body.startDate) || Date.now()),
+          endDate: new Date(jsonTextField(body.endDate) || Date.now() + 86400000),
         });
         sendJson(res, 200, { avails: results });
       } else {
@@ -5571,16 +6686,16 @@ ${publicRoutes
       const body = await parseJsonBody(req, pathname);
       if (context.tendEngine) {
         const license = context.tendEngine.createLicense({
-          id: body.id || `lic-${Date.now()}`,
-          titleId: body.titleId || "TIT-001",
-          licenseeOrgId: body.licenseeOrgId || "ORG-01",
-          licenseeName: body.licenseeName || "Licensee",
-          territory: body.territory || "NG",
-          medium: body.medium || "FREE_TV",
-          isExclusive: !!body.isExclusive,
-          startDate: new Date(body.startDate || Date.now()),
-          endDate: new Date(body.endDate || Date.now() + 86400000),
-          licenseFeeUsd: body.licenseFeeUsd || 1000,
+          id: jsonTextField(body.id) || `lic-${Date.now()}`,
+          titleId: jsonTextField(body.titleId) || "TIT-001",
+          licenseeOrgId: jsonTextField(body.licenseeOrgId) || "ORG-01",
+          licenseeName: jsonTextField(body.licenseeName) || "Licensee",
+          territory: jsonEnumField(body.territory, ["NG", "GH", "WEST_AFRICA", "PAN_AFRICA", "UK_DIASPORA", "NORTH_AMERICA", "GLOBAL"] as const, "NG"),
+          medium: jsonEnumField(body.medium, ["FREE_TV", "PAY_TV", "SVOD", "AVOD", "AIRLINE_INFLIGHT", "THEATRICAL"] as const, "FREE_TV"),
+          isExclusive: body.isExclusive === true,
+          startDate: new Date(jsonTextField(body.startDate) || Date.now()),
+          endDate: new Date(jsonTextField(body.endDate) || Date.now() + 86400000),
+          licenseFeeUsd: jsonNumberField(body.licenseFeeUsd, 1000),
         });
         sendJson(res, 201, { license });
       } else {
@@ -5603,7 +6718,19 @@ ${publicRoutes
     if (pathname === "/api/v1/hub/community/members" && method === "POST") {
       const body = await parseJsonBody(req, pathname);
       if (context.communityHub) {
-        const member = context.communityHub.registerMember(body);
+        // AUD-12: member reconstructed with narrowed fields (tier/status
+        // whitelisted; dates default to a one-year membership window).
+        const member = context.communityHub.registerMember({
+          id: jsonTextField(body.id) || `mem-${Date.now()}`,
+          personId: jsonTextField(body.personId),
+          fullName: jsonTextField(body.fullName),
+          email: jsonTextField(body.email),
+          tier: jsonEnumField(body.tier, ["COMMUNITY", "STUDENT", "CREATOR", "RESIDENT", "ENTERPRISE"] as const, "COMMUNITY"),
+          status: jsonEnumField(body.status, ["ACTIVE", "EXPIRED", "SUSPENDED"] as const, "ACTIVE"),
+          joinedAt: new Date(jsonTextField(body.joinedAt) || Date.now()),
+          expiresAt: new Date(jsonTextField(body.expiresAt) || Date.now() + 365 * 86400000),
+          guilds: jsonArrayField(body.guilds).map(String),
+        });
         sendJson(res, 201, { member });
       } else {
         sendJson(res, 201, { member: body });
@@ -5614,7 +6741,14 @@ ${publicRoutes
     if (pathname === "/api/v1/hub/community/bookings" && method === "POST") {
       const body = await parseJsonBody(req, pathname);
       if (context.communityHub) {
-        const booking = context.communityHub.bookResource(body);
+        const booking = context.communityHub.bookResource({
+          id: jsonTextField(body.id) || `bk-${Date.now()}`,
+          resourceId: jsonTextField(body.resourceId),
+          memberId: jsonTextField(body.memberId),
+          startTime: new Date(jsonTextField(body.startTime) || Date.now()),
+          endTime: new Date(jsonTextField(body.endTime) || Date.now() + 3600000),
+          notes: jsonTextField(body.notes) || undefined,
+        });
         sendJson(res, 201, { booking });
       } else {
         sendJson(res, 201, { booking: body });
@@ -5635,7 +6769,18 @@ ${publicRoutes
     // 5. Intelligence, Knowledge & Agentic OS
     if ((pathname === "/api/v1/intelligence/headspace/search" || pathname === "/api/v1/intelligence/headspace/query") && method === "POST") {
       const body = await parseJsonBody(req, pathname);
-      const results = context.headspace.search(body.query || "", body.userLevel || "INTERNAL", body.filterCategory);
+      // AUD-12: confidentiality whitelisted — an unrecognised level must not
+      // widen document visibility, so it falls back to the most-restricted
+      // tier. An absent category stays undefined (no filter); an invalid one
+      // narrows to a single category rather than widening the query.
+      const rawFilterCategory = jsonTextField(body.filterCategory) || undefined;
+      const results = context.headspace.search(
+        jsonTextField(body.query),
+        jsonEnumField(body.userLevel, ["PUBLIC", "INTERNAL", "RESTRICTED_LEGAL", "EXECUTIVE_ONLY"] as const, "EXECUTIVE_ONLY"),
+        rawFilterCategory === undefined
+          ? undefined
+          : jsonEnumField(rawFilterCategory, ["IP_BIBLE", "SCRIPT_TREATMENT", "LEGAL_TEMPLATE", "RATE_BENCHMARK", "MARKET_INTELLIGENCE", "REGULATORY_CODE"] as const, "MARKET_INTELLIGENCE")
+      );
       sendJson(res, 200, { results, count: results.length });
       return;
     }
@@ -5643,11 +6788,18 @@ ${publicRoutes
     if (pathname === "/api/v1/intelligence/cr8tech/subtitle" && method === "POST") {
       const body = await parseJsonBody(req, pathname);
       const track = context.cr8tech.generateSubtitles({
-        id: body.id || `sub-${Date.now()}`,
-        assetId: body.assetId || "asset-001",
-        language: body.language || "EN",
-        format: body.format || "WEBVTT",
-        cues: body.cues || [],
+        id: jsonTextField(body.id) || `sub-${Date.now()}`,
+        assetId: jsonTextField(body.assetId) || "asset-001",
+        language: jsonEnumField(body.language, ["EN", "YOR", "IGB", "HAU", "PCM"] as const, "EN"),
+        format: jsonEnumField(body.format, ["SRT", "WEBVTT"] as const, "WEBVTT"),
+        cues: jsonArrayField(body.cues).map((raw) => {
+          const cue = jsonObjectField(raw);
+          return {
+            startTimeSec: jsonNumberField(cue.startTimeSec, 0),
+            endTimeSec: jsonNumberField(cue.endTimeSec, 0),
+            text: jsonTextField(cue.text),
+          };
+        }),
       });
       sendText(res, 200, track.renderedContent, "text/vtt; charset=utf-8");
       return;
@@ -5660,12 +6812,12 @@ ${publicRoutes
       const body = await parseJsonBody(req, pathname);
       try {
         const proposal = context.aos.submitProposal({
-          id: body.id || `prop-${Date.now()}`,
-          agentId: body.agentId,
-          criticality: body.criticality || "MEDIUM_DRAFT",
-          targetDomain: body.targetDomain || "BROADCAST",
-          proposedAction: body.proposedAction || "OPTIMIZE_SCHEDULE",
-          payload: body.payload || {},
+          id: jsonTextField(body.id) || `prop-${Date.now()}`,
+          agentId: jsonTextField(body.agentId),
+          criticality: jsonEnumField(body.criticality, ["LOW_INFORMATIONAL", "MEDIUM_DRAFT", "HIGH_SCHEDULE", "CRITICAL_FINANCIAL"] as const, "MEDIUM_DRAFT"),
+          targetDomain: jsonEnumField(body.targetDomain, ["TALENT", "PRODUCTION", "BROADCAST", "FINANCE"] as const, "BROADCAST"),
+          proposedAction: jsonTextField(body.proposedAction) || "OPTIMIZE_SCHEDULE",
+          payload: jsonObjectField(body.payload),
         });
 
         recordAuditLog({
@@ -5693,20 +6845,21 @@ ${publicRoutes
       if (!user) return;
 
       const body = await parseJsonBody(req, pathname);
-      if (body.agentId) {
-        context.aos.engageAgentKillSwitch(body.agentId);
+      const killSwitchAgentId = jsonTextField(body.agentId);
+      if (killSwitchAgentId) {
+        context.aos.engageAgentKillSwitch(killSwitchAgentId);
         recordAuditLog({
           userId: user.userId,
           action: "aos.killswitch.agent",
           resource: "agent",
-          resourceId: body.agentId,
-          changes: { reason: body.reason || "Emergency agent containment" },
+          resourceId: killSwitchAgentId,
+          changes: { reason: jsonTextField(body.reason) || "Emergency agent containment" },
           ipAddress: clientIp,
           userAgent: req.headers["user-agent"] || null,
         });
-        sendJson(res, 200, { success: true, message: `Killswitch engaged for agent ${body.agentId}` });
+        sendJson(res, 200, { success: true, message: `Killswitch engaged for agent ${killSwitchAgentId}` });
       } else {
-        context.aos.engageGlobalKillSwitch(body.reason || "Emergency platform containment");
+        context.aos.engageGlobalKillSwitch(jsonTextField(body.reason) || "Emergency platform containment");
         recordAuditLog({
           userId: user.userId,
           action: "aos.killswitch.global",
@@ -5723,15 +6876,14 @@ ${publicRoutes
 
     // 6. Azeebo+ Federation
     if (pathname === "/api/v1/federation/azeebo/webhook" && method === "POST") {
-      // TODO-SEC-09: inbound ingestion is now HMAC-verified per
-      // AZEEBO_WEBHOOK_SECRET (timestamp-bound to block replay). Production
-      // enablement remains behind the operator opt-in flag pending the
-      // partner contract sign-off (recorded human decision).
-      if (process.env.NODE_ENV === "production" && process.env.AZEEBO_WEBHOOK_INGESTION_ENABLED !== "true") {
+      // AUD-03: the locally implemented HMAC format is not an approved Azeebo+
+      // partner contract. Keep production ingestion disabled even if a local
+      // operator flag is set; only verified staging/test contracts may proceed.
+      if (process.env.NODE_ENV === "production" || process.env.NODE_ENV === "staging") {
         sendJson(res, 501, {
           error: "Not Implemented",
           message:
-            "Azeebo+ inbound ingestion is disabled in production; enable AZEEBO_WEBHOOK_INGESTION_ENABLED only after the partner signature contract is confirmed (human decision).",
+            "Azeebo+ inbound ingestion is disabled in production-like environments until the partner signature and replay contract is approved.",
           code: "FEDERATION_INGESTION_NOT_VERIFIED",
         });
         return;
@@ -5773,19 +6925,35 @@ ${publicRoutes
         return;
       }
 
-      let body: any;
+      let body: Record<string, unknown>;
       try {
-        body = JSON.parse(rawBody);
+        const parsedBody: unknown = JSON.parse(rawBody);
+        if (parsedBody === null || typeof parsedBody !== "object" || Array.isArray(parsedBody)) {
+          throw new Error("not an object");
+        }
+        body = parsedBody as Record<string, unknown>;
       } catch {
         sendJson(res, 400, { error: "Bad Request", code: "FEDERATION_PAYLOAD_INVALID", message: "Body must be JSON." });
         return;
       }
 
-      const defaultEndpoint = `${getConfig().AZEEBO_API_BASE_URL.replace(/\/+$/, "")}/webhooks`;
+      // TSK-35: no invented delivery target. The endpoint must either come from
+      // the caller or from an explicitly configured Azeebo+ API base URL.
+      const configuredBase = getConfig().AZEEBO_API_BASE_URL;
+      const targetEndpoint = jsonTextField(body.targetEndpoint);
+      if (!targetEndpoint && !configuredBase) {
+        sendJson(res, 503, {
+          status: "UNAVAILABLE",
+          code: "FED_ENDPOINT_NOT_CONFIGURED",
+          message: "No webhook target supplied and AZEEBO_API_BASE_URL is not configured. No endpoint will be invented.",
+        });
+        return;
+      }
+      const defaultEndpoint = configuredBase ? `${configuredBase.replace(/\/+$/, "")}/webhooks` : targetEndpoint;
       const webhook = context.azeeboBridge.dispatchWebhook(
-        body.eventType || "CONTENT_SYNDICATED",
-        body.targetEndpoint || defaultEndpoint,
-        body.payload || {}
+        jsonTextField(body.eventType) || "CONTENT_SYNDICATED",
+        targetEndpoint || defaultEndpoint,
+        jsonObjectField(body.payload)
       );
       sendJson(res, webhook.status === "DELIVERED" ? 200 : 503, { webhook, authenticated: true });
       return;
@@ -5793,8 +6961,36 @@ ${publicRoutes
 
     if ((pathname === "/api/v1/federation/azeebo/link" || pathname === "/api/v1/federation/azeebo/links") && method === "POST") {
       const body = await parseJsonBody(req, pathname);
-      const link = context.azeeboLinks.createUniversalLink(body);
-      sendJson(res, 201, { link });
+      // AUD-12: deep-link params reconstructed with narrowed fields. channelId
+      // stays undefined unless the caller supplies a valid VMNL channel —
+      // defaulting it would fabricate a carriage fact.
+      const rawChannelId = jsonTextField(body.channelId);
+      const channelId = (rawChannelId === "NXTR" || rawChannelId === "ORIS" || rawChannelId === "IMBD")
+        ? rawChannelId
+        : undefined;
+      // TSK-35: the universal link origin is a partner fact, never a code
+      // default. Unconfigured federation fails closed instead of guessing.
+      if (!context.azeeboLinks.isConfigured()) {
+        sendJson(res, 503, {
+          status: "UNAVAILABLE",
+          code: "FED_ENDPOINT_NOT_CONFIGURED",
+          message: "Azeebo+ universal link origin is not configured (AZEEBO_PLUS_UNIVERSAL_URL). No endpoint will be invented.",
+        });
+        return;
+      }
+      try {
+        const link = context.azeeboLinks.createUniversalLink({
+          universe: jsonEnumField(body.universe, ["VERTICAL", "MOVIES", "LIFESTYLE", "COMEDY", "CREATOR", "REALITY", "GAMES", "SPORTS"] as const, "VERTICAL"),
+          contentId: jsonTextField(body.contentId),
+          channelId,
+          campaignId: jsonTextField(body.campaignId),
+          utmSource: jsonTextField(body.utmSource) || undefined,
+          utmMedium: jsonTextField(body.utmMedium) || undefined,
+        });
+        sendJson(res, 201, { link });
+      } catch (err: any) {
+        sendJson(res, 503, { status: "UNAVAILABLE", code: "FED_LINK_FAILED", message: err?.message });
+      }
       return;
     }
 
@@ -5811,7 +7007,7 @@ ${publicRoutes
       const body = await parseJsonBody(req, pathname);
       try {
         const kase = openCase({
-          id: body.id || `CASE-${Date.now().toString(36).toUpperCase()}`,
+          id: jsonTextField(body.id) || `CASE-${Date.now().toString(36).toUpperCase()}`,
           type: body.type === "SECURITY_REPORT" ? "SECURITY_REPORT" : "PRIVACY_REQUEST",
           subject: String(body.subject || ""),
           detail: String(body.detail || ""),
@@ -5950,8 +7146,11 @@ ${publicRoutes
       return;
     }
 
-    // TODO-SCR-04: verified Azeebo+ destination registry.
+    // TSK-35 / SCR-04: verified Azeebo+ destination registry. Registration is a
+    // candidate assertion; only an explicit verification grants navigation.
     if (pathname === "/api/v1/federation/destinations" && method === "GET") {
+      const user = assertRoutePermission(req, res, "read", "agent");
+      if (!user) return;
       sendJson(res, 200, { status: "SUCCESS", destinations: listDestinations() });
       return;
     }
@@ -5965,7 +7164,7 @@ ${publicRoutes
           id: String(body.id || ""),
           universe: String(body.universe || "azeebo-plus"),
           universalUrl: String(body.universalUrl || ""),
-          verifiedBy: user.email,
+          registeredBy: user.email,
           campaignContextAllowed: body.campaignContextAllowed !== false,
         });
         recordAuditLog({
@@ -5973,7 +7172,7 @@ ${publicRoutes
           action: "federation.destination.registered",
           resource: "agent",
           resourceId: dest.id,
-          changes: { universalUrl: dest.universalUrl },
+          changes: { universalUrl: dest.universalUrl, status: dest.status },
           ipAddress: clientIp,
           userAgent: req.headers["user-agent"] || null,
         });
@@ -5984,15 +7183,38 @@ ${publicRoutes
       return;
     }
 
-    if (pathname.startsWith("/api/v1/federation/destinations/") && pathname.endsWith("/revoke") && method === "POST") {
+    // PRD §41 state transitions: verify / revoke / deprecate / block.
+    const destTransition = (() => {
+      const m = /^\/api\/v1\/federation\/destinations\/([^/]+)\/(verify|revoke|deprecate|block)$/.exec(pathname);
+      return m && method === "POST" ? { id: decodeURIComponent(m[1]), action: m[2] as "verify" | "revoke" | "deprecate" | "block" } : null;
+    })();
+    if (destTransition) {
       const user = assertRoutePermission(req, res, "update", "agent");
       if (!user) return;
-      const destId = pathname.replace("/api/v1/federation/destinations/", "").replace("/revoke", "").trim();
+      const body = await parseJsonBody(req, pathname).catch(() => ({} as Record<string, unknown>));
+      const reason = typeof body.reason === "string" ? body.reason : undefined;
       try {
-        const dest = revokeDestination(destId, user.email);
+        const transitions: Record<"verify" | "revoke" | "deprecate" | "block", typeof revokeDestination> = {
+          verify: verifyDestination,
+          revoke: revokeDestination,
+          deprecate: deprecateDestination,
+          block: blockDestination,
+        };
+        const dest = transitions[destTransition.action](destTransition.id, user.email, reason);
+        recordAuditLog({
+          userId: user.userId,
+          action: `federation.destination.${destTransition.action}`,
+          resource: "agent",
+          resourceId: dest.id,
+          changes: { status: dest.status, reason: reason ?? null },
+          ipAddress: clientIp,
+          userAgent: req.headers["user-agent"] || null,
+        });
         sendJson(res, 200, { status: "SUCCESS", destination: dest });
       } catch (err: any) {
-        sendJson(res, 404, { status: "REJECTED", code: "DEST_NOT_FOUND", message: err?.message });
+        const msg = String(err?.message || "");
+        const code = msg.includes("[DEST-03]") ? "DEST_NOT_FOUND" : "DEST_INVALID_TRANSITION";
+        sendJson(res, code === "DEST_NOT_FOUND" ? 404 : 422, { status: "REJECTED", code, message: msg });
       }
       return;
     }
@@ -6126,7 +7348,7 @@ ${publicRoutes
         return;
       }
       const canSeeAudit = user.roles.some((r) => ["SuperAdmin", "ExecutiveLeader", "Auditor", "FinanceController"].includes(r));
-      const auditEntries = canSeeAudit ? getAuditLogs({ limit: 25 }) : [];
+      const auditEntries = canSeeAudit ? await getAuditLogs({ limit: 25 }) : [];
       // Canonical stores for rights/settlements/evidence are Prisma-backed and
       // not seeded in the sandbox; the projections render honest empty states
       // rather than inventing rows (TODO-SCR-07 acceptance).
@@ -6158,28 +7380,28 @@ ${publicRoutes
       const owned = listCasesForOwner(user.userId, caseType);
       const rows =
         owned.length === 0
-          ? `<tr><td colspan="4" style="padding: 28px 14px; text-align: center; color: var(--vmn-color-secondary-text);">No ${caseType === "PRIVACY_REQUEST" ? "privacy" : "security"} cases are assigned to you. Case contents are restricted to the assigned owner (UIUX-001 §5.6).</td></tr>`
+ ? `<tr><td colspan="4" class="s-ZmQJhOQnpI">No ${caseType === "PRIVACY_REQUEST" ? "privacy" : "security"} cases are assigned to you. Case contents are restricted to the assigned owner (UIUX-001 §5.6).</td></tr>`
           : owned
               .map(
                 (k) => `
-          <tr style="border-bottom: 1px solid var(--vmn-color-border);">
-            <td style="padding: 10px 12px; font-family: monospace; font-weight: 700;">${escapeHtml(k.id)}</td>
-            <td style="padding: 10px 12px; font-weight: 700;">${escapeHtml(k.subject)}</td>
-            <td style="padding: 10px 12px;"><span class="vmn-badge badge-info">${escapeHtml(k.status)}</span></td>
-            <td style="padding: 10px 12px; font-size: 0.8rem; color: var(--vmn-color-secondary-text);">SLA due ${escapeHtml(k.slaDueAt.toISOString().substring(0, 16).replace("T", " "))} UTC</td>
+ <tr class="s-EK6K8Vq5tY">
+ <td class="s-NoopaGnWfT">${escapeHtml(k.id)}</td>
+ <td class="s-Hwfj1V3-5C">${escapeHtml(k.subject)}</td>
+ <td class="s-lr_pOFE4_J"><span class="vmn-badge badge-info">${escapeHtml(k.status)}</span></td>
+ <td class="s-9ySe3jZSaV">SLA due ${escapeHtml(k.slaDueAt.toISOString().substring(0, 16).replace("T", " "))} UTC</td>
           </tr>`
               )
               .join("");
       const html = renderMasterLayout(
         `${caseType === "PRIVACY_REQUEST" ? "Privacy Request" : "Security Report"} Cases | VMNL`,
-        `<div style="max-width: 1000px; margin: 32px auto; padding: 0 16px;">
-          <span class="vmn-badge badge-warning" style="margin-bottom: 8px; font-weight: 700;">RESTRICTED QUEUE &bull; ${caseType === "PRIVACY_REQUEST" ? "UX-GOV-009" : "UX-GOV-010"}</span>
-          <h1 style="font-size: var(--vmn-font-size-2xl); font-weight: 800; margin: 8px 0;">${caseType === "PRIVACY_REQUEST" ? "Privacy Request Cases" : "Security Report Cases"}</h1>
-          <p style="color: var(--vmn-color-secondary-text); margin-bottom: 20px;">Assigned to you only — these cases never appear as ordinary project tasks.</p>
-          <div class="vmn-card" style="border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); overflow: hidden;">
-            <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
-              <thead><tr style="background: var(--vmn-color-background); text-align: left; border-bottom: 2px solid var(--vmn-color-border);">
-                <th style="padding: 12px 14px;">Case</th><th style="padding: 12px 14px;">Subject</th><th style="padding: 12px 14px;">State</th><th style="padding: 12px 14px;">SLA</th>
+ `<div class="s-kdGSc1r9sZ">
+ <span class="vmn-badge badge-warning s-Dnmmv3HPR8" >RESTRICTED QUEUE &bull; ${caseType === "PRIVACY_REQUEST" ? "UX-GOV-009" : "UX-GOV-010"}</span>
+ <h1 class="s-K1Uuth1ZWg">${caseType === "PRIVACY_REQUEST" ? "Privacy Request Cases" : "Security Report Cases"}</h1>
+ <p class="s-UuCt0HPfxs">Assigned to you only — these cases never appear as ordinary project tasks.</p>
+ <div class="vmn-card s-bHj-dI3Drp" >
+ <table class="s-StXB6StjnQ">
+ <thead><tr class="s-ztErekBkR_">
+ <th class="s-O6cnlXePf8">Case</th><th class="s-O6cnlXePf8">Subject</th><th class="s-O6cnlXePf8">State</th><th class="s-O6cnlXePf8">SLA</th>
               </tr></thead>
               <tbody>${rows}</tbody>
             </table>
@@ -6198,21 +7420,24 @@ ${publicRoutes
       if (!user) return;
       const body = await parseJsonBody(req, pathname);
       try {
+        // AUD-12: version + embedded QC report reconstructed with narrowed fields.
+        const versionQc = jsonObjectField(body.qc);
+        const rawCcTrackFormat = jsonTextField(versionQc.ccTrackFormat);
         const version = registerVersion({
-          id: String(body.id || `VER-${Date.now().toString(36).toUpperCase()}`),
-          episodeId: String(body.episodeId || ""),
-          versionType: body.versionType || "MASTER",
-          durationSeconds: Number(body.durationSeconds || 0),
+          id: jsonTextField(body.id) || `VER-${Date.now().toString(36).toUpperCase()}`,
+          episodeId: jsonTextField(body.episodeId),
+          versionType: jsonEnumField(body.versionType, ["MASTER", "CLEAN", "SUBTITLED", "CENSORED"] as const, "MASTER"),
+          durationSeconds: jsonNumberField(body.durationSeconds, 0),
           qc: {
-            videoStandard: body.qc?.videoStandard || "1080i50",
+            videoStandard: jsonEnumField(versionQc.videoStandard, ["1080i50", "720p50"] as const, "1080i50"),
             aspectRatio: "16:9",
-            audioLoudnessLufs: Number(body.qc?.audioLoudnessLufs ?? -23),
-            hasCountdownSlate: body.qc?.hasCountdownSlate !== false,
-            hasBlackGaps: body.qc?.hasBlackGaps === true,
-            hasClosedCaptionTrack: body.qc?.hasClosedCaptionTrack === true,
-            ccTrackFormat: body.qc?.ccTrackFormat,
+            audioLoudnessLufs: jsonNumberField(versionQc.audioLoudnessLufs, -23),
+            hasCountdownSlate: versionQc.hasCountdownSlate !== false,
+            hasBlackGaps: versionQc.hasBlackGaps === true,
+            hasClosedCaptionTrack: versionQc.hasClosedCaptionTrack === true,
+            ccTrackFormat: (rawCcTrackFormat === "WEBVTT" || rawCcTrackFormat === "CEA-608" || rawCcTrackFormat === "OP-42") ? rawCcTrackFormat : undefined,
           },
-          mediaAssetId: body.mediaAssetId ? String(body.mediaAssetId) : undefined,
+          mediaAssetId: jsonTextField(body.mediaAssetId) || undefined,
         });
         sendJson(res, 201, {
           status: "SUCCESS",
@@ -6268,7 +7493,13 @@ ${publicRoutes
       if (!user) return;
 
       const body = await parseJsonBody(req, pathname);
-      const deal = context.salesEngine.createDeal(body);
+      const deal = context.salesEngine.createDeal({
+        id: jsonTextField(body.id) || `deal-${Date.now()}`,
+        clientOrgId: jsonTextField(body.clientOrgId),
+        dealName: jsonTextField(body.dealName),
+        totalContractValueNgn: jsonNumberField(body.totalContractValueNgn, 0),
+        salesLeadId: jsonTextField(body.salesLeadId),
+      });
 
       recordAuditLog({
         userId: user.userId,
@@ -6289,7 +7520,23 @@ ${publicRoutes
       if (!user) return;
 
       const body = await parseJsonBody(req, pathname);
-      const batch = context.payoutEngine.createPayoutBatch(body);
+      const batch = context.payoutEngine.createPayoutBatch({
+        id: jsonTextField(body.id) || `batch-${Date.now()}`,
+        batchReference: jsonTextField(body.batchReference),
+        makerUserId: jsonTextField(body.makerUserId),
+        items: jsonArrayField(body.items).map((raw) => {
+          const it = jsonObjectField(raw);
+          return {
+            beneficiaryId: jsonTextField(it.beneficiaryId),
+            beneficiaryName: jsonTextField(it.beneficiaryName),
+            beneficiaryTaxType: jsonEnumField(it.beneficiaryTaxType, ["INDIVIDUAL", "CORPORATE"] as const, "INDIVIDUAL"),
+            bankName: jsonTextField(it.bankName),
+            accountNumber: jsonTextField(it.accountNumber),
+            grossAmountNgn: jsonNumberField(it.grossAmountNgn, 0),
+            platformFeePercent: typeof it.platformFeePercent === "number" && Number.isFinite(it.platformFeePercent) ? it.platformFeePercent : undefined,
+          };
+        }),
+      });
 
       recordAuditLog({
         userId: user.userId,
@@ -6310,15 +7557,37 @@ ${publicRoutes
       if (!user) return;
 
       const body = await parseJsonBody(req, pathname);
-      context.bankRecon.ingestBankTransactions(body.transactions || []);
-      const results = context.bankRecon.reconcileAgainstInvoices(body.invoices || []);
+      const transactions = jsonArrayField(body.transactions).map((raw) => {
+        const t = jsonObjectField(raw);
+        return {
+          id: jsonTextField(t.id),
+          source: jsonEnumField(t.source, ["NIBSS_NIP", "PAYSTACK", "FLUTTERWAVE", "MANUAL_BANK_TRANSFER"] as const, "MANUAL_BANK_TRANSFER"),
+          transactionReference: jsonTextField(t.transactionReference),
+          bankNarration: jsonTextField(t.bankNarration),
+          amountNgn: jsonNumberField(t.amountNgn, 0),
+          valueDate: new Date(jsonTextField(t.valueDate) || Date.now()),
+          senderName: jsonTextField(t.senderName) || undefined,
+          senderAccount: jsonTextField(t.senderAccount) || undefined,
+        };
+      });
+      const invoiceTargets = jsonArrayField(body.invoices).map((raw) => {
+        const inv = jsonObjectField(raw);
+        return {
+          invoiceNumber: jsonTextField(inv.invoiceNumber),
+          expectedAmountNgn: jsonNumberField(inv.expectedAmountNgn, 0),
+          clientName: jsonTextField(inv.clientName),
+          isPaid: inv.isPaid === true,
+        };
+      });
+      context.bankRecon.ingestBankTransactions(transactions);
+      const results = context.bankRecon.reconcileAgainstInvoices(invoiceTargets);
 
       recordAuditLog({
         userId: user.userId,
         action: "finance.reconcile.run",
         resource: "finance",
         resourceId: `recon-${Date.now()}`,
-        changes: { transactionCount: (body.transactions || []).length, resultsCount: results.length },
+        changes: { transactionCount: transactions.length, resultsCount: results.length },
         ipAddress: clientIp,
         userAgent: req.headers["user-agent"] || null,
       });
@@ -6569,40 +7838,74 @@ ${publicRoutes
         }
       }
 
-      let payload: any = {};
+      let payload: unknown;
       try {
-        payload = rawBody ? JSON.parse(rawBody) : {};
+        payload = rawBody ? JSON.parse(rawBody) as unknown : {};
       } catch {
         sendJson(res, 400, { error: "Bad Request", message: "Invalid JSON body" });
         return;
       }
 
-      const event = payload.event || "charge.success";
-      const data = payload.data || {};
-
-      if (event === "charge.success" || event === "transfer.success") {
-        const amountNgn = typeof data.amount === "number" ? data.amount / 100 : 0;
-        const eventId = data.id !== undefined && data.id !== null ? String(data.id) : (data.reference || `PSK-${Date.now()}`);
-        const ref = data.reference || `PSK-${Date.now()}`;
+      const parsedPayload = PaystackWebhookSchema.safeParse(payload);
+      if (!parsedPayload.success) {
+        sendJson(res, 400, { error: "Bad Request", code: "PAYSTACK_EVENT_INVALID", message: "Webhook event fields are invalid." });
+        return;
+      }
+      const { event, data } = parsedPayload.data;
+      if (event !== "charge.success") {
+        sendJson(res, 501, { error: "Not Implemented", code: "PAYSTACK_EVENT_UNSUPPORTED", message: "Only successful incoming charge events are currently supported; outgoing transfers require a separate reconciliation contract." });
+        return;
+      }
+      if (data.currency !== "NGN" || !Number.isSafeInteger(data.amount) || data.amount <= 0 || !data.id || !data.reference || data.status !== "success") {
+        sendJson(res, 400, { error: "Bad Request", code: "PAYSTACK_TRANSACTION_INVALID", message: "A positive NGN amount, transaction ID, and reference are required." });
+        return;
+      }
+      const valueDate = data.paid_at ? new Date(data.paid_at) : new Date();
+      if (Number.isNaN(valueDate.getTime())) {
+        sendJson(res, 400, { error: "Bad Request", code: "PAYSTACK_DATE_INVALID", message: "The transaction date is invalid." });
+        return;
+      }
+      // AUD-07 / TSK-19: the event id is claimed in Postgres under
+      // `@@unique([provider, eventId])` before it enters the reconciliation
+      // engine, so a provider retry cannot double-ingest the same transaction
+      // even after the KV backend is lost and the process restarts. Duplicate
+      // acks return 200 (providers stop retrying on 200); a claim that only the
+      // KV layer granted is recorded as degraded durability rather than implied
+      // persistence. If ingestion then fails the claim is released, so the
+      // provider's retry can still deliver the payment.
+      const paystackClaim = await claimProviderEventOnce("paystack", String(data.id), 7 * 24 * 60 * 60 * 1000);
+      if (paystackClaim.duplicate) {
+        context.telemetry.recordMetric("webhook_paystack_duplicate_total", 1, { event, layer: paystackClaim.layer });
+        sendJson(res, 200, { status: "success", message: "Paystack webhook duplicate acknowledged", event, duplicate: true });
+        return;
+      }
+      if (paystackClaim.layer === "CACHE") {
+        context.telemetry.recordMetric("webhook_durable_claim_degraded_total", 1, { provider: "paystack" });
+      }
+      try {
         context.bankRecon.ingestBankTransactions([
           {
-            id: `PAYSTACK-${eventId}`,
+            id: `PAYSTACK-${data.id}`,
             source: "PAYSTACK",
-            transactionReference: ref,
-            bankNarration: `Paystack: ${data.customer?.email || "Direct"} - ${data.gateway_response || event}`,
-            amountNgn,
-            valueDate: data.paid_at ? new Date(data.paid_at) : new Date(),
+            transactionReference: data.reference,
+            bankNarration: `Paystack ${event}`,
+            amountNgn: data.amount / 100,
+            valueDate,
           },
         ]);
+      } catch (err) {
+        await releaseProviderEventClaim("paystack", String(data.id));
+        throw err;
       }
+      await confirmProviderEventIngested("paystack", String(data.id));
 
       context.telemetry.recordMetric("webhook_paystack_received_total", 1, { event });
       recordAuditLog({
         userId: "SYSTEM_PAYSTACK_WEBHOOK",
         action: "webhook.paystack.received",
         resource: "webhook",
-        resourceId: String(data.reference || data.id || `PSK-${Date.now()}`),
-        changes: { event, amount: data.amount },
+        resourceId: String(data.reference || data.id),
+        changes: { event },
         ipAddress: clientIp,
         userAgent: req.headers["user-agent"] || null,
       });
@@ -6634,40 +7937,67 @@ ${publicRoutes
         }
       }
 
-      let payload: any = {};
+      let payload: unknown;
       try {
-        payload = rawBody ? JSON.parse(rawBody) : {};
+        payload = rawBody ? JSON.parse(rawBody) as unknown : {};
       } catch {
         sendJson(res, 400, { error: "Bad Request", message: "Invalid JSON body" });
         return;
       }
 
-      const event = payload.event || "charge.completed";
-      const data = payload.data || {};
-
-      if (event === "charge.completed" || event === "transfer.completed") {
-        const amountNgn = typeof data.amount === "number" ? data.amount : 0;
-        const eventId = data.id !== undefined && data.id !== null ? String(data.id) : (data.tx_ref || data.flw_ref || `FLW-${Date.now()}`);
-        const ref = data.tx_ref || data.flw_ref || `FLW-${Date.now()}`;
+      const parsedPayload = FlutterwaveWebhookSchema.safeParse(payload);
+      if (!parsedPayload.success) {
+        sendJson(res, 400, { error: "Bad Request", code: "FLUTTERWAVE_EVENT_INVALID", message: "Webhook event fields are invalid." });
+        return;
+      }
+      const { event, data } = parsedPayload.data;
+      if (event !== "charge.completed") {
+        sendJson(res, 501, { error: "Not Implemented", code: "FLUTTERWAVE_EVENT_UNSUPPORTED", message: "Only successful incoming charge events are currently supported; outgoing transfers require a separate reconciliation contract." });
+        return;
+      }
+      if (data.currency !== "NGN" || !Number.isFinite(data.amount) || data.amount <= 0 || data.status !== "successful" || !data.id || !data.tx_ref) {
+        sendJson(res, 400, { error: "Bad Request", code: "FLUTTERWAVE_TRANSACTION_INVALID", message: "A successful NGN transaction with positive amount, ID, and reference is required." });
+        return;
+      }
+      const valueDate = data.created_at ? new Date(data.created_at) : new Date();
+      if (Number.isNaN(valueDate.getTime())) {
+        sendJson(res, 400, { error: "Bad Request", code: "FLUTTERWAVE_DATE_INVALID", message: "The transaction date is invalid." });
+        return;
+      }
+      // AUD-07 / TSK-19: durable provider-event claim (see Paystack handler).
+      const flutterwaveClaim = await claimProviderEventOnce("flutterwave", String(data.id), 7 * 24 * 60 * 60 * 1000);
+      if (flutterwaveClaim.duplicate) {
+        context.telemetry.recordMetric("webhook_flutterwave_duplicate_total", 1, { event, layer: flutterwaveClaim.layer });
+        sendJson(res, 200, { status: "success", message: "Flutterwave webhook duplicate acknowledged", event, duplicate: true });
+        return;
+      }
+      if (flutterwaveClaim.layer === "CACHE") {
+        context.telemetry.recordMetric("webhook_durable_claim_degraded_total", 1, { provider: "flutterwave" });
+      }
+      try {
         context.bankRecon.ingestBankTransactions([
           {
-            id: `FLW-${eventId}`,
+            id: `FLW-${data.id}`,
             source: "FLUTTERWAVE",
-            transactionReference: ref,
-            bankNarration: `Flutterwave: ${data.customer?.email || "Direct"} - ${data.status || event}`,
-            amountNgn,
-            valueDate: data.created_at ? new Date(data.created_at) : new Date(),
+            transactionReference: data.tx_ref,
+            bankNarration: `Flutterwave ${event}`,
+            amountNgn: data.amount,
+            valueDate,
           },
         ]);
+      } catch (err) {
+        await releaseProviderEventClaim("flutterwave", String(data.id));
+        throw err;
       }
+      await confirmProviderEventIngested("flutterwave", String(data.id));
 
       context.telemetry.recordMetric("webhook_flutterwave_received_total", 1, { event });
       recordAuditLog({
         userId: "SYSTEM_FLUTTERWAVE_WEBHOOK",
         action: "webhook.flutterwave.received",
         resource: "webhook",
-        resourceId: String(data.tx_ref || data.id || `FLW-${Date.now()}`),
-        changes: { event, amount: data.amount },
+        resourceId: String(data.tx_ref || data.id),
+        changes: { event },
         ipAddress: clientIp,
         userAgent: req.headers["user-agent"] || null,
       });
@@ -6715,9 +8045,9 @@ ${publicRoutes
       const user = resolveSessionUser(req);
       const body = await parseJsonBody(req, pathname);
       const presigned = generatePresignedUploadUrl({
-        fileName: body.fileName || `asset-${Date.now()}.mp4`,
-        contentType: body.contentType || "video/mp4",
-        fileSizeBytes: body.fileSizeBytes,
+        fileName: jsonTextField(body.fileName) || `asset-${Date.now()}.mp4`,
+        contentType: jsonTextField(body.contentType) || "video/mp4",
+        fileSizeBytes: typeof body.fileSizeBytes === "number" && Number.isFinite(body.fileSizeBytes) ? body.fileSizeBytes : undefined,
         tenantId: user?.tenantId,
       });
       recordAuditLog({
@@ -6735,7 +8065,7 @@ ${publicRoutes
 
     if (pathname === "/api/v1/storage/scan" && method === "POST") {
       const body = await parseJsonBody(req, pathname);
-      const rawContent = body.contentBase64 || body.content || "";
+      const rawContent = jsonTextField(body.contentBase64) || jsonTextField(body.content);
       // AUD-11: cap the in-memory decode before Buffer allocation so an
       // oversized body cannot turn the scan endpoint into an OOM primitive.
       const decodedBytesEstimate =
@@ -6749,7 +8079,7 @@ ${publicRoutes
         return;
       }
       const buffer = Buffer.from(rawContent, body.contentBase64 ? "base64" : "utf8");
-      const validation = validateMediaBuffer(buffer, body.contentType || "video/mp4");
+      const validation = validateMediaBuffer(buffer, jsonTextField(body.contentType) || "video/mp4");
       sendJson(res, 200, validation);
       return;
     }
@@ -6810,8 +8140,33 @@ ${publicRoutes
     // POST minus the write role — read:storage via the guard table).
     if (pathname === "/api/v1/cms/media-assets" && method === "GET") {
       const user = resolveSessionUser(req);
-      const assets = listApprovedMediaAssets({ tenantId: user?.tenantId, includeNonAvailable: true });
+      // AUD-12: require authentication — unauthenticated callers must not see any tenant's assets
+      if (!user) {
+        sendJson(res, 401, { error: "Unauthorized", message: "Authentication required to list media assets.", code: "MEDIA_ASSET_UNAUTHENTICATED" });
+        return;
+      }
+      const assets = listApprovedMediaAssets({ tenantId: user.tenantId, includeNonAvailable: false });
       sendJson(res, 200, { status: "SUCCESS", assets });
+      return;
+    }
+
+    // AUD-32: Unmatched workspace sub-routes fall back to truthful 404.
+    // This is a catch-all, so it runs only after every specific GET handler in the
+    // chain has declined the path. Measured 2026-10-07 (TSK-24): while it sat at the
+    // top of the chain it answered 404 for /workspace/my-work, /workspace/search,
+    // /workspace/notifications, /workspace/governance/records and
+    // /workspace/cases/{privacy,security}, whose real handlers are further down and
+    // were therefore dead code.
+    if (pathname.startsWith("/workspace/") && method === "GET") {
+      const user = resolveSessionUser(req);
+      if (!user) {
+        res.writeHead(302, { Location: `/sign-in?returnUrl=${encodeURIComponent(pathname)}` });
+        res.end();
+        return;
+      }
+      const deskKey = pathname.replace("/workspace/", "").trim();
+      const html = renderMasterLayout(`Workspace / ${deskKey}`, renderWorkspaceDeskHtml(deskKey), "/workspace", { sessionUser: user });
+      sendHtml(res, 404, html);
       return;
     }
 
@@ -6822,7 +8177,10 @@ ${publicRoutes
     });
   } catch (error: any) {
     const duration = Date.now() - reqStart;
-    context.telemetry.recordMetric("http_5xx_error_rate_percent", 1.0, { path: pathname });
+    context.telemetry.recordMetric("http_5xx_error_rate_percent", 1.0, {
+      status: "500",
+      operation: "unhandled_route_error",
+    });
     // AUD-17: structured error log without stack traces outside development.
     const isDev = process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test";
     context.telemetry.logStructured(
@@ -6855,4 +8213,33 @@ ${publicRoutes
       traceId: span.traceId,
     });
   }
+}
+
+/**
+ * TSK-18: `sendText` and `sendHtml` are durability choke points as well as
+ * `sendJson`. A desk form that renders "saved" while its rows are still staged
+ * — or after the transaction that carried them rolled back — reports a write the
+ * database refused, so the drain happens before the first byte of the response
+ * and a rejection answers 503 instead of the page.
+ */
+async function flushOrFailure(
+  res: ServerResponse,
+  statusCode: number,
+  headers: Record<string, string | number>
+): Promise<boolean> {
+  try {
+    await flushDurableJournal();
+  } catch (err) {
+    if (!(err instanceof RepositoryUnavailableError)) throw err;
+    if (statusCode < 500) {
+      await sendJson(res, 503, {
+        error: "Service Unavailable",
+        message: "The persistence layer rejected a staged write; the request was not processed fail-closed.",
+        code: err.code,
+      });
+      return false;
+    }
+  }
+  res.writeHead(statusCode, headers);
+  return true;
 }

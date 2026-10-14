@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
+import { effectiveTouchTargetPx } from "../helpers/stylesheet.js";
 import {
   validateControlAccessibility,
   ComponentRenderer,
   renderStyleguideHtml,
 } from "../../src/web/components/index.js";
+import { renderMasterLayout } from "../../src/web/public/dashboard.js";
 import {
   CorporatePortalService,
   PublicChannelsHub,
@@ -18,8 +20,9 @@ import {
   renderHelpPageHtml,
   renderPrivacyPageHtml,
   renderAccessibilityPageHtml,
+  renderHomePageHtml,
+  renderChannelsPageHtml,
 } from "../../src/web/public/index.js";
-import { getConfig } from "../../src/core/config/index.js";
 
 describe("Phase 7: Public Digital Surfaces & User Experience", () => {
   describe("TASK-P7-04: UI/UX Component System & Accessibility Conformance", () => {
@@ -47,8 +50,13 @@ describe("Phase 7: Public Digital Surfaces & User Experience", () => {
         label: "Submit Application",
         variant: "primary",
       });
-      expect(defaultBtn).toContain('class="vmn-btn vmn-btn-primary vmn-btn-state-default"');
-      expect(defaultBtn).toContain("min-width: 44px; min-height: 44px;");
+      expect(defaultBtn).toContain('class="vmn-btn vmn-btn-primary vmn-btn-state-default');
+      // DT-202 (docs/decisions/design-task-de-citation.md) / TSK-04: the 44px floor is delivered by a generated utility
+      // class in the shipped stylesheet, not an inline attribute. Assert the
+      // rule the browser actually receives.
+      const target = effectiveTouchTargetPx(defaultBtn);
+      expect(target.minWidth).toBeGreaterThanOrEqual(44);
+      expect(target.minHeight).toBeGreaterThanOrEqual(44);
 
       const loadingBtn = ComponentRenderer.renderButton({
         label: "Processing",
@@ -92,32 +100,43 @@ describe("Phase 7: Public Digital Surfaces & User Experience", () => {
   });
 
   describe("TASK-P7-01: Public VMN Corporate Portal", () => {
-    it("provides SEO structured metadata and three enterprise pillars overview", () => {
+    it("renders the mobile menu trigger as keyboard reachable and the drawer initially hidden", () => {
+      const html = renderMasterLayout("Public Page", "<p>Body</p>", "/");
+      expect(html).toContain('id="vmn-mobile-menu-btn"');
+      expect(html).toContain('aria-controls="vmn-mobile-drawer"');
+      expect(html).toContain('aria-expanded="false"');
+      expect(html).not.toContain('id="vmn-mobile-menu-btn" class="vmn-hamburger-btn" type="button" aria-label="Open Navigation Drawer" aria-controls="vmn-mobile-drawer" aria-expanded="false" title="Open Navigation Menu" tabindex="-1"');
+      expect(html).toContain('id="vmn-mobile-drawer" class="vmn-mobile-drawer" aria-label="Mobile Navigation" aria-hidden="true" inert');
+    });
+
+  it("provides SEO structured metadata and three enterprise pillars overview", () => {
       const seo = CorporatePortalService.getSeoMetadata();
       expect(seo.title).toContain("Virtual Media Network Limited");
       expect(seo.openGraph["og:type"]).toBe("website");
+      expect(seo.description).not.toContain("24/7 linear broadcast");
 
       const html = CorporatePortalService.renderOverviewHtml();
-      expect(html).toContain("Linear Television & Broadcast Operations");
+      expect(html).toContain("Linear Television Channel Profiles");
+      expect(html).toContain("Carriage and transmission details require independent verification");
+      expect(html).not.toContain("Ch 428 DTT");
       expect(html).toContain("Creative Economy Hub");
-      expect(html).toContain("Azeebo+ Direct-to-Consumer Ecosystem");
+      expect(html).toContain("Azeebo+ Federated Service");
     });
   });
 
   describe("TASK-P7-02: Linear Television Public Channels Hub", () => {
     it("retrieves channel parameters and renders live On-Air-Now and Up-Next EPG widgets", () => {
-      const config = getConfig();
       const nxtr = PublicChannelsHub.getChannel("NXTR");
-      expect(nxtr.dttChannel).toBe(config.NXTR_DTT_CHANNEL);
-      expect(nxtr.dthChannel).toBe(config.NXTR_DTH_CHANNEL);
+      expect(nxtr.dttChannel).toBeUndefined();
+      expect(nxtr.dthChannel).toBeUndefined();
       expect(nxtr.isProvisional).toBe(true);
 
       const orisun = PublicChannelsHub.getChannel("ORIS");
-      expect(orisun.dttChannel).toBe(config.ORIS_DTT_CHANNEL);
+      expect(orisun.dttChannel).toBeUndefined();
       expect(orisun.isProvisional).toBe(true);
 
       const imbd = PublicChannelsHub.getChannel("IMBD");
-      expect(imbd.dttChannel).toBe(config.IMBD_DTT_CHANNEL);
+      expect(imbd.dttChannel).toBeUndefined();
       expect(imbd.isProvisional).toBe(true);
 
       // Render On Air Now Widget
@@ -140,11 +159,11 @@ describe("Phase 7: Public Digital Surfaces & User Experience", () => {
         }
       );
 
-      expect(widgetHtml).toContain("ON AIR NOW");
-      expect(widgetHtml).toContain("Afrobeat Top 10 Countdown — Episode 24");
-      expect(widgetHtml).toContain("COMING UP NEXT (21:00)");
-      expect(widgetHtml).toContain("Street Jam Live Sessions");
-      expect(widgetHtml).toContain("StarTimes Ch 428 DTT / 312 DTH");
+      expect(widgetHtml).toContain("Carriage verification does not establish live transmission status");
+      expect(widgetHtml).toContain("approved schedule and verified live source are connected");
+      expect(widgetHtml).not.toContain("ON AIR NOW");
+      expect(widgetHtml).not.toContain("StarTimes Ch 428");
+      expect(widgetHtml).not.toContain("Afrobeat Top 10 Countdown");
     });
   });
 
@@ -185,12 +204,14 @@ describe("Phase 7: Public Digital Surfaces & User Experience", () => {
       });
 
       expect(inquiry.id).toContain("INQ-VCF_");
-      expect(inquiry.status).toBe("ROUTED_TO_CRM");
-      expect(inquiry.acknowledgmentMessage).toContain("A representative will contact you within 24 business hours.");
+      expect(inquiry.status).toBe("RECEIVED");
+      expect(inquiry.acknowledgmentMessage).toContain("environment-local reference only");
+      expect(inquiry.acknowledgmentMessage).not.toContain("routed to our operations team");
+      expect(inquiry.acknowledgmentMessage).not.toContain("within 24 business hours");
       expect(hubService.getInquiries().length).toBe(1);
     });
 
-    it("enforces inquiry status transitions and enqueues notification acknowledgment (T-23, B-22)", () => {
+    it("enforces inquiry status transitions and queues a non-promissory notification acknowledgment (T-23, B-22)", () => {
       const enqueuedJobs: any[] = [];
       const mockQueue = {
         enqueue: (type: string, payload: any) => {
@@ -212,6 +233,7 @@ describe("Phase 7: Public Digital Surfaces & User Experience", () => {
       expect(enqueuedJobs.length).toBe(1);
       expect(enqueuedJobs[0].type).toBe("NOTIFICATION_DELIVERY");
       expect(enqueuedJobs[0].payload.to).toBe("chidinma@soundstage.ng");
+      expect(enqueuedJobs[0].payload.htmlContent).toContain("routing, delivery, response timing, and durable retention are not confirmed");
 
       // State transition 1: RECEIVED -> ROUTED_TO_CRM
       const routed = hubService.transitionStatus(inq.id, "ROUTED_TO_CRM");
@@ -238,11 +260,13 @@ describe("Phase 7: Public Digital Surfaces & User Experience", () => {
       });
 
       const html = renderCrmQueueWorkspaceHtml(hubService.getInquiries());
-      expect(html).toContain("CRM Inquiry & Onboarding Operations Queue");
+      expect(html).toContain("Local Inquiry Review Queue");
+      expect(html).toContain("not a CRM connection");
       expect(html).toContain("Emeka Okafor");
       expect(html).toContain("ONE_STUDIOS");
-      expect(html).toContain("ROUTED_TO_CRM");
-      expect(html).toContain("Mark Contacted");
+      expect(html).toContain("RECEIVED");
+      expect(html).toContain("Awaiting manual review; no downstream routing is confirmed");
+      expect(html).not.toContain("Mark Contacted");
     });
   });
 
@@ -252,7 +276,10 @@ describe("Phase 7: Public Digital Surfaces & User Experience", () => {
       expect(allScreensHtml).toContain("Broadcast Operational Screen Inventory");
       expect(allScreensHtml).toContain("SCR-BCST-01");
       expect(allScreensHtml).toContain("SCR-BCST-33");
-      expect(allScreensHtml).toContain("33 of 33 Screens Ready");
+      // TSK-25 measured 0/33 surfaces serving engine data, so the catalog states that
+      // instead of claiming readiness. The fabricated badge must stay absent.
+      expect(allScreensHtml).toContain("0 fully engine-sourced");
+      expect(allScreensHtml).not.toContain("33 of 33 Screens Ready");
       expect(allScreensHtml).toContain("All (33)");
 
       // Filter by role
@@ -293,11 +320,27 @@ describe("Phase 7: Public Digital Surfaces & User Experience", () => {
       expect(html).toContain("Enterprise Mission & Mandate");
     });
 
-    it("renders Public Schedule page (UX-PUB-008) across broadcast channels", () => {
+    it("renders a truthful unavailable state when no approved public schedule is connected", () => {
       const html = renderPublicScheduleHtml();
       expect(html).toContain("Linear Broadcast Schedule & EPG");
-      expect(html).toContain("ON AIR NOW (WAT)");
-      expect(html).toContain("Morning Afro-Beats Digest");
+      expect(html).toContain("Schedule not verified");
+      expect(html).toContain("No approved, source-backed schedule is connected");
+      expect(html).not.toContain("ON AIR NOW");
+      expect(html).not.toContain("Morning Afro-Beats Digest");
+      expect(html).not.toContain("DTT Ch. 428");
+    });
+
+    it("does not publish unverified carriage numbers or live status on channel surfaces", () => {
+      const homeHtml = renderHomePageHtml();
+      const channelsHtml = renderChannelsPageHtml();
+      expect(homeHtml).toContain("Carriage details unverified");
+      expect(homeHtml).not.toMatch(/Ch 42[0-9] DTT/);
+      expect(homeHtml).not.toContain("Live On Air");
+      expect(homeHtml).not.toContain("broadcast in HD 1080i50");
+      expect(homeHtml).toContain("programming, transmission format, and operating status are not verified");
+      expect(channelsHtml).toContain("Carriage details unverified");
+      expect(channelsHtml).toContain("Live transmission status is not available from a verified source");
+      expect(channelsHtml).not.toContain("StarTimes DTT 428");
     });
 
     it("renders Advertising & Sponsorship page (UX-PUB-009) with rate cards and packages", () => {
@@ -322,21 +365,26 @@ describe("Phase 7: Public Digital Surfaces & User Experience", () => {
       expect(html).toContain("StarTimes");
       expect(html).toContain("AFCA Film & Creative Arts Academy");
       expect(html).toContain("Proof-of-Air Report");
+      expect(html).toContain("A hash alone does not establish");
+      expect(html).not.toContain("immutable cryptographic reference hash");
     });
 
-    it("renders Privacy Policy (UX-PUB-027) with NDPR compliance", () => {
+    it("labels the preliminary privacy information as unreviewed and avoids unsupported security claims", () => {
       const html = renderPrivacyPageHtml();
       expect(html).toContain("Privacy Policy & Data Protection Notice");
-      expect(html).toContain("Nigeria Data Protection Act (NDPA)");
-      expect(html).toContain("Data Protection Officer");
+      expect(html).toContain("not a reviewed privacy notice");
+      expect(html).toContain("require approval by VMNL's accountable privacy and legal reviewers");
+      expect(html).not.toContain("AES-256");
+      expect(html).not.toContain("TLS 1.3");
+      expect(html).not.toContain("Compliant with the Nigeria Data Protection Act");
     });
 
-    it("renders Accessibility Statement (UX-PUB-028) with WCAG 2.2 Level AA conformance", () => {
+    it("states the accessibility target without asserting unverified conformance", () => {
       const html = renderAccessibilityPageHtml();
-      expect(html).toContain("Accessibility Statement");
-      expect(html).toContain("WCAG 2.2 Level AA");
-      expect(html).toContain("Keyboard Navigation");
-      expect(html).toContain("Color Contrast");
+      expect(html).toContain("Accessibility Statement — Conformance Not Yet Assessed");
+      expect(html).toContain("WCAG 2.2 Level AA is a target, not a verified conformance claim");
+      expect(html).toContain("Keyboard-only, screen-reader, contrast, zoom/reflow, and mobile reviews are outstanding");
+      expect(html).not.toContain("Complete keyboard traversal");
     });
   });
 });

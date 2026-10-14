@@ -25,3 +25,25 @@ The design-debt register entry DEBT-008 previously claimed budgets of 65KB (crit
 4. A budget is **PASSED** only when the median is within target on the recorded dataset; otherwise the surface is a named debt with an owner and expiry in `docs/design-debt-register.md`.
 
 Until step 3 artifacts exist, all budget claims remain **TARGET**, and G-gate §7.7 stays **NOT_RUN** in every completion claim.
+
+## Measured 2026-10-14 (TSK-42 / TSK-50 step 1–3)
+
+Executed against the compiled bundle (`pnpm build`, then `node dist/...` via `createApiServer(0)`) on the migrated,
+unseeded gates database, three samples per surface, `Accept-Encoding: identity` unless stated. Reproduce with
+`pnpm vitest run tests/unit/performance-budget-measurement.test.ts`; raw figures in
+`docs/audit/evidence/tsk42-budget-sweep-2026-10-14/measurements.txt`.
+
+| Budget | Target | Measured (identity) | Verdict |
+|---|---|---|---|
+| Public page shell `/` | ≤ 25 KB | 20,308 B | **MET** |
+| Public page shell `/channels/nxtr` | ≤ 25 KB | 17,945 B | **MET** |
+| Critical-path HTML (SCR-BCST-01 `/broadcast/dashboard`) | ≤ 65 KB | 21,162 B | **MET** |
+| Shipped stylesheet alone `/assets/styles.css` | ≤ 25 KB (DEBT-008 wording) | 212,853 B (40,611 B as the server actually gzip-encodes it) | **MISSED — 8.3×** |
+| Total transfer per operational screen view (HTML + CSS + JS) | ≤ 120 KB | 250,409 B | **MISSED over identity; MET only when gzip is negotiated (47,352 B)** |
+| Server TTFB (warm, loopback) | ≤ 200 ms | 11–15 ms median | **MET (sandbox only — not a production measurement)** |
+
+The miss is recorded as **DEBT-008** with owner and expiry in `docs/design-debt-register.md`. G-gate §7.7 is **not**
+flipped by this record: the per-view budget is missed, and the TTFB figure is a sandbox loopback number, so a §7.7
+`PASSED` claim would not be evidence-backed. Note for TSK-39: this document's header cites `CCPP §7.7`, which is one
+of the sub-sections TSK-39 records as not existing in the numbered CCPP.
+
