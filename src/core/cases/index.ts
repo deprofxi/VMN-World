@@ -5,6 +5,9 @@
  * their own restricted queues. They must not appear as ordinary project tasks."
  */
 
+import { registerDurableStore, stageDurableWrite } from "../database/durable-journal.js";
+import { loadPrivacySecurityCases, persistPrivacySecurityCase } from "../database/repositories/release-critical.repository.js";
+
 export type CaseType = "PRIVACY_REQUEST" | "SECURITY_REPORT";
 export type CaseStatus = "RECEIVED" | "TRIAGED" | "IN_PROGRESS" | "RESOLVED" | "CLOSED";
 
@@ -23,6 +26,32 @@ export interface PrivacySecurityCase {
 }
 
 const cases = new Map<string, PrivacySecurityCase>();
+
+/**
+ * TSK-17: the restricted case queue is a durable ledger. Case contents stay
+ * restricted behind `canReadCase` — persisting the row does not widen who may
+ * read it, and nothing here copies case text into a log or an error message.
+ */
+registerDurableStore<PrivacySecurityCase>("privacySecurityCase", persistPrivacySecurityCase);
+
+function stageCase(kase: PrivacySecurityCase): void {
+  stageDurableWrite<PrivacySecurityCase>({
+    store: "privacySecurityCase",
+    key: kase.id,
+    payload: kase,
+    rollback: () => {
+      cases.delete(kase.id);
+    },
+  });
+}
+
+/** Boot hydration (TSK-17): rebuild the case queue from durable rows. */
+export async function refreshCaseIndex(): Promise<{ cases: number }> {
+  const loaded = await loadPrivacySecurityCases();
+  cases.clear();
+  for (const kase of loaded) cases.set(kase.id, kase);
+  return { cases: cases.size };
+}
 
 const SLA_HOURS: Record<CaseType, number> = {
   PRIVACY_REQUEST: 72, // NDPR DSAR response window baseline
@@ -43,14 +72,16 @@ export function openCase(params: {
   if (!params.subject.trim() || !params.detail.trim()) {
     throw new Error("[CASE-02] Subject and detail are required.");
   }
+  const now = new Date();
   const kase: PrivacySecurityCase = {
     ...params,
-    slaDueAt: new Date(Date.now() + SLA_HOURS[params.type] * 3600 * 1000),
+    slaDueAt: new Date(now.getTime() + SLA_HOURS[params.type] * 3600 * 1000),
     status: "RECEIVED",
-    auditTrail: [{ at: new Date(), actor: "SYSTEM", action: "CASE_OPENED" }],
-    createdAt: new Date(),
+    auditTrail: [{ at: now, actor: "SYSTEM", action: "CASE_OPENED" }],
+    createdAt: now,
   };
   cases.set(params.id, kase);
+  stageCase(kase);
   return kase;
 }
 
@@ -82,6 +113,7 @@ export function assignCase(id: string, caseOwnerId: string): PrivacySecurityCase
   const kase = requireCase(id);
   kase.assignedCaseOwner = caseOwnerId;
   kase.auditTrail.push({ at: new Date(), actor: caseOwnerId, action: "CASE_ASSIGNED" });
+  stageCase(kase);
   return kase;
 }
 
@@ -93,6 +125,7 @@ export function transitionCase(id: string, actorId: string, target: CaseStatus, 
   }
   kase.status = target;
   kase.auditTrail.push({ at: new Date(), actor: actorId, action: `TRANSITION_${target}`, note });
+  stageCase(kase);
   return kase;
 }
 

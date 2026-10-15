@@ -17,56 +17,61 @@
  * 11. Linear-to-Digital Attribution Tracker & Outbound Click Console (/azeebo/attribution)
  */
 
-import { getConfig } from "../../core/config/index.js";
+import { getConfiguredFederationOrigin } from "../../core/federation/destinations.js";
 import { renderIcon } from "../components/index.js";
+import { escapeHtml } from "../components/escape.js";
 
 export interface UniverseRouteDescriptor {
   key: string;
   name: string;
   targetPath: string;
   description: string;
-  fallbackUrl: string;
+  /** Absent until an operator configures AZEEBO_PLUS_UNIVERSAL_URL (TSK-35). */
+  fallbackUrl?: string;
 }
 
 export function getAzeeboUniverses(): UniverseRouteDescriptor[] {
-  const base = getConfig().AZEEBO_PLUS_UNIVERSAL_URL.replace(/\/+$/, "");
-  return [
-    { key: "content", name: "Content Referral Gateway", targetPath: "/content/:id", description: "Direct video and episode deep-linking", fallbackUrl: `${base}/watch` },
-    { key: "creator", name: "Creator Profile Universe", targetPath: "/creator/:id", description: "Verified creator hubs and tipping channels", fallbackUrl: `${base}/creators` },
-    { key: "event", name: "Live Event Universe", targetPath: "/event/:id", description: "Live streams and concert ticketing bridge", fallbackUrl: `${base}/events` },
-    { key: "cinemaxis", name: "Cinemaxis Universe", targetPath: "/cinemaxis/:id", description: "Nollywood features and premium episodic series", fallbackUrl: `${base}/cinemaxis` },
-    { key: "aou", name: "AOU Universe", targetPath: "/aou/:id", description: "Afro-Urban culture and music video streams", fallbackUrl: `${base}/aou` },
-    { key: "game", name: "Games 360 Universe", targetPath: "/game/:id", description: "African esports and interactive mobile gaming", fallbackUrl: `${base}/games360` },
-    { key: "9tlife", name: "9TLIFE Lifestyle Universe", targetPath: "/9tlife/:id", description: "Culinary, fashion, nightlife, and travel", fallbackUrl: `${base}/9tlife` },
-    { key: "live", name: "Azeebo+ Live Universe", targetPath: "/live/:id", description: "Interactive 24/7 linear and creator live feeds", fallbackUrl: `${base}/live` },
-    { key: "broadcast", name: "Broadcast Bridge Route", targetPath: "/broadcast/:id", description: "Linear TV to on-demand catch-up bridge", fallbackUrl: `${base}/broadcast` },
+  // TSK-35 / CLAUDE.md <azeebo>: the partner origin is deployment config, never
+  // a code default. Unset means no outbound fallback URL is offered.
+  const base = getConfiguredFederationOrigin();
+  const routes: Array<Omit<UniverseRouteDescriptor, "fallbackUrl"> & { fallbackPath: string }> = [
+    { key: "content", name: "Content Referral Gateway", targetPath: "/content/:id", description: "Direct video and episode deep-linking", fallbackPath: "/watch" },
+    { key: "creator", name: "Creator Profile Universe", targetPath: "/creator/:id", description: "Verified creator hubs and tipping channels", fallbackPath: "/creators" },
+    { key: "event", name: "Live Event Universe", targetPath: "/event/:id", description: "Live streams and concert ticketing bridge", fallbackPath: "/events" },
+    { key: "cinemaxis", name: "Cinemaxis Universe", targetPath: "/cinemaxis/:id", description: "Nollywood features and premium episodic series", fallbackPath: "/cinemaxis" },
+    { key: "aou", name: "AOU Universe", targetPath: "/aou/:id", description: "Afro-Urban culture and music video streams", fallbackPath: "/aou" },
+    { key: "game", name: "Games 360 Universe", targetPath: "/game/:id", description: "African esports and interactive mobile gaming", fallbackPath: "/games360" },
+    { key: "9tlife", name: "9TLIFE Lifestyle Universe", targetPath: "/9tlife/:id", description: "Culinary, fashion, nightlife, and travel", fallbackPath: "/9tlife" },
+    { key: "live", name: "Azeebo+ Live Universe", targetPath: "/live/:id", description: "Interactive 24/7 linear and creator live feeds", fallbackPath: "/live" },
+    { key: "broadcast", name: "Broadcast Bridge Route", targetPath: "/broadcast/:id", description: "Linear TV to on-demand catch-up bridge", fallbackPath: "/broadcast" },
   ];
+  return routes.map(({ fallbackPath, ...u }) => ({ ...u, fallbackUrl: base ? `${base}${fallbackPath}` : undefined }));
 }
 
-export const AZEEBO_UNIVERSES: UniverseRouteDescriptor[] = getAzeeboUniverses();
 
 /**
  * Renders the Azeebo+ Federation Gateway (DT-601, DT-604).
  * Fulfills ADR-008: Distinct partner identity, clearly delineated outbound actions, no internal-nav confusion.
  */
 export function renderFederationGatewayHtml(): string {
-  const routesHtml = AZEEBO_UNIVERSES.map(
+  const origin = getConfiguredFederationOrigin();
+  const routesHtml = getAzeeboUniverses().map(
     (u) => `
-    <div class="card" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+ <div class="card s-7siY-5mpRK" >
       <div>
-        <div style="display:flex; align-items:center; gap:8px;">
-          <span style="font-family:monospace; font-weight:700; color:#0369A1; background:#E0F2FE; padding:3px 8px; border-radius:4px; font-size:0.85rem;">
+ <div class="s-JyMdrv2Xyh">
+ <span class="s-6zeBjoMOQG">
             /${u.key}/:id
           </span>
-          <strong style="color:var(--vmn-primary);">${u.name}</strong>
-          <span style="font-size:0.75rem; color:var(--vmn-color-brand); font-weight:700; border:1px solid #FECACA; background:#FEF2F2; padding:1px 6px; border-radius:4px;">
+ <strong class="s-cbs63uz04T">${u.name}</strong>
+ <span class="s-ocla0JHzg-">
             Azeebo+ Universe
           </span>
         </div>
-        <p style="font-size:0.875rem; color:var(--vmn-text-muted); margin-top:4px;">${u.description}</p>
+ <p class="s-XrEOTi_06Q">${u.description}</p>
       </div>
-      <div style="display:flex; gap:8px;">
-        <a href="/azeebo/${u.key}/sample-item-123" class="btn btn-outline" style="min-height:44px; display:inline-flex; align-items:center; padding:0 14px; font-size:0.85rem;">
+ <div class="s-UK2dEq5_xu">
+ <a href="/azeebo/${u.key}/sample-item-123" class="btn btn-outline s-H6xRltjStm" >
           Test Resolver &rarr;
         </a>
       </div>
@@ -75,41 +80,41 @@ export function renderFederationGatewayHtml(): string {
   ).join("\n");
 
   return `
-  <section style="display:flex; flex-direction:column; gap:24px;">
+ <section class="s-hJqXKfH1_e">
     <!-- Partner Shell Header (ADR-008 / DT-601) -->
-    <div class="card" style="border-left:6px solid var(--vmn-color-brand); background:linear-gradient(to right, #FFFFFF, #FFF1F2); padding:24px;">
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;">
+ <div class="card s-8nPRWKmlnw" >
+ <div class="s-eNztNGULjh">
         <div>
-          <nav aria-label="Breadcrumb" style="font-size:0.85rem; color:var(--vmn-text-muted); margin-bottom:8px;">
-            <a href="/" style="color:var(--vmn-color-primary); text-decoration:none;">Home</a> &gt; 
-            <a href="/azeebo" style="color:var(--vmn-color-primary); text-decoration:none;">Azeebo+</a> &gt; 
-            <span style="color:var(--vmn-text-main); font-weight:600;">Federation Gateway</span>
+ <nav aria-label="Breadcrumb" class="s-SFIks6VJ6b">
+ <a href="/" class="s-eyM313VDpb">Home</a> &gt; 
+ <a href="/azeebo" class="s-eyM313VDpb">Azeebo+</a> &gt; 
+ <span class="s-Sug_DIv7G8">Federation Gateway</span>
           </nav>
-          <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
-            <span style="background:var(--vmn-color-brand); color:white; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:4px; letter-spacing:0.05em;">
+ <div class="s-kFoRe7hxIT">
+ <span class="s-YcZYayk45s">
               EXTERNAL PARTNER FEDERATION
             </span>
             <!-- Human-readable circuit status (DT-604) -->
-            <span class="vmn-badge badge-ready">Federation Link: Normal / Protected</span>
+            <span class="vmn-badge ${origin ? "badge-ready" : "badge-info"}">Federation Link: ${origin ? "Normal / Protected" : "Origin not configured"}</span>
           </div>
-          <h1 style="font-size:2rem; font-weight:800; color:var(--vmn-primary);">Azeebo+ Federation & Universal Gateway</h1>
-          <p style="color:var(--vmn-text-muted); margin-top:4px; max-width:720px;">
+ <h1 class="s-6qUvL7-0sm">Azeebo+ Federation & Universal Gateway</h1>
+ <p class="s-U37UXGknaU">
             Surface E: Cross-platform link resolution, native app dispatch, and NDPR-compliant attribution telemetry bridging linear television broadcasts with direct-to-consumer streaming.
           </p>
         </div>
-        <div style="display:flex; flex-direction:column; gap:8px;">
-          <a href="/azeebo/attribution" class="btn btn-primary" style="min-height:44px; display:inline-flex; align-items:center; justify-content:center;">
+ <div class="s-s1CIbnK0FW">
+ <a href="/azeebo/attribution" class="btn btn-primary s-63X4VYO4lT" >
             Attribution Console &rarr;
           </a>
-          <a href="https://azeebo.plus" target="_blank" rel="noopener noreferrer" class="btn btn-outline" style="min-height:44px; display:inline-flex; align-items:center; justify-content:center; gap:6px;">
-            Launch Azeebo+ App <span style="font-size:0.8rem;" aria-hidden="true">↗</span>
-          </a>
+ ${origin ? `<a href="${escapeHtml(origin)}" target="_blank" rel="noopener noreferrer" class="btn btn-outline s-2rGvsVGfaW" >
+ Launch Azeebo+ App <span class="s-lNuV4bA1-6" aria-hidden="true">↗</span>
+          </a>` : `<span class="vmn-badge badge-info" role="status">Federation origin not configured</span>`}
         </div>
       </div>
     </div>
 
     <!-- Summary Stats -->
-    <div class="grid-3" style="margin-top:0;">
+ <div class="grid-3 s-KRt7uwFSzR" >
       <div class="card stat-box">
         <span class="stat-val">9</span>
         <span class="stat-lbl">Federated Universes</span>
@@ -125,18 +130,18 @@ export function renderFederationGatewayHtml(): string {
     </div>
 
     <!-- Universal Link / QR Builder Panel (DT-601) -->
-    <div class="card" style="border:1px solid var(--vmn-color-control-border);">
-      <h2 style="font-size:1.25rem; font-weight:700; margin-bottom:6px; color:var(--vmn-primary);">
+ <div class="card s-U3lAKD-IRX" >
+ <h2 class="s-gwlAegZ8DU">
         Federated Universal Link &amp; QR Generator
       </h2>
-      <p style="font-size:0.9rem; color:var(--vmn-text-muted); margin-bottom:16px;">
+ <p class="s-YgZVN-kWD2">
         Generate compliant on-air campaign URLs and smart app deep links for broadcast lower-third graphics and social syndication.
       </p>
 
-      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:16px; margin-bottom:16px;">
+ <div class="s-HuhTPronuK">
         <div>
-          <label for="qr-universe-select" style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:4px;">Target Universe</label>
-          <select id="qr-universe-select" style="width:100%; min-height:44px; padding:8px 12px; border:1px solid var(--vmn-color-control-border); border-radius:6px; font-size:0.95rem; background:white;">
+ <label for="qr-universe-select" class="s-K-vm4mtLE4">Target Universe</label>
+ <select id="qr-universe-select" class="s-Ek58v9g8kl">
             <option value="cinemaxis">Cinemaxis (Nollywood &amp; Features)</option>
             <option value="content">Content Referral (Episodes &amp; VOD)</option>
             <option value="creator">Creator Profile (Guild Talent)</option>
@@ -148,12 +153,12 @@ export function renderFederationGatewayHtml(): string {
           </select>
         </div>
         <div>
-          <label for="qr-item-id" style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:4px;">Item / Episode Identifier</label>
-          <input id="qr-item-id" type="text" value="oba-alade-ep01" placeholder="e.g. oba-alade-ep01" style="width:100%; min-height:44px; padding:8px 12px; border:1px solid var(--vmn-color-control-border); border-radius:6px; font-size:0.95rem; box-sizing:border-box;" />
+ <label for="qr-item-id" class="s-K-vm4mtLE4">Item / Episode Identifier</label>
+ <input id="qr-item-id" type="text" value="oba-alade-ep01" placeholder="e.g. oba-alade-ep01" class="s-GO7h_U6kv1" />
         </div>
         <div>
-          <label for="qr-campaign-channel" style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:4px;">Linear Broadcast Channel</label>
-          <select id="qr-campaign-channel" style="width:100%; min-height:44px; padding:8px 12px; border:1px solid var(--vmn-color-control-border); border-radius:6px; font-size:0.95rem; background:white;">
+ <label for="qr-campaign-channel" class="s-K-vm4mtLE4">Linear Broadcast Channel</label>
+ <select id="qr-campaign-channel" class="s-Ek58v9g8kl">
             <option value="NXTR">Nigezie Xtreme (NXTR)</option>
             <option value="ORIS">Orisun — The Source (ORIS)</option>
             <option value="IMBD">Isi Mbido — The Beginning (IMBD)</option>
@@ -161,13 +166,13 @@ export function renderFederationGatewayHtml(): string {
         </div>
       </div>
 
-      <div style="background:var(--vmn-surface-alt); padding:16px; border-radius:6px; border:1px solid var(--vmn-surface-border);">
-        <div style="font-size:0.85rem; font-weight:700; margin-bottom:4px; color:var(--vmn-primary);">Generated Universal Link (Web Fallback):</div>
-        <code style="display:block; font-size:0.85rem; word-break:break-all; background:white; padding:8px 12px; border-radius:4px; border:1px solid #CBD5E1; color:#0369A1;">
-          https://azeebo.plus/u/cinemaxis/oba-alade-ep01?utm_source=vmn_oris&amp;utm_medium=linear_qr&amp;utm_campaign=vmnl_attribution
+ <div class="s-gTaqZuDp1j">
+ <div class="s-Ft6mFn7ojf">Generated Universal Link (Web Fallback):</div>
+ <code class="s-QpS0L_3fvx">
+          ${origin ? `${escapeHtml(origin)}/u/cinemaxis/oba-alade-ep01?utm_source=vmn_oris&amp;utm_medium=linear_qr&amp;utm_campaign=vmnl_attribution` : "Not configured — set AZEEBO_PLUS_UNIVERSAL_URL"}
         </code>
-        <div style="font-size:0.85rem; font-weight:700; margin-top:12px; margin-bottom:4px; color:var(--vmn-primary);">Native App Scheme:</div>
-        <code style="display:block; font-size:0.85rem; word-break:break-all; background:white; padding:8px 12px; border-radius:4px; border:1px solid #CBD5E1; color:#166534;">
+ <div class="s-k1Y2WeI3fG">Native App Scheme:</div>
+ <code class="s-rSNrmV3j8z">
           azeeboplus://u/cinemaxis/oba-alade-ep01?utm_source=vmn_oris&amp;utm_medium=linear_qr
         </code>
       </div>
@@ -175,10 +180,10 @@ export function renderFederationGatewayHtml(): string {
 
     <!-- Active Federated Universes Directory -->
     <div>
-      <h2 style="font-size:1.3rem; font-weight:700; margin-bottom:12px; color:var(--vmn-primary);">
+ <h2 class="s-rK2tqy0UMP">
         Active Federated Universes (9 Routes)
       </h2>
-      <div style="display:flex; flex-direction:column; gap:12px;">
+ <div class="s-Y2tCS2WCKZ">
         ${routesHtml}
       </div>
     </div>
@@ -190,53 +195,57 @@ export function renderFederationGatewayHtml(): string {
  * Renders the Universal Universe Resolver template with clear fallback (DT-603).
  */
 export function renderUniverseResolverHtml(universeKey: string, itemId: string): string {
-  const universe = AZEEBO_UNIVERSES.find((u) => u.key === universeKey.toLowerCase());
+  const universe = getAzeeboUniverses().find((u) => u.key === universeKey.toLowerCase());
   const universeName = universe ? universe.name : `${universeKey.toUpperCase()} Universe`;
-  const fallbackUrl = universe ? `${universe.fallbackUrl}/${itemId}` : `https://azeebo.plus/${universeKey}/${itemId}`;
-  const deepLink = `azeebo://${universeKey}/${itemId}?utm_source=linear_broadcast&utm_medium=qr&utm_campaign=vmnl_attribution`;
+  // TSK-35: no invented endpoint. Without a configured partner origin the
+  // resolver states the absence and offers no outbound launch action.
+  const fallbackUrl = universe?.fallbackUrl ? `${universe.fallbackUrl}/${itemId}` : undefined;
+  const safeItem = escapeHtml(itemId);
+  const safeFallback = fallbackUrl ? escapeHtml(fallbackUrl) : undefined;
+  const deepLink = `azeebo://${escapeHtml(universeKey)}/${safeItem}?utm_source=linear_broadcast&utm_medium=qr&utm_campaign=vmnl_attribution`;
 
   return `
-  <section style="display:flex; flex-direction:column; gap:24px; max-width:760px; margin:0 auto;">
-    <nav aria-label="Breadcrumb" style="font-size:0.85rem; color:var(--vmn-text-muted);">
-      <a href="/" style="color:var(--vmn-color-primary); text-decoration:none;">Home</a> &gt; 
-      <a href="/azeebo/gateway" style="color:var(--vmn-color-primary); text-decoration:none;">Azeebo+ Gateway</a> &gt; 
-      <span style="color:var(--vmn-text-main); font-weight:600;">${universeKey}</span>
+ <section class="s-mwAOCyJzfM">
+ <nav aria-label="Breadcrumb" class="s-37h9gF_4Xa">
+ <a href="/" class="s-eyM313VDpb">Home</a> &gt; 
+ <a href="/azeebo/gateway" class="s-eyM313VDpb">Azeebo+ Gateway</a> &gt; 
+ <span class="s-Sug_DIv7G8">${universeKey}</span>
     </nav>
 
-    <article class="card" style="border-top:6px solid var(--vmn-color-brand); text-align:center; padding:36px 24px;">
-      <div style="display:inline-flex; align-items:center; gap:8px; margin-bottom:16px;">
+ <article class="card s-jK_o8Tlc_8" >
+ <div class="s-5rJ8EYPtx8">
         <span class="vmn-badge badge-ready">Surface E Universal Resolver</span>
         <span class="vmn-badge badge-info">External Federation</span>
       </div>
-      <h1 style="font-size:2rem; font-weight:800; color:var(--vmn-primary); margin-bottom:8px;">
+ <h1 class="s-AB_wCtDT5L">
         Resolving to ${universeName}
       </h1>
-      <p style="color:var(--vmn-text-muted); font-size:1rem; margin-bottom:20px; max-width:540px; margin-left:auto; margin-right:auto;">
-        Resolving destination item <code>${itemId}</code> across Azeebo+ mobile app, smart TV, or fallback web streaming.
+ <p class="s-CRVi_6ajNw">
+        Resolving destination item <code>${safeItem}</code> across Azeebo+ mobile app, smart TV, or fallback web streaming.
       </p>
 
-      <div style="background:var(--vmn-surface-alt); padding:16px; border-radius:8px; border:1px solid var(--vmn-surface-border); text-align:left; margin-bottom:24px;">
-        <p style="font-size:0.85rem; margin-bottom:4px; font-weight:600;"><strong>Native App Deep Link:</strong></p>
-        <code style="font-size:0.8rem; word-break:break-all; display:block; padding:8px 12px; background:white; border-radius:4px; border:1px solid #CBD5E1; color:#0369A1;">
+ <div class="s-MI5vJUv2m0">
+ <p class="s-Xn2oDZQl0T"><strong>Native App Deep Link:</strong></p>
+ <code class="s-d_5rDDTkld">
           ${deepLink}
         </code>
-        <p style="font-size:0.85rem; margin-top:12px; margin-bottom:4px; font-weight:600;"><strong>Fallback Web Streaming URL (External):</strong></p>
-        <code style="font-size:0.8rem; word-break:break-all; display:block; padding:8px 12px; background:white; border-radius:4px; border:1px solid #CBD5E1; color:#166534;">
-          ${fallbackUrl}
+ <p class="s-1e8d8azRpS"><strong>Fallback Web Streaming URL (External):</strong></p>
+ <code class="s-74K-JDVG8z">
+          ${safeFallback ?? "Not configured"}
         </code>
       </div>
 
-      <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap;">
-        <a href="${fallbackUrl}" class="btn btn-primary" target="_blank" rel="noopener noreferrer" style="min-height:44px; display:inline-flex; align-items:center; gap:6px;">
-          Launch Azeebo+ Web <span style="font-size:0.85rem;" aria-hidden="true">↗</span>
-        </a>
-        <a href="/azeebo/gateway" class="btn btn-outline" style="min-height:44px; display:inline-flex; align-items:center;">
+ <div class="s-1_fizylY0F">
+ ${safeFallback ? `<a href="${safeFallback}" class="btn btn-primary s-oVibJ_Zzvz" target="_blank" rel="noopener noreferrer" >
+ Launch Azeebo+ Web <span class="s-ItBVzWPT7W" aria-hidden="true">↗</span>
+        </a>` : `<span class="vmn-badge badge-info">Outbound federation not configured</span>`}
+ <a href="/azeebo/gateway" class="btn btn-outline s-oCyUsegaVZ" >
           &larr; Back to Gateway
         </a>
       </div>
 
       <!-- NDPR Notice -->
-      <p style="font-size:0.75rem; color:var(--vmn-text-muted); margin-top:24px; max-width:520px; margin-left:auto; margin-right:auto;">
+ <p class="s-yS6MZ-UnTh">
         Attribution Telemetry: Anonymized SHA-256 hashed device signature recorded under Nigeria Data Protection Act (NDPA) 2023. Zero PII transmitted.
       </p>
     </article>
@@ -258,27 +267,27 @@ export function renderAttributionConsoleHtml(): string {
   const tableRows = conversionStats
     .map(
       (c) => `
-    <tr style="border-bottom:1px solid var(--vmn-surface-border);">
-      <td style="padding:12px; font-weight:700;">${c.channel}</td>
-      <td style="padding:12px;">${c.qrScans.toLocaleString()}</td>
-      <td style="padding:12px; font-weight:700; color:#166534;">${c.appInstalls.toLocaleString()}</td>
-      <td style="padding:12px;"><span class="vmn-badge badge-ready">${c.conversionRate}</span></td>
+ <tr class="s-luRfE-TINB">
+ <td class="s-kMGvZT4TKF">${c.channel}</td>
+ <td class="s-HjDnslDSIb">${c.qrScans.toLocaleString()}</td>
+ <td class="s-Hk14tinEEa">${c.appInstalls.toLocaleString()}</td>
+ <td class="s-HjDnslDSIb"><span class="vmn-badge badge-ready">${c.conversionRate}</span></td>
     </tr>
   `
     )
     .join("");
 
   return `
-  <section style="display:flex; flex-direction:column; gap:24px;">
-    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;">
+ <section class="s-hJqXKfH1_e">
+ <div class="s-eNztNGULjh">
       <div>
-        <nav aria-label="Breadcrumb" style="font-size:0.85rem; color:var(--vmn-text-muted); margin-bottom:8px;">
-          <a href="/" style="color:var(--vmn-color-primary); text-decoration:none;">Home</a> &gt; 
-          <a href="/azeebo/gateway" style="color:var(--vmn-color-primary); text-decoration:none;">Azeebo+ Gateway</a> &gt; 
-          <span style="color:var(--vmn-text-main); font-weight:600;">Attribution Console</span>
+ <nav aria-label="Breadcrumb" class="s-SFIks6VJ6b">
+ <a href="/" class="s-eyM313VDpb">Home</a> &gt; 
+ <a href="/azeebo/gateway" class="s-eyM313VDpb">Azeebo+ Gateway</a> &gt; 
+ <span class="s-Sug_DIv7G8">Attribution Console</span>
         </nav>
-        <h1 style="font-size:2rem; font-weight:800; color:var(--vmn-primary);">Linear-to-Digital Attribution Tracker</h1>
-        <p style="color:var(--vmn-text-muted); margin-top:4px;">
+ <h1 class="s-6qUvL7-0sm">Linear-to-Digital Attribution Tracker</h1>
+ <p class="s-NLOlqgzjPV">
           Audited conversion telemetry bridging linear on-air broadcast impressions to Azeebo+ direct-to-consumer digital acquisitions.
         </p>
       </div>
@@ -286,7 +295,7 @@ export function renderAttributionConsoleHtml(): string {
     </div>
 
     <!-- Summary KPI Grid -->
-    <div class="grid-3" style="margin-top:0;">
+ <div class="grid-3 s-KRt7uwFSzR" >
       <div class="card stat-box">
         <span class="stat-val">113,480</span>
         <span class="stat-lbl">Total On-Air QR Scans</span>
@@ -303,58 +312,58 @@ export function renderAttributionConsoleHtml(): string {
 
     <!-- DT-602: Six-Stage Attribution Funnel Visualisation -->
     <div class="card">
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px; margin-bottom:16px;">
+ <div class="s-8ENdMBtTpa">
         <div>
-          <h2 style="font-size:1.25rem; font-weight:700; color:var(--vmn-primary);">
+ <h2 class="s-ID2CT_CtI8">
             Six-Stage Conversion &amp; Retention Funnel
           </h2>
-          <p style="font-size:0.875rem; color:var(--vmn-text-muted); margin-top:2px;">
+ <p class="s-Faqli1iIen">
             Full lifecycle progression from linear transponder transmission to 30-day digital subscriber retention.
           </p>
         </div>
         <span class="vmn-badge badge-info">Audited Telemetry</span>
       </div>
 
-      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px; margin-bottom:20px;">
-        <div style="padding:12px; background:var(--vmn-surface-alt); border-radius:6px; border:1px solid var(--vmn-surface-border);">
-          <span style="font-size:0.75rem; font-weight:700; color:var(--vmn-text-muted); text-transform:uppercase;">1. Broadcast Airing</span>
-          <div style="font-size:1.2rem; font-weight:800; color:var(--vmn-primary); margin-top:4px;">1,240,000</div>
-          <span style="font-size:0.75rem; color:var(--vmn-text-muted);">Linear Impressions</span>
+ <div class="s-buwKO-OQ41">
+ <div class="s-Ma14h4YvGg">
+ <span class="s-pAl2PQDI4_">1. Broadcast Airing</span>
+ <div class="s-zGbOUBHZT6">1,240,000</div>
+ <span class="s-uQ0QEsSflz">Linear Impressions</span>
         </div>
-        <div style="padding:12px; background:#F0F9FF; border-radius:6px; border:1px solid #BAE6FD;">
-          <span style="font-size:0.75rem; font-weight:700; color:#0369A1; text-transform:uppercase;">2. On-Air QR Scan</span>
-          <div style="font-size:1.2rem; font-weight:800; color:#0369A1; margin-top:4px;">113,480</div>
-          <span style="font-size:0.75rem; color:#0369A1;">9.15% Scan-Through</span>
+ <div class="s-3alR3gaCum">
+ <span class="s-bSkNX7PjeS">2. On-Air QR Scan</span>
+ <div class="s-YDTsHzlwX0">113,480</div>
+ <span class="s-nLmYTEVfGt">9.15% Scan-Through</span>
         </div>
-        <div style="padding:12px; background:#F0F9FF; border-radius:6px; border:1px solid #BAE6FD;">
-          <span style="font-size:0.75rem; font-weight:700; color:#0369A1; text-transform:uppercase;">3. Landing View</span>
-          <div style="font-size:1.2rem; font-weight:800; color:#0369A1; margin-top:4px;">108,920</div>
-          <span style="font-size:0.75rem; color:#0369A1;">96.0% Resolution</span>
+ <div class="s-3alR3gaCum">
+ <span class="s-bSkNX7PjeS">3. Landing View</span>
+ <div class="s-YDTsHzlwX0">108,920</div>
+ <span class="s-nLmYTEVfGt">96.0% Resolution</span>
         </div>
-        <div style="padding:12px; background:#FEF3C7; border-radius:6px; border:1px solid #FDE68A;">
-          <span style="font-size:0.75rem; font-weight:700; color:#92400E; text-transform:uppercase;">4. App Signup</span>
-          <div style="font-size:1.2rem; font-weight:800; color:#92400E; margin-top:4px;">42,600</div>
-          <span style="font-size:0.75rem; color:#92400E;">39.1% Signup Intent</span>
+ <div class="s-8eZjiFwVfL">
+ <span class="s-ZQaAg2iLrA">4. App Signup</span>
+ <div class="s-kPslv1sF5X">42,600</div>
+ <span class="s-p95t77M5qY">39.1% Signup Intent</span>
         </div>
-        <div style="padding:12px; background:#F0FDF4; border-radius:6px; border:1px solid #BBF7D0;">
-          <span style="font-size:0.75rem; font-weight:700; color:#166534; text-transform:uppercase;">5. Subscription</span>
-          <div style="font-size:1.2rem; font-weight:800; color:#166534; margin-top:4px;">31,660</div>
-          <span style="font-size:0.75rem; color:#166534;">74.3% Conversion</span>
+ <div class="s-o5QkD98lax">
+ <span class="s-r-EXXnivCh">5. Subscription</span>
+ <div class="s-jlXJ2frWg4">31,660</div>
+ <span class="s-0QCm6f7uIC">74.3% Conversion</span>
         </div>
-        <div style="padding:12px; background:#FAF5FF; border-radius:6px; border:1px solid #E9D5FF;">
-          <span style="font-size:0.75rem; font-weight:700; color:#6B21A8; text-transform:uppercase;">6. 30D Retention</span>
-          <div style="font-size:1.2rem; font-weight:800; color:#6B21A8; margin-top:4px;">24,850</div>
-          <span style="font-size:0.75rem; color:#6B21A8;">78.5% Retained</span>
+ <div class="s-E6A2z7UMO3">
+ <span class="s-zD6Yr4Z7lv">6. 30D Retention</span>
+ <div class="s-jbvJlVXDge">24,850</div>
+ <span class="s-RglqGpsA24">78.5% Retained</span>
         </div>
       </div>
 
       <!-- NDPR Compliance Safeguard Notice (DT-602 / DD-4) -->
-      <div style="background:var(--vmn-surface-alt); padding:14px 16px; border-radius:6px; border:1px solid var(--vmn-surface-border);">
-        <div style="display:flex; align-items:center; gap:8px;">
-          <span style="color:var(--vmn-color-primary);">${renderIcon("shield", { size: 18 })}</span>
-          <strong style="font-size:0.85rem; color:var(--vmn-primary);">NDPR Aggregation Safeguard</strong>
+ <div class="s-EaRw1J9dY8">
+ <div class="s-JyMdrv2Xyh">
+ <span class="s-_ZPfN4CX-f">${renderIcon("shield", { size: 18 })}</span>
+ <strong class="s-CNOtJDJ-ld">NDPR Aggregation Safeguard</strong>
         </div>
-        <p style="font-size:0.8rem; color:var(--vmn-text-muted); margin-top:4px; line-height:1.45;">
+ <p class="s-t7uDdCX-yk">
           All linear-to-digital attribution telemetry is computed strictly from cryptographically hashed (SHA-256) anonymous device signatures. Zero personally identifiable information (PII) or IP addresses are stored or visible in this console, in full compliance with the <strong>Nigeria Data Protection Act (NDPA) 2023</strong>.
         </p>
       </div>
@@ -362,15 +371,15 @@ export function renderAttributionConsoleHtml(): string {
 
     <!-- Linear Channel Performance Table -->
     <div class="card">
-      <h2 style="font-size:1.25rem; font-weight:700; margin-bottom:16px;">Linear Channel Attribution Performance</h2>
-      <div class="table-container" style="overflow-x:auto;">
-        <table style="width:100%; border-collapse:collapse; text-align:left; font-size:0.9rem;">
+ <h2 class="s-yIvH8ee5_9">Linear Channel Attribution Performance</h2>
+ <div class="table-container s-0GmMSMP86s" >
+ <table class="s-b-Ai5vuAKC">
           <thead>
-            <tr style="border-bottom:2px solid var(--vmn-surface-border); background:var(--vmn-surface-alt); color:var(--vmn-text-muted);">
-              <th style="padding:10px 12px;">Linear Channel</th>
-              <th style="padding:10px 12px;">On-Air Scans</th>
-              <th style="padding:10px 12px;">App Installs</th>
-              <th style="padding:10px 12px;">Conversion Rate</th>
+ <tr class="s-Rq_PXfXNn2">
+ <th class="s-drsUO0gkUT">Linear Channel</th>
+ <th class="s-drsUO0gkUT">On-Air Scans</th>
+ <th class="s-drsUO0gkUT">App Installs</th>
+ <th class="s-drsUO0gkUT">Conversion Rate</th>
             </tr>
           </thead>
           <tbody>

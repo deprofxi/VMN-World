@@ -22,33 +22,33 @@ export function renderAfcaVerificationHtml(result: {
 
   if (!valid || !certificate) {
     return `
-<section class="vmn-verification-container" style="max-width: 800px; margin: 40px auto; padding: 0 16px;">
-  <div class="vmn-card" style="background: var(--vmn-surface); border: 2px solid var(--vmn-error); border-radius: var(--vmn-radius-lg); padding: 36px 28px; text-align: center; box-shadow: var(--vmn-shadow);">
-    <div style="width: 64px; height: 64px; margin: 0 auto 16px; border-radius: 50%; background: #FEE2E2; display: flex; align-items: center; justify-content: center; color: #DC2626;" aria-hidden="true">
+<section class="vmn-verification-container s-he7-rwfX00" >
+ <div class="vmn-card s-puQKhfeYY2" >
+ <div class="s-sKRYtaK6In" aria-hidden="true">
       ${renderIcon("alert", { size: 32 })}
     </div>
-    <span class="vmn-badge" style="background: #FEE2E2; color: #991B1B; font-weight: 700; padding: 6px 14px; border-radius: 9999px; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em;">
+ <span class="vmn-badge s-RDV2bKzTGW" >
       Certificate Not Found
     </span>
-    <h1 style="font-size: 1.75rem; font-weight: 800; margin: 16px 0 8px; color: var(--vmn-text-main);">
+ <h1 class="s-0hpcACP6zw">
       AFCA Certificate Verification Failed
     </h1>
-    <p style="color: var(--vmn-text-muted); font-size: 1rem; max-width: 540px; margin: 0 auto 24px;">
-      The certificate identifier <strong style="font-family: monospace; color: var(--vmn-text-main);">${escapeHtml(id)}</strong> does not correspond to any active, accredited graduation record in the AFCA Academy Registry.
+ <p class="s-p2HD_Mnhnh">
+ The certificate identifier <strong class="s-yk4tKD3mB3">${escapeHtml(id)}</strong> does not correspond to any active, accredited graduation record in the AFCA Academy Registry.
     </p>
-    <div style="background: var(--vmn-surface-alt); border-radius: var(--vmn-radius-md); padding: 16px; margin-bottom: 24px; text-align: left; font-size: 0.875rem; color: var(--vmn-text-muted);">
-      <p style="margin-bottom: 8px;"><strong>Possible Reasons:</strong></p>
-      <ul style="padding-left: 20px; line-height: 1.6;">
+ <div class="s-utdLEncdZu">
+ <p class="s-fzy69kMBd1"><strong>Possible Reasons:</strong></p>
+ <ul class="s-FpvrCB11o4">
         <li>The certificate ID was mistyped or truncated.</li>
         <li>The student's final assessment portfolio is still under academic review.</li>
         <li>The credential has been superseded or administratively revoked.</li>
       </ul>
     </div>
-    <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
-      <a href="/hub/afca" class="vmn-btn vmn-btn-primary" style="display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 10px 20px; border-radius: var(--vmn-radius-md); text-decoration: none; font-weight: 600; background: var(--vmn-secondary); color: white;">
+ <div class="s-wt_QBGg-Bt">
+ <a href="/hub/afca" class="vmn-btn vmn-btn-primary s-N9RnccLDF5" >
         Visit AFCA Academy
       </a>
-      <a href="/careers" class="vmn-btn vmn-btn-secondary" style="display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 10px 20px; border-radius: var(--vmn-radius-md); text-decoration: none; font-weight: 600; border: 1px solid var(--vmn-surface-border); background: var(--vmn-surface); color: var(--vmn-text-main);">
+ <a href="/careers" class="vmn-btn vmn-btn-secondary s-V3gR6858B1" >
         Contact Registrar
       </a>
     </div>
@@ -71,92 +71,92 @@ export function renderAfcaVerificationHtml(result: {
       : "#4B5563";
 
   return `
-<section class="vmn-verification-container" style="max-width: 860px; margin: 40px auto; padding: 0 16px;">
+<section class="vmn-verification-container s-HOvaVzHAlJ" >
   <!-- Breadcrumb -->
-  <nav aria-label="Breadcrumb" style="font-size: 0.875rem; color: var(--vmn-text-muted); margin-bottom: 20px;">
-    <a href="/" style="color: var(--vmn-secondary); text-decoration: none;">Home</a> &gt; 
-    <a href="/hub" style="color: var(--vmn-secondary); text-decoration: none;">Creative Hub</a> &gt; 
-    <a href="/hub/afca" style="color: var(--vmn-secondary); text-decoration: none;">AFCA Academy</a> &gt; 
-    <span aria-current="page" style="color: var(--vmn-text-main); font-weight: 600;">Certificate Verification</span>
+ <nav aria-label="Breadcrumb" class="s-E9ONBO6M1r">
+ <a href="/" class="s-O9Z7O4KuIQ">Home</a> &gt; 
+ <a href="/hub" class="s-O9Z7O4KuIQ">Creative Hub</a> &gt; 
+ <a href="/hub/afca" class="s-O9Z7O4KuIQ">AFCA Academy</a> &gt; 
+ <span aria-current="page" class="s-AMflIswjLr">Certificate Verification</span>
   </nav>
 
-  <div class="vmn-card" style="background: var(--vmn-surface); border: 1px solid var(--vmn-surface-border); border-top: 6px solid var(--vmn-success); border-radius: var(--vmn-radius-lg); padding: 40px 32px; box-shadow: var(--vmn-shadow);">
+ <div class="vmn-card s-k5HdVgyBgc" >
     <!-- Verification Status Banner -->
-    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid var(--vmn-surface-border);">
-      <div style="display: flex; align-items: center; gap: 14px;">
-        <div style="width: 52px; height: 52px; border-radius: 50%; background: #DCFCE7; display: flex; align-items: center; justify-content: center; color: #166534;" aria-hidden="true">
+ <div class="s-xsga6eBaBD">
+ <div class="s-uZB0rvzbTa">
+ <div class="s-blT23fpuBK" aria-hidden="true">
           ${renderIcon("check", { size: 28 })}
         </div>
         <div>
-          <span class="vmn-badge" style="background: #DCFCE7; color: #166534; font-weight: 700; padding: 4px 12px; border-radius: 9999px; font-size: 0.8125rem; letter-spacing: 0.05em; text-transform: uppercase;">
+ <span class="vmn-badge s-TrisTDIU3_" >
             Authentic &amp; Accredited
           </span>
-          <h1 style="font-size: 1.5rem; font-weight: 800; color: var(--vmn-text-main); margin-top: 4px;">
+ <h1 class="s-iafSeK7WcX">
             Official AFCA Graduation Credential
           </h1>
         </div>
       </div>
-      <div style="text-align: right;">
-        <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--vmn-text-muted); display: block;">Certificate ID</span>
-        <span style="font-family: monospace; font-size: 0.95rem; font-weight: 700; color: var(--vmn-text-main);">${escapeHtml(certificate.certificateId)}</span>
+ <div class="s-E8vgO5r8HT">
+ <span class="s-bLNq8BJUpu">Certificate ID</span>
+ <span class="s--5v0EmT5fF">${escapeHtml(certificate.certificateId)}</span>
       </div>
     </div>
 
     <!-- Credential Details Grid -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 32px;">
-      <div style="background: var(--vmn-surface-alt); padding: 18px 20px; border-radius: var(--vmn-radius-md); border: 1px solid var(--vmn-surface-border);">
-        <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--vmn-text-muted); display: block; margin-bottom: 4px;">Graduate / Student ID</span>
-        <strong style="font-size: 1.1rem; color: var(--vmn-text-main); font-family: monospace;">${escapeHtml(certificate.studentId)}</strong>
+ <div class="s-Z3vVVnrfF7">
+ <div class="s-IzXuztZpWQ">
+ <span class="s-YlS8HiIJf3">Graduate / Student ID</span>
+ <strong class="s-i8ItQeSFYF">${escapeHtml(certificate.studentId)}</strong>
       </div>
       
-      <div style="background: var(--vmn-surface-alt); padding: 18px 20px; border-radius: var(--vmn-radius-md); border: 1px solid var(--vmn-surface-border);">
-        <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--vmn-text-muted); display: block; margin-bottom: 4px;">Academic Programme</span>
-        <strong style="font-size: 1.05rem; color: var(--vmn-text-main);">${escapeHtml(certificate.courseTitle)}</strong>
+ <div class="s-IzXuztZpWQ">
+ <span class="s-YlS8HiIJf3">Academic Programme</span>
+ <strong class="s--tdIyvEtY5">${escapeHtml(certificate.courseTitle)}</strong>
       </div>
 
-      <div style="background: var(--vmn-surface-alt); padding: 18px 20px; border-radius: var(--vmn-radius-md); border: 1px solid var(--vmn-surface-border);">
-        <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--vmn-text-muted); display: block; margin-bottom: 4px;">Cohort Class</span>
-        <strong style="font-size: 1.05rem; color: var(--vmn-text-main); font-family: monospace;">${escapeHtml(certificate.cohortCode)}</strong>
+ <div class="s-IzXuztZpWQ">
+ <span class="s-YlS8HiIJf3">Cohort Class</span>
+ <strong class="s-DAcIg5gbk4">${escapeHtml(certificate.cohortCode)}</strong>
       </div>
 
-      <div style="background: var(--vmn-surface-alt); padding: 18px 20px; border-radius: var(--vmn-radius-md); border: 1px solid var(--vmn-surface-border);">
-        <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--vmn-text-muted); display: block; margin-bottom: 4px;">Distinction / Classification</span>
-        <strong style="font-size: 1.1rem; color: ${distinctionColor};">${escapeHtml(certificate.distinction)} (${certificate.finalScorePercent}%)</strong>
+ <div class="s-IzXuztZpWQ">
+ <span class="s-YlS8HiIJf3">Distinction / Classification</span>
+ <strong style="font-size: 1.1rem; color: ${distinctionColor};">${escapeHtml(certificate.distinction)} (${certificate.finalScorePercent}%)</strong>
       </div>
 
-      <div style="background: var(--vmn-surface-alt); padding: 18px 20px; border-radius: var(--vmn-radius-md); border: 1px solid var(--vmn-surface-border);">
-        <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--vmn-text-muted); display: block; margin-bottom: 4px;">Date of Graduation</span>
-        <strong style="font-size: 1rem; color: var(--vmn-text-main);">${formattedDate}</strong>
+ <div class="s-IzXuztZpWQ">
+ <span class="s-YlS8HiIJf3">Date of Graduation</span>
+ <strong class="s-mh7MYBU_EA">${formattedDate}</strong>
       </div>
 
-      <div style="background: var(--vmn-surface-alt); padding: 18px 20px; border-radius: var(--vmn-radius-md); border: 1px solid var(--vmn-surface-border);">
-        <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--vmn-text-muted); display: block; margin-bottom: 4px;">Issuing Authority</span>
-        <strong style="font-size: 0.95rem; color: var(--vmn-text-main);">AFCA Academy &amp; VMNL Governance</strong>
+ <div class="s-IzXuztZpWQ">
+ <span class="s-YlS8HiIJf3">Issuing Authority</span>
+ <strong class="s-pD1roOgQ6T">AFCA Academy &amp; VMNL Governance</strong>
       </div>
     </div>
 
     <!-- Cryptographic Proof & QR Section -->
-    <div style="background: #0F172A; color: #F8FAFC; border-radius: var(--vmn-radius-md); padding: 24px; margin-bottom: 28px;">
-      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
-        <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: #94A3B8; font-weight: 600;">
+ <div class="s-h7yMH5nccC">
+ <div class="s-Y8kD-MOVCW">
+ <span class="s-H2miTkgJH5">
           Tamper-Evident SHA-256 Digest
         </span>
-        <span style="font-size: 0.75rem; color: #38BDF8; font-family: monospace;">FIPS 180-4 Compliant</span>
+ <span class="s-v5PFDZ1ZsZ">FIPS 180-4 Compliant</span>
       </div>
-      <div style="background: #1E293B; padding: 12px 14px; border-radius: 6px; font-family: monospace; font-size: 0.85rem; word-break: break-all; color: #34D399; margin-bottom: 16px;">
+ <div class="s-V6ZP0v9WVh">
         ${escapeHtml(certificate.verificationTokenSha256)}
       </div>
-      <p style="font-size: 0.8125rem; color: #94A3B8; line-height: 1.5; margin: 0;">
+ <p class="s-04oMLtOrs-">
         This cryptographic fingerprint is immutably generated from student identity, rubric project scores, and graduation timestamp. Any unauthorized alteration to certificate data invalidates this verification token.
       </p>
     </div>
 
     <!-- Actions -->
-    <div style="display: flex; gap: 14px; justify-content: flex-end; flex-wrap: wrap;">
-      <a href="/hub/afca" class="vmn-btn" style="display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 10px 20px; border-radius: var(--vmn-radius-md); text-decoration: none; font-weight: 600; border: 1px solid var(--vmn-surface-border); background: var(--vmn-surface); color: var(--vmn-text-main);">
+ <div class="s-jWXDvP723a">
+ <a href="/hub/afca" class="vmn-btn s-V3gR6858B1" >
         AFCA Academy Home
       </a>
-      <a href="/hub/vtm" class="vmn-btn" style="display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 10px 20px; border-radius: var(--vmn-radius-md); text-decoration: none; font-weight: 600; background: var(--vmn-secondary); color: white;">
+ <a href="/hub/vtm" class="vmn-btn s-N9RnccLDF5" >
         View Verified Talent on VTM &rarr;
       </a>
     </div>
@@ -172,35 +172,35 @@ export function renderPoaVerificationHtml(result: {
 }): string {
   const { valid, certificate, id } = result;
 
-  if (!valid || !certificate) {
+  if (!valid || !certificate || !certificate.isVerified || certificate.carrierLockVerified !== true) {
     return `
-<section class="vmn-verification-container" style="max-width: 800px; margin: 40px auto; padding: 0 16px;">
-  <div class="vmn-card" style="background: var(--vmn-surface); border: 2px solid var(--vmn-error); border-radius: var(--vmn-radius-lg); padding: 36px 28px; text-align: center; box-shadow: var(--vmn-shadow);">
-    <div style="width: 64px; height: 64px; margin: 0 auto 16px; border-radius: 50%; background: #FEE2E2; display: flex; align-items: center; justify-content: center; color: #DC2626;" aria-hidden="true">
+<section class="vmn-verification-container s-he7-rwfX00" >
+ <div class="vmn-card s-puQKhfeYY2" >
+ <div class="s-sKRYtaK6In" aria-hidden="true">
       ${renderIcon("alert", { size: 32 })}
     </div>
-    <span class="vmn-badge" style="background: #FEE2E2; color: #991B1B; font-weight: 700; padding: 6px 14px; border-radius: 9999px; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em;">
+ <span class="vmn-badge s-RDV2bKzTGW" >
       Unverified Certificate
     </span>
-    <h1 style="font-size: 1.75rem; font-weight: 800; margin: 16px 0 8px; color: var(--vmn-text-main);">
+ <h1 class="s-0hpcACP6zw">
       Proof-of-Air Performance Not Found
     </h1>
-    <p style="color: var(--vmn-text-muted); font-size: 1rem; max-width: 540px; margin: 0 auto 24px;">
-      The broadcast performance record <strong style="font-family: monospace; color: var(--vmn-text-main);">${escapeHtml(id)}</strong> was not matched against transmission carrier logs or Master Control as-run archives.
+ <p class="s-p2HD_Mnhnh">
+ No source-verified Proof-of-Air record is available for <strong class="s-yk4tKD3mB3">${escapeHtml(id)}</strong>. A record or cryptographic hash alone does not establish that a transmission occurred.
     </p>
-    <div style="background: var(--vmn-surface-alt); border-radius: var(--vmn-radius-md); padding: 16px; margin-bottom: 24px; text-align: left; font-size: 0.875rem; color: var(--vmn-text-muted);">
-      <p style="margin-bottom: 8px;"><strong>Possible Reasons:</strong></p>
-      <ul style="padding-left: 20px; line-height: 1.6;">
-        <li>Commercial spot is scheduled for a future broadcast window.</li>
-        <li>As-run logs for the selected broadcast day are pending carrier reconciliation.</li>
-        <li>Certificate identifier is invalid or from a legacy sandbox run.</li>
+ <div class="s-utdLEncdZu">
+ <p class="s-fzy69kMBd1"><strong>Verification requirements:</strong></p>
+ <ul class="s-FpvrCB11o4">
+        <li>A record must be explicitly marked verified by the responsible process.</li>
+        <li>Carrier lock evidence must be present; this page does not independently validate it.</li>
+        <li>A certificate identifier or hash alone is not proof that transmission occurred.</li>
       </ul>
     </div>
-    <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
-      <a href="/broadcast/screens" class="vmn-btn vmn-btn-primary" style="display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 10px 20px; border-radius: var(--vmn-radius-md); text-decoration: none; font-weight: 600; background: var(--vmn-secondary); color: white;">
+ <div class="s-wt_QBGg-Bt">
+ <a href="/broadcast/screens" class="vmn-btn vmn-btn-primary s-N9RnccLDF5" >
         Broadcast Operations
       </a>
-      <a href="/partners" class="vmn-btn vmn-btn-secondary" style="display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 10px 20px; border-radius: var(--vmn-radius-md); text-decoration: none; font-weight: 600; border: 1px solid var(--vmn-surface-border); background: var(--vmn-surface); color: var(--vmn-text-main);">
+ <a href="/partners" class="vmn-btn vmn-btn-secondary s-V3gR6858B1" >
         Commercial Operations
       </a>
     </div>
@@ -217,111 +217,111 @@ export function renderPoaVerificationHtml(result: {
   });
 
   const channelNames: Record<string, string> = {
-    NXTR: "Nigezie Xtreme (Ch 428 DTT / 312 DTH)",
-    ORIS: "Orisun — The Source (Ch 430 DTT / 315 DTH)",
-    IMBD: "Isi Mbido — The Beginning (Ch 432 DTT / 318 DTH)",
+    NXTR: "Nigezie Xtreme",
+    ORIS: "Orisun — The Source",
+    IMBD: "Isi Mbido — The Beginning",
   };
   const channelDisplay = channelNames[certificate.channelCode] || `Channel ${certificate.channelCode}`;
 
   return `
-<section class="vmn-verification-container" style="max-width: 880px; margin: 40px auto; padding: 0 16px;">
+<section class="vmn-verification-container s-spP-ppCOPM" >
   <!-- Breadcrumb -->
-  <nav aria-label="Breadcrumb" style="font-size: 0.875rem; color: var(--vmn-text-muted); margin-bottom: 20px;">
-    <a href="/" style="color: var(--vmn-secondary); text-decoration: none;">Home</a> &gt; 
-    <a href="/channels" style="color: var(--vmn-secondary); text-decoration: none;">Linear TV</a> &gt; 
-    <a href="/broadcast/dashboard" style="color: var(--vmn-secondary); text-decoration: none;">Master Control</a> &gt; 
-    <span aria-current="page" style="color: var(--vmn-text-main); font-weight: 600;">Proof-of-Air Audit</span>
+ <nav aria-label="Breadcrumb" class="s-E9ONBO6M1r">
+ <a href="/" class="s-O9Z7O4KuIQ">Home</a> &gt; 
+ <a href="/channels" class="s-O9Z7O4KuIQ">Linear TV</a> &gt; 
+ <a href="/broadcast/dashboard" class="s-O9Z7O4KuIQ">Master Control</a> &gt; 
+ <span aria-current="page" class="s-AMflIswjLr">Proof-of-Air Audit</span>
   </nav>
 
-  <div class="vmn-card" style="background: var(--vmn-surface); border: 1px solid var(--vmn-surface-border); border-top: 6px solid #0284C7; border-radius: var(--vmn-radius-lg); padding: 40px 32px; box-shadow: var(--vmn-shadow);">
+ <div class="vmn-card s-EOY-ff5M3A" >
     <!-- Verification Status Banner -->
-    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid var(--vmn-surface-border);">
-      <div style="display: flex; align-items: center; gap: 14px;">
-        <div style="width: 52px; height: 52px; border-radius: 50%; background: #E0F2FE; display: flex; align-items: center; justify-content: center; color: var(--vmn-color-primary);" aria-hidden="true">
+ <div class="s-xsga6eBaBD">
+ <div class="s-uZB0rvzbTa">
+ <div class="s-ikh9VJ2UFd" aria-hidden="true">
           ${renderIcon("broadcast", { size: 28 })}
         </div>
         <div>
-          <span class="vmn-badge" style="background: #DCFCE7; color: #166534; font-weight: 700; padding: 4px 12px; border-radius: 9999px; font-size: 0.8125rem; letter-spacing: 0.05em; text-transform: uppercase;">
-            Broadcast Performance Verified
+ <span class="vmn-badge s-TrisTDIU3_" >
+            Proof-of-Air Record Matched
           </span>
-          <h1 style="font-size: 1.5rem; font-weight: 800; color: var(--vmn-text-main); margin-top: 4px;">
+ <h1 class="s-iafSeK7WcX">
             Certificate of Commercial Performance (Proof-of-Air)
           </h1>
         </div>
       </div>
-      <div style="text-align: right;">
-        <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--vmn-text-muted); display: block;">Certificate ID</span>
-        <span style="font-family: monospace; font-size: 0.95rem; font-weight: 700; color: var(--vmn-text-main);">${escapeHtml(certificate.certificateId)}</span>
+ <div class="s-E8vgO5r8HT">
+ <span class="s-bLNq8BJUpu">Certificate ID</span>
+ <span class="s--5v0EmT5fF">${escapeHtml(certificate.certificateId)}</span>
       </div>
     </div>
 
     <!-- Proof-of-Air Grid -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 32px;">
-      <div style="background: var(--vmn-surface-alt); padding: 18px 20px; border-radius: var(--vmn-radius-md); border: 1px solid var(--vmn-surface-border);">
-        <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--vmn-text-muted); display: block; margin-bottom: 4px;">Commercial Advertiser / Client</span>
-        <strong style="font-size: 1.05rem; color: var(--vmn-text-main);">${escapeHtml(certificate.clientName)}</strong>
+ <div class="s-DPmkn_7sYU">
+ <div class="s-IzXuztZpWQ">
+ <span class="s-YlS8HiIJf3">Commercial Advertiser / Client</span>
+ <strong class="s--tdIyvEtY5">${escapeHtml(certificate.clientName)}</strong>
       </div>
 
-      <div style="background: var(--vmn-surface-alt); padding: 18px 20px; border-radius: var(--vmn-radius-md); border: 1px solid var(--vmn-surface-border);">
-        <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--vmn-text-muted); display: block; margin-bottom: 4px;">Broadcast Network</span>
-        <strong style="font-size: 1.05rem; color: var(--vmn-text-main);">${escapeHtml(channelDisplay)}</strong>
+ <div class="s-IzXuztZpWQ">
+ <span class="s-YlS8HiIJf3">Broadcast Network</span>
+ <strong class="s--tdIyvEtY5">${escapeHtml(channelDisplay)}</strong>
       </div>
 
-      <div style="background: var(--vmn-surface-alt); padding: 18px 20px; border-radius: var(--vmn-radius-md); border: 1px solid var(--vmn-surface-border);">
-        <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--vmn-text-muted); display: block; margin-bottom: 4px;">Campaign &amp; Spot Identifiers</span>
-        <div style="font-family: monospace; font-size: 0.95rem; color: var(--vmn-text-main);">
+ <div class="s-IzXuztZpWQ">
+ <span class="s-YlS8HiIJf3">Campaign &amp; Spot Identifiers</span>
+ <div class="s-n-0i9cYOpa">
           <div>Campaign: <strong>${escapeHtml(certificate.campaignId)}</strong></div>
           <div>Spot ID: <strong>${escapeHtml(certificate.spotId)}</strong></div>
         </div>
       </div>
 
-      <div style="background: var(--vmn-surface-alt); padding: 18px 20px; border-radius: var(--vmn-radius-md); border: 1px solid var(--vmn-surface-border);">
-        <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--vmn-text-muted); display: block; margin-bottom: 4px;">Verified Air Time</span>
-        <div style="font-size: 0.95rem; color: var(--vmn-text-main);">
+ <div class="s-IzXuztZpWQ">
+ <span class="s-YlS8HiIJf3">Recorded Air Time</span>
+ <div class="s-pD1roOgQ6T">
           <strong>${escapeHtml(airTimeWat)} (WAT)</strong>
-          <div style="font-size: 0.8rem; color: var(--vmn-text-muted);">${escapeHtml(airTimeUtc)}</div>
+ <div class="s-MsCnZy-ydt">${escapeHtml(airTimeUtc)}</div>
         </div>
       </div>
 
-      <div style="background: var(--vmn-surface-alt); padding: 18px 20px; border-radius: var(--vmn-radius-md); border: 1px solid var(--vmn-surface-border);">
-        <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--vmn-text-muted); display: block; margin-bottom: 4px;">Aired Duration</span>
-        <strong style="font-size: 1.1rem; color: var(--vmn-text-main);">${certificate.durationSeconds} seconds</strong>
+ <div class="s-IzXuztZpWQ">
+ <span class="s-YlS8HiIJf3">Aired Duration</span>
+ <strong class="s-v9PqLYluAc">${certificate.durationSeconds} seconds</strong>
       </div>
 
-      <div style="background: var(--vmn-surface-alt); padding: 18px 20px; border-radius: var(--vmn-radius-md); border: 1px solid var(--vmn-surface-border);">
-        <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--vmn-text-muted); display: block; margin-bottom: 4px;">3-Way Carrier Match</span>
-        <span class="vmn-badge" style="background: #DCFCE7; color: #166534; font-weight: 700; padding: 4px 10px; border-radius: 4px; font-size: 0.8125rem; display: inline-flex; align-items: center; gap: 4px;">
-          ${renderIcon("check", { size: 14 })} StarTimes Uplink Lock Confirmed
+ <div class="s-IzXuztZpWQ">
+ <span class="s-YlS8HiIJf3">3-Way Carrier Match</span>
+ <span class="vmn-badge" >
+          Carrier lock evidence recorded; this page does not independently validate the source
         </span>
       </div>
     </div>
 
     <!-- Cryptographic Proof & Digital Signatures -->
-    <div style="background: #0F172A; color: #F8FAFC; border-radius: var(--vmn-radius-md); padding: 24px; margin-bottom: 28px;">
-      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
-        <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: #94A3B8; font-weight: 600;">
-          Tamper-Evident SHA-256 Playout Hash
+ <div class="s-h7yMH5nccC">
+ <div class="s-Y8kD-MOVCW">
+ <span class="s-H2miTkgJH5">
+          Certificate Record SHA-256 Digest
         </span>
-        <span style="font-size: 0.75rem; color: #38BDF8; font-family: monospace;">SMPTE-2067 / BXF Reconciled</span>
+ <span class="s-v5PFDZ1ZsZ">Record hash — not source verification</span>
       </div>
-      <div style="background: #1E293B; padding: 12px 14px; border-radius: 6px; font-family: monospace; font-size: 0.85rem; word-break: break-all; color: #38BDF8; margin-bottom: 16px;">
+ <div class="s-tl6z-FmBOp">
         ${escapeHtml(certificate.cryptographicSignature)}
       </div>
-      <p style="font-size: 0.8125rem; color: #94A3B8; line-height: 1.5; margin: 0;">
-        This cryptographic proof is bound to the linear playout server frame timestamps and StarTimes carrier telemetry. It is immutable and accepted as audit-grade verification for financial billing and revenue recognition under CCPP-001 §19.
+ <p class="s-04oMLtOrs-">
+        This digest identifies the certificate record; it does not independently authenticate playout logs, carrier telemetry, transmission occurrence, or a financial accounting treatment. Finance and relevant evidence owners remain authoritative.
       </p>
     </div>
 
     <!-- Actions & PDF Download -->
-    <div style="display: flex; gap: 14px; justify-content: flex-end; flex-wrap: wrap;">
+ <div class="s-jWXDvP723a">
       ${
         certificate.documentBase64
-          ? `<a href="data:application/pdf;base64,${certificate.documentBase64}" download="PoA-${escapeHtml(certificate.certificateId)}.pdf" class="vmn-btn vmn-btn-secondary" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 44px; min-height: 44px; padding: 10px 20px; border-radius: var(--vmn-radius-md); text-decoration: none; font-weight: 600; border: 1px solid var(--vmn-surface-border); background: var(--vmn-surface); color: var(--vmn-text-main);">
+ ? `<a href="data:application/pdf;base64,${certificate.documentBase64}" download="PoA-${escapeHtml(certificate.certificateId)}.pdf" class="vmn-btn vmn-btn-secondary s-pY1QdE60oJ" >
               ${renderIcon("download", { size: 16 })} Download PDF Certificate
             </a>`
           : ""
       }
-      <a href="/partners" class="vmn-btn vmn-btn-primary" style="display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 10px 20px; border-radius: var(--vmn-radius-md); text-decoration: none; font-weight: 600; background: var(--vmn-secondary); color: white;">
+ <a href="/partners" class="vmn-btn vmn-btn-primary s-N9RnccLDF5" >
         Commercial Partnerships &rarr;
       </a>
     </div>

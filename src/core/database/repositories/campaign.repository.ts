@@ -5,6 +5,7 @@
 
 import { getPrismaClient, checkDatabaseConnection } from "../index.js";
 import { handleRepoError } from "../repository-mode.js";
+import { createRepositoryListPage, normalizeRepositoryListOptions, paginateMemoryRows, RepositoryListOptions, RepositoryListPage } from "./pagination.js";
 
 export interface CommercialCampaignRecord {
   id: string;
@@ -140,16 +141,22 @@ export class CampaignRepository {
     return mem ? { ...mem, source: "MEMORY" } : null;
   }
 
-  public async listCampaigns(status?: string): Promise<CommercialCampaignRecord[]> {
+  public async listCampaigns(status?: string, page: RepositoryListOptions = {}): Promise<RepositoryListPage<CommercialCampaignRecord>> {
+    const paging = normalizeRepositoryListOptions(page);
     const db = await checkDatabaseConnection();
     if (db.connected) {
       try {
         const client = getPrismaClient();
         const found = await client.commercialCampaign.findMany({
-          where: status ? { status: status as any } : undefined,
+          where: {
+            ...(status ? { status: status as any } : {}),
+            ...(paging.after ? { campaignCode: { gt: paging.after } } : {}),
+          },
+          orderBy: { campaignCode: "asc" },
+          take: paging.limit + 1,
         });
         if (found.length > 0) {
-          return found.map((r) => ({
+          return createRepositoryListPage(found.map((r) => ({
             id: r.id,
             campaignCode: r.campaignCode,
             clientName: r.clientName,
@@ -159,10 +166,10 @@ export class CampaignRepository {
             status: r.status as CommercialCampaignRecord["status"],
             startDate: r.startDate,
             endDate: r.endDate,
-            source: "DB",
+            source: "DB" as const,
             createdAt: r.createdAt,
             updatedAt: r.updatedAt,
-          }));
+          })), (campaign) => campaign.campaignCode, paging.limit);
         }
       } catch (err: any) {
         await handleRepoError("commercialCampaign", "list", err);
@@ -173,7 +180,7 @@ export class CampaignRepository {
     if (status) {
       list = list.filter((c) => c.status === status);
     }
-    return list;
+    return paginateMemoryRows(list, (campaign) => campaign.campaignCode, paging);
   }
 
   public async updateStatus(

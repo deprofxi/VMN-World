@@ -5,6 +5,14 @@
  * Authority: VMN APP UI UX.docx §8.5
  */
 
+import { registerDurableStore, stageDurableWrite } from "../database/durable-journal.js";
+import {
+  loadIssueRecords,
+  loadRiskRecords,
+  persistIssueRecord,
+  persistRiskRecord,
+} from "../database/repositories/release-critical.repository.js";
+
 export interface WorkTask {
   id: string;
   domain: "APPROVALS" | "ADMISSIONS" | "ENQUIRIES" | "CONTENT" | "CASES" | "RIGHTS" | "FINANCE";
@@ -158,6 +166,46 @@ export interface IssueRecord {
 const risks = new Map<string, RiskRecord>();
 const issues = new Map<string, IssueRecord>();
 
+/**
+ * TSK-17: the risk and issue registers are durable. `linkedRiskId` stays an id
+ * reference — the tables carry no foreign key, so `createIssue` keeps enforcing
+ * the linkage in code ([ISSUE-02]) rather than depending on row order.
+ */
+registerDurableStore<RiskRecord>("riskRecord", persistRiskRecord);
+registerDurableStore<IssueRecord>("issueRecord", persistIssueRecord);
+
+function stageRisk(risk: RiskRecord): void {
+  stageDurableWrite<RiskRecord>({
+    store: "riskRecord",
+    key: risk.id,
+    payload: risk,
+    rollback: () => {
+      risks.delete(risk.id);
+    },
+  });
+}
+
+function stageIssue(issue: IssueRecord): void {
+  stageDurableWrite<IssueRecord>({
+    store: "issueRecord",
+    key: issue.id,
+    payload: issue,
+    rollback: () => {
+      issues.delete(issue.id);
+    },
+  });
+}
+
+/** Boot hydration (TSK-17): rebuild both registers from durable rows. */
+export async function refreshRiskIssueIndex(): Promise<{ risks: number; issues: number }> {
+  const [loadedRisks, loadedIssues] = await Promise.all([loadRiskRecords(), loadIssueRecords()]);
+  risks.clear();
+  issues.clear();
+  for (const risk of loadedRisks) risks.set(risk.id, risk);
+  for (const issue of loadedIssues) issues.set(issue.id, issue);
+  return { risks: risks.size, issues: issues.size };
+}
+
 export function createRisk(params: {
   id: string;
   title: string;
@@ -171,6 +219,7 @@ export function createRisk(params: {
   if (risks.has(params.id)) throw new Error(`[RISK-01] Risk '${params.id}' exists.`);
   const risk: RiskRecord = { ...params, status: "OPEN", createdAt: new Date() };
   risks.set(params.id, risk);
+  stageRisk(risk);
   return risk;
 }
 
@@ -196,6 +245,7 @@ export function createIssue(params: {
   }
   const issue: IssueRecord = { ...params, status: "OPEN", createdAt: new Date() };
   issues.set(params.id, issue);
+  stageIssue(issue);
   return issue;
 }
 
@@ -215,6 +265,7 @@ export function transitionIssue(id: string, target: IssueRecord["status"], actor
   } else {
     issue.assignedTo = issue.assignedTo || actor;
   }
+  stageIssue(issue);
   return issue;
 }
 

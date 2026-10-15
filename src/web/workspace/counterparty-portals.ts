@@ -22,8 +22,8 @@ import { SessionUser } from "../../core/auth/index.js";
 
 function renderEmptyRecords(note: string): string {
   return `
-    <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px dashed var(--vmn-color-border); border-radius: var(--vmn-radius-lg); padding: 24px; margin-bottom: 24px;">
-      <p style="color: var(--vmn-color-secondary-text); font-size: 0.9rem; margin: 0;">${note}</p>
+ <div class="vmn-card s-jBAg6JRnQZ" >
+ <p class="s-s8QClmJr6r">${note}</p>
     </div>
   `;
 }
@@ -46,7 +46,7 @@ export interface PartnerPortalSnapshot {
   }>;
 }
 
-export function renderPartnerPortalHtml(snapshot: PartnerPortalSnapshot | undefined, user?: SessionUser): string {
+export function renderPartnerPortalHtml(snapshot: PartnerPortalSnapshot | undefined, _user?: SessionUser): string {
   if (!isFeatureEnabled("FF_PORTAL_PARTNER_AUDITOR")) {
     return renderFeatureDisabledNotice(
       "FF_PORTAL_PARTNER_AUDITOR",
@@ -59,49 +59,49 @@ export function renderPartnerPortalHtml(snapshot: PartnerPortalSnapshot | undefi
   const deals = snapshot?.deals || [];
 
   return `
-    <div style="max-width: 1200px; margin: 32px auto; padding: 0 16px;">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+ <div class="s-Llwj6EPzTQ">
+ <div class="s-k5NLeWec9i">
         <div>
-          <span class="vmn-badge badge-ready" style="margin-bottom: 8px; font-weight: 700;">PARTNER PORTAL &bull; UX-POR-003</span>
-          <h1 style="font-size: var(--vmn-font-size-2xl); font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 6px 0;">
+ <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >PARTNER PORTAL &bull; UX-POR-003</span>
+ <h1 class="s-n_bp1PhViu">
             Strategic Partner &amp; Broadcaster Counterparty Desk
           </h1>
-          <p style="color: var(--vmn-color-secondary-text); margin: 0; font-size: 0.95rem;">
+ <p class="s-zrikAgYqXF">
             Organisation: <strong>${escapeHtml(snapshot?.partnerName || orgId)}</strong> &bull; Portal ID: <code>${escapeHtml(orgId)}</code> &bull; Scope: canonical deals for YOUR organisation only
           </p>
         </div>
       </div>
 
-      <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); padding: 24px; margin-bottom: 32px;">
-        <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 16px 0;">
+ <div class="vmn-card s-1lEgQrBXgX" >
+ <h3 class="s-spyfDabz02">
           Active Co-Productions &amp; Commercial Ventures
         </h3>
         ${
           deals.length === 0
             ? renderEmptyRecords(`No commercial deals are recorded for organisation '${escapeHtml(orgId)}' in the canonical Quote-to-Cash engine. This portal renders only records scoped to your organisation and never displays another counterparty's data.`)
-            : `<div class="table-container" style="overflow-x: auto;">
-          <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+ : `<div class="table-container s-QtRFDAL0Yl" >
+ <table class="s-fzAoGce9Zz">
             <thead>
-              <tr style="border-bottom: 2px solid var(--vmn-color-border); color: var(--vmn-color-secondary-text);">
-                <th style="padding: 10px 12px;">Deal Ref</th>
-                <th style="padding: 10px 12px;">Engagement</th>
-                <th style="padding: 10px 12px;">Stage</th>
-                <th style="padding: 10px 12px; text-align: right;">Contract Value</th>
-                <th style="padding: 10px 12px; text-align: right;">Invoiced</th>
-                <th style="padding: 10px 12px; text-align: right;">Cash Collected</th>
+ <tr class="s-UnSdr9bWTK">
+ <th class="s-lr_pOFE4_J">Deal Ref</th>
+ <th class="s-lr_pOFE4_J">Engagement</th>
+ <th class="s-lr_pOFE4_J">Stage</th>
+ <th class="s-gY5FUZdHNU">Contract Value</th>
+ <th class="s-gY5FUZdHNU">Invoiced</th>
+ <th class="s-gY5FUZdHNU">Cash Collected</th>
               </tr>
             </thead>
             <tbody>
               ${deals
                 .map(
                   (d) => `
-                <tr style="border-bottom: 1px solid var(--vmn-color-border);">
-                  <td style="padding: 12px; font-family: monospace; font-weight: 700; color: var(--vmn-color-brand-cyan);">${escapeHtml(d.id)}</td>
-                  <td style="padding: 12px; font-weight: 700; color: var(--vmn-color-primary-text);">${escapeHtml(d.dealName)}</td>
-                  <td style="padding: 12px;"><span class="vmn-badge badge-neutral">${escapeHtml(d.stage.replace(/_/g, " "))}</span></td>
-                  <td style="padding: 12px; text-align: right; font-family: monospace;">NGN ${d.totalContractValueNgn.toLocaleString("en-NG")}</td>
-                  <td style="padding: 12px; text-align: right; font-family: monospace;">NGN ${d.invoicedAmountNgn.toLocaleString("en-NG")}</td>
-                  <td style="padding: 12px; text-align: right; font-family: monospace;">NGN ${d.cashCollectedAmountNgn.toLocaleString("en-NG")}</td>
+ <tr class="s-EK6K8Vq5tY">
+ <td class="s-p_p4UYzKzj">${escapeHtml(d.id)}</td>
+ <td class="s-8i5j_3VdTg">${escapeHtml(d.dealName)}</td>
+ <td class="s-6FCnPHXEyo"><span class="vmn-badge badge-neutral">${escapeHtml(d.stage.replace(/_/g, " "))}</span></td>
+ <td class="s-ldn0EUQsLQ">NGN ${d.totalContractValueNgn.toLocaleString("en-NG")}</td>
+ <td class="s-ldn0EUQsLQ">NGN ${d.invoicedAmountNgn.toLocaleString("en-NG")}</td>
+ <td class="s-ldn0EUQsLQ">NGN ${d.cashCollectedAmountNgn.toLocaleString("en-NG")}</td>
                 </tr>
               `
                 )
@@ -109,7 +109,7 @@ export function renderPartnerPortalHtml(snapshot: PartnerPortalSnapshot | undefi
             </tbody>
           </table>
         </div>
-        <p style="font-size: 0.75rem; color: var(--vmn-color-secondary-text); margin: 12px 0 0;">
+ <p class="s-UimKdry8Xx">
           Contract value, invoiced value and cash collected are distinct financial measures; they are never conflated as a single "revenue" figure (CLAUDE.md data_and_finance).
         </p>`
         }
@@ -135,7 +135,7 @@ export interface CreatorPortalSnapshot {
   }>;
 }
 
-export function renderCreatorPortalHtml(snapshot: CreatorPortalSnapshot | undefined, user?: SessionUser): string {
+export function renderCreatorPortalHtml(snapshot: CreatorPortalSnapshot | undefined, _user?: SessionUser): string {
   if (!isFeatureEnabled("FF_PORTAL_PARTNER_AUDITOR")) {
     return renderFeatureDisabledNotice(
       "FF_PORTAL_PARTNER_AUDITOR",
@@ -148,52 +148,52 @@ export function renderCreatorPortalHtml(snapshot: CreatorPortalSnapshot | undefi
   const settlements = snapshot?.settlements || [];
 
   return `
-    <div style="max-width: 1200px; margin: 32px auto; padding: 0 16px;">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+ <div class="s-Llwj6EPzTQ">
+ <div class="s-k5NLeWec9i">
         <div>
-          <span class="vmn-badge badge-ready" style="margin-bottom: 8px; font-weight: 700;">CREATOR &bull; UX-POR-004</span>
-          <h1 style="font-size: var(--vmn-font-size-2xl); font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 6px 0;">
+ <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >CREATOR &bull; UX-POR-004</span>
+ <h1 class="s-n_bp1PhViu">
             Creator Earnings &amp; 7-Way Royalty Settlement Portal
           </h1>
-          <p style="color: var(--vmn-color-secondary-text); margin: 0; font-size: 0.95rem;">
+ <p class="s-zrikAgYqXF">
             Beneficiary: <code>${escapeHtml(creatorId)}</code> &bull; Scope: payout batches where you are a line item
           </p>
         </div>
       </div>
 
-      <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); padding: 24px; margin-bottom: 32px;">
-        <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 8px 0;">
+ <div class="vmn-card s-1lEgQrBXgX" >
+ <h3 class="s-k4BT8HxObJ">
           Historical Settlements (7-Way Separated)
         </h3>
-        <p style="color: var(--vmn-color-secondary-text); font-size: 0.85rem; margin-bottom: 16px;">
+ <p class="s-66hKPmji8u">
           Figures come from canonical TalentPayoutEngine batches: gross allocation, platform fee and statutory Nigerian WHT are shown as the distinct measures they are; the net disbursement is the only amount paid out.
         </p>
         ${
           settlements.length === 0
             ? renderEmptyRecords(`No payout batches include beneficiary '${escapeHtml(creatorId)}' yet. Settlement lines appear here only after a finance-approved batch containing your engagements is created; nothing is invented for display.`)
-            : `<div class="table-container" style="overflow-x: auto;">
-          <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+ : `<div class="table-container s-QtRFDAL0Yl" >
+ <table class="s-fzAoGce9Zz">
             <thead>
-              <tr style="border-bottom: 2px solid var(--vmn-color-border); color: var(--vmn-color-secondary-text);">
-                <th style="padding: 10px 12px;">Batch Ref</th>
-                <th style="padding: 10px 12px;">Batch Status</th>
-                <th style="padding: 10px 12px; text-align: right;">Gross Allocation</th>
-                <th style="padding: 10px 12px; text-align: right;">Platform Fee</th>
-                <th style="padding: 10px 12px; text-align: right;">WHT</th>
-                <th style="padding: 10px 12px; text-align: right;">Net NIP Payout</th>
+ <tr class="s-UnSdr9bWTK">
+ <th class="s-lr_pOFE4_J">Batch Ref</th>
+ <th class="s-lr_pOFE4_J">Batch Status</th>
+ <th class="s-gY5FUZdHNU">Gross Allocation</th>
+ <th class="s-gY5FUZdHNU">Platform Fee</th>
+ <th class="s-gY5FUZdHNU">WHT</th>
+ <th class="s-gY5FUZdHNU">Net NIP Payout</th>
               </tr>
             </thead>
             <tbody>
               ${settlements
                 .map(
                   (e) => `
-                <tr style="border-bottom: 1px solid var(--vmn-color-border);">
-                  <td style="padding: 12px; font-family: monospace; font-size: 0.8rem; color: var(--vmn-color-secondary-text);">${escapeHtml(e.batchReference)}</td>
-                  <td style="padding: 12px;"><span class="vmn-badge ${e.batchStatus === "PROCESSED" || e.batchStatus === "APPROVED_FOR_DISBURSEMENT" ? "badge-ready" : "badge-warning"}">${escapeHtml(e.batchStatus.replace(/_/g, " "))}</span></td>
-                  <td style="padding: 12px; text-align: right; font-family: monospace;">NGN ${e.grossAmountNgn.toLocaleString("en-NG")}</td>
-                  <td style="padding: 12px; text-align: right; font-family: monospace; color: var(--vmn-color-secondary-text);">- NGN ${e.platformFeeNgn.toLocaleString("en-NG")}</td>
-                  <td style="padding: 12px; text-align: right; font-family: monospace; color: var(--vmn-color-error, #DC2626);">- NGN ${e.whtDeductionNgn.toLocaleString("en-NG")}</td>
-                  <td style="padding: 12px; text-align: right; font-family: monospace; font-weight: 700; color: var(--vmn-color-ready);">NGN ${e.netDisbursementNgn.toLocaleString("en-NG")}</td>
+ <tr class="s-EK6K8Vq5tY">
+ <td class="s-qHjAKnxiKb">${escapeHtml(e.batchReference)}</td>
+ <td class="s-6FCnPHXEyo"><span class="vmn-badge ${e.batchStatus === "PROCESSED" || e.batchStatus === "APPROVED_FOR_DISBURSEMENT" ? "badge-ready" : "badge-warning"}">${escapeHtml(e.batchStatus.replace(/_/g, " "))}</span></td>
+ <td class="s-ldn0EUQsLQ">NGN ${e.grossAmountNgn.toLocaleString("en-NG")}</td>
+ <td class="s-UVhY1upnts">- NGN ${e.platformFeeNgn.toLocaleString("en-NG")}</td>
+ <td class="s-3zA7Zyy1pB">- NGN ${e.whtDeductionNgn.toLocaleString("en-NG")}</td>
+ <td class="s-wV9zGSXb6D">NGN ${e.netDisbursementNgn.toLocaleString("en-NG")}</td>
                 </tr>
               `
                 )
@@ -224,7 +224,7 @@ export interface VendorPortalSnapshot {
   }>;
 }
 
-export function renderVendorPortalHtml(snapshot: VendorPortalSnapshot | undefined, user?: SessionUser): string {
+export function renderVendorPortalHtml(snapshot: VendorPortalSnapshot | undefined, _user?: SessionUser): string {
   if (!isFeatureEnabled("FF_PORTAL_PARTNER_AUDITOR")) {
     return renderFeatureDisabledNotice(
       "FF_PORTAL_PARTNER_AUDITOR",
@@ -237,49 +237,49 @@ export function renderVendorPortalHtml(snapshot: VendorPortalSnapshot | undefine
   const pos = snapshot?.purchaseOrders || [];
 
   return `
-    <div style="max-width: 1200px; margin: 32px auto; padding: 0 16px;">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+ <div class="s-Llwj6EPzTQ">
+ <div class="s-k5NLeWec9i">
         <div>
-          <span class="vmn-badge badge-ready" style="margin-bottom: 8px; font-weight: 700;">VENDOR &bull; UX-POR-005</span>
-          <h1 style="font-size: var(--vmn-font-size-2xl); font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 6px 0;">
+ <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >VENDOR &bull; UX-POR-005</span>
+ <h1 class="s-n_bp1PhViu">
             Vendor Procurement &amp; Invoice Submission Portal
           </h1>
-          <p style="color: var(--vmn-color-secondary-text); margin: 0; font-size: 0.95rem;">
+ <p class="s-zrikAgYqXF">
             Registered Vendor: <strong>${escapeHtml(snapshot?.vendorName || vendorId)}</strong> &bull; ID: <code>${escapeHtml(vendorId)}</code>
           </p>
         </div>
       </div>
 
-      <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); padding: 24px; margin-bottom: 32px;">
-        <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 16px 0;">
+ <div class="vmn-card s-1lEgQrBXgX" >
+ <h3 class="s-spyfDabz02">
           Purchase Orders &amp; Invoices
         </h3>
         ${
           pos.length === 0
             ? renderEmptyRecords(`The canonical procurement record store does not yet hold purchase orders for vendor '${escapeHtml(vendorId)}' — the PO/invoice domain is a recorded deferral (DEC-RL1-SCOPE-001). This portal renders canonical records only and does not fabricate POs.`)
-            : `<div class="table-container" style="overflow-x: auto;">
-          <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+ : `<div class="table-container s-QtRFDAL0Yl" >
+ <table class="s-fzAoGce9Zz">
             <thead>
-              <tr style="border-bottom: 2px solid var(--vmn-color-border); color: var(--vmn-color-secondary-text);">
-                <th style="padding: 10px 12px;">PO Number</th>
-                <th style="padding: 10px 12px;">Scope of Services</th>
-                <th style="padding: 10px 12px; text-align: right;">Amount</th>
-                <th style="padding: 10px 12px;">Issue Date</th>
-                <th style="padding: 10px 12px;">Terms</th>
-                <th style="padding: 10px 12px;">Status</th>
+ <tr class="s-UnSdr9bWTK">
+ <th class="s-lr_pOFE4_J">PO Number</th>
+ <th class="s-lr_pOFE4_J">Scope of Services</th>
+ <th class="s-gY5FUZdHNU">Amount</th>
+ <th class="s-lr_pOFE4_J">Issue Date</th>
+ <th class="s-lr_pOFE4_J">Terms</th>
+ <th class="s-lr_pOFE4_J">Status</th>
               </tr>
             </thead>
             <tbody>
               ${pos
                 .map(
                   (po) => `
-                <tr style="border-bottom: 1px solid var(--vmn-color-border);">
-                  <td style="padding: 12px; font-family: monospace; font-weight: 700; color: var(--vmn-color-brand-cyan);">${escapeHtml(po.poNumber)}</td>
-                  <td style="padding: 12px; font-weight: 700; color: var(--vmn-color-primary-text);">${escapeHtml(po.description)}</td>
-                  <td style="padding: 12px; text-align: right; font-family: monospace; font-weight: 700;">NGN ${po.amountNgn.toLocaleString("en-NG")}</td>
-                  <td style="padding: 12px; font-family: monospace;">${escapeHtml(po.dateIssued)}</td>
-                  <td style="padding: 12px; color: var(--vmn-color-secondary-text);">${escapeHtml(po.paymentTerms)}</td>
-                  <td style="padding: 12px;"><span class="vmn-badge badge-ready">${escapeHtml(po.status.replace(/_/g, " "))}</span></td>
+ <tr class="s-EK6K8Vq5tY">
+ <td class="s-p_p4UYzKzj">${escapeHtml(po.poNumber)}</td>
+ <td class="s-8i5j_3VdTg">${escapeHtml(po.description)}</td>
+ <td class="s-I8HUUerhjm">NGN ${po.amountNgn.toLocaleString("en-NG")}</td>
+ <td class="s-jlCyZLbEPQ">${escapeHtml(po.dateIssued)}</td>
+ <td class="s-gvP_yDU8_J">${escapeHtml(po.paymentTerms)}</td>
+ <td class="s-6FCnPHXEyo"><span class="vmn-badge badge-ready">${escapeHtml(po.status.replace(/_/g, " "))}</span></td>
                 </tr>
               `
                 )
@@ -306,7 +306,7 @@ export interface ManagementOverviewSnapshot {
   academyCertificates: number;
 }
 
-export function renderManagementOverviewHtml(snapshot: ManagementOverviewSnapshot | undefined, user?: SessionUser): string {
+export function renderManagementOverviewHtml(snapshot: ManagementOverviewSnapshot | undefined, _user?: SessionUser): string {
   if (!isFeatureEnabled("FF_SHARED_HUB_DIRECTORY")) {
     return renderFeatureDisabledNotice(
       "FF_SHARED_HUB_DIRECTORY",
@@ -320,59 +320,59 @@ export function renderManagementOverviewHtml(snapshot: ManagementOverviewSnapsho
   const verifiedTalent = snapshot?.verifiedTalent ?? 0;
 
   return `
-    <div style="max-width: 1200px; margin: 32px auto; padding: 0 16px;">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+ <div class="s-Llwj6EPzTQ">
+ <div class="s-k5NLeWec9i">
         <div>
-          <span class="vmn-badge badge-ready" style="margin-bottom: 8px; font-weight: 700;">EXECUTIVE COMMAND &bull; UX-HUB-004</span>
-          <h1 style="font-size: var(--vmn-font-size-2xl); font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 6px 0;">
+ <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >EXECUTIVE COMMAND &bull; UX-HUB-004</span>
+ <h1 class="s-n_bp1PhViu">
             VMN Consolidated Management Overview
           </h1>
-          <p style="color: var(--vmn-color-secondary-text); margin: 0; font-size: 0.95rem;">
+ <p class="s-zrikAgYqXF">
             Computed live from canonical engines &bull; Every figure below is derived, never asserted
           </p>
         </div>
-        <div style="display: flex; gap: 8px;">
-          <a href="/workspace/executive" class="btn btn-secondary" style="min-height: 44px; display: inline-flex; align-items: center; gap: 6px; font-weight: 700;">
+ <div class="s-aTQ0x94bOS">
+ <a href="/workspace/executive" class="btn btn-secondary s-kd4he0W4Wm" >
             ${renderIcon("shield", { size: 16 })} Executive Room &rarr;
           </a>
         </div>
       </div>
 
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 24px;">
-        <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md); padding: 16px;">
-          <div style="font-size: 0.85rem; color: var(--vmn-color-secondary-text); font-weight: 600;">Linear Channels Under Management</div>
-          <div style="font-size: 1.6rem; font-weight: 800; color: var(--vmn-color-ready); margin-top: 4px;">${snapshot?.broadcastChannels ?? 0}</div>
-          <div style="font-size: 0.75rem; color: var(--vmn-color-secondary-text); margin-top: 4px;">Canonical channel registry</div>
+ <div class="s-3ifFJEBbTo">
+ <div class="vmn-card s-OAPQ4AS9-O" >
+ <div class="s-cU3Cr5m8eq">Linear Channels Under Management</div>
+ <div class="s-6AmaNpUFld">${snapshot?.broadcastChannels ?? 0}</div>
+ <div class="s-_tdYXnR5PA">Canonical channel registry</div>
         </div>
-        <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md); padding: 16px;">
-          <div style="font-size: 0.85rem; color: var(--vmn-color-secondary-text); font-weight: 600;">Open Carriage Incidents</div>
-          <div style="font-size: 1.6rem; font-weight: 800; margin-top: 4px;">${snapshot?.openBroadcastIncidents ?? 0}</div>
-          <div style="font-size: 0.75rem; color: var(--vmn-color-secondary-text); margin-top: 4px;">From CarriageMonitoringEngine</div>
+ <div class="vmn-card s-OAPQ4AS9-O" >
+ <div class="s-cU3Cr5m8eq">Open Carriage Incidents</div>
+ <div class="s-iJYiVmvrV7">${snapshot?.openBroadcastIncidents ?? 0}</div>
+ <div class="s-_tdYXnR5PA">From CarriageMonitoringEngine</div>
         </div>
-        <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md); padding: 16px;">
-          <div style="font-size: 0.85rem; color: var(--vmn-color-secondary-text); font-weight: 600;">Commercial Pipeline (Deals)</div>
-          <div style="font-size: 1.6rem; font-weight: 800; color: var(--vmn-color-brand-cyan); margin-top: 4px;">${pipeline.deals}</div>
-          <div style="font-size: 0.75rem; color: var(--vmn-color-secondary-text); margin-top: 4px;">Contract value NGN ${pipeline.contractValueNgn.toLocaleString("en-NG")}</div>
+ <div class="vmn-card s-OAPQ4AS9-O" >
+ <div class="s-cU3Cr5m8eq">Commercial Pipeline (Deals)</div>
+ <div class="s-sT-g5nwPta">${pipeline.deals}</div>
+ <div class="s-_tdYXnR5PA">Contract value NGN ${pipeline.contractValueNgn.toLocaleString("en-NG")}</div>
         </div>
-        <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md); padding: 16px;">
-          <div style="font-size: 0.85rem; color: var(--vmn-color-secondary-text); font-weight: 600;">Recognised Revenue (Governed)</div>
-          <div style="font-size: 1.6rem; font-weight: 800; margin-top: 4px;">NGN ${pipeline.recognizedRevenueNgn.toLocaleString("en-NG")}</div>
-          <div style="font-size: 0.75rem; color: var(--vmn-color-secondary-text); margin-top: 4px;">Cash collected NGN ${pipeline.cashCollectedNgn.toLocaleString("en-NG")} — kept distinct from recognition (FIN-01)</div>
+ <div class="vmn-card s-OAPQ4AS9-O" >
+ <div class="s-cU3Cr5m8eq">Recognised Revenue (Governed)</div>
+ <div class="s-iJYiVmvrV7">NGN ${pipeline.recognizedRevenueNgn.toLocaleString("en-NG")}</div>
+ <div class="s-_tdYXnR5PA">Cash collected NGN ${pipeline.cashCollectedNgn.toLocaleString("en-NG")} — kept distinct from recognition (FIN-01)</div>
         </div>
-        <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md); padding: 16px;">
-          <div style="font-size: 0.85rem; color: var(--vmn-color-secondary-text); font-weight: 600;">Talent Registry</div>
-          <div style="font-size: 1.6rem; font-weight: 800; margin-top: 4px;">${totalTalent}</div>
-          <div style="font-size: 0.75rem; color: var(--vmn-color-secondary-text); margin-top: 4px;">${verifiedTalent} verified via accelerator gates</div>
+ <div class="vmn-card s-OAPQ4AS9-O" >
+ <div class="s-cU3Cr5m8eq">Talent Registry</div>
+ <div class="s-iJYiVmvrV7">${totalTalent}</div>
+ <div class="s-_tdYXnR5PA">${verifiedTalent} verified via accelerator gates</div>
         </div>
-        <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md); padding: 16px;">
-          <div style="font-size: 0.85rem; color: var(--vmn-color-secondary-text); font-weight: 600;">AFCA Certificates Issued</div>
-          <div style="font-size: 1.6rem; font-weight: 800; margin-top: 4px;">${snapshot?.academyCertificates ?? 0}</div>
-          <div style="font-size: 0.75rem; color: var(--vmn-color-secondary-text); margin-top: 4px;">Issued via AfcaAcademyService</div>
+ <div class="vmn-card s-OAPQ4AS9-O" >
+ <div class="s-cU3Cr5m8eq">AFCA Certificates Issued</div>
+ <div class="s-iJYiVmvrV7">${snapshot?.academyCertificates ?? 0}</div>
+ <div class="s-_tdYXnR5PA">Issued via AfcaAcademyService</div>
         </div>
       </div>
 
-      <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); padding: 16px; margin-bottom: 24px;">
-        <p style="font-size: 0.8rem; color: var(--vmn-color-secondary-text); margin: 0;">
+ <div class="vmn-card s-synEokD4Lr" >
+ <p class="s-tD6DNc5hQ0">
           Note: financial figures are computed from the canonical Quote-to-Cash engine. Recognised revenue is delivery-gated and contract-capped; collected cash that exceeds verified delivery remains deferred, never counted as revenue (Canonical Law 7). Executive metric dictionary approval remains with Finance (DEC-RL1-SCOPE-001 D-10).
         </p>
       </div>
@@ -400,7 +400,7 @@ export interface RiskRegisterSnapshot {
   }>;
 }
 
-export function renderRiskRegisterHtml(snapshot: RiskRegisterSnapshot | undefined, user?: SessionUser): string {
+export function renderRiskRegisterHtml(snapshot: RiskRegisterSnapshot | undefined, _user?: SessionUser): string {
   if (!isFeatureEnabled("FF_SHARED_RISK_ISSUE_RECORDS")) {
     return renderFeatureDisabledNotice(
       "FF_SHARED_RISK_ISSUE_RECORDS",
@@ -412,43 +412,43 @@ export function renderRiskRegisterHtml(snapshot: RiskRegisterSnapshot | undefine
   const risks = snapshot?.risks || [];
 
   return `
-    <div style="max-width: 1200px; margin: 32px auto; padding: 0 16px;">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+ <div class="s-Llwj6EPzTQ">
+ <div class="s-k5NLeWec9i">
         <div>
-          <span class="vmn-badge badge-ready" style="margin-bottom: 8px; font-weight: 700;">GOVERNANCE &bull; UX-REC-004</span>
-          <h1 style="font-size: var(--vmn-font-size-2xl); font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 6px 0;">
+ <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >GOVERNANCE &bull; UX-REC-004</span>
+ <h1 class="s-n_bp1PhViu">
             Enterprise Risk Register &amp; Mitigation Control Ledger
           </h1>
-          <p style="color: var(--vmn-color-secondary-text); margin: 0; font-size: 0.95rem;">
+ <p class="s-zrikAgYqXF">
             Canonical projection of the core work domain &bull; Governance mutation requires update:risk authority
           </p>
         </div>
-        <div style="display: flex; gap: 8px;">
-          <a href="#log-risk" class="btn btn-primary" style="min-height: 44px; display: inline-flex; align-items: center; gap: 6px;">
+ <div class="s-aTQ0x94bOS">
+ <a href="#log-risk" class="btn btn-primary s-oskDBiEZSv" >
             ${renderIcon("shield", { size: 16 })} Log Identified Risk &rarr;
           </a>
         </div>
       </div>
 
-      <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); padding: 24px; margin-bottom: 32px;">
-        <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 16px 0;">
+ <div class="vmn-card s-1lEgQrBXgX" >
+ <h3 class="s-spyfDabz02">
           Assessed Enterprise Risks
         </h3>
         ${
           risks.length === 0
             ? renderEmptyRecords("No risks are recorded in the canonical register yet — log the first below. This register renders canonical records only.")
-            : `<div class="table-container" style="overflow-x: auto;">
-          <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+ : `<div class="table-container s-QtRFDAL0Yl" >
+ <table class="s-fzAoGce9Zz">
             <thead>
-              <tr style="border-bottom: 2px solid var(--vmn-color-border); color: var(--vmn-color-secondary-text);">
-                <th style="padding: 10px 12px;">Risk ID</th>
-                <th style="padding: 10px 12px;">Title</th>
-                <th style="padding: 10px 12px;">Category</th>
-                <th style="padding: 10px 12px; text-align: center;">L×I</th>
-                <th style="padding: 10px 12px;">Mitigation Control</th>
-                <th style="padding: 10px 12px;">Owner</th>
-                <th style="padding: 10px 12px;">Review Due</th>
-                <th style="padding: 10px 12px;">Status</th>
+ <tr class="s-UnSdr9bWTK">
+ <th class="s-lr_pOFE4_J">Risk ID</th>
+ <th class="s-lr_pOFE4_J">Title</th>
+ <th class="s-lr_pOFE4_J">Category</th>
+ <th class="s-WWQfr0I4fx">L×I</th>
+ <th class="s-lr_pOFE4_J">Mitigation Control</th>
+ <th class="s-lr_pOFE4_J">Owner</th>
+ <th class="s-lr_pOFE4_J">Review Due</th>
+ <th class="s-lr_pOFE4_J">Status</th>
               </tr>
             </thead>
             <tbody>
@@ -456,15 +456,15 @@ export function renderRiskRegisterHtml(snapshot: RiskRegisterSnapshot | undefine
                 .map((r) => {
                   const score = r.likelihood * r.impact;
                   return `
-                <tr style="border-bottom: 1px solid var(--vmn-color-border);">
-                  <td style="padding: 12px; font-family: monospace; font-weight: 700; color: var(--vmn-color-brand-cyan);">${escapeHtml(r.id)}</td>
-                  <td style="padding: 12px; font-weight: 700; color: var(--vmn-color-primary-text);">${escapeHtml(r.title)}</td>
-                  <td style="padding: 12px;"><span class="vmn-badge badge-neutral">${escapeHtml(r.category.replace(/_/g, " "))}</span></td>
-                  <td style="padding: 12px; text-align: center;"><span class="vmn-badge ${score >= 15 ? "badge-danger" : score >= 8 ? "badge-warning" : "badge-info"}">${r.likelihood}×${r.impact}=${score}</span></td>
-                  <td style="padding: 12px; color: var(--vmn-color-secondary-text);">${escapeHtml(r.mitigation)}</td>
-                  <td style="padding: 12px;">${escapeHtml(r.owner)}</td>
-                  <td style="padding: 12px; font-family: monospace;">${escapeHtml(r.reviewDueAt)}</td>
-                  <td style="padding: 12px;"><span class="vmn-badge ${r.status === "CLOSED" ? "badge-ready" : "badge-warning"}">${escapeHtml(r.status)}</span></td>
+ <tr class="s-EK6K8Vq5tY">
+ <td class="s-p_p4UYzKzj">${escapeHtml(r.id)}</td>
+ <td class="s-8i5j_3VdTg">${escapeHtml(r.title)}</td>
+ <td class="s-6FCnPHXEyo"><span class="vmn-badge badge-neutral">${escapeHtml(r.category.replace(/_/g, " "))}</span></td>
+ <td class="s-5fSyfN0kQ1"><span class="vmn-badge ${score >= 15 ? "badge-danger" : score >= 8 ? "badge-warning" : "badge-info"}">${r.likelihood}×${r.impact}=${score}</span></td>
+ <td class="s-gvP_yDU8_J">${escapeHtml(r.mitigation)}</td>
+ <td class="s-6FCnPHXEyo">${escapeHtml(r.owner)}</td>
+ <td class="s-jlCyZLbEPQ">${escapeHtml(r.reviewDueAt)}</td>
+ <td class="s-6FCnPHXEyo"><span class="vmn-badge ${r.status === "CLOSED" ? "badge-ready" : "badge-warning"}">${escapeHtml(r.status)}</span></td>
                 </tr>
               `;
                 })
@@ -476,48 +476,48 @@ export function renderRiskRegisterHtml(snapshot: RiskRegisterSnapshot | undefine
       </div>
 
       <!-- Risk Logging Form -->
-      <div id="log-risk" class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); padding: 24px;">
-        <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 8px 0;">
+ <div id="log-risk" class="vmn-card s-JOKW7YLeUA" >
+ <h3 class="s-k4BT8HxObJ">
           Log Identified Risk (UX-REC-004)
         </h3>
-        <p style="color: var(--vmn-color-secondary-text); font-size: 0.9rem; margin-bottom: 20px;">
+ <p class="s-i_qnuR0Wq0">
           Writes a canonical RiskRecord via the core work domain (guarded mutation, update:risk).
         </p>
-        <form method="POST" action="/api/v1/workspace/governance/risks" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+ <form method="POST" action="/api/v1/workspace/governance/risks" class="s-U3mAiGQfXk">
           <div>
-            <label style="display: block; font-weight: 700; font-size: 0.85rem; margin-bottom: 6px;">Risk ID</label>
-            <input type="text" name="id" required placeholder="e.g. RSK-2026-004" style="width: 100%; min-height: 44px; padding: 8px 12px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-sm); background: var(--vmn-color-background); color: var(--vmn-color-primary-text);" />
-          </div>
-          <div>
-            <label style="display: block; font-weight: 700; font-size: 0.85rem; margin-bottom: 6px;">Title</label>
-            <input type="text" name="title" required placeholder="Risk title" style="width: 100%; min-height: 44px; padding: 8px 12px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-sm); background: var(--vmn-color-background); color: var(--vmn-color-primary-text);" />
+ <label class="s-glAYpXXGqp">Risk ID</label>
+ <input type="text" name="id" required placeholder="e.g. RSK-2026-004" class="s-eRsuZyv9DA" />
           </div>
           <div>
-            <label style="display: block; font-weight: 700; font-size: 0.85rem; margin-bottom: 6px;">Category</label>
-            <input type="text" name="category" required placeholder="e.g. BROADCAST_TRANSMISSION" style="width: 100%; min-height: 44px; padding: 8px 12px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-sm); background: var(--vmn-color-background); color: var(--vmn-color-primary-text);" />
+ <label class="s-glAYpXXGqp">Title</label>
+ <input type="text" name="title" required placeholder="Risk title" class="s-eRsuZyv9DA" />
           </div>
           <div>
-            <label style="display: block; font-weight: 700; font-size: 0.85rem; margin-bottom: 6px;">Likelihood (1–5)</label>
-            <input type="number" name="likelihood" required min="1" max="5" value="3" style="width: 100%; min-height: 44px; padding: 8px 12px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-sm); background: var(--vmn-color-background); color: var(--vmn-color-primary-text);" />
+ <label class="s-glAYpXXGqp">Category</label>
+ <input type="text" name="category" required placeholder="e.g. BROADCAST_TRANSMISSION" class="s-eRsuZyv9DA" />
           </div>
           <div>
-            <label style="display: block; font-weight: 700; font-size: 0.85rem; margin-bottom: 6px;">Impact (1–5)</label>
-            <input type="number" name="impact" required min="1" max="5" value="3" style="width: 100%; min-height: 44px; padding: 8px 12px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-sm); background: var(--vmn-color-background); color: var(--vmn-color-primary-text);" />
+ <label class="s-glAYpXXGqp">Likelihood (1–5)</label>
+ <input type="number" name="likelihood" required min="1" max="5" value="3" class="s-eRsuZyv9DA" />
           </div>
           <div>
-            <label style="display: block; font-weight: 700; font-size: 0.85rem; margin-bottom: 6px;">Owner</label>
-            <input type="text" name="owner" required placeholder="Accountable owner" style="width: 100%; min-height: 44px; padding: 8px 12px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-sm); background: var(--vmn-color-background); color: var(--vmn-color-primary-text);" />
+ <label class="s-glAYpXXGqp">Impact (1–5)</label>
+ <input type="number" name="impact" required min="1" max="5" value="3" class="s-eRsuZyv9DA" />
           </div>
           <div>
-            <label style="display: block; font-weight: 700; font-size: 0.85rem; margin-bottom: 6px;">Review Due Date</label>
-            <input type="date" name="reviewDueAt" required style="width: 100%; min-height: 44px; padding: 8px 12px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-sm); background: var(--vmn-color-background); color: var(--vmn-color-primary-text);" />
+ <label class="s-glAYpXXGqp">Owner</label>
+ <input type="text" name="owner" required placeholder="Accountable owner" class="s-eRsuZyv9DA" />
           </div>
-          <div style="grid-column: 1 / -1;">
-            <label style="display: block; font-weight: 700; font-size: 0.85rem; margin-bottom: 6px;">Mitigation Control</label>
-            <textarea name="mitigation" rows="2" required placeholder="Preventative / detective control description..." style="width: 100%; padding: 8px 12px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-sm); background: var(--vmn-color-background); color: var(--vmn-color-primary-text);"></textarea>
+          <div>
+ <label class="s-glAYpXXGqp">Review Due Date</label>
+ <input type="date" name="reviewDueAt" required class="s-eRsuZyv9DA" />
           </div>
-          <div style="grid-column: 1 / -1; display: flex; justify-content: flex-end; margin-top: 12px;">
-            <button type="submit" class="btn btn-primary" style="min-height: 44px; padding: 0 24px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px;">
+ <div class="s-1bQzQqLk7S">
+ <label class="s-glAYpXXGqp">Mitigation Control</label>
+ <textarea name="mitigation" rows="2" required placeholder="Preventative / detective control description..." class="s-fpsb2azaU2"></textarea>
+          </div>
+ <div class="s-Rt7hql7QwU">
+ <button type="submit" class="btn btn-primary s-IA9-EU7SCj" >
               ${renderIcon("check", { size: 16 })} Log Risk
             </button>
           </div>
@@ -544,7 +544,7 @@ export interface IssueTrackerSnapshot {
   }>;
 }
 
-export function renderIssueTrackerHtml(snapshot: IssueTrackerSnapshot | undefined, user?: SessionUser): string {
+export function renderIssueTrackerHtml(snapshot: IssueTrackerSnapshot | undefined, _user?: SessionUser): string {
   if (!isFeatureEnabled("FF_SHARED_RISK_ISSUE_RECORDS")) {
     return renderFeatureDisabledNotice(
       "FF_SHARED_RISK_ISSUE_RECORDS",
@@ -556,42 +556,42 @@ export function renderIssueTrackerHtml(snapshot: IssueTrackerSnapshot | undefine
   const issues = snapshot?.issues || [];
 
   return `
-    <div style="max-width: 1200px; margin: 32px auto; padding: 0 16px;">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+ <div class="s-Llwj6EPzTQ">
+ <div class="s-k5NLeWec9i">
         <div>
-          <span class="vmn-badge badge-ready" style="margin-bottom: 8px; font-weight: 700;">OPERATIONS &bull; UX-REC-005</span>
-          <h1 style="font-size: var(--vmn-font-size-2xl); font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 6px 0;">
+ <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >OPERATIONS &bull; UX-REC-005</span>
+ <h1 class="s-n_bp1PhViu">
             Operational Issue Tracker &amp; Incident Escalation Desk
           </h1>
-          <p style="color: var(--vmn-color-secondary-text); margin: 0; font-size: 0.95rem;">
+ <p class="s-zrikAgYqXF">
             Canonical projection of the core work domain &bull; Lifecycle enforced (OPEN → ACKNOWLEDGED → FIX_IN_PROGRESS → RESOLVED)
           </p>
         </div>
-        <div style="display: flex; gap: 8px;">
-          <a href="#log-issue" class="btn btn-primary" style="min-height: 44px; display: inline-flex; align-items: center; gap: 6px;">
+ <div class="s-aTQ0x94bOS">
+ <a href="#log-issue" class="btn btn-primary s-oskDBiEZSv" >
             ${renderIcon("bolt", { size: 16 })} Log Operational Incident &rarr;
           </a>
         </div>
       </div>
 
-      <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); padding: 24px; margin-bottom: 32px;">
-        <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 16px 0;">
+ <div class="vmn-card s-1lEgQrBXgX" >
+ <h3 class="s-spyfDabz02">
           Active Incident Tickets
         </h3>
         ${
           issues.length === 0
             ? renderEmptyRecords("No issues are recorded in the canonical tracker yet — log the first below. This tracker renders canonical records only.")
-            : `<div class="table-container" style="overflow-x: auto;">
-          <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+ : `<div class="table-container s-QtRFDAL0Yl" >
+ <table class="s-fzAoGce9Zz">
             <thead>
-              <tr style="border-bottom: 2px solid var(--vmn-color-border); color: var(--vmn-color-secondary-text);">
-                <th style="padding: 10px 12px;">Issue ID</th>
-                <th style="padding: 10px 12px;">Title</th>
-                <th style="padding: 10px 12px;">Severity</th>
-                <th style="padding: 10px 12px;">Raised By</th>
-                <th style="padding: 10px 12px;">Assigned To</th>
-                <th style="padding: 10px 12px;">State</th>
-                <th style="padding: 10px 12px; text-align: right;">Lifecycle Action</th>
+ <tr class="s-UnSdr9bWTK">
+ <th class="s-lr_pOFE4_J">Issue ID</th>
+ <th class="s-lr_pOFE4_J">Title</th>
+ <th class="s-lr_pOFE4_J">Severity</th>
+ <th class="s-lr_pOFE4_J">Raised By</th>
+ <th class="s-lr_pOFE4_J">Assigned To</th>
+ <th class="s-lr_pOFE4_J">State</th>
+ <th class="s-gY5FUZdHNU">Lifecycle Action</th>
               </tr>
             </thead>
             <tbody>
@@ -600,19 +600,19 @@ export function renderIssueTrackerHtml(snapshot: IssueTrackerSnapshot | undefine
                   const next: Record<string, string> = { OPEN: "ACKNOWLEDGED", ACKNOWLEDGED: "FIX_IN_PROGRESS", FIX_IN_PROGRESS: "RESOLVED" };
                   const action = next[i.status];
                   return `
-                <tr style="border-bottom: 1px solid var(--vmn-color-border);">
-                  <td style="padding: 12px; font-family: monospace; font-weight: 700; color: var(--vmn-color-brand-cyan);">${escapeHtml(i.id)}</td>
-                  <td style="padding: 12px; font-weight: 700; color: var(--vmn-color-primary-text);">${escapeHtml(i.title)}</td>
-                  <td style="padding: 12px;"><span class="vmn-badge ${i.severity === "S1" ? "badge-danger" : i.severity === "S2" ? "badge-warning" : "badge-info"}">${escapeHtml(i.severity)}</span></td>
-                  <td style="padding: 12px;">${escapeHtml(i.raisedBy)}</td>
-                  <td style="padding: 12px;">${escapeHtml(i.assignedTo || "—")}</td>
-                  <td style="padding: 12px;"><span class="vmn-badge ${i.status === "RESOLVED" ? "badge-ready" : "badge-info"}">${escapeHtml(i.status.replace(/_/g, " "))}</span></td>
-                  <td style="padding: 12px; text-align: right;">
+ <tr class="s-EK6K8Vq5tY">
+ <td class="s-p_p4UYzKzj">${escapeHtml(i.id)}</td>
+ <td class="s-8i5j_3VdTg">${escapeHtml(i.title)}</td>
+ <td class="s-6FCnPHXEyo"><span class="vmn-badge ${i.severity === "S1" ? "badge-danger" : i.severity === "S2" ? "badge-warning" : "badge-info"}">${escapeHtml(i.severity)}</span></td>
+ <td class="s-6FCnPHXEyo">${escapeHtml(i.raisedBy)}</td>
+ <td class="s-6FCnPHXEyo">${escapeHtml(i.assignedTo || "—")}</td>
+ <td class="s-6FCnPHXEyo"><span class="vmn-badge ${i.status === "RESOLVED" ? "badge-ready" : "badge-info"}">${escapeHtml(i.status.replace(/_/g, " "))}</span></td>
+ <td class="s-Uw0RpPbWMz">
                     ${
                       action
-                        ? `<form method="POST" action="/api/v1/workspace/governance/issues/${escapeHtml(i.id)}/transition" style="display: inline;">
+ ? `<form method="POST" action="/api/v1/workspace/governance/issues/${escapeHtml(i.id)}/transition" class="s-Q0_DLsKcmN">
                       <input type="hidden" name="target" value="${action}" />
-                      <button type="submit" class="btn btn-secondary" style="min-height: 40px; padding: 0 14px; font-size: 0.8rem; font-weight: 700;">→ ${action.replace(/_/g, " ")}</button>
+ <button type="submit" class="btn btn-secondary s-Y-2hYlGyI-" >→ ${action.replace(/_/g, " ")}</button>
                     </form>`
                         : `<span class="vmn-badge badge-ready">Closed</span>`
                     }
@@ -628,25 +628,25 @@ export function renderIssueTrackerHtml(snapshot: IssueTrackerSnapshot | undefine
       </div>
 
       <!-- Issue Logging Form -->
-      <div id="log-issue" class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); padding: 24px;">
-        <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 8px 0;">
+ <div id="log-issue" class="vmn-card s-JOKW7YLeUA" >
+ <h3 class="s-k4BT8HxObJ">
           Log Operational Incident (UX-REC-005)
         </h3>
-        <p style="color: var(--vmn-color-secondary-text); font-size: 0.9rem; margin-bottom: 20px;">
+ <p class="s-i_qnuR0Wq0">
           Creates a canonical IssueRecord via the core work domain (guarded mutation, update:risk).
         </p>
-        <form method="POST" action="/api/v1/workspace/governance/issues" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+ <form method="POST" action="/api/v1/workspace/governance/issues" class="s-U3mAiGQfXk">
           <div>
-            <label style="display: block; font-weight: 700; font-size: 0.85rem; margin-bottom: 6px;">Issue ID</label>
-            <input type="text" name="id" required placeholder="e.g. ISSUE-884" style="width: 100%; min-height: 44px; padding: 8px 12px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-sm); background: var(--vmn-color-background); color: var(--vmn-color-primary-text);" />
+ <label class="s-glAYpXXGqp">Issue ID</label>
+ <input type="text" name="id" required placeholder="e.g. ISSUE-884" class="s-eRsuZyv9DA" />
           </div>
           <div>
-            <label style="display: block; font-weight: 700; font-size: 0.85rem; margin-bottom: 6px;">Title</label>
-            <input type="text" name="title" required placeholder="Short incident summary" style="width: 100%; min-height: 44px; padding: 8px 12px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-sm); background: var(--vmn-color-background); color: var(--vmn-color-primary-text);" />
+ <label class="s-glAYpXXGqp">Title</label>
+ <input type="text" name="title" required placeholder="Short incident summary" class="s-eRsuZyv9DA" />
           </div>
           <div>
-            <label style="display: block; font-weight: 700; font-size: 0.85rem; margin-bottom: 6px;">Severity</label>
-            <select name="severity" required style="width: 100%; min-height: 44px; padding: 8px 12px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-sm); background: var(--vmn-color-background); color: var(--vmn-color-primary-text);">
+ <label class="s-glAYpXXGqp">Severity</label>
+ <select name="severity" required class="s-eRsuZyv9DA">
               <option value="S1">S1 — Urgent</option>
               <option value="S2">S2 — Elevated</option>
               <option value="S3">S3 — Standard</option>
@@ -654,15 +654,15 @@ export function renderIssueTrackerHtml(snapshot: IssueTrackerSnapshot | undefine
             </select>
           </div>
           <div>
-            <label style="display: block; font-weight: 700; font-size: 0.85rem; margin-bottom: 6px;">Linked Risk ID (optional)</label>
-            <input type="text" name="linkedRiskId" placeholder="RSK-2026-001" style="width: 100%; min-height: 44px; padding: 8px 12px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-sm); background: var(--vmn-color-background); color: var(--vmn-color-primary-text);" />
+ <label class="s-glAYpXXGqp">Linked Risk ID (optional)</label>
+ <input type="text" name="linkedRiskId" placeholder="RSK-2026-001" class="s-eRsuZyv9DA" />
           </div>
-          <div style="grid-column: 1 / -1;">
-            <label style="display: block; font-weight: 700; font-size: 0.85rem; margin-bottom: 6px;">Description</label>
-            <textarea name="description" rows="2" required placeholder="Observed fault, affected service, initial assessment..." style="width: 100%; padding: 8px 12px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-sm); background: var(--vmn-color-background); color: var(--vmn-color-primary-text);"></textarea>
+ <div class="s-1bQzQqLk7S">
+ <label class="s-glAYpXXGqp">Description</label>
+ <textarea name="description" rows="2" required placeholder="Observed fault, affected service, initial assessment..." class="s-fpsb2azaU2"></textarea>
           </div>
-          <div style="grid-column: 1 / -1; display: flex; justify-content: flex-end; margin-top: 12px;">
-            <button type="submit" class="btn btn-primary" style="min-height: 44px; padding: 0 24px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px;">
+ <div class="s-Rt7hql7QwU">
+ <button type="submit" class="btn btn-primary s-IA9-EU7SCj" >
               ${renderIcon("check", { size: 16 })} Log Incident
             </button>
           </div>

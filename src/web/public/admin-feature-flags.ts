@@ -6,11 +6,10 @@
  * - Dynamic runtime feature flag inspection and toggling
  * - Un-deferred operational capabilities monitoring
  * - Safe kill-switch invocation (<500ms latency)
- * - WCAG 2.2 Level AA accessibility conformance
+ * - Accessibility-minded markup; full WCAG 2.2 AA conformance is not verified here
  */
 
-import { getAllFeatureFlags, FeatureFlagKey, FeatureFlagState } from "../../core/feature-flags/index.js";
-import { renderIcon } from "../components/index.js";
+import { getAllFeatureFlags } from "../../core/feature-flags/index.js";
 
 export function renderAdminFeatureFlagsHtml(filterDomain?: string): string {
   const allFlags = Object.values(getAllFeatureFlags());
@@ -25,11 +24,11 @@ export function renderAdminFeatureFlagsHtml(filterDomain?: string): string {
   const undeferredCount = allFlags.filter((f) => f.isUndeferred).length;
 
   const domainFilterButtons = [
-    `<a href="/admin/feature-flags" class="btn ${!filterDomain ? "btn-primary" : "btn-outline"}" style="min-height:44px; padding:8px 16px; font-size:0.875rem; display:inline-flex; align-items:center;">All (${totalCount})</a>`,
+ `<a href="/admin/feature-flags" class="btn s--wJWanX93Y ${!filterDomain ? "btn-primary" : "btn-outline"}" >All (${totalCount})</a>`,
     ...domains.map((dom) => {
       const count = allFlags.filter((f) => f.domain === dom).length;
       const isSelected = filterDomain?.toLowerCase() === dom.toLowerCase();
-      return `<a href="/admin/feature-flags?domain=${encodeURIComponent(dom)}" class="btn ${isSelected ? "btn-primary" : "btn-outline"}" style="min-height:44px; padding:8px 16px; font-size:0.875rem; display:inline-flex; align-items:center;">${dom} (${count})</a>`;
+ return `<a href="/admin/feature-flags?domain=${encodeURIComponent(dom)}" class="btn s--wJWanX93Y ${isSelected ? "btn-primary" : "btn-outline"}" >${dom} (${count})</a>`;
     }),
   ].join("\n");
 
@@ -37,45 +36,45 @@ export function renderAdminFeatureFlagsHtml(filterDomain?: string): string {
     .map((f) => {
       const isEnabled = f.enabled;
       const statusBadge = isEnabled
-        ? `<span style="background:#ECFDF5; color:#047857; border:1px solid #A7F3D0; padding:4px 10px; border-radius:9999px; font-size:0.75rem; font-weight:700;">ACTIVE (ENABLED)</span>`
-        : `<span style="background:#FFF1F2; color:#BE123C; border:1px solid #FECDD3; padding:4px 10px; border-radius:9999px; font-size:0.75rem; font-weight:700;">INACTIVE (DISABLED)</span>`;
+ ? `<span class="s-qA0xoKLTeO">ACTIVE (ENABLED)</span>`
+ : `<span class="s-QIk7ov4x3S">INACTIVE (DISABLED)</span>`;
 
       const undeferredBadge = f.isUndeferred
-        ? `<span style="background:#FEF3C7; color:#92400E; border:1px solid #FCD34D; padding:4px 8px; border-radius:4px; font-size:0.75rem; font-weight:700; margin-left:8px;">UN-DEFERRED</span>`
+ ? `<span class="s-GKQ3TuEbjX">UN-DEFERRED</span>`
         : "";
 
-      const sourceBadge = `<span style="background:#F1F5F9; color:#475569; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:600;">SOURCE: ${f.source}</span>`;
+ const sourceBadge = `<span class="s-X260Zgjd7H">SOURCE: ${f.source}</span>`;
 
       return `
-      <article class="card flag-card" style="display:flex; flex-direction:column; justify-content:space-between; border-left: 4px solid ${isEnabled ? "#10B981" : "#EF4444"}; padding: var(--vmn-space-6); background: var(--vmn-surface-card); border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+ <article class="card flag-card" style="display:flex; flex-direction:column; justify-content:space-between; border-left: 4px solid ${isEnabled ? "#10B981" : "#EF4444"}; padding: var(--vmn-space-6); background: var(--vmn-surface-card); border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
         <div>
-          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+ <div class="s-f6KsCxtDCT">
             <div>
-              <span style="font-family:monospace; font-weight:700; font-size:0.9rem; color:#0284C7; background:#E0F2FE; padding:3px 8px; border-radius:4px;">${f.key}</span>
+ <span class="s-uviTeNx8lj">${f.key}</span>
               ${undeferredBadge}
             </div>
             <div>
               ${statusBadge}
             </div>
           </div>
-          <h3 style="font-size:1.1rem; font-weight:700; color:var(--vmn-text-primary); margin-bottom:6px;">
-            ${f.domain} &mdash; <span style="font-size:0.875rem; color:var(--vmn-text-secondary); font-weight:400;">${f.targetScreens}</span>
+ <h3 class="s-Bj2mxlMnFu">
+ ${f.domain} &mdash; <span class="s-Pq9NylktB7">${f.targetScreens}</span>
           </h3>
-          <p style="font-size:0.9rem; color:var(--vmn-text-secondary); margin-bottom:12px; line-height:1.5;">
+ <p class="s-nXHzvt9vO4">
             ${f.description}
           </p>
-          <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:6px; padding:10px; margin-bottom:16px;">
-            <div style="font-size:0.75rem; font-weight:700; color:#64748B; text-transform:uppercase; margin-bottom:4px;">Kill-Switch & Fallback Policy</div>
-            <div style="font-size:0.85rem; color:#334155;">${f.killSwitchPolicy}</div>
+ <div class="s-RM2bHg2o5a">
+ <div class="s--MU1SKnBqO">Kill-Switch & Fallback Policy</div>
+ <div class="s-9Md5lCyriM">${f.killSwitchPolicy}</div>
           </div>
         </div>
 
-        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #E2E8F0; padding-top:12px; flex-wrap:wrap; gap:8px;">
+ <div class="s-vek8O9ioPs">
           <div>${sourceBadge}</div>
-          <form method="POST" action="/api/v1/feature-flags/${f.key}/toggle" style="margin:0;">
+ <form method="POST" action="/api/v1/feature-flags/${f.key}/toggle" class="s-Han6y01weT">
             <input type="hidden" name="enabled" value="${isEnabled ? "false" : "true"}" />
             <input type="hidden" name="redirect" value="/admin/feature-flags${filterDomain ? `?domain=${encodeURIComponent(filterDomain)}` : ""}" />
-            <button type="submit" class="btn ${isEnabled ? "btn-secondary button button--secondary" : "btn-primary button button--primary"}" style="min-height:44px; padding:0 16px; font-weight:600;">
+ <button type="submit" class="btn s-KVW2aekM_D ${isEnabled ? "btn-secondary button button--secondary" : "btn-primary button button--primary"}" >
               ${isEnabled ? "Disable (Kill Switch)" : "Enable Feature"}
             </button>
           </form>
@@ -86,43 +85,43 @@ export function renderAdminFeatureFlagsHtml(filterDomain?: string): string {
     .join("\n");
 
   return `
-    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: var(--vmn-space-8) var(--vmn-space-4);">
-      <header style="margin-bottom: var(--vmn-space-8);">
-        <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-          <span style="font-family:monospace; background:#0284C7; color:white; padding:3px 8px; border-radius:4px; font-weight:700; font-size:0.85rem;">UX-ADM-004</span>
-          <span style="color:var(--vmn-text-secondary); font-size:0.9rem;">Enterprise Governance & Administration</span>
+ <div class="container s-bJt7BJCshA" >
+ <header class="s-8KqcJvoCxL">
+ <div class="s-n4vSWy6lTS">
+ <span class="s-VlHOXqFjVb">UX-ADM-004</span>
+ <span class="s-2-oQGPaezd">Enterprise Governance & Administration</span>
         </div>
-        <h1 style="font-size: 2.25rem; font-weight: 800; color: var(--vmn-text-primary); margin-bottom: 12px;">
+ <h1 class="s-GOhckqDSDP">
           Release Availability & Feature Flag Console
         </h1>
-        <p style="font-size: 1.1rem; color: var(--vmn-text-secondary); max-width: 800px; line-height: 1.6;">
+ <p class="s-kXc3Wrk_-x">
           Zero-Deferral Execution Control Hub. All 225 screens and 10 domain operational workflows are active in code and gated via runtime evaluation.
         </p>
 
-        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:16px; margin-top:24px;">
-          <div class="card" style="padding:16px; border-left:4px solid #0284C7;">
-            <div style="font-size:0.85rem; color:var(--vmn-text-secondary); font-weight:600;">Total Registered Flags</div>
-            <div style="font-size:2rem; font-weight:800; color:var(--vmn-text-primary);">${totalCount}</div>
+ <div class="s-5WiPFCGzxg">
+ <div class="card s-0NKVVV4K-j" >
+ <div class="s-YYDY41b3FZ">Total Registered Flags</div>
+ <div class="s-0RS6BY6Y_w">${totalCount}</div>
           </div>
-          <div class="card" style="padding:16px; border-left:4px solid #10B981;">
-            <div style="font-size:0.85rem; color:var(--vmn-text-secondary); font-weight:600;">Currently Active (Enabled)</div>
-            <div style="font-size:2rem; font-weight:800; color:#10B981;">${activeCount}</div>
+ <div class="card s-rw39Qa-Zj7" >
+ <div class="s-YYDY41b3FZ">Currently Active (Enabled)</div>
+ <div class="s-pVX5qU5GSi">${activeCount}</div>
           </div>
-          <div class="card" style="padding:16px; border-left:4px solid #F59E0B;">
-            <div style="font-size:0.85rem; color:var(--vmn-text-secondary); font-weight:600;">Un-Deferred Capabilities</div>
-            <div style="font-size:2rem; font-weight:800; color:#F59E0B;">${undeferredCount}</div>
+ <div class="card s-Du059TkFFH" >
+ <div class="s-YYDY41b3FZ">Un-Deferred Capabilities</div>
+ <div class="s-cadi_EoZ4m">${undeferredCount}</div>
           </div>
         </div>
       </header>
 
-      <section style="margin-bottom: var(--vmn-space-6);">
-        <h2 style="font-size:1.15rem; font-weight:700; margin-bottom:12px; color:var(--vmn-text-primary);">Filter by Operational Domain</h2>
-        <div style="display:flex; flex-wrap:wrap; gap:8px;">
+ <section class="s-MCZWkljUQG">
+ <h2 class="s-XIGijOmzMk">Filter by Operational Domain</h2>
+ <div class="s-1ZI_XSBQyN">
           ${domainFilterButtons}
         </div>
       </section>
 
-      <section style="display:grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap:20px;">
+ <section class="s-OCPuZDD8yF">
         ${cardsHtml}
       </section>
     </div>

@@ -10,6 +10,7 @@
  */
 
 import { randomUUID } from "node:crypto";
+import { isIP } from "node:net";
 
 export interface LogContext {
   traceId: string;
@@ -56,6 +57,30 @@ export class ConsoleAlertDispatchAdapter implements AlertDispatchAdapter {
   }
 }
 
+function isIpLiteral(hostname: string): boolean {
+  return isIP(hostname.replace(/^\[|\]$/g, "")) !== 0;
+}
+
+export type ExporterPurpose = "otel" | "alert";
+
+export function isAllowedExporterUrl(value: string, purpose: ExporterPurpose = "otel"): boolean {
+  let url: URL;
+  try { url = new URL(value); } catch { return false; }
+  if (url.username || url.password || !["http:", "https:"].includes(url.protocol)) return false;
+  const host = url.hostname.toLowerCase().replace(/^\[|\]$/g, "");
+  const localHostAllowed = ["development", "test"].includes(process.env.NODE_ENV || "development") &&
+    (host === "localhost" || host === "127.0.0.1" || host === "::1");
+  if (localHostAllowed) return true;
+  if (url.protocol !== "https:") return false;
+  // Reject IP literals outside the explicit local dev/test exception. This
+  // avoids private-range parsing gaps and DNS rebinding assumptions.
+  if (host === "localhost" || host.endsWith(".localhost") || host.endsWith(".local") || isIpLiteral(host)) return false;
+  const allowedHostSetting = purpose === "alert" ? process.env.ALERT_WEBHOOK_ALLOWED_HOSTS : process.env.OTEL_ALLOWED_HOSTS;
+  const configuredHosts = (allowedHostSetting || "")
+    .split(",").map((item) => item.trim().toLowerCase()).filter(Boolean);
+  return configuredHosts.includes(host);
+}
+
 export class WebhookAlertDispatchAdapter implements AlertDispatchAdapter {
   private webhookUrl: string;
 
@@ -70,14 +95,16 @@ export class WebhookAlertDispatchAdapter implements AlertDispatchAdapter {
         ...payload,
       });
 
+      if (!isAllowedExporterUrl(this.webhookUrl, "alert")) return false;
       const res = await fetch(this.webhookUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body,
+        signal: AbortSignal.timeout(5_000),
       });
       return res.ok;
-    } catch (err: any) {
-      console.error(`[VMNL-ALERT-ERR] Failed to dispatch alert to webhook ${this.webhookUrl}: ${err.message}`);
+    } catch {
+      console.error("[VMNL-ALERT-ERR] Failed to dispatch alert to configured webhook");
       return false;
     }
   }
@@ -111,13 +138,19 @@ export class TelemetryService {
   }
 
   public recordMetric(name: string, value: number, tags: Record<string, string> = {}): MetricPoint {
+    const allowedTagKeys = new Set(["status", "channel", "region", "component", "event", "operation", "backend", "queue"]);
+    const safeTags = Object.fromEntries(Object.entries(tags)
+      .filter(([key]) => allowedTagKeys.has(key))
+      .slice(0, 5)
+      .map(([key, tagValue]) => [key, String(tagValue).replace(/[^a-zA-Z0-9_.-]/g, "_").slice(0, 48)]));
     const point: MetricPoint = {
-      name,
-      value,
-      tags,
+      name: name.replace(/[^a-zA-Z0-9_:]/g, "_").slice(0, 100),
+      value: Number.isFinite(value) ? value : 0,
+      tags: safeTags,
       timestamp: new Date(),
     };
     this.metrics.push(point);
+    if (this.metrics.length > 1000) this.metrics.splice(0, this.metrics.length - 1000);
 
     // Check automated alert rules
     this.evaluateAlertRules(point);
@@ -139,7 +172,13 @@ export class TelemetryService {
       component: context.component,
       ...extra,
     };
-    return JSON.stringify(payload);
+    const serialized = JSON.stringify(payload);
+    // AUD-16: a log line that is built but never emitted is not an observable
+    // signal. WARN/ERROR previously reached nowhere (every caller discarded
+    // the return value); emit every level to stdout as one JSON line so
+    // container log drains, journaling and OTLP log pipelines receive them.
+    console.log(serialized);
+    return serialized;
   }
 
   private evaluateAlertRules(point: MetricPoint): void {
@@ -181,8 +220,21 @@ export class TelemetryService {
       };
     }
 
+    // Rule 4: Durable audit ledger degradation (TSK-18)
+    if (point.name === "audit_durable_degraded_total" && point.value > 0) {
+      triggered = {
+        ruleName: "AUDIT_DURABLE_PERSISTENCE_DEGRADED",
+        severity: "CRITICAL",
+        message: `Audit ledger durable write rolled back with its transaction; ledger degraded to in-memory (prisma_error): ${point.value} entry(ies) affected`,
+        metricValue: point.value,
+        threshold: 0,
+        triggeredAt: new Date(),
+      };
+    }
+
     if (triggered) {
       this.alertTriggers.push(triggered);
+      if (this.alertTriggers.length > 100) this.alertTriggers.shift();
       const payload: AlertDispatchPayload = {
         ruleName: triggered.ruleName,
         severity: triggered.severity,
@@ -205,19 +257,25 @@ export class TelemetryService {
   }
 
   public exportPrometheusMetrics(): string {
+    const latestBySeries = new Map<string, MetricPoint>();
+    for (const point of this.metrics) latestBySeries.set(`${point.name}:${JSON.stringify(point.tags)}`, point);
     const lines: string[] = [
       "# HELP vmnl_system_metrics Prometheus metrics exporter for VMNL Enterprise Platform",
       "# TYPE vmnl_system_metrics gauge",
     ];
     const grouped: Record<string, MetricPoint[]> = {};
-    for (const m of this.metrics) {
+    for (const m of latestBySeries.values()) {
       if (!grouped[m.name]) grouped[m.name] = [];
       grouped[m.name].push(m);
     }
     for (const [name, points] of Object.entries(grouped)) {
       lines.push(`# TYPE ${name} gauge`);
       for (const p of points) {
-        const tagEntries = Object.entries(p.tags).map(([k, v]) => `${k}="${v}"`).join(",");
+        const escapeLabelValue = (value: string): string =>
+          value.replaceAll("\\", "\\\\").replaceAll("\n", "\\n").replaceAll('"', '\\"');
+        const tagEntries = Object.entries(p.tags)
+          .map(([k, v]) => `${k}="${escapeLabelValue(v)}"`)
+          .join(",");
         const formattedTags = tagEntries ? `{${tagEntries}}` : "";
         lines.push(`${name}${formattedTags} ${p.value}`);
       }
@@ -264,14 +322,72 @@ export class TelemetryService {
     };
 
     try {
+      if (!isAllowedExporterUrl(targetUrl)) return { success: false, exportedCount: this.metrics.length };
       const res = await fetch(targetUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(otlpPayload),
+        signal: AbortSignal.timeout(5_000),
       });
       return { success: res.ok, exportedCount: this.metrics.length };
     } catch {
       return { success: false, exportedCount: this.metrics.length };
+    }
+  }
+
+  /**
+   * Exports trace spans as OpenTelemetry OTLP/HTTP JSON payload (Phase 4 / OTLP Traces).
+   */
+  public async exportOtlpTracesHttp(
+    spans: Array<{ context: LogContext; name: string; durationMs: number; attributes?: Record<string, unknown> }>,
+    endpoint?: string
+  ): Promise<{ success: boolean; exportedCount: number }> {
+    const targetUrl =
+      endpoint ||
+      (this.otlpEndpoint
+        ? `${this.otlpEndpoint.replace(/\/v1\/metrics$/, "")}/v1/traces`
+        : "http://localhost:4318/v1/traces");
+    const otlpPayload = {
+      resourceSpans: [
+        {
+          resource: {
+            attributes: [
+              { key: "service.name", value: { stringValue: "vmnl-enterprise-orchestrator" } },
+              { key: "deployment.environment", value: { stringValue: process.env.NODE_ENV || "production" } },
+            ],
+          },
+          scopeSpans: [
+            {
+              scope: { name: "vmnl.tracing" },
+              spans: spans.map((s) => ({
+                traceId: s.context.traceId.replace(/-/g, "").padEnd(32, "0").substring(0, 32),
+                spanId: s.context.spanId.replace(/-/g, "").padEnd(16, "0").substring(0, 16),
+                name: s.name,
+                kind: 1, // SPAN_KIND_INTERNAL
+                startTimeUnixNano: String((Date.now() - s.durationMs) * 1_000_000),
+                endTimeUnixNano: String(Date.now() * 1_000_000),
+                attributes: Object.entries(s.attributes || {}).map(([k, v]) => ({
+                  key: k,
+                  value: typeof v === "number" ? { intValue: v } : { stringValue: String(v) },
+                })),
+              })),
+            },
+          ],
+        },
+      ],
+    };
+
+    try {
+      if (!isAllowedExporterUrl(targetUrl)) return { success: false, exportedCount: spans.length };
+      const res = await fetch(targetUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(otlpPayload),
+        signal: AbortSignal.timeout(5_000),
+      });
+      return { success: res.ok, exportedCount: spans.length };
+    } catch {
+      return { success: false, exportedCount: spans.length };
     }
   }
 }

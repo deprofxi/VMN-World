@@ -75,7 +75,7 @@ export class HeadspaceKnowledgeEngine {
         category: "IP_BIBLE",
         confidentiality: "EXECUTIVE_ONLY",
         content:
-          "Nigezie Xtreme (NXTR) broadcasts on StarTimes Channel 428 DTT and 312 DTH. Core pillars: 24/7 urban youth music, street culture, afrobeat charts, concert live specials. Target audience: 16-30 urban trendsetters across Nigeria and West Africa.",
+          "Nigezie Xtreme (NXTR) channel profile. Carriage identifiers, live transmission, programming schedule, and audience estimates require independent verification before operational or external use.",
         tags: ["Nigezie", "NXTR", "Brand Bible", "Youth", "Afrobeat"],
         authorId: "EXEC-OFFICE",
         createdAt: new Date(),

@@ -9,6 +9,9 @@
  * - Record actor, decision, reason, time and revision
  */
 
+import { registerDurableStore, stageDurableWrite } from "../database/durable-journal.js";
+import { loadApprovalItems, persistApprovalItem } from "../database/repositories/release-critical.repository.js";
+
 export type ApprovalCategory =
   | "RATE_CARD_OVERRIDE"
   | "AFCA_MILESTONE"
@@ -49,6 +52,33 @@ export interface DecideApprovalResult {
 
 const approvals = new Map<string, ApprovalItem>();
 
+/**
+ * TSK-17: `approvals` is the read index for the durable `ApprovalItem` rows.
+ * A decision that is not on disk is not a decision — the rollback below removes
+ * the optimistic entry again when the database rejects the row, so a four-eyes
+ * approval can never exist in one process and nowhere else.
+ */
+registerDurableStore<ApprovalItem>("approvalItem", persistApprovalItem);
+
+function stageApproval(item: ApprovalItem): void {
+  stageDurableWrite<ApprovalItem>({
+    store: "approvalItem",
+    key: item.id,
+    payload: item,
+    rollback: () => {
+      approvals.delete(item.id);
+    },
+  });
+}
+
+/** Boot hydration (TSK-17): rebuild the pending-approval queue from durable rows. */
+export async function refreshApprovalIndex(): Promise<{ approvals: number }> {
+  const items = await loadApprovalItems();
+  approvals.clear();
+  for (const item of items) approvals.set(item.id, item);
+  return { approvals: approvals.size };
+}
+
 const FOUR_EYES_THRESHOLD_NGN = 10_000_000; // ₦10M+
 
 export function createApproval(params: {
@@ -76,6 +106,7 @@ export function createApproval(params: {
     createdAt: new Date(),
   };
   approvals.set(params.id, item);
+  stageApproval(item);
   return item;
 }
 
@@ -101,6 +132,7 @@ export function reviseApprovalObject(id: string, newRevision: number): ApprovalI
     throw new Error("[APR-04] New object revision must be greater than the current revision.");
   }
   item.objectRevision = newRevision;
+  stageApproval(item);
   return item;
 }
 
@@ -170,6 +202,7 @@ export function decideApproval(params: {
   item.decidedAt = new Date();
   item.decisionReason = params.reason.trim();
   item.decisionRevision = params.currentObjectRevision;
+  stageApproval(item);
 
   return { ok: true, item };
 }

@@ -46,11 +46,15 @@ export function formatXmltvDate(date: Date): string {
 export function generateXmltvFeed(
   channel: BroadcastChannelConfig,
   slots: ScheduleSlot[],
-  options: { resolveEpisodeMediaAsset?: (episodeId: string) => string | null } = {}
+  options: { resolveEpisodeMediaAsset?: (episodeId: string) => string | null; sourceRevisionId?: string } = {}
 ): string {
   const resolveEpisodeMediaAsset = options.resolveEpisodeMediaAsset ?? resolveEpisodeMasterAssetId;
   let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
   xml += `<tv generator-info-name="VMNL-EPG-Engine" generator-info-url="https://vmn.ng">\n`;
+  // PRD §15: an exportable EPG export identifies the source schedule revision.
+  if (options.sourceRevisionId) {
+    xml += `  <source-revision>${escapeXml(options.sourceRevisionId)}</source-revision>\n`;
+  }
   xml += `  <channel id="${channel.code}">\n`;
   xml += `    <display-name>${channel.name}</display-name>\n`;
   xml += `  </channel>\n`;

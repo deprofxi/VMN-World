@@ -274,7 +274,7 @@ export const ENTERPRISE_WORKSPACES: WorkspaceDeskDescriptor[] = [
     category: "Broadcast Operations",
     primaryRole: "BroadcastTransmissionEngineer",
     authorityCitation: "R1.2A §19",
-    description: "StarTimes DTT (Ch 428/430/432) and DTH (Ch 312/315/318) satellite transponder telemetry, SNR, and BER monitoring.",
+    description: "Reserved for verified StarTimes DTT/DTH carrier telemetry, SNR, and BER monitoring; no production endpoint or channel identifiers are configured here.",
     activeWorkflows: ["Carrier Lock Health Polling", "Transponder Rain Fade Alarm", "Carrier Uplink SLA Verification"],
   },
   {
@@ -566,6 +566,18 @@ export const ENTERPRISE_WORKSPACES: WorkspaceDeskDescriptor[] = [
   },
 ];
 
+/**
+ * Desk keys whose route is answered by a dedicated handler that reads engine or
+ * repository state. Every other registered key falls through to
+ * `renderWorkspaceDeskHtml`, which is a presentation shell.
+ *
+ * MEASURED 2026-10-07 (tests/unit/desk-census.test.ts): the router is booted and
+ * all 48 `GET /workspace/{key}` routes are requested as an authorized operator;
+ * exactly these desks came back from something other than the shell. The census
+ * test pins this list against that measurement, so the claim cannot rot silently.
+ */
+export const ENGINE_BACKED_DESK_KEYS: string[] = ["afca"];
+
 export function renderWorkspaceDirectoryHtml(): string {
   const categories: Array<WorkspaceDeskDescriptor["category"]> = [
     "Executive & Core",
@@ -583,31 +595,33 @@ export function renderWorkspaceDirectoryHtml(): string {
       const cardsHtml = desks
         .map(
           (d) => `
-        <article class="card" style="display:flex; flex-direction:column; justify-content:space-between; border-left:4px solid var(--vmn-color-primary);">
+ <article class="card s-gx-sf-ATO8" >
           <div>
-            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
-              <span style="font-family:monospace; font-size:0.85rem; font-weight:700; color:#0369A1; background:#E0F2FE; padding:2px 8px; border-radius:4px;">
+ <div class="s-NUy8-yU6ON">
+ <span class="s-BQf0h0v-pN">
                 /workspace/${d.key}
               </span>
-              <span class="vmn-badge badge-ready">Active</span>
+              <span class="vmn-badge ${ENGINE_BACKED_DESK_KEYS.includes(d.key) ? "badge-live" : "badge-provisional"}">${
+                ENGINE_BACKED_DESK_KEYS.includes(d.key) ? "Engine-backed" : "Presentation shell"
+              }</span>
             </div>
-            <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-              <span style="color:var(--vmn-color-primary);">${renderIcon(d.icon || (d.category === "Broadcast Operations" ? "broadcast" : d.category === "Hub Specialist" ? "film" : d.category === "Commercial & Finance" ? "bolt" : d.category === "Tech & Governance" ? "lock" : "shield"), { size: 18 })}</span>
-              <h3 style="font-size:1.15rem; font-weight:700; margin:0;">
-                <a href="/workspace/${d.key}" style="text-decoration:none; color:var(--vmn-text-main);">${d.name}</a>
+ <div class="s-n4vSWy6lTS">
+ <span class="s-_ZPfN4CX-f">${renderIcon(d.icon || (d.category === "Broadcast Operations" ? "broadcast" : d.category === "Hub Specialist" ? "film" : d.category === "Commercial & Finance" ? "bolt" : d.category === "Tech & Governance" ? "lock" : "shield"), { size: 18 })}</span>
+ <h3 class="s-5yiBMOtiRi">
+ <a href="/workspace/${d.key}" class="s-iNbj2zKu9I">${d.name}</a>
               </h3>
             </div>
-            <p style="font-size:0.875rem; color:var(--vmn-text-muted); margin-bottom:12px;">${d.description}</p>
+ <p class="s-ggsAJKVmD5">${d.description}</p>
           </div>
           <div>
-            <div style="margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+ <div class="s-X0EQVWrbtR">
               <div>
-                <span style="font-size:0.75rem; font-weight:700; color:var(--vmn-text-muted);">Primary Role:</span>
-                <code style="font-size:0.8rem; background:#F8FAFC; padding:2px 6px; border-radius:4px; margin-left:4px;">${d.primaryRole}</code>
+ <span class="s-MeGQ-m5xgF">Primary Role:</span>
+ <code class="s-mHWfwRxuAu">${d.primaryRole}</code>
               </div>
-              ${d.dutyStation ? `<span style="font-size:0.75rem; color:var(--vmn-color-primary); font-weight:600;">${d.dutyStation}</span>` : ""}
+ ${d.dutyStation ? `<span class="s-VLg2kAT8ly">${d.dutyStation}</span>` : ""}
             </div>
-            <a href="/workspace/${d.key}" class="btn btn-outline" style="width:100%; text-align:center; min-height:44px; display:inline-flex; align-items:center; justify-content:center; font-size:0.85rem;">Open Desk &rarr;</a>
+ <a href="/workspace/${d.key}" class="btn btn-outline s-P1OBjCiUCX" >Open Desk &rarr;</a>
           </div>
         </article>
       `
@@ -615,11 +629,11 @@ export function renderWorkspaceDirectoryHtml(): string {
         .join("");
 
       return `
-      <div style="margin-bottom:32px;">
-        <h2 style="font-size:1.35rem; font-weight:800; color:var(--vmn-primary); margin-bottom:16px; border-bottom:2px solid var(--vmn-surface-border); padding-bottom:8px;">
+ <div class="s-KijRP4397F">
+ <h2 class="s-bwvPwuC-xB">
           ${cat} (${desks.length} Desks)
         </h2>
-        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(340px, 1fr)); gap:20px;">
+ <div class="s-It9mvu-zwV">
           ${cardsHtml}
         </div>
       </div>
@@ -628,37 +642,37 @@ export function renderWorkspaceDirectoryHtml(): string {
     .join("");
 
   return `
-  <section style="display:flex; flex-direction:column; gap:24px;">
-    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;">
+ <section class="s-hJqXKfH1_e">
+ <div class="s-eNztNGULjh">
       <div>
-        <nav aria-label="Breadcrumb" style="font-size:0.85rem; color:var(--vmn-text-muted); margin-bottom:8px;">
-          <a href="/" style="color:var(--vmn-color-primary); text-decoration:none;">Home</a> &gt; 
-          <span style="color:var(--vmn-text-main); font-weight:600;">Enterprise Workspaces</span>
+ <nav aria-label="Breadcrumb" class="s-SFIks6VJ6b">
+ <a href="/" class="s-eyM313VDpb">Home</a> &gt; 
+ <span class="s-Sug_DIv7G8">Enterprise Workspaces</span>
         </nav>
-        <h1 style="font-size:2rem; font-weight:800; color:var(--vmn-primary);">Enterprise Operating Hub &amp; Specialist Desks</h1>
-        <p style="color:var(--vmn-text-muted); margin-top:4px;">
+ <h1 class="s-6qUvL7-0sm">Enterprise Operating Hub &amp; Specialist Desks</h1>
+ <p class="s-NLOlqgzjPV">
           Surface B &amp; C: 48-desk specialist enterprise workspaces spanning 5 operational domains (CCPP-001 §8–§25; broadcast operational screens are governed separately under the Broadcast Consoles catalog).
         </p>
       </div>
-      <div style="display:flex; gap:12px; align-items:center;">
-        <span class="vmn-badge badge-ready">${ENTERPRISE_WORKSPACES.length} of ${ENTERPRISE_WORKSPACES.length} Desks Operational</span>
-        <a href="/broadcast/screens" class="btn btn-primary" style="min-height:44px; display:inline-flex; align-items:center;">Surface D (33 Broadcast Screens) &rarr;</a>
+ <div class="s-iJRgfp58Su">
+        <span class="vmn-badge badge-neutral">${ENGINE_BACKED_DESK_KEYS.length} of ${ENTERPRISE_WORKSPACES.length} desks bound to engine state</span>
+ <a href="/broadcast/screens" class="btn btn-primary s-oCyUsegaVZ" >Surface D (33 Broadcast Screens) &rarr;</a>
       </div>
     </div>
 
     <!-- Summary Statistics Grid -->
-    <div class="grid-3" style="margin-top:0;">
+ <div class="grid-3 s-KRt7uwFSzR" >
       <div class="card stat-box">
         <span class="stat-val">${ENTERPRISE_WORKSPACES.length}</span>
-        <span class="stat-lbl">Enterprise Operating Desks</span>
+        <span class="stat-lbl">Registered Desk Routes</span>
+      </div>
+      <div class="card stat-box">
+        <span class="stat-val">${ENGINE_BACKED_DESK_KEYS.length}</span>
+        <span class="stat-lbl">Desks Bound to Engine State</span>
       </div>
       <div class="card stat-box">
         <span class="stat-val">5</span>
         <span class="stat-lbl">Specialist Domains</span>
-      </div>
-      <div class="card stat-box">
-        <span class="stat-val">100%</span>
-        <span class="stat-lbl">RBAC / ABAC Protected</span>
       </div>
     </div>
 
@@ -672,10 +686,10 @@ export function renderWorkspaceDeskHtml(deskKey: string): string {
   const desk = ENTERPRISE_WORKSPACES.find((w) => w.key === deskKey.toLowerCase());
   if (!desk) {
     return `
-    <div class="card" style="text-align:center; padding:48px 24px; max-width:640px; margin:40px auto;">
+ <div class="card s-YHrz3tOyAX" >
       <h1>Workspace Desk Not Found</h1>
-      <p style="color:var(--vmn-text-muted); margin-top:8px;">No internal workspace was found matching "<strong>${deskKey}</strong>".</p>
-      <a href="/workspace" class="btn btn-primary" style="margin-top:16px;">&larr; Return to Workspace Directory</a>
+ <p class="s-qo17GhnpD2">No internal workspace was found matching "<strong>${deskKey}</strong>".</p>
+ <a href="/workspace" class="btn btn-primary s-ijWaduvsnA" >&larr; Return to Workspace Directory</a>
     </div>
     `;
   }
@@ -683,114 +697,112 @@ export function renderWorkspaceDeskHtml(deskKey: string): string {
   const workflowsList = desk.activeWorkflows
     .map(
       (w) => `
-    <li style="display:flex; align-items:center; justify-content:space-between; padding:12px; background:var(--vmn-surface-alt); border-radius:6px; border:1px solid var(--vmn-surface-border); margin-bottom:8px;">
-      <span style="font-weight:600; color:var(--vmn-text-main);">${w}</span>
-      <span class="vmn-badge badge-ready">Ready</span>
+ <li class="s-Tm1E--rTkD">
+ <span class="s-6uU6zfFG1o">${w}</span>
+      <span class="vmn-badge badge-provisional">Not bound</span>
     </li>
   `
     )
     .join("");
 
   return `
-  <section style="display:flex; flex-direction:column; gap:24px; max-width:960px; margin:0 auto;">
+ <section class="s-Ap7e8x-cvm">
     <!-- Global Context Bar (DT-401) -->
-    <div class="card" style="padding:12px 16px; background:var(--vmn-surface-alt); border:1px solid var(--vmn-surface-border); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:0;">
-      <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap; font-size:0.85rem;">
+ <div class="card s-4xNgqUJv2k" >
+ <div class="s-HdDpLNHmbd">
         <span><strong>Station Context:</strong> ${desk.dutyStation || desk.category}</span>
-        <span style="color:#CBD5E1;">|</span>
-        <span><strong>Channel:</strong> <select style="padding:4px 10px; border:1px solid var(--vmn-color-control-border); border-radius:4px; font-size:0.85rem; background:var(--vmn-surface); color:var(--vmn-color-text-main);"><option>NXTR (Nigezie Xtreme)</option><option>ORIS (Orisun — The Source)</option><option>IMBD (Isi Mbido — The Beginning)</option></select></span>
-        <span style="color:#CBD5E1;">|</span>
-        <span><strong>Date:</strong> 2026-09-28</span>
-        <span style="color:#CBD5E1;">|</span>
-        <span><strong>Mode:</strong> <span class="vmn-badge badge-ready">LIVE OPERATING</span></span>
+ <span class="s-HlZwSxAEc7">|</span>
+ <span><strong>Channel:</strong> <select class="s-qoP7qoXxfL"><option>NXTR (Nigezie Xtreme)</option><option>ORIS (Orisun — The Source)</option><option>IMBD (Isi Mbido — The Beginning)</option></select></span>
+ <span class="s-HlZwSxAEc7">|</span>
+        <span><strong>Wiring:</strong> <span class="vmn-badge badge-provisional">Presentation shell — no bound operational feed</span></span>
       </div>
-      <div style="display:flex; gap:8px;">
-        <a href="/broadcast/screens" class="btn btn-outline" style="min-height:44px; padding:6px 14px; font-size:0.85rem; display:inline-flex; align-items:center;">Broadcast Consoles (33) &rarr;</a>
+ <div class="s-UK2dEq5_xu">
+ <a href="/broadcast/screens" class="btn btn-outline s-KkYZC_xfpb" >Broadcast Consoles (33) &rarr;</a>
       </div>
     </div>
 
-    <nav aria-label="Breadcrumb" style="font-size:0.85rem; color:var(--vmn-text-muted);">
-      <a href="/" style="color:var(--vmn-color-primary); text-decoration:none;">Home</a> &gt; 
-      <a href="/workspace" style="color:var(--vmn-color-primary); text-decoration:none;">Workspaces</a> &gt; 
-      <span style="color:var(--vmn-text-main); font-weight:600;">${desk.name}</span>
+ <nav aria-label="Breadcrumb" class="s-37h9gF_4Xa">
+ <a href="/" class="s-eyM313VDpb">Home</a> &gt; 
+ <a href="/workspace" class="s-eyM313VDpb">Workspaces</a> &gt; 
+ <span class="s-Sug_DIv7G8">${desk.name}</span>
     </nav>
 
-    <article class="card" style="border-top:6px solid var(--vmn-color-primary);">
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;">
+ <article class="card s-ByAgEAyo7k" >
+ <div class="s-eNztNGULjh">
         <div>
-          <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
-            <span style="font-family:monospace; font-weight:800; font-size:1.1rem; color:#0369A1; background:#E0F2FE; padding:4px 10px; border-radius:6px;">
+ <div class="s-8BhWLFy0Sw">
+ <span class="s-mhNw1gmWaw">
               /workspace/${desk.key}
             </span>
             <span class="vmn-badge badge-ready">${desk.category}</span>
             ${desk.dutyStation ? `<span class="vmn-badge badge-info">${desk.dutyStation}</span>` : ""}
           </div>
-          <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
-            <span style="color:var(--vmn-color-primary);">${renderIcon(desk.icon || "shield", { size: 28 })}</span>
-            <h1 style="font-size:2rem; font-weight:800; color:var(--vmn-primary); margin:0;">
+ <div class="s-8BhWLFy0Sw">
+ <span class="s-_ZPfN4CX-f">${renderIcon(desk.icon || "shield", { size: 28 })}</span>
+ <h1 class="s-HllRqNqAsU">
               ${desk.name}
             </h1>
           </div>
-          <p style="font-size:1.1rem; color:var(--vmn-text-muted);">
+ <p class="s-EdjnyvpuOU">
             ${desk.description}
           </p>
         </div>
-        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
-          <span style="font-size:0.85rem; font-weight:700; color:var(--vmn-text-muted);">Governing Authority</span>
-          <code style="font-size:0.8rem; background:#F8FAFC; padding:4px 8px; border-radius:4px; border:1px solid #CBD5E1;">${desk.authorityCitation}</code>
+ <div class="s-numIUTWRO1">
+ <span class="s-h6lXeqF_aO">Governing Authority</span>
+ <code class="s-PMTc0hh6bk">${desk.authorityCitation}</code>
         </div>
       </div>
 
       <!-- Primary Operational Object Panel (DT-408) -->
-      <div class="card" style="margin-top:20px; background:#F8FAFC; border:1px solid var(--vmn-color-control-border);">
-        <h2 style="font-size:1rem; font-weight:700; color:var(--vmn-primary); margin-bottom:6px;">
+ <div class="card s-W6jD5TQ63g" >
+ <h2 class="s-W1jX3Nsc4v">
           Primary Operational Object &amp; State
         </h2>
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+ <div class="s-7siY-5mpRK">
           <div>
-            <div style="font-weight:700; font-size:1.05rem; color:var(--vmn-color-primary);">${desk.primaryObject || `${desk.name} Control Ledger`}</div>
-            <p style="font-size:0.85rem; color:var(--vmn-text-muted); margin-top:2px;">
-              Synchronized with VMNL Enterprise Operating Bus. Role-gated by <code>${desk.primaryRole}</code>.
+ <div class="s-55dvgDD-q0">${desk.primaryObject || `${desk.name} Control Ledger`}</div>
+ <p class="s-NgDN4DEFZR">
+              No live object is bound to this panel. The owning role is <code>${desk.primaryRole}</code>; access control is applied at the route guard, not by this page.
             </p>
           </div>
-          <span class="vmn-badge badge-ready">Synchronized</span>
+          <span class="vmn-badge badge-provisional">Not bound</span>
         </div>
       </div>
 
-      <hr style="border:none; border-top:1px solid var(--vmn-surface-border); margin:20px 0;" />
+ <hr class="s-Uv7OVY7naE" />
 
-      <div class="grid-2" style="margin-top:0;">
+ <div class="grid-2 s-KRt7uwFSzR" >
         <div>
-          <h2 style="font-size:1rem; font-weight:700; text-transform:uppercase; color:var(--vmn-text-muted); margin-bottom:12px;">
+ <h2 class="s-kvQYQvwQRe">
             Authorized Operating Roles
           </h2>
-          <div style="background:var(--vmn-surface-alt); padding:16px; border-radius:8px; border:1px solid var(--vmn-surface-border);">
-            <p style="font-size:0.95rem;"><strong>Primary Lead:</strong> ${desk.primaryRole}</p>
-            <p style="font-size:0.85rem; color:var(--vmn-text-muted); margin-top:4px;">Enforced via RBAC Policy Enforcement Point (<code>src/core/rbac/</code>).</p>
+ <div class="s-geHjG3K8-9">
+ <p class="s-uSie1Jctmi"><strong>Primary Lead:</strong> ${desk.primaryRole}</p>
+ <p class="s-NQDnLJ18Uc">Sign-in is enforced on every <code>/workspace/&#42;</code> route; role scoping applies only where a <code>WORKSPACE_HTML_GUARDS</code> entry exists (see <code>docs/audit/desk-census.md</code>).</p>
           </div>
         </div>
 
         <div>
-          <h2 style="font-size:1rem; font-weight:700; text-transform:uppercase; color:var(--vmn-text-muted); margin-bottom:12px;">
+ <h2 class="s-kvQYQvwQRe">
             Desk Operating State
           </h2>
-          <div style="background:#F0FDF4; padding:16px; border-radius:8px; border:1px solid #BBF7D0;">
-            <p style="font-size:0.95rem; color:#166534; font-weight:700;">Online &amp; Gated</p>
-            <p style="font-size:0.85rem; color:#15803D; margin-top:4px;">Audit trail logging active with SHA-256 HMAC integrity assurance.</p>
+ <div class="s-RhnCtRDEMV">
+ <p class="s-sJ6vA9uD8L">Registered route — sign-in required</p>
+ <p class="s-zO1H8uj2hF">This page renders descriptor metadata only; it reads no engine or repository state. Census: <code>docs/audit/desk-census.md</code>.</p>
           </div>
         </div>
       </div>
 
-      <div style="margin-top:24px;">
-        <h2 style="font-size:1rem; font-weight:700; text-transform:uppercase; color:var(--vmn-text-muted); margin-bottom:12px;">
-          Active Core Workflows
+ <div class="s-M0P9ZGSs2i">
+ <h2 class="s-kvQYQvwQRe">
+          Declared Core Workflows
         </h2>
-        <ul style="list-style:none;">
+ <ul class="s-HxdejeGIA6">
           ${workflowsList}
         </ul>
       </div>
 
-      <div style="margin-top:24px; padding-top:20px; border-top:1px solid var(--vmn-surface-border); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+ <div class="s-nTHtyYhUOE">
         <a href="/workspace" class="btn btn-outline">&larr; Back to Workspace Directory</a>
         <a href="/broadcast/dashboard" class="btn btn-primary">Open Executive Console &rarr;</a>
       </div>

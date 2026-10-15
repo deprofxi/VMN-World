@@ -201,6 +201,28 @@ export function resolveKeyValueAdapter(config: CacheAdapterConfig = {}, redisFac
   return adapter;
 }
 
+/**
+ * AUD-03/AUD-04 / TSK-27: a multi-instance production deployment must not
+ * silently run on the process-local backend — sessions, account lockouts, MFA
+ * challenge claims and rate limits would multiply per instance and vanish on
+ * restart. Called at boot; the error carries the operator's remedy.
+ */
+export function assertSharedKvBackendForEnvironment(
+  adapter: KeyValueAdapter,
+  appEnv: string | undefined = process.env.NODE_ENV,
+  allowMemoryOverride: string | undefined = process.env.ALLOW_MEMORY_KV_IN_PRODUCTION
+): void {
+  if (
+    (appEnv === "production" || appEnv === "staging") &&
+    adapter.backend === "memory" &&
+    allowMemoryOverride !== "true"
+  ) {
+    throw new Error(
+      "[VMNL-SEC] KV adapter resolved to the in-memory backend in production/staging: set REDIS_URL so sessions, lockouts and rate limits are shared (or explicitly set ALLOW_MEMORY_KV_IN_PRODUCTION=true for a deliberate single-instance deployment) (AUD-03/AUD-04)"
+    );
+  }
+}
+
 /** Test seam: resets the singleton and any memory store. */
 export function _resetCacheAdapterForTesting(): void {
   adapter = null;

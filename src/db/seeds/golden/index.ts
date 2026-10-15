@@ -13,7 +13,9 @@
  */
 
 export interface GoldenDataset {
-  channels: Array<{ id: string; name: string; code: string; dtt: number; dth: number }>;
+  // AUD-09: dtt/dth carriage numbers are optional and unset in golden data —
+  // no fabricated StarTimes carriage facts (CLAUDE.md broadcast law).
+  channels: Array<{ id: string; name: string; code: string; dtt?: number; dth?: number }>;
   programmes: Array<{ id: string; title: string; genre: string; totalEpisodes: number }>;
   episodes: Array<{ id: string; programmeId: string; episodeNumber: number; durationSeconds: number }>;
   schedules: Array<{ date: string; channelId: string; itemCount: number }>;
@@ -28,9 +30,9 @@ export interface GoldenDataset {
 export function generateGoldenDataset(): GoldenDataset {
   // 1. Channels
   const channels = [
-    { id: "CHN-NXTR", name: "Nigezie Xtreme", code: "NXTR", dtt: 428, dth: 312 },
-    { id: "CHN-ORIS", name: "Orisun", code: "ORIS", dtt: 430, dth: 315 },
-    { id: "CHN-IMBD", name: "Isi Mbido", code: "IMBD", dtt: 432, dth: 318 },
+    { id: "CHN-NXTR", name: "Nigezie Xtreme", code: "NXTR" },
+    { id: "CHN-ORIS", name: "Orisun", code: "ORIS" },
+    { id: "CHN-IMBD", name: "Isi Mbido", code: "IMBD" },
   ];
 
   // 2. 50 Programmes

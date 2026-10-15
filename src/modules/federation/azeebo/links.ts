@@ -28,7 +28,7 @@ export interface DeepLinkParams {
 }
 
 export interface GeneratedDeepLink {
-  universalUrl: string; // https://azeebo.plus/u/...
+  universalUrl: string; // <configured AZEEBO_PLUS_UNIVERSAL_URL>/u/...
   appSchemeUrl: string; // azeeboplus://u/...
   qrPayload: string;
   trackingId: string;
@@ -44,6 +44,11 @@ export interface ScanTelemetry {
 }
 
 export interface AzeeboLinkGatewayOptions {
+  /**
+   * Partner-supplied universal link origin. CLAUDE.md `<azeebo>` forbids this
+   * module from inventing one: when it is absent, link generation fails closed
+   * instead of falling back to a guessed production domain.
+   */
   universalBaseUrl?: string;
   appScheme?: string;
 }
@@ -51,15 +56,24 @@ export interface AzeeboLinkGatewayOptions {
 export class AzeeboLinkGateway {
   private activeLinks = new Map<string, GeneratedDeepLink>();
   private scans: ScanTelemetry[] = [];
-  private universalBaseUrl: string;
+  private universalBaseUrl?: string;
   private appScheme: string;
 
   constructor(options?: AzeeboLinkGatewayOptions) {
-    this.universalBaseUrl = options?.universalBaseUrl?.replace(/\/+$/, "") || "https://azeebo.plus";
+    const base = options?.universalBaseUrl?.replace(/\/+$/, "");
+    this.universalBaseUrl = base ? base : undefined;
     this.appScheme = options?.appScheme?.replace(/:\/\/?$/, "") || "azeeboplus";
   }
 
+  public isConfigured(): boolean {
+    return this.universalBaseUrl !== undefined;
+  }
+
   public createUniversalLink(params: DeepLinkParams): GeneratedDeepLink {
+    const universalBaseUrl = this.universalBaseUrl;
+    if (!universalBaseUrl) {
+      throw new Error("[LINK-01] Azeebo+ universal link origin is not configured (AZEEBO_PLUS_UNIVERSAL_URL); no endpoint may be invented.");
+    }
     const trackingId = `TRK-${params.universe.substring(0, 3)}-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random() * 1000)}`;
 
     const source = params.utmSource || (params.channelId ? `vmn_${params.channelId.toLowerCase()}` : "vmn_broadcast");
@@ -73,7 +87,7 @@ export class AzeeboLinkGateway {
       trk: trackingId,
     });
 
-    const universalUrl = `${this.universalBaseUrl}/u/${universeSlug}/${params.contentId}?${queryParams.toString()}`;
+    const universalUrl = `${universalBaseUrl}/u/${universeSlug}/${params.contentId}?${queryParams.toString()}`;
     const appSchemeUrl = `${this.appScheme}://u/${universeSlug}/${params.contentId}?${queryParams.toString()}`;
 
     const link: GeneratedDeepLink = {

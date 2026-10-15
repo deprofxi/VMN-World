@@ -13,26 +13,39 @@
  *     each carrying the canonical `episodeCode`;
  *   - a MASTER broadcast version per episode (QC PASSED → Ready-For-Air),
  *     bound to the episode's registered DAM `mediaAssetId`;
- *   - drafted → submitted → APPROVED through the real lifecycle, so the
+ *   - walked through the full PRD §15 pre-air chain (DRAFT → PROGRAMMING_REVIEW →
+ *     RIGHTS_CHECK → TRAFFIC_READY → APPROVED) via the real lifecycle, so the
  *     schedule passes every BCST-03 invariant (airable versions, rights
- *     attestation, no overlaps).
+ *     attestation, no overlaps) and the rights gate genuinely clears it.
  *
  * Honesty contract:
  *   - Idempotent: a channel already covered for today is skipped.
  *   - Skips (seeds nothing) when the episode-master index is empty for a
  *     channel — no index, no schedule; it never fabricates entries.
- *   - This is a SANDBOX DEMO seed: approval authority and rights attestation
- *     strings say so explicitly. Real schedule authoring remains an operator
- *     workflow.
+ *   - Skips when an entry has **no registered RightsRecord** for its master
+ *     (TSK-10): the lifecycle now runs the clearance gate at approval, so a
+ *     sandbox seed with nothing to clear against would be refused. It reports
+ *     those channels as `unclearedChannels` instead of inventing a window —
+ *     a demo schedule must not be the reason a rights record exists.
+ *   - This is a SANDBOX DEMO seed: the reviewer, rights checker, traffic officer,
+ *     approver and rights attestation strings all say so explicitly
+ *     (`golden-seed sandbox demo`), so the stage trail names the seed as the
+ *     authority for every stage rather than a real desk operator. Real schedule
+ *     authoring remains an operator workflow.
  */
 
 import { getAllActiveChannels } from "./channels/index.js";
 import { listEpisodeMasters } from "./episode-masters.js";
+import { findRegisteredRightsRecordForAsset } from "./rights/registry.js";
 import {
   approveSchedule,
   getVersion,
+  isApprovedForAir,
   listSchedules,
   markReadyForAir,
+  passProgrammingReview,
+  passRightsCheck,
+  passTrafficCheck,
   registerVersion,
   submitScheduleForApproval,
   upsertDraftSchedule,
@@ -62,17 +75,17 @@ export interface ScheduleDemoSeedStats {
   channelsSeeded: number;
   entries: number;
   skipped: number;
+  /** Channels whose masters carry no registered RightsRecord — nothing to clear against (TSK-10). */
+  unclearedChannels: number;
 }
 
 export function ensureScheduleDemoSeed(now: Date = new Date()): ScheduleDemoSeedStats {
   const today = governingDate(now);
-  const stats: ScheduleDemoSeedStats = { channelsSeeded: 0, entries: 0, skipped: 0 };
+  const stats: ScheduleDemoSeedStats = { channelsSeeded: 0, entries: 0, skipped: 0, unclearedChannels: 0 };
 
   for (const channel of getAllActiveChannels()) {
     const covered = listSchedules(channel.code).some(
-      (s) =>
-        s.broadcastDate === today &&
-        (s.state === "APPROVED" || s.state === "AMENDED" || s.state === "LOCKED")
+      (s) => s.broadcastDate === today && isApprovedForAir(s.state)
     );
     if (covered) {
       stats.skipped += 1;
@@ -93,6 +106,15 @@ export function ensureScheduleDemoSeed(now: Date = new Date()): ScheduleDemoSeed
     // with gaps would only earn the honest OUTSIDE_COVERAGE states anyway.
     if (chosen.length < 2) {
       stats.skipped += 1;
+      continue;
+    }
+
+    // TSK-10: every entry must clear against a registered RightsRecord, so a
+    // channel whose masters carry no rights cannot be approved and is not seeded.
+    // Checking before registering anything keeps the refusal side-effect-free.
+    const uncleared = chosen.filter((row) => !findRegisteredRightsRecordForAsset(row.mediaAssetId));
+    if (uncleared.length > 0) {
+      stats.unclearedChannels += 1;
       continue;
     }
 
@@ -120,6 +142,7 @@ export function ensureScheduleDemoSeed(now: Date = new Date()): ScheduleDemoSeed
         startSecondsFromDayStart: index * slotSeconds,
         durationSeconds: slotSeconds,
         rightsClearedBy: SCHEDULE_DEMO_RIGHTS_ATTESTATION,
+        rightsRecordId: findRegisteredRightsRecordForAsset(row.mediaAssetId)!.id,
         episodeCode: row.episodeCode,
       };
     });
@@ -127,6 +150,9 @@ export function ensureScheduleDemoSeed(now: Date = new Date()): ScheduleDemoSeed
     const scheduleId = `SCHED-DEMO-${channel.code}-${today}`;
     upsertDraftSchedule({ scheduleId, channelId: channel.code, broadcastDate: today, entries });
     submitScheduleForApproval(scheduleId);
+    passProgrammingReview({ scheduleId, reviewedBy: SCHEDULE_DEMO_APPROVER });
+    passRightsCheck({ scheduleId, checkedBy: SCHEDULE_DEMO_APPROVER });
+    passTrafficCheck({ scheduleId, attestedBy: SCHEDULE_DEMO_APPROVER });
     approveSchedule({ scheduleId, approvedBy: SCHEDULE_DEMO_APPROVER });
 
     stats.channelsSeeded += 1;

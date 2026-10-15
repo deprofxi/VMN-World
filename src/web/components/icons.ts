@@ -10,6 +10,8 @@
  * - Scalable size options (default 24x24)
  */
 
+import { escapeHtml } from "./escape.js";
+
 export type IconName =
   | "broadcast"
   | "antenna"
@@ -51,7 +53,7 @@ export interface IconOptions {
   accessibleLabel?: string;
 }
 
-const SVG_PATHS: Record<string, string> = {
+const SVG_PATHS: Record<IconName, string> = {
   play: `
     <polygon points="5 3 19 12 5 21 5 3"/>
   `,
@@ -214,12 +216,16 @@ const SVG_PATHS: Record<string, string> = {
  * Renders an accessible inline SVG icon.
  */
 export function renderIcon(name: IconName, options: IconOptions = {}): string {
-  const size = options.size || 24;
-  const path = SVG_PATHS[name] || SVG_PATHS.info;
-  const classes = ["vmn-icon", `vmn-icon-${name}`, options.className].filter(Boolean).join(" ");
+  const validName = Object.prototype.hasOwnProperty.call(SVG_PATHS, name) ? name : "info";
+  const requestedSize = options.size;
+  const size = Number.isFinite(requestedSize) && requestedSize! >= 1 && requestedSize! <= 512 ? requestedSize! : 24;
+  const path = SVG_PATHS[validName];
+  const extraClasses = (options.className || "").split(/\s+/).filter((token) => /^[A-Za-z_][A-Za-z0-9_-]{0,63}$/.test(token));
+  const classes = ["vmn-icon", `vmn-icon-${validName}`, ...extraClasses].join(" ");
+  const escapedLabel = options.accessibleLabel ? escapeHtml(options.accessibleLabel.slice(0, 200)) : "";
 
-  if (options.accessibleLabel) {
-    return `<svg class="${classes}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="${options.accessibleLabel}">${path.trim()}</svg>`;
+  if (escapedLabel) {
+    return `<svg class="${classes}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="${escapedLabel}">${path.trim()}</svg>`;
   }
 
   return `<svg class="${classes}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${path.trim()}</svg>`;

@@ -5,6 +5,7 @@
 
 import { getPrismaClient, checkDatabaseConnection } from "../index.js";
 import { handleRepoError } from "../repository-mode.js";
+import { createRepositoryListPage, normalizeRepositoryListOptions, paginateMemoryRows, RepositoryListOptions, RepositoryListPage } from "./pagination.js";
 
 export interface ProgrammeRecord {
   id: string;
@@ -163,16 +164,22 @@ export class ScheduleRepository {
     return mem ? { ...mem, source: "MEMORY" } : null;
   }
 
-  public async listProgrammes(channelCode?: string): Promise<ProgrammeRecord[]> {
+  public async listProgrammes(channelCode?: string, page: RepositoryListOptions = {}): Promise<RepositoryListPage<ProgrammeRecord>> {
+    const paging = normalizeRepositoryListOptions(page);
     const db = await checkDatabaseConnection();
     if (db.connected) {
       try {
         const client = getPrismaClient();
         const found = await client.programme.findMany({
-          where: channelCode ? { channelCode } : undefined,
+          where: {
+            ...(channelCode ? { channelCode } : {}),
+            ...(paging.after ? { code: { gt: paging.after } } : {}),
+          },
+          orderBy: { code: "asc" },
+          take: paging.limit + 1,
         });
         if (found.length > 0) {
-          return found.map((p) => ({
+          return createRepositoryListPage(found.map((p) => ({
             id: p.id,
             code: p.code,
             title: p.title,
@@ -181,10 +188,10 @@ export class ScheduleRepository {
             targetDemographic: p.targetDemographic,
             synopsis: p.synopsis,
             totalEpisodes: p.totalEpisodes,
-            source: "DB",
+            source: "DB" as const,
             createdAt: p.createdAt,
             updatedAt: p.updatedAt,
-          }));
+          })), (programme) => programme.code, paging.limit);
         }
       } catch (err: any) {
         await handleRepoError("programme", "list", err);
@@ -195,7 +202,7 @@ export class ScheduleRepository {
     if (channelCode) {
       list = list.filter((p) => p.channelCode === channelCode);
     }
-    return list;
+    return paginateMemoryRows(list, (programme) => programme.code, paging);
   }
 
   public async createEpisode(data: {
@@ -274,16 +281,22 @@ export class ScheduleRepository {
     return memoryRecord;
   }
 
-  public async listEpisodes(programmeCode: string): Promise<BroadcastEpisodeRecord[]> {
+  public async listEpisodes(programmeCode: string, page: RepositoryListOptions = {}): Promise<RepositoryListPage<BroadcastEpisodeRecord>> {
+    const paging = normalizeRepositoryListOptions(page);
     const db = await checkDatabaseConnection();
     if (db.connected) {
       try {
         const client = getPrismaClient();
         const found = await client.broadcastEpisode.findMany({
-          where: { programmeCode },
+          where: {
+            programmeCode,
+            ...(paging.after ? { episodeCode: { gt: paging.after } } : {}),
+          },
+          orderBy: { episodeCode: "asc" },
+          take: paging.limit + 1,
         });
         if (found.length > 0) {
-          return found.map((e) => ({
+          return createRepositoryListPage(found.map((e) => ({
             id: e.id,
             episodeCode: e.episodeCode,
             programmeCode: e.programmeCode,
@@ -293,19 +306,23 @@ export class ScheduleRepository {
             segmentCount: e.segmentCount,
             mediaAssetId: e.mediaAssetId ?? undefined,
             complianceRating: e.complianceRating,
-            source: "DB",
+            source: "DB" as const,
             createdAt: e.createdAt,
             updatedAt: e.updatedAt,
-          }));
+          })), (episode) => episode.episodeCode, paging.limit);
         }
       } catch (err: any) {
         await handleRepoError("broadcastEpisode", "list", err);
       }
     }
 
-    return Array.from(this.episodes.values())
-      .filter((e) => e.programmeCode === programmeCode)
-      .map((e) => ({ ...e, source: "MEMORY" as const }));
+    return paginateMemoryRows(
+      Array.from(this.episodes.values())
+        .filter((e) => e.programmeCode === programmeCode)
+        .map((e) => ({ ...e, source: "MEMORY" as const })),
+      (episode) => episode.episodeCode,
+      paging
+    );
   }
 
   public async recordAsRun(data: {
@@ -375,16 +392,22 @@ export class ScheduleRepository {
     return memoryRecord;
   }
 
-  public async listAsRunRecords(channelCode?: string): Promise<AsRunLogRecordEntity[]> {
+  public async listAsRunRecords(channelCode?: string, page: RepositoryListOptions = {}): Promise<RepositoryListPage<AsRunLogRecordEntity>> {
+    const paging = normalizeRepositoryListOptions(page);
     const db = await checkDatabaseConnection();
     if (db.connected) {
       try {
         const client = getPrismaClient();
         const found = await client.asRunLogRecord.findMany({
-          where: channelCode ? { channelCode } : undefined,
+          where: {
+            ...(channelCode ? { channelCode } : {}),
+            ...(paging.after ? { id: { gt: paging.after } } : {}),
+          },
+          orderBy: { id: "asc" },
+          take: paging.limit + 1,
         });
         if (found.length > 0) {
-          return found.map((a) => ({
+          return createRepositoryListPage(found.map((a) => ({
             id: a.id,
             channelCode: a.channelCode,
             transmissionDate: a.transmissionDate,
@@ -394,9 +417,9 @@ export class ScheduleRepository {
             discrepancyCount: a.discrepancyCount,
             reconciliationStatus: a.reconciliationStatus,
             certificateHashSha256: a.certificateHashSha256 ?? undefined,
-            source: "DB",
+            source: "DB" as const,
             createdAt: a.createdAt,
-          }));
+          })), (record) => record.id, paging.limit);
         }
       } catch (err: any) {
         await handleRepoError("asRunLogRecord", "list", err);
@@ -407,6 +430,6 @@ export class ScheduleRepository {
     if (channelCode) {
       list = list.filter((a) => a.channelCode === channelCode);
     }
-    return list;
+    return paginateMemoryRows(list, (record) => record.id, paging);
   }
 }

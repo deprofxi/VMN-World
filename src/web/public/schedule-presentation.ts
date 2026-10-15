@@ -3,8 +3,9 @@
  * (TASK-P7-02 viewer-timezone presentation, R1.2A §16 EPG freshness)
  *
  * Responsibilities:
- *  - Resolve the "on air now" / "up next" pair from an APPROVED (or AMENDED /
- *    LOCKED) broadcast schedule — never from draft or pending data.
+ *  - Resolve the "on air now" / "up next" pair from a schedule that is approved
+ *    for air (APPROVED or any later PRD §15 stage) — never from draft or
+ *    pre-approval data.
  *  - Convert schedule times into the viewer's timezone while labelling
  *    Africa/Lagos (WAT) as the governing timezone of the broadcast day.
  *  - Report honest "unavailable" states (UIUX-001 §3.4) when no approved
@@ -12,7 +13,7 @@
  *    as live EPG data.
  */
 
-import { BroadcastScheduleRecord, ScheduleEntry } from "../../modules/broadcast/versions/index.js";
+import { BroadcastScheduleRecord, isApprovedForAir, ScheduleEntry } from "../../modules/broadcast/versions/index.js";
 import { findEpisodeMaster, type EpisodeMasterState } from "../../modules/broadcast/episode-masters.js";
 import { escapeHtml } from "../components/escape.js";
 
@@ -107,10 +108,11 @@ function toSlotView(entry: ScheduleEntry, broadcastDate: string, viewerTz: Viewe
 }
 
 /**
- * Resolves now/next from an approved schedule for the given instant. A
- * schedule is eligible only in APPROVED, AMENDED or LOCKED state — DRAFT and
- * PENDING_APPROVAL data never reach the viewer (one authoritative schedule
- * truth; no preview leakage).
+ * Resolves now/next from an approved schedule for the given instant. A schedule is
+ * eligible only once it is approved for air (APPROVED, AMENDED, LOCKED, or any
+ * later PRD §15 stage) — DRAFT and pre-approval states (PROGRAMMING_REVIEW /
+ * RIGHTS_CHECK / TRAFFIC_READY) never reach the viewer (one authoritative
+ * schedule truth; no preview leakage).
  */
 export function resolveNowAndNext(params: {
   channelCode: string;
@@ -123,7 +125,7 @@ export function resolveNowAndNext(params: {
 
   const eligible = params.schedules
     .filter((s) => s.channelId === params.channelCode)
-    .filter((s) => s.state === "APPROVED" || s.state === "AMENDED" || s.state === "LOCKED")
+    .filter((s) => isApprovedForAir(s.state))
     .sort((a, b) => b.broadcastDate.localeCompare(a.broadcastDate));
 
   const schedule = eligible.find((s) => {
@@ -226,11 +228,11 @@ function renderSlotMasterLineHtml(channelCode: string, slot: ViewerScheduleSlotV
   const master = findEpisodeMaster(channelCode, slot.episodeCode);
   if (!master) {
     return `
-    <p class="vmn-master-ref" style="${baseStyle} color:var(--vmn-color-warning-600,#b45309);">Master: <span style="${mono}">${escapeHtml(slot.episodeCode)}</span> — episode not indexed in this environment</p>`;
+ <p class="vmn-master-ref" style="${baseStyle} color:var(--vmn-color-warning-600,#b45309);">Master: <span style="${mono}">${escapeHtml(slot.episodeCode)}</span> — episode not indexed in this environment</p>`;
   }
   if (master.state === "NO_REFERENCE") {
     return `
-    <p class="vmn-master-ref" style="${baseStyle} color:var(--vmn-color-text-muted,#64748b);">Master: <span style="${mono}">${escapeHtml(master.episodeCode)}</span> — no master reference registered</p>`;
+ <p class="vmn-master-ref" style="${baseStyle} color:var(--vmn-color-text-muted,#64748b);">Master: <span style="${mono}">${escapeHtml(master.episodeCode)}</span> — no master reference registered</p>`;
   }
   const color = MASTER_STATE_COLORS[master.state];
   const tail =
@@ -242,7 +244,7 @@ function renderSlotMasterLineHtml(channelCode: string, slot: ViewerScheduleSlotV
         ? " — not registered in the DAM registry"
         : " — blocked from exploitation";
   return `
-    <p class="vmn-master-ref" style="${baseStyle} color:${color};">Master: <span style="${mono}">${escapeHtml(master.mediaAssetId!)}</span> <strong>${master.state}</strong>${tail}</p>`;
+ <p class="vmn-master-ref" style="${baseStyle} color:${color};">Master: <span style="${mono}">${escapeHtml(master.mediaAssetId!)}</span> <strong>${master.state}</strong>${tail}</p>`;
 }
 
 /**
@@ -253,7 +255,7 @@ export function renderNowNextWidgetHtml(view: NowNextView, viewerTz: ViewerTimez
   if (!view.available) {
     return `
 <section class="vmn-on-air-widget" aria-label="Broadcast status">
-  <div class="vmn-widget-header" style="border-left:4px solid var(--vmn-border,#CBD5E1)">
+ <div class="vmn-widget-header s-qOwfMX8S_6" >
     <span class="vmn-channel-badge">Schedule guide</span>
   </div>
   <div class="vmn-now-playing">
@@ -267,7 +269,7 @@ export function renderNowNextWidgetHtml(view: NowNextView, viewerTz: ViewerTimez
       : "";
   return `
 <section class="vmn-on-air-widget" aria-label="Broadcast status">
-  <div class="vmn-widget-header" style="border-left:4px solid var(--vmn-accent,#E50914)">
+ <div class="vmn-widget-header s-dmu8Bkv_3r" >
     <span class="vmn-live-badge" aria-label="Live broadcast"><span class="vmn-pulse-dot" aria-hidden="true"></span> ON AIR NOW</span>
     <span class="vmn-channel-badge">Times shown in ${viewerTz} · broadcast day governed by ${GOVERNING_TIMEZONE} (WAT)${dayShiftNote}</span>
   </div>
@@ -279,7 +281,7 @@ export function renderNowNextWidgetHtml(view: NowNextView, viewerTz: ViewerTimez
   </div>
   <div class="vmn-next-playing">
     <span class="vmn-time-range">Up next at ${view.next.startViewerTime} (${viewerTz})</span>
-    <h3 class="vmn-show-title" style="font-size:1.05rem">${view.next.title}</h3>
+ <h3 class="vmn-show-title s-lrZwJ-ejsm" >${view.next.title}</h3>
     ${renderSlotMasterLineHtml(view.channelCode, view.next)}
   </div>
 </section>`;

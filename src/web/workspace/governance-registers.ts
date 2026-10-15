@@ -208,14 +208,14 @@ export function renderGovernanceRecordsHtml(
     fields.filter((f) => canSeeRestricted || f.scope !== "RESTRICTED");
 
   const empty = (label: string) =>
-    `<p style="font-size: 0.85rem; color: var(--vmn-color-secondary-text); margin: 6px 0 0;">No ${label} records exist in the domain store yet — this surface renders canonical records only and never invents rows.</p>`;
+ `<p class="s-9zjcS5bbwr">No ${label} records exist in the domain store yet — this surface renders canonical records only and never invents rows.</p>`;
 
   return `
-    <div style="max-width: 1100px; margin: 32px auto; padding: 0 16px;">
-      <div style="margin-bottom: 24px;">
-        <span class="vmn-badge badge-info" style="margin-bottom: 8px; font-weight: 700;">RECORDS &bull; UX-GOV-003/005/007/008 + UX-REC</span>
-        <h1 style="font-size: var(--vmn-font-size-2xl); font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 8px 0;">Governance &amp; Shared Records</h1>
-        <p style="color: var(--vmn-color-secondary-text); margin: 0;">
+ <div class="s-dJGia7etx6">
+ <div class="s-jXAzROAz5F">
+ <span class="vmn-badge badge-info s-Dnmmv3HPR8" >RECORDS &bull; UX-GOV-003/005/007/008 + UX-REC</span>
+ <h1 class="s-4hDFIYz_z0">Governance &amp; Shared Records</h1>
+ <p class="s-74eGsJhV6B">
           Read-only projections over canonical rights, financial, evidence, incident and audit records. Field scopes enforced server-side for your roles.
         </p>
       </div>
@@ -248,33 +248,33 @@ export function renderGovernanceRecordsHtml(
       }
       ${data.incidents.length === 0 ? empty("incident") : ""}
 
-      <div class="vmn-card" style="border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); padding: 20px; margin-bottom: 20px;">
-        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px;">
-          <h2 style="font-size: 1.05rem; font-weight: 800; margin: 0;">Authorised Activity / Audit View</h2>
+ <div class="vmn-card s-KFMJBTkt2j" >
+ <div class="s-AoD9Jj9JcR">
+ <h2 class="s-2to96tsOZe">Authorised Activity / Audit View</h2>
           <span class="vmn-badge badge-neutral">UX-GOV-008</span>
         </div>
         ${
           canSeeAudit
             ? auditEntries.length === 0
               ? empty("audit")
-              : `<table style="width: 100%; border-collapse: collapse; font-size: 0.8rem;">
-                  <thead><tr style="text-align: left; border-bottom: 2px solid var(--vmn-color-border);"><th style="padding: 8px 10px 8px 0;">Time (UTC)</th><th style="padding: 8px 10px 8px 0;">Action</th><th style="padding: 8px 10px 8px 0;">Resource</th><th style="padding: 8px 10px 8px 0;">Actor</th></tr></thead>
+ : `<table class="s-EpuLC36Ev6">
+ <thead><tr class="s-4n44TqtaSa"><th class="s-QYQdvUWSZ6">Time (UTC)</th><th class="s-QYQdvUWSZ6">Action</th><th class="s-QYQdvUWSZ6">Resource</th><th class="s-QYQdvUWSZ6">Actor</th></tr></thead>
                   <tbody>
                     ${auditEntries
                       .slice(0, 25)
                       .map(
                         (e) => `
-                    <tr style="border-bottom: 1px solid var(--vmn-color-border);">
-                      <td style="padding: 6px 10px 6px 0; font-family: monospace;">${(e.timestamp || new Date()).toISOString().substring(0, 19).replace("T", " ")}</td>
-                      <td style="padding: 6px 10px 6px 0; font-weight: 600;">${e.action}</td>
-                      <td style="padding: 6px 10px 6px 0;">${e.resource}${e.resourceId ? `/${e.resourceId}` : ""}</td>
-                      <td style="padding: 6px 10px 6px 0;">${e.userId || "SYSTEM"}</td>
+ <tr class="s-EK6K8Vq5tY">
+ <td class="s-5FfV8Rl4IL">${(e.timestamp || new Date()).toISOString().substring(0, 19).replace("T", " ")}</td>
+ <td class="s-WOtvn36XW7">${e.action}</td>
+ <td class="s-riK22ZnumS">${e.resource}${e.resourceId ? `/${e.resourceId}` : ""}</td>
+ <td class="s-riK22ZnumS">${e.userId || "SYSTEM"}</td>
                     </tr>`
                       )
                       .join("")}
                   </tbody>
                 </table>`
-            : `<p style="font-size: 0.85rem; color: var(--vmn-color-secondary-text);">Audit trail requires Auditor / Finance / Executive authorisation (read:audit). Your roles do not include it.</p>`
+ : `<p class="s-ypL9N-nGuz">Audit trail requires Auditor / Finance / Executive authorisation (read:audit). Your roles do not include it.</p>`
         }
       </div>
     </div>
@@ -283,26 +283,26 @@ export function renderGovernanceRecordsHtml(
 
 export function renderProjectionTable(title: string, uxId: string, fields: ScopedField[]): string {
   return `
-    <div class="vmn-card" style="border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); padding: 20px; margin-bottom: 20px;">
-      <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
-        <h2 style="font-size: 1.05rem; font-weight: 800; margin: 0;">${title}</h2>
+ <div class="vmn-card s-KFMJBTkt2j" >
+ <div class="s-5-L4sdPujx">
+ <h2 class="s-2to96tsOZe">${title}</h2>
         <span class="vmn-badge badge-neutral">${uxId}</span>
       </div>
-      <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+ <table class="s-jBJUBb-Zd6">
         <tbody>
           ${fields
             .map(
               (f) => `
-          <tr style="border-bottom: 1px solid var(--vmn-color-border);">
-            <th scope="row" style="text-align: left; padding: 8px 10px 8px 0; color: var(--vmn-color-secondary-text); font-weight: 600; width: 40%;">${f.label}</th>
-            <td style="padding: 8px 0; font-weight: 600;">${f.value}</td>
-            <td style="padding: 8px 0; text-align: right;">${SCOPE_BADGE[f.scope]}</td>
+ <tr class="s-EK6K8Vq5tY">
+ <th scope="row" class="s-1cblRQtCX0">${f.label}</th>
+ <td class="s--8a5PiCdtd">${f.value}</td>
+ <td class="s-1_XEI2Ne6j">${SCOPE_BADGE[f.scope]}</td>
           </tr>`
             )
             .join("")}
         </tbody>
       </table>
-      <p style="font-size: 0.75rem; color: var(--vmn-color-secondary-text); margin: 10px 0 0;">
+ <p class="s-VbZkMl8rKn">
         Read-only projection over canonical records. Field scopes are enforced server-side; no mutation path exists on this surface.
       </p>
     </div>

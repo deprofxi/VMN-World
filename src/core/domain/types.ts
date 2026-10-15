@@ -208,6 +208,12 @@ export function isRightsActive(record: RightsRecordEntity, checkDate: Date = new
 
 /**
  * Validates 7-Way Financial Settlement invariants.
+ *
+ * TSK-59: this is a **pre-write guard**, not a report. `InvoiceRepository.createSettlement` and
+ * `updateSettlementStatus` call it and refuse the write, so a settlement whose columns contradict
+ * each other cannot reach the canonical `Settlement` row. The Prisma columns themselves still carry
+ * no `CHECK` constraint (`prisma/schema.prisma:281-287`), which is why the guard sits on the only
+ * writer rather than behind it.
  */
 export function validateSettlementInvariants(settlement: SettlementEntity): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
@@ -216,7 +222,10 @@ export function validateSettlementInvariants(settlement: SettlementEntity): { va
     errors.push("Cash collected cannot exceed invoiced amount");
   }
 
-  if (settlement.talentPayableAmount + settlement.partnerShareAmount > settlement.gmvAmount && settlement.gmvAmount > 0) {
+  // GMV 0 is not a waiver: a settlement that recorded no gross value may not owe talent or a
+  // rightsholder against it either. The `&& settlement.gmvAmount > 0` conjunct this function
+  // carried until TSK-59 made exactly that hole — every zero-GMV row passed silently.
+  if (settlement.talentPayableAmount + settlement.partnerShareAmount > settlement.gmvAmount) {
     errors.push("Talent payables and partner share cannot exceed GMV");
   }
 
@@ -228,7 +237,7 @@ export function validateSettlementInvariants(settlement: SettlementEntity): { va
 
 /**
  * Minor unit representation for monetary amounts (Kobo = NGN / 100, Cents = USD / 100).
- * Authority: tasks-9.md T9-10 / report-9.md F-9-08
+ * Authority: report.md §3 "Financial integrity model" (measured kobo-exact arithmetic)
  * All financial arithmetic MUST be performed on integer minor units to eliminate floating-point drift.
  */
 export type Kobo = number & { readonly __brand: unique symbol };

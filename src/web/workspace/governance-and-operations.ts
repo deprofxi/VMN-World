@@ -18,6 +18,7 @@ import { getContent } from "../../core/content/index.js";
 import { projectMediaRefBadges, renderMediaRefBadgesHtml } from "./media-picker.js";
 import { renderEpisodeMastersTableHtml } from "../components/episode-masters.js";
 import { listEpisodeMasters } from "../../modules/broadcast/episode-masters.js";
+import { listPoaExceptions, PoaDeliveryException } from "../../modules/broadcast/asrun/exceptions.js";
 import { getChannelByCode, resolveChannelCode } from "../../modules/broadcast/channels/index.js";
 
 /** Human-readable copy for approval decision failure codes (UX-GOV-002). */
@@ -50,23 +51,23 @@ export function renderBroadcastScheduleReviewHtml(options: {
   const resolvedChannel = resolvedChannelCode ? getChannelByCode(resolvedChannelCode) : undefined;
 
   return `
-    <div style="max-width: 1100px; margin: 32px auto; padding: 0 16px;">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+ <div class="s-dJGia7etx6">
+ <div class="s-k5NLeWec9i">
         <div>
-          <span class="vmn-badge badge-live" style="margin-bottom: 8px; font-weight: 700;">OPERATIONS &bull; UX-BR-012</span>
-          <h1 style="font-size: var(--vmn-font-size-2xl); font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 6px 0;">
+ <span class="vmn-badge badge-live s-Dnmmv3HPR8" >OPERATIONS &bull; UX-BR-012</span>
+ <h1 class="s-n_bp1PhViu">
             Broadcast Master Schedule Review
           </h1>
-          <p style="color: var(--vmn-color-secondary-text); margin: 0; font-size: 0.95rem;">
+ <p class="s-zrikAgYqXF">
             Transmission Agenda for <strong>${escapeHtml(channel)}</strong> &bull; Date: <strong>${escapeHtml(date)}</strong> (WAT / UTC+1)
           </p>
         </div>
-        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-          <a href="/broadcast/schedule/grid" class="btn btn-outline" style="min-height: 44px; display: inline-flex; align-items: center; gap: 6px;">
+ <div class="s-URRPIWgn0i">
+ <a href="/broadcast/schedule/grid" class="btn btn-outline s-oskDBiEZSv" >
             ${renderIcon("calendar", { size: 16 })} Visual Grid
           </a>
-          <a href="/broadcast/rights/review-request" class="btn btn-primary" style="min-height: 44px; display: inline-flex; align-items: center; gap: 6px;">
-            ${renderIcon("shield", { size: 16 })} Request Rights Waiver
+ <a href="/broadcast/rights/review-request" class="btn btn-primary s-oskDBiEZSv" >
+            ${renderIcon("shield", { size: 16 })} Open Rights Review Request
           </a>
         </div>
       </div>
@@ -74,27 +75,27 @@ export function renderBroadcastScheduleReviewHtml(options: {
       ${
         hasBlocker
           ? `
-        <div style="background: #FEF2F2; border: 2px solid #EF4444; border-radius: var(--vmn-radius-lg); padding: 20px 24px; margin-bottom: 28px;">
-          <div style="display: flex; align-items: flex-start; gap: 14px;">
-            <div style="color: #DC2626; margin-top: 2px;">
+ <div class="s-KsFxMktCcs">
+ <div class="s-rrjmw70sEP">
+ <div class="s-1ACL48qPRA">
               ${renderIcon("warning", { size: 24 })}
             </div>
-            <div style="flex: 1;">
-              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-                <span style="font-weight: 800; color: #991B1B; font-size: 1.05rem;">
+ <div class="s-7j1Vv5m580">
+ <div class="s-fNfgHipnYh">
+ <span class="s-aPB9P_-rWl">
                   CRITICAL RIGHTS BLOCKER &bull; Playout Automated Ingest Lock
                 </span>
                 <span class="vmn-badge badge-warning">AIR TIME -02:14:00</span>
               </div>
-              <p style="color: #7F1D1D; font-size: 0.9rem; line-height: 1.5; margin: 0 0 12px 0;">
+ <p class="s-xXQ3WJrb2g">
                 Slot <strong>20:30 - 21:45 WAT</strong> (<em>Urban Sound Showcase #4102</em>) has failed StarTimes Carriage Clearance.
                 Distributor contract has a regional holdback on StarTimes DTT Multiplex 4 expiring 2026-10-01.
               </p>
-              <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <a href="/broadcast/rights/review-request?slotId=SLOT-4102" class="btn btn-primary" style="min-height: 38px; font-size: 0.85rem; padding: 0 16px; background: #DC2626; border-color: #DC2626;">
-                  Resolve Blocker / Request Emergency Waiver &rarr;
+ <div class="s-8-Jvrb7p7B">
+ <a href="/broadcast/rights/review-request?slotId=SLOT-4102" class="btn btn-primary s-fOYgT95efs" >
+                  Review Blocker / Open Rights Review Request &rarr;
                 </a>
-                <a href="/broadcast/playout/live" class="btn btn-outline" style="min-height: 38px; font-size: 0.85rem; padding: 0 16px; border-color: #DC2626; color: #DC2626;">
+ <a href="/broadcast/playout/live" class="btn btn-outline s--xvVnLZNe-" >
                   Prime Emergency Cultural Filler
                 </a>
               </div>
@@ -105,80 +106,81 @@ export function renderBroadcastScheduleReviewHtml(options: {
           : ""
       }
 
-      <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); overflow: hidden;">
-        <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
+ <div class="vmn-card s-6KYnYzlM1L" >
+ <p role="note" class="s-O6cnlXePf8">Illustrative schedule data only — no verified playout, rights, or carriage source is connected.</p>
+ <table class="s-StXB6StjnQ">
           <thead>
-            <tr style="background: var(--vmn-color-background); border-bottom: 2px solid var(--vmn-color-border); text-align: left;">
-              <th style="padding: 12px 14px; font-weight: 700;">Slot (WAT)</th>
-              <th style="padding: 12px 14px; font-weight: 700;">Programme Title</th>
-              <th style="padding: 12px 14px; font-weight: 700;">Technical Specs</th>
-              <th style="padding: 12px 14px; font-weight: 700;">Audio Loudness</th>
-              <th style="padding: 12px 14px; font-weight: 700;">Rights Status</th>
-              <th style="padding: 12px 14px; font-weight: 700; text-align: right;">Transmission State</th>
+ <tr class="s-vhJLkBexH-">
+ <th class="s-gSzyZDrSbr">Slot (WAT)</th>
+ <th class="s-gSzyZDrSbr">Programme Title</th>
+ <th class="s-gSzyZDrSbr">Technical Specs</th>
+ <th class="s-gSzyZDrSbr">Audio Loudness</th>
+ <th class="s-gSzyZDrSbr">Rights Status</th>
+ <th class="s-i6k8o9YRzt">Transmission State</th>
             </tr>
           </thead>
           <tbody>
-            <tr style="border-bottom: 1px solid var(--vmn-color-border);">
-              <td style="padding: 12px 14px; font-family: monospace;">18:00 - 19:00</td>
-              <td style="padding: 12px 14px; font-weight: 700; color: var(--vmn-color-primary-text);">
+ <tr class="s-EK6K8Vq5tY">
+ <td class="s-9qwVZmzajs">18:00 - 19:00</td>
+ <td class="s-PrQ5zOE0i2">
                 Xtreme Street Hop Hits (Ep. 44)
               </td>
-              <td style="padding: 12px 14px; color: var(--vmn-color-secondary-text);">1080i50 H.264</td>
-              <td style="padding: 12px 14px;"><span class="vmn-badge badge-success">-23.1 LUFS OK</span></td>
-              <td style="padding: 12px 14px;"><span class="vmn-badge badge-success">Cleared All Carriage</span></td>
-              <td style="padding: 12px 14px; text-align: right; color: var(--vmn-color-text-muted);">Transmitted</td>
+ <td class="s-o1-djKZYTY">1080i50 H.264</td>
+ <td class="s-O6cnlXePf8"><span class="vmn-badge badge-success">-23.1 LUFS OK</span></td>
+ <td class="s-O6cnlXePf8"><span class="vmn-badge badge-info">Sample — not verified</span></td>
+ <td class="s-hg1JOdptQg">Illustrative only</td>
             </tr>
-            <tr style="border-bottom: 1px solid var(--vmn-color-border); background: var(--vmn-color-background);">
-              <td style="padding: 12px 14px; font-family: monospace; font-weight: 700;">19:00 - 20:30</td>
-              <td style="padding: 12px 14px; font-weight: 800; color: var(--vmn-color-primary-text);">
+ <tr class="s-gI8pRmYLQR">
+ <td class="s-NrOVPHG2_K">19:00 - 20:30</td>
+ <td class="s-ralpq_HcXn">
                 Afrobeat Titans Live Concert
               </td>
-              <td style="padding: 12px 14px; color: var(--vmn-color-secondary-text);">1080i50 H.264</td>
-              <td style="padding: 12px 14px;"><span class="vmn-badge badge-success">-23.0 LUFS OK</span></td>
-              <td style="padding: 12px 14px;"><span class="vmn-badge badge-success">Cleared StarTimes</span></td>
-              <td style="padding: 12px 14px; text-align: right;"><span class="vmn-badge badge-live">ON AIR NOW</span></td>
+ <td class="s-o1-djKZYTY">1080i50 H.264</td>
+ <td class="s-O6cnlXePf8"><span class="vmn-badge badge-success">-23.0 LUFS OK</span></td>
+ <td class="s-O6cnlXePf8"><span class="vmn-badge badge-info">Sample — not verified</span></td>
+ <td class="s-RhdStrjBOr"><span class="vmn-badge badge-info">Illustrative only</span></td>
             </tr>
-            <tr style="border-bottom: 1px solid var(--vmn-color-border); background: #FEF2F2;">
-              <td style="padding: 12px 14px; font-family: monospace; font-weight: 700; color: #DC2626;">20:30 - 21:45</td>
-              <td style="padding: 12px 14px; font-weight: 700; color: #991B1B;">
+ <tr class="s-sbCQbjgJlZ">
+ <td class="s-eFhjxIHQbl">20:30 - 21:45</td>
+ <td class="s-zsxWcAwKr-">
                 Urban Sound Showcase #4102
               </td>
-              <td style="padding: 12px 14px; color: #7F1D1D;">1080i50 H.264</td>
-              <td style="padding: 12px 14px;"><span class="vmn-badge badge-success">-23.2 LUFS OK</span></td>
-              <td style="padding: 12px 14px;">
-                <span class="vmn-badge badge-warning" style="background: #FEE2E2; color: #991B1B; border: 1px solid #DC2626;">
+ <td class="s-bdCyXx6-gf">1080i50 H.264</td>
+ <td class="s-O6cnlXePf8"><span class="vmn-badge badge-success">-23.2 LUFS OK</span></td>
+ <td class="s-O6cnlXePf8">
+ <span class="vmn-badge badge-warning s-LA29WsymOD" >
                   RIGHTS HOLD (StarTimes DTT)
                 </span>
               </td>
-              <td style="padding: 12px 14px; text-align: right;">
-                <a href="/broadcast/rights/review-request?slotId=SLOT-4102" class="btn btn-outline" style="min-height: 32px; padding: 0 10px; font-size: 0.8rem; border-color: #DC2626; color: #DC2626;">
+ <td class="s-RhdStrjBOr">
+ <a href="/broadcast/rights/review-request?slotId=SLOT-4102" class="btn btn-outline s-Tdn42tLWkW" >
                   Review Blocker
                 </a>
               </td>
             </tr>
-            <tr style="border-bottom: 1px solid var(--vmn-color-border);">
-              <td style="padding: 12px 14px; font-family: monospace;">21:45 - 23:00</td>
-              <td style="padding: 12px 14px; font-weight: 700; color: var(--vmn-color-primary-text);">
+ <tr class="s-EK6K8Vq5tY">
+ <td class="s-9qwVZmzajs">21:45 - 23:00</td>
+ <td class="s-PrQ5zOE0i2">
                 Lagos Underground Beats (Vol. 3)
               </td>
-              <td style="padding: 12px 14px; color: var(--vmn-color-secondary-text);">1080i50 H.264</td>
-              <td style="padding: 12px 14px;"><span class="vmn-badge badge-success">-22.9 LUFS OK</span></td>
-              <td style="padding: 12px 14px;"><span class="vmn-badge badge-success">Cleared All Carriage</span></td>
-              <td style="padding: 12px 14px; text-align: right;"><span class="vmn-badge badge-neutral">Queued Playout</span></td>
+ <td class="s-o1-djKZYTY">1080i50 H.264</td>
+ <td class="s-O6cnlXePf8"><span class="vmn-badge badge-success">-22.9 LUFS OK</span></td>
+ <td class="s-O6cnlXePf8"><span class="vmn-badge badge-info">Sample — not verified</span></td>
+ <td class="s-RhdStrjBOr"><span class="vmn-badge badge-neutral">Queued Playout</span></td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <div style="margin-top: 24px;">
+ <div class="s-73qd-9lEfm">
         ${
           resolvedChannel
             ? renderEpisodeMastersTableHtml(listEpisodeMasters(resolvedChannel.code), {
                 heading: `Registered Episode Masters (DAM) — ${resolvedChannel.name} (${resolvedChannel.code})`,
                 note: "Keyed from this desk's channel parameter; access states are read live from the DAM registry against the canonical BroadcastEpisode → DAM chain.",
               })
-            : `<div class="vmn-card" role="status" style="padding: 20px 24px; border: 1px dashed var(--vmn-color-border); border-radius: var(--vmn-radius-lg); color: var(--vmn-color-secondary-text);">
-              <strong style="color: var(--vmn-color-primary-text);">Episode master linkage unavailable:</strong> channel reference <code>${escapeHtml(channel)}</code> does not resolve to an active VMNL channel (NXTR / ORIS / IMBD or a canonical channel name) — linkage is never keyed to a guessed channel.
+ : `<div class="vmn-card s-71k7hHtBhr" role="status" >
+ <strong class="s-CUrYObcc9O">Episode master linkage unavailable:</strong> channel reference <code>${escapeHtml(channel)}</code> does not resolve to an active VMNL channel (NXTR / ORIS / IMBD or a canonical channel name) — linkage is never keyed to a guessed channel.
             </div>`
         }
       </div>
@@ -196,57 +198,60 @@ export function renderRightsReviewRequestHtml(options: {
   const slotId = options.slotId || "SLOT-4102";
 
   return `
-    <div style="max-width: 680px; margin: 36px auto; padding: 0 16px;">
-      <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); padding: 32px; box-shadow: var(--vmn-shadow-md);">
-        <div style="margin-bottom: 24px;">
-          <span class="vmn-badge badge-warning" style="margin-bottom: 8px; font-weight: 700;">GOVERNANCE &bull; UX-GOV-004</span>
-          <h1 style="font-size: var(--vmn-font-size-2xl); font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 6px 0;">
-            Expedited Rights Clearance &amp; Waiver Request
+ <div class="s-jNPXlgaoWl">
+ <div class="vmn-card s-sQ4H2l8IG7" >
+ <div class="s-jXAzROAz5F">
+ <span class="vmn-badge badge-warning s-Dnmmv3HPR8" >GOVERNANCE &bull; UX-GOV-004</span>
+ <h1 class="s-n_bp1PhViu">
+            Expedited Rights Review Request
           </h1>
-          <p style="color: var(--vmn-color-secondary-text); margin: 0; font-size: 0.9rem;">
-            Submit an emergency clearance request to the Broadcast Rights Coordinator and Legal Counsel.
+ <p class="s-YBXqvnNn8u">
+            Raise a review request against a blocked RightsRecord with the Broadcast Rights Coordinator and Legal Counsel.
+            Opening a request does not clear rights: the block stays in force until the request is resolved against
+            authoritative evidence.
           </p>
         </div>
 
         ${
           options.submitted
             ? `
-          <div style="background: #ECFDF5; border: 1px solid #10B981; border-radius: var(--vmn-radius-md); padding: 20px; margin-bottom: 24px; text-align: center;">
-            <div style="color: #059669; margin-bottom: 8px;">${renderIcon("check", { size: 32 })}</div>
-            <div style="font-weight: 800; color: #065F46; font-size: 1.1rem; margin-bottom: 4px;">Emergency Waiver Dispatched</div>
-            <p style="color: #047857; font-size: 0.9rem; margin: 0 0 16px 0;">
-              Ticket <strong>RW-2026-0931</strong> transmitted to Broadcast Rights Coordinator. SLA countdown: 30 minutes.
+ <div class="s-VwN0c3dBdH">
+ <div class="s-V5WZeJxJU3">${renderIcon("check", { size: 32 })}</div>
+ <div class="s-Mgrk6Hw1ft">Review Request Opened</div>
+ <p class="s-lTOnwGvAah">
+              The request is with the receiving owner. The rights block stays in force until the review is resolved
+              against authoritative evidence, which writes the cleared window onto the registered RightsRecord.
             </p>
-            <a href="/broadcast/schedule/review" class="btn btn-primary" style="min-height: 40px; padding: 0 20px;">
+ <a href="/broadcast/schedule/review" class="btn btn-primary s-tWuvNzaotY" >
               Return to Schedule Review
             </a>
           </div>
         `
             : `
-          <form method="POST" action="/api/v1/broadcast/rights/review-requests" style="display: flex; flex-direction: column; gap: 18px;">
+ <form method="POST" action="/api/v1/broadcast/rights/review-requests" class="s-agFP9ZFhL6">
             <input type="hidden" name="slotId" value="${escapeHtml(slotId)}" />
 
             <div class="vmn-form-field">
-              <label class="vmn-label" style="font-weight: 600; display: block; margin-bottom: 6px;">Target Programme Slot</label>
+ <label class="vmn-label s-d6tlFZezBi" >Target Programme Slot</label>
               <input
                 type="text"
                 disabled
                 value="${escapeHtml(slotId)}: Urban Sound Showcase #4102 (20:30 - 21:45 WAT)"
                 class="vmn-input"
-                style="width: 100%; height: 44px; padding: 0 12px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md); background: var(--vmn-color-background);"
+ class="s-xcXw2RfUn4"
               />
             </div>
 
             <div class="vmn-form-field">
-              <label for="rw-carrier" class="vmn-label" style="font-weight: 600; display: block; margin-bottom: 6px;">
-                Carriage Platform Exemption <span style="color: #DC2626;" aria-hidden="true">*</span>
+ <label for="rw-carrier" class="vmn-label s-d6tlFZezBi" >
+ Carriage Platform Exemption <span class="s-4oFCuHkv7e" aria-hidden="true">*</span>
               </label>
               <select
                 id="rw-carrier"
                 name="carrier"
                 required
                 class="vmn-input"
-                style="width: 100%; height: 44px; padding: 0 12px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md);"
+ class="s-npZXKSAIoi"
               >
                 <option value="STARTIMES_DTT">StarTimes DTT Carriage (Multiplex 4)</option>
                 <option value="STARTIMES_DTH">StarTimes DTH Satellite Feed</option>
@@ -256,8 +261,8 @@ export function renderRightsReviewRequestHtml(options: {
             </div>
 
             <div class="vmn-form-field">
-              <label for="rw-distributor" class="vmn-label" style="font-weight: 600; display: block; margin-bottom: 6px;">
-                Licensor / Content Distributor <span style="color: #DC2626;" aria-hidden="true">*</span>
+ <label for="rw-distributor" class="vmn-label s-d6tlFZezBi" >
+ Licensor / Content Distributor <span class="s-4oFCuHkv7e" aria-hidden="true">*</span>
               </label>
               <input
                 id="rw-distributor"
@@ -266,30 +271,85 @@ export function renderRightsReviewRequestHtml(options: {
                 required
                 value="Afro-Beat Media Global Ltd"
                 class="vmn-input"
-                style="width: 100%; height: 44px; padding: 0 12px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md);"
+ class="s-npZXKSAIoi"
               />
             </div>
 
             <div class="vmn-form-field">
-              <label for="rw-justification" class="vmn-label" style="font-weight: 600; display: block; margin-bottom: 6px;">
-                Waiver Justification &amp; Authority <span style="color: #DC2626;" aria-hidden="true">*</span>
+ <label for="rw-rights-record" class="vmn-label s-d6tlFZezBi" >
+ Rights Record Under Review <span class="s-4oFCuHkv7e" aria-hidden="true">*</span>
+              </label>
+              <input
+                id="rw-rights-record"
+                name="rightsRecordId"
+                type="text"
+                required
+                placeholder="e.g. RGT-URBAN-4102 — the registered RightsRecord the slot is blocked on"
+                class="vmn-input"
+              />
+            </div>
+
+            <div class="vmn-form-field">
+ <label for="rw-intended-use" class="vmn-label s-d6tlFZezBi" >
+ Intended Use <span class="s-4oFCuHkv7e" aria-hidden="true">*</span>
+              </label>
+              <input
+                id="rw-intended-use"
+                name="intendedUse"
+                type="text"
+                required
+                placeholder="What the record would authorise, e.g. linear transmission on NXTR 20:30-21:45 WAT"
+                class="vmn-input"
+              />
+            </div>
+
+            <div class="vmn-form-field">
+ <label for="rw-observed-blocker" class="vmn-label s-d6tlFZezBi" >
+ Observed Blocker <span class="s-4oFCuHkv7e" aria-hidden="true">*</span>
+              </label>
+              <input
+                id="rw-observed-blocker"
+                name="observedBlocker"
+                type="text"
+                required
+                placeholder="The gate result being reviewed, e.g. POST_EXPIRY_DATE — slot ends after the recorded expiry"
+                class="vmn-input"
+              />
+            </div>
+
+            <div class="vmn-form-field">
+ <label for="rw-receiving-owner" class="vmn-label s-d6tlFZezBi" >
+ Receiving Owner <span class="s-4oFCuHkv7e" aria-hidden="true">*</span>
+              </label>
+              <input
+                id="rw-receiving-owner"
+                name="receivingOwner"
+                type="text"
+                required
+                placeholder="Named coordinator or counsel who receives the request"
+                class="vmn-input"
+              />
+            </div>
+
+            <div class="vmn-form-field">
+ <label for="rw-justification" class="vmn-label s-d6tlFZezBi" >
+ Evidence &amp; Authority for Review <span class="s-4oFCuHkv7e" aria-hidden="true">*</span>
               </label>
               <textarea
                 id="rw-justification"
                 name="justification"
                 required
                 rows="4"
-                placeholder="State the contractual amendment, oral distributor consent, or emergency broadcast override reason..."
+                placeholder="Cite the contractual amendment or distributor consent this review will be resolved against..."
                 class="vmn-input"
-                style="width: 100%; padding: 10px 12px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md);"
               ></textarea>
             </div>
 
-            <div style="display: flex; gap: 12px; margin-top: 8px;">
-              <button type="submit" class="btn btn-primary" style="flex: 1; min-height: 46px; font-weight: 700; cursor: pointer;">
-                Submit Expedited Waiver Request
+ <div class="s-nJrpNO03gx">
+ <button type="submit" class="btn btn-primary s-R6xXPxcVik" >
+                Open Rights Review Request
               </button>
-              <a href="/broadcast/schedule/review" class="btn btn-secondary" style="min-height: 46px; padding: 0 20px; display: inline-flex; align-items: center;">
+ <a href="/broadcast/schedule/review" class="btn btn-secondary s-dPmDjbdu34" >
                 Cancel
               </a>
             </div>
@@ -303,108 +363,168 @@ export function renderRightsReviewRequestHtml(options: {
 
 /**
  * UX-BR-030 & UX-GOV-006: Proof-of-Air Exceptions Workbench (J-RL1-10)
+ *
+ * TSK-16: the rows are the as-run register, not a decoration. Each one carries
+ * the measured delivery shortfall and the remedy linkage that actually exists —
+ * the traffic make-good obligation (with the break it was rebooked into) and the
+ * billing make-good / credit note. TSK-33: a credit row also names the durable
+ * journal entry the ledger posting produced. The desk offers the two remedies
+ * the engines implement and claims nothing beyond what they returned.
  */
-export function renderPoaExceptionsWorkbenchHtml(options: { resolvedId?: string } = {}): string {
+export function renderPoaExceptionsWorkbenchHtml(
+  options: { resolvedId?: string; resolutionError?: string; exceptions?: PoaDeliveryException[] } = {}
+): string {
+  const exceptions = options.exceptions ?? listPoaExceptions();
+  const resolved = options.resolvedId ? exceptions.find((e) => e.id === options.resolvedId) : undefined;
+  const openShortfallSeconds = exceptions
+    .filter((e) => e.status === "OPEN")
+    .reduce((sum, e) => sum + e.shortfallSeconds, 0);
+
   return `
-    <div style="max-width: 1100px; margin: 32px auto; padding: 0 16px;">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+ <div class="s-dJGia7etx6">
+ <div class="s-k5NLeWec9i">
         <div>
-          <span class="vmn-badge badge-warning" style="margin-bottom: 8px; font-weight: 700;">RECONCILIATION &bull; UX-BR-030 / UX-GOV-006</span>
-          <h1 style="font-size: var(--vmn-font-size-2xl); font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 6px 0;">
+ <span class="vmn-badge badge-warning s-Dnmmv3HPR8" >RECONCILIATION &bull; UX-BR-030 / UX-GOV-006</span>
+ <h1 class="s-n_bp1PhViu">
             Proof-of-Air Exceptions Workbench
           </h1>
-          <p style="color: var(--vmn-color-secondary-text); margin: 0; font-size: 0.95rem;">
+ <p class="s-zrikAgYqXF">
             Audit as-run playout variances, clipping discrepancies, and commercial make-good resolutions.
           </p>
         </div>
-        <div style="display: flex; gap: 8px;">
-          <a href="/broadcast/proof-of-air" class="btn btn-outline" style="min-height: 44px; display: inline-flex; align-items: center; gap: 6px;">
+ <div class="s-aTQ0x94bOS">
+ <a href="/broadcast/proof-of-air" class="btn btn-outline s-oskDBiEZSv" >
             ${renderIcon("document", { size: 16 })} Dispatch Certificates
           </a>
         </div>
       </div>
 
       ${
-        options.resolvedId
+        resolved
           ? `
-        <div class="vmn-alert" style="background: #ECFDF5; border: 1px solid #10B981; border-radius: var(--vmn-radius-md); padding: 16px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px;">
-          <div style="color: #059669;">${renderIcon("check", { size: 24 })}</div>
+ <div class="vmn-alert s-NKbeyCer0q" >
+ <div class="s-Fq1eaiclek">${renderIcon("check", { size: 24 })}</div>
           <div>
-            <div style="font-weight: 700; color: #065F46;">Exception ${escapeHtml(options.resolvedId)} Successfully Remediated</div>
-            <div style="font-size: 0.85rem; color: #047857;">Make-good slot reserved and counterparty notification logged to ledger.</div>
+ <div class="s-4jLxKmoprh">Exception ${escapeHtml(resolved.id)} &mdash; ${
+            resolved.status === "MAKE_GOOD_REBOOKED" ? "Make-good booked into inventory" : "Credit note issued"
+          }</div>
+ <div class="s-huAjaSyPZk">${
+   resolved.status === "MAKE_GOOD_REBOOKED"
+     ? `${resolved.shortfallSeconds}s of ${escapeHtml(resolved.campaignId)} inventory was scheduled into break ${escapeHtml(
+         resolved.allocatedBreakId || ""
+       )} by ${escapeHtml(resolved.resolvedBy || "traffic")}. The make-good obligation is no longer queued.`
+     : `Credit note ${escapeHtml(resolved.creditNoteId || "")} (${resolved.makeGoodValueNgn.toLocaleString(
+         "en-NG"
+       )} NGN, provisional rate card) was issued against make-good ${escapeHtml(resolved.makeGoodId)} by ${escapeHtml(
+         resolved.resolvedBy || "finance"
+       )}, and the queued inventory obligation was withdrawn. Posted to the seven-way ledger as journal entry ${escapeHtml(
+         resolved.journalEntryId || ""
+       )} (Dr 4090 Contra-Revenue Allowances / Cr 2400 Client Credit Payable — a contra item, never revenue).`
+ }</div>
           </div>
         </div>
       `
           : ""
       }
 
-      <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); overflow: hidden;">
-        <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
+      ${
+        options.resolutionError
+          ? `
+ <div class="vmn-alert vmn-alert--error s-NKbeyCer0q" role="alert">
+          <div>${renderIcon("warning", { size: 24 })}</div>
+          <div>
+ <div class="s-4jLxKmoprh">Remedy refused &mdash; the obligation is still open</div>
+ <div class="s-huAjaSyPZk">${escapeHtml(options.resolutionError)}</div>
+          </div>
+        </div>
+      `
+          : ""
+      }
+
+ <div class="vmn-card s-6KYnYzlM1L" >
+        <p class="s-zrikAgYqXF">
+          <strong>${exceptions.length}</strong> registered delivery exception${
+            exceptions.length === 1 ? "" : "s"
+          } &bull; <strong>${openShortfallSeconds}</strong>s of commercial inventory still owed.
+        </p>
+ ${
+   exceptions.length === 0
+     ? `
+        <p class="s-OdlmY1tzrc">
+          No delivery exception has been raised. Exceptions appear here when an as-run reconciliation
+          measures a spot that did not air for its contracted length.
+        </p>
+      `
+     : `
+ <table class="s-StXB6StjnQ">
           <thead>
-            <tr style="background: var(--vmn-color-background); border-bottom: 2px solid var(--vmn-color-border); text-align: left;">
-              <th style="padding: 12px 14px; font-weight: 700;">Exception ID</th>
-              <th style="padding: 12px 14px; font-weight: 700;">Campaign / Client</th>
-              <th style="padding: 12px 14px; font-weight: 700;">Planned vs As-Run</th>
-              <th style="padding: 12px 14px; font-weight: 700;">Discrepancy Nature</th>
-              <th style="padding: 12px 14px; font-weight: 700;">Recommended Remedy</th>
-              <th style="padding: 12px 14px; font-weight: 700; text-align: right;">Action</th>
+ <tr class="s-vhJLkBexH-">
+ <th class="s-gSzyZDrSbr">Exception ID</th>
+ <th class="s-gSzyZDrSbr">Campaign / Client</th>
+ <th class="s-gSzyZDrSbr">Shortfall (planned vs as-run)</th>
+ <th class="s-gSzyZDrSbr">Discrepancy Nature</th>
+ <th class="s-gSzyZDrSbr">Make-good / credit linkage</th>
+ <th class="s-i6k8o9YRzt">Action</th>
             </tr>
           </thead>
           <tbody>
-            <tr style="border-bottom: 1px solid var(--vmn-color-border);">
-              <td style="padding: 12px 14px; font-family: monospace; font-weight: 700;">EXP-2026-081</td>
-              <td style="padding: 12px 14px;">
-                <div style="font-weight: 700; color: var(--vmn-color-primary-text);">Dangote Refinery Crawler</div>
-                <div style="font-size: 0.75rem; color: var(--vmn-color-text-muted);">Dangote Group &bull; COMM-DAG-8842</div>
+ ${exceptions
+   .map(
+     (e) => `
+ <tr class="s-EK6K8Vq5tY">
+ <td class="s-NrOVPHG2_K">${escapeHtml(e.id)}</td>
+ <td class="s-O6cnlXePf8">
+ <div class="s-v9ujfxeGxB">${escapeHtml(e.campaignId)}</div>
+ <div class="s-OdlmY1tzrc">${escapeHtml(e.clientName)} &bull; ${escapeHtml(e.channelCode)}</div>
               </td>
-              <td style="padding: 12px 14px;">
-                <div>Plan: 30s &bull; Run: 22s</div>
-                <div style="font-size: 0.75rem; color: #DC2626; font-weight: 700;">-8s Clipped (News Alert Cut)</div>
+ <td class="s-O6cnlXePf8">
+                <div>Plan: ${e.plannedDurationSeconds}s &bull; Run: ${e.airedDurationSeconds}s</div>
+ <div class="s-TEJjAykNyT">-${e.shortfallSeconds}s owed (spot ${escapeHtml(e.spotId)})</div>
               </td>
-              <td style="padding: 12px 14px;">
-                <span class="vmn-badge badge-warning">UNDER_DELIVERY_TIME</span>
+ <td class="s-O6cnlXePf8">
+                <span class="vmn-badge badge-warning">${escapeHtml(e.nature)}</span>
               </td>
-              <td style="padding: 12px 14px; color: var(--vmn-color-secondary-text);">
-                Grant 1x Prime 30s Spot in Tomorrow 20:00 News
+ <td class="s-o1-djKZYTY">
+                <div>Make-good ${escapeHtml(e.makeGoodId)}</div>
+ <div class="s-OdlmY1tzrc">${e.makeGoodValueNgn.toLocaleString("en-NG")} NGN (provisional rate card)</div>
+ <div class="s-OdlmY1tzrc">${
+   e.status === "OPEN"
+     ? "Queued for rebooking &mdash; no inventory allocated yet"
+     : e.status === "MAKE_GOOD_REBOOKED"
+       ? `Rebooked into break ${escapeHtml(e.allocatedBreakId || "")}`
+       : `Credit note ${escapeHtml(e.creditNoteId || "")} issued`
+ }</div>
               </td>
-              <td style="padding: 12px 14px; text-align: right;">
-                <form method="POST" action="/api/v1/broadcast/asrun/exceptions/EXP-2026-081/resolve" style="display: inline;">
+ <td class="s-RhdStrjBOr">
+ ${
+   e.status === "OPEN"
+     ? `
+ <form method="POST" action="/api/v1/broadcast/asrun/exceptions/${encodeURIComponent(e.id)}/resolve" class="s-Q0_DLsKcmN">
                   <input type="hidden" name="resolutionType" value="APPROVE_MAKE_GOOD" />
-                  <button type="submit" class="btn btn-primary" style="min-height: 34px; padding: 0 12px; font-size: 0.8rem; cursor: pointer;">
+                  <label class="s-OdlmY1tzrc" for="targetBreak-${escapeHtml(e.id)}">Target break</label>
+                  <input id="targetBreak-${escapeHtml(e.id)}" type="text" name="targetBreakId" placeholder="BRK-PRIME-01" required />
+                  <button type="submit" class="btn btn-primary s-_MZYDlP4uN" >
                     Authorize Make-Good
                   </button>
                 </form>
-              </td>
-            </tr>
-
-            <tr style="border-bottom: 1px solid var(--vmn-color-border);">
-              <td style="padding: 12px 14px; font-family: monospace; font-weight: 700;">EXP-2026-084</td>
-              <td style="padding: 12px 14px;">
-                <div style="font-weight: 700; color: var(--vmn-color-primary-text);">Airtel 5G Ultra Fast Promo</div>
-                <div style="font-size: 0.75rem; color: var(--vmn-color-text-muted);">Airtel Nigeria &bull; COMM-AIR-1049</div>
-              </td>
-              <td style="padding: 12px 14px;">
-                <div>Plan: 21:15 &bull; Run: 22:45</div>
-                <div style="font-size: 0.75rem; color: #D97706; font-weight: 700;">+90m Daypart Shift</div>
-              </td>
-              <td style="padding: 12px 14px;">
-                <span class="vmn-badge badge-warning">DISPLACED_DAYPART</span>
-              </td>
-              <td style="padding: 12px 14px; color: var(--vmn-color-secondary-text);">
-                Issue 15% Rate Card Credit Note
-              </td>
-              <td style="padding: 12px 14px; text-align: right;">
-                <form method="POST" action="/api/v1/broadcast/asrun/exceptions/EXP-2026-084/resolve" style="display: inline;">
+ <form method="POST" action="/api/v1/broadcast/asrun/exceptions/${encodeURIComponent(e.id)}/resolve" class="s-Q0_DLsKcmN">
                   <input type="hidden" name="resolutionType" value="ISSUE_CREDIT_NOTE" />
-                  <button type="submit" class="btn btn-outline" style="min-height: 34px; padding: 0 12px; font-size: 0.8rem; cursor: pointer;">
+ <button type="submit" class="btn btn-outline s-_MZYDlP4uN" >
                     Issue Credit Note
                   </button>
                 </form>
+              `
+     : `<span class="vmn-badge s-Dnmmv3HPR8">${e.status === "MAKE_GOOD_REBOOKED" ? "Closed by make-good" : "Closed by credit note"}</span>`
+ }
               </td>
             </tr>
+`
+   )
+   .join("")}
           </tbody>
         </table>
-      </div>
+      `
+ }
     </div>
   `;
 }
@@ -424,7 +544,7 @@ export function renderPoaExceptionsWorkbenchHtml(options: { resolvedId?: string 
 function renderQueueMediaCell(contentId: string): string {
   const item = getContent(contentId);
   if (!item) {
-    return `<span style="color: var(--vmn-color-warning-600, #b45309); font-size: 0.8rem;">Content record not found in the CMS registry — demo row; publish will be refused (CMS_NOT_FOUND).</span>`;
+ return `<span class="s-dTmeKQvGfP">Content record not found in the CMS registry — demo row; publish will be refused (CMS_NOT_FOUND).</span>`;
   }
   const revision = item.revisions.get(item.currentRevision)!;
   return renderMediaRefBadgesHtml(projectMediaRefBadges(revision.mediaAssetIds));
@@ -432,14 +552,14 @@ function renderQueueMediaCell(contentId: string): string {
 
 export function renderContentReviewAndPublicationHtml(options: { publishedId?: string } = {}): string {
   return `
-    <div style="max-width: 1100px; margin: 32px auto; padding: 0 16px;">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+ <div class="s-dJGia7etx6">
+ <div class="s-k5NLeWec9i">
         <div>
-          <span class="vmn-badge badge-info" style="margin-bottom: 8px; font-weight: 700;">EDITORIAL &bull; UX-CMS-001..008</span>
-          <h1 style="font-size: var(--vmn-font-size-2xl); font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 6px 0;">
+ <span class="vmn-badge badge-info s-Dnmmv3HPR8" >EDITORIAL &bull; UX-CMS-001..008</span>
+ <h1 class="s-n_bp1PhViu">
             Editorial Review &amp; Syndication Publication
           </h1>
-          <p style="color: var(--vmn-color-secondary-text); margin: 0; font-size: 0.95rem;">
+ <p class="s-zrikAgYqXF">
             Review programme synopsis slates, NBC ratings, localized language tracks, and publish to StarTimes EPG &amp; Web.
           </p>
         </div>
@@ -448,61 +568,61 @@ export function renderContentReviewAndPublicationHtml(options: { publishedId?: s
       ${
         options.publishedId
           ? `
-        <div class="vmn-alert" style="background: #ECFDF5; border: 1px solid #10B981; border-radius: var(--vmn-radius-md); padding: 16px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px;">
-          <div style="color: #059669;">${renderIcon("check", { size: 24 })}</div>
+ <div class="vmn-alert s-NKbeyCer0q" >
+ <div class="s-Fq1eaiclek">${renderIcon("check", { size: 24 })}</div>
           <div>
-            <div style="font-weight: 700; color: #065F46;">Content Item ${escapeHtml(options.publishedId)} Published</div>
-            <div style="font-size: 0.85rem; color: #047857;">Syndicated to StarTimes EPG XMLTV feed and public web portal.</div>
+ <div class="s-4jLxKmoprh">Content Item ${escapeHtml(options.publishedId)} Published</div>
+ <div class="s-huAjaSyPZk">Syndicated to StarTimes EPG XMLTV feed and public web portal.</div>
           </div>
         </div>
       `
           : ""
       }
 
-      <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); overflow: hidden;">
-        <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
+ <div class="vmn-card s-6KYnYzlM1L" >
+ <table class="s-StXB6StjnQ">
           <thead>
-            <tr style="background: var(--vmn-color-background); border-bottom: 2px solid var(--vmn-color-border); text-align: left;">
-              <th style="padding: 12px 14px; font-weight: 700;">Content Title</th>
-              <th style="padding: 12px 14px; font-weight: 700;">Target Channels</th>
-              <th style="padding: 12px 14px; font-weight: 700;">NBC Rating</th>
-              <th style="padding: 12px 14px; font-weight: 700;">Languages</th>
-              <th style="padding: 12px 14px; font-weight: 700;">Editorial State</th>
-              <th style="padding: 12px 14px; font-weight: 700;">Media references (UX-CMS-006)</th>
-              <th style="padding: 12px 14px; font-weight: 700; text-align: right;">Action</th>
+ <tr class="s-vhJLkBexH-">
+ <th class="s-gSzyZDrSbr">Content Title</th>
+ <th class="s-gSzyZDrSbr">Target Channels</th>
+ <th class="s-gSzyZDrSbr">NBC Rating</th>
+ <th class="s-gSzyZDrSbr">Languages</th>
+ <th class="s-gSzyZDrSbr">Editorial State</th>
+ <th class="s-gSzyZDrSbr">Media references (UX-CMS-006)</th>
+ <th class="s-i6k8o9YRzt">Action</th>
             </tr>
           </thead>
           <tbody>
-            <tr style="border-bottom: 1px solid var(--vmn-color-border);">
-              <td style="padding: 12px 14px; font-weight: 700; color: var(--vmn-color-primary-text);">
+ <tr class="s-EK6K8Vq5tY">
+ <td class="s-PrQ5zOE0i2">
                 Lagos Noir (Season 2, Episode 1: 'The Causeway')
               </td>
-              <td style="padding: 12px 14px; color: var(--vmn-color-secondary-text);">NXTR &bull; Azeebo+ OTT</td>
-              <td style="padding: 12px 14px;"><span class="vmn-badge badge-neutral">18+ (Violence)</span></td>
-              <td style="padding: 12px 14px;">EN, YO, IG</td>
-              <td style="padding: 12px 14px;"><span class="vmn-badge badge-success">READY FOR AIR</span></td>
-              <td style="padding: 12px 14px;">${renderQueueMediaCell("CNT-LAGOS-201")}</td>
-              <td style="padding: 12px 14px; text-align: right;">
-                <form method="POST" action="/api/v1/workspace/content/CNT-LAGOS-201/publish" style="display: inline;">
-                  <button type="submit" class="btn btn-primary" style="min-height: 34px; padding: 0 12px; font-size: 0.8rem; cursor: pointer;">
+ <td class="s-o1-djKZYTY">NXTR &bull; Azeebo+ OTT</td>
+ <td class="s-O6cnlXePf8"><span class="vmn-badge badge-neutral">18+ (Violence)</span></td>
+ <td class="s-O6cnlXePf8">EN, YO, IG</td>
+ <td class="s-O6cnlXePf8"><span class="vmn-badge badge-success">READY FOR AIR</span></td>
+ <td class="s-O6cnlXePf8">${renderQueueMediaCell("CNT-LAGOS-201")}</td>
+ <td class="s-RhdStrjBOr">
+ <form method="POST" action="/api/v1/workspace/content/CNT-LAGOS-201/publish" class="s-Q0_DLsKcmN">
+ <button type="submit" class="btn btn-primary s-_MZYDlP4uN" >
                     Publish to EPG &amp; Web
                   </button>
                 </form>
               </td>
             </tr>
 
-            <tr style="border-bottom: 1px solid var(--vmn-color-border);">
-              <td style="padding: 12px 14px; font-weight: 700; color: var(--vmn-color-primary-text);">
+ <tr class="s-EK6K8Vq5tY">
+ <td class="s-PrQ5zOE0i2">
                 The Afro-Fusion Sound: Highlife to Amapiano Doc
               </td>
-              <td style="padding: 12px 14px; color: var(--vmn-color-secondary-text);">NXTR &bull; Orisun</td>
-              <td style="padding: 12px 14px;"><span class="vmn-badge badge-neutral">PG (General)</span></td>
-              <td style="padding: 12px 14px;">EN, YO</td>
-              <td style="padding: 12px 14px;"><span class="vmn-badge badge-info">PENDING EDITORIAL SIGNOFF</span></td>
-              <td style="padding: 12px 14px;">${renderQueueMediaCell("CNT-DOC-102")}</td>
-              <td style="padding: 12px 14px; text-align: right;">
-                <form method="POST" action="/api/v1/workspace/content/CNT-DOC-102/publish" style="display: inline;">
-                  <button type="submit" class="btn btn-outline" style="min-height: 34px; padding: 0 12px; font-size: 0.8rem; cursor: pointer;">
+ <td class="s-o1-djKZYTY">NXTR &bull; Orisun</td>
+ <td class="s-O6cnlXePf8"><span class="vmn-badge badge-neutral">PG (General)</span></td>
+ <td class="s-O6cnlXePf8">EN, YO</td>
+ <td class="s-O6cnlXePf8"><span class="vmn-badge badge-info">PENDING EDITORIAL SIGNOFF</span></td>
+ <td class="s-O6cnlXePf8">${renderQueueMediaCell("CNT-DOC-102")}</td>
+ <td class="s-RhdStrjBOr">
+ <form method="POST" action="/api/v1/workspace/content/CNT-DOC-102/publish" class="s-Q0_DLsKcmN">
+ <button type="submit" class="btn btn-outline s-_MZYDlP4uN" >
                     Approve &amp; Publish
                   </button>
                 </form>
@@ -551,14 +671,14 @@ export function renderApprovalReviewHtml(user?: SessionUser, options: { decidedI
   ensureApprovalDemoSeed();
   const approvals = listAllApprovals();
   return `
-    <div style="max-width: 1100px; margin: 32px auto; padding: 0 16px;">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+ <div class="s-dJGia7etx6">
+ <div class="s-k5NLeWec9i">
         <div>
-          <span class="vmn-badge badge-warning" style="margin-bottom: 8px; font-weight: 700;">FOUR-EYES GOVERNANCE &bull; UX-GOV-001/002</span>
-          <h1 style="font-size: var(--vmn-font-size-2xl); font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 6px 0;">
+ <span class="vmn-badge badge-warning s-Dnmmv3HPR8" >FOUR-EYES GOVERNANCE &bull; UX-GOV-001/002</span>
+ <h1 class="s-n_bp1PhViu">
             Pending Approvals &amp; Executive Authorization
           </h1>
-          <p style="color: var(--vmn-color-secondary-text); margin: 0; font-size: 0.95rem;">
+ <p class="s-zrikAgYqXF">
             Authorized reviewer: <strong>${escapeHtml(user?.email || "Executive Signoff Officer")}</strong> &bull; Four-Eyes Principle Enforced
           </p>
         </div>
@@ -567,11 +687,11 @@ export function renderApprovalReviewHtml(user?: SessionUser, options: { decidedI
       ${
         options.decidedId
           ? `
-        <div class="vmn-alert" style="background: #ECFDF5; border: 1px solid #10B981; border-radius: var(--vmn-radius-md); padding: 16px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px;">
-          <div style="color: #059669;">${renderIcon("check", { size: 24 })}</div>
+ <div class="vmn-alert s-NKbeyCer0q" >
+ <div class="s-Fq1eaiclek">${renderIcon("check", { size: 24 })}</div>
           <div>
-            <div style="font-weight: 700; color: #065F46;">Decision recorded for ${escapeHtml(options.decidedId)}</div>
-            <div style="font-size: 0.85rem; color: #047857;">Recorded with actor identity, reason and object revision (UX-GOV-002).</div>
+ <div class="s-4jLxKmoprh">Decision recorded for ${escapeHtml(options.decidedId)}</div>
+ <div class="s-huAjaSyPZk">Recorded with actor identity, reason and object revision (UX-GOV-002).</div>
           </div>
         </div>
       `
@@ -580,31 +700,31 @@ export function renderApprovalReviewHtml(user?: SessionUser, options: { decidedI
       ${
         options.error
           ? `
-        <div class="vmn-alert" style="background: #FEF2F2; border: 1px solid #EF4444; border-radius: var(--vmn-radius-md); padding: 16px; margin-bottom: 24px;" role="alert">
-          <div style="font-weight: 700; color: #991B1B;">Decision not recorded${options.errorId ? ` — ${escapeHtml(options.errorId)}` : ""}</div>
-          <div style="font-size: 0.85rem; color: #7F1D1D;">${escapeHtml(APPROVAL_ERROR_COPY[options.error] || "The decision could not be recorded. Review the item and retry.")}</div>
+ <div class="vmn-alert s-gmP7w-PWvD" role="alert">
+ <div class="s-Hr-29x9Riz">Decision not recorded${options.errorId ? ` — ${escapeHtml(options.errorId)}` : ""}</div>
+ <div class="s-5gKEXR8JdD">${escapeHtml(APPROVAL_ERROR_COPY[options.error] || "The decision could not be recorded. Review the item and retry.")}</div>
         </div>
       `
           : ""
       }
 
-      <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); overflow: hidden;">
-        <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
+ <div class="vmn-card s-6KYnYzlM1L" >
+ <table class="s-StXB6StjnQ">
           <thead>
-            <tr style="background: var(--vmn-color-background); border-bottom: 2px solid var(--vmn-color-border); text-align: left;">
-              <th style="padding: 12px 14px; font-weight: 700;">Approval ID</th>
-              <th style="padding: 12px 14px; font-weight: 700;">Category</th>
-              <th style="padding: 12px 14px; font-weight: 700;">Subject &amp; Justification</th>
-              <th style="padding: 12px 14px; font-weight: 700;">Financial Scope</th>
-              <th style="padding: 12px 14px; font-weight: 700;">Initiator</th>
-              <th style="padding: 12px 14px; font-weight: 700; text-align: right;">Decision Actions</th>
+ <tr class="s-vhJLkBexH-">
+ <th class="s-gSzyZDrSbr">Approval ID</th>
+ <th class="s-gSzyZDrSbr">Category</th>
+ <th class="s-gSzyZDrSbr">Subject &amp; Justification</th>
+ <th class="s-gSzyZDrSbr">Financial Scope</th>
+ <th class="s-gSzyZDrSbr">Initiator</th>
+ <th class="s-i6k8o9YRzt">Decision Actions</th>
             </tr>
           </thead>
           <tbody>
             ${
               approvals.length === 0
                 ? `
-            <tr><td colspan="6" style="padding: 24px 14px; text-align: center; color: var(--vmn-color-secondary-text);">
+ <tr><td colspan="6" class="s-kvXoJxhgK6">
               No pending approvals awaiting decision.
             </td></tr>`
                 : approvals
@@ -612,41 +732,41 @@ export function renderApprovalReviewHtml(user?: SessionUser, options: { decidedI
                       const badgeClass =
                         approval.status === "PENDING" ? "badge-warning" : approval.status === "APPROVED" ? "badge-ready" : "badge-neutral";
                       const fourEyesTag = approval.requiresFourEyes
-                        ? `<span class="vmn-badge badge-info" title="₦10M+ or contract signature: second distinct approver required" style="margin-left: 6px;">FOUR-EYES</span>`
+ ? `<span class="vmn-badge badge-info s-CfmzSbVvoC" title="₦10M+ or contract signature: second distinct approver required" >FOUR-EYES</span>`
                         : "";
                       const decisionActions =
                         approval.status === "PENDING"
                           ? `
-                <div style="display: flex; gap: 6px; justify-content: flex-end;">
-                  <form method="POST" action="/api/v1/workspace/approvals/${escapeHtml(approval.id)}/decide" style="display: inline;">
+ <div class="s-EDUTwg_Z-I">
+ <form method="POST" action="/api/v1/workspace/approvals/${escapeHtml(approval.id)}/decide" class="s-Q0_DLsKcmN">
                     <input type="hidden" name="decision" value="APPROVED" />
                     <input type="hidden" name="reason" value="Reviewed against current revision ${approval.objectRevision}." />
-                    <button type="submit" class="btn btn-primary" style="min-height: 32px; padding: 0 10px; font-size: 0.8rem; cursor: pointer;">
+ <button type="submit" class="btn btn-primary s-edUd71cpo5" >
                       Approve
                     </button>
                   </form>
-                  <form method="POST" action="/api/v1/workspace/approvals/${escapeHtml(approval.id)}/decide" style="display: inline;">
+ <form method="POST" action="/api/v1/workspace/approvals/${escapeHtml(approval.id)}/decide" class="s-Q0_DLsKcmN">
                     <input type="hidden" name="decision" value="REJECTED" />
                     <input type="hidden" name="reason" value="Rejected after review of revision ${approval.objectRevision}." />
-                    <button type="submit" class="btn btn-outline" style="min-height: 32px; padding: 0 10px; font-size: 0.8rem; color: #DC2626; border-color: #DC2626; cursor: pointer;">
+ <button type="submit" class="btn btn-outline s-8BLmUnUUAh" >
                       Reject
                     </button>
                   </form>
                 </div>`
-                          : `<div style="font-size: 0.8rem; color: var(--vmn-color-secondary-text); text-align: right;">
+ : `<div class="s-AhvNZvDMVC">
                 ${escapeHtml(approval.decidedByName || "")} &bull; ${escapeHtml(approval.decisionReason || "")}
               </div>`;
                       return `
-            <tr style="border-bottom: 1px solid var(--vmn-color-border);">
-              <td style="padding: 12px 14px; font-family: monospace; font-weight: 700;">${escapeHtml(approval.id)}</td>
-              <td style="padding: 12px 14px;"><span class="vmn-badge ${badgeClass}">${escapeHtml(approval.category)}</span>${fourEyesTag}</td>
-              <td style="padding: 12px 14px;">
-                <div style="font-weight: 700; color: var(--vmn-color-primary-text);">${escapeHtml(approval.subject)}</div>
-                <div style="font-size: 0.75rem; color: var(--vmn-color-secondary-text);">${escapeHtml(approval.justification)} &bull; Revision ${approval.objectRevision}${APPROVAL_SEEDED_IDS.has(approval.id) ? " &bull; DEMO SEED" : ""}</div>
+ <tr class="s-EK6K8Vq5tY">
+ <td class="s-NrOVPHG2_K">${escapeHtml(approval.id)}</td>
+ <td class="s-O6cnlXePf8"><span class="vmn-badge ${badgeClass}">${escapeHtml(approval.category)}</span>${fourEyesTag}</td>
+ <td class="s-O6cnlXePf8">
+ <div class="s-v9ujfxeGxB">${escapeHtml(approval.subject)}</div>
+ <div class="s-wUMD0XWoZI">${escapeHtml(approval.justification)} &bull; Revision ${approval.objectRevision}${APPROVAL_SEEDED_IDS.has(approval.id) ? " &bull; DEMO SEED" : ""}</div>
               </td>
-              <td style="padding: 12px 14px; font-weight: 700;">&#8358;${approval.financialScopeNgn.toLocaleString("en-NG")}</td>
-              <td style="padding: 12px 14px; color: var(--vmn-color-secondary-text);">${escapeHtml(approval.initiatorName)}</td>
-              <td style="padding: 12px 14px; text-align: right;">${decisionActions}</td>
+ <td class="s-gSzyZDrSbr">&#8358;${approval.financialScopeNgn.toLocaleString("en-NG")}</td>
+ <td class="s-o1-djKZYTY">${escapeHtml(approval.initiatorName)}</td>
+ <td class="s-RhdStrjBOr">${decisionActions}</td>
             </tr>`;
                     })
                     .join("")

@@ -5,6 +5,7 @@
 
 import { getPrismaClient, checkDatabaseConnection } from "../index.js";
 import { handleRepoError } from "../repository-mode.js";
+import { createRepositoryListPage, normalizeRepositoryListOptions, paginateMemoryRows, RepositoryListOptions, RepositoryListPage } from "./pagination.js";
 
 export interface TalentProfileRecord {
   id: string;
@@ -184,7 +185,8 @@ export class TalentRepository {
   public async listTalent(filter?: {
     tier?: "EMERGING" | "VERIFIED" | "PROFESSIONAL" | "MASTER";
     verificationStatus?: "PENDING" | "IN_REVIEW" | "VERIFIED" | "REJECTED";
-  }): Promise<TalentProfileRecord[]> {
+  }, page: RepositoryListOptions = {}): Promise<RepositoryListPage<TalentProfileRecord>> {
+    const paging = normalizeRepositoryListOptions(page);
     const db = await checkDatabaseConnection();
     if (db.connected) {
       try {
@@ -193,10 +195,13 @@ export class TalentRepository {
           where: {
             ...(filter?.tier ? { tier: filter.tier } : {}),
             ...(filter?.verificationStatus ? { verificationStatus: filter.verificationStatus } : {}),
+            ...(paging.after ? { id: { gt: paging.after } } : {}),
           },
+          orderBy: { id: "asc" },
+          take: paging.limit + 1,
         });
         if (found.length > 0) {
-          return found.map((r) => ({
+          return createRepositoryListPage(found.map((r) => ({
             id: r.id,
             personId: r.personId,
             stageName: r.stageName ?? undefined,
@@ -207,10 +212,10 @@ export class TalentRepository {
             rateCardCurrency: r.rateCardCurrency,
             verificationStatus: r.verificationStatus,
             verifiedAt: r.verifiedAt ?? undefined,
-            source: "DB",
+            source: "DB" as const,
             createdAt: r.createdAt,
             updatedAt: r.updatedAt,
-          }));
+          })), (talent) => talent.id, paging.limit);
         }
       } catch (err: any) {
         await handleRepoError("talentProfile", "list", err);
@@ -224,7 +229,7 @@ export class TalentRepository {
     if (filter?.verificationStatus) {
       records = records.filter((r) => r.verificationStatus === filter.verificationStatus);
     }
-    return records;
+    return paginateMemoryRows(records, (talent) => talent.id, paging);
   }
 
   public async updateVerification(

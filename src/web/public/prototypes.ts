@@ -13,10 +13,10 @@
  * 8. UX-BR-030 / UX-GOV-006: Delivery Evidence & Proof-of-Air
  *
  * Scenarios:
- * - normal: standard verified production state
- * - stale: source data timestamp aged, operations blocked
- * - blocked: rights/compliance blocker requiring intervention
- * - recovery: recovery of interrupted or unknown outcome
+ * - normal: illustrative prototype baseline (not production data)
+ * - stale: simulated stale-state presentation (no live source)
+ * - blocked: illustrative rights/compliance scenario (not a decision)
+ * - recovery: illustrative recovery workflow (not durable evidence)
  */
 
 import { escapeHtml } from "../components/escape.js";
@@ -58,10 +58,10 @@ export function renderPrototypesViewerHtml(options: PrototypeViewOptions = {}): 
   ];
 
   const scenarios: Array<{ id: PrototypeScenario; label: string; desc: string }> = [
-    { id: "normal", label: "Normal", desc: "Authoritative verified baseline" },
-    { id: "stale", label: "Stale Data", desc: "Aged source data (>1 hr) with disabled mutations" },
-    { id: "blocked", label: "Blocked State", desc: "Active rights / compliance blocker" },
-    { id: "recovery", label: "Recovery Drill", desc: "Recover unknown submission without duplicate" },
+    { id: "normal", label: "Normal", desc: "Prototype baseline — not production data" },
+    { id: "stale", label: "Stale Data", desc: "Simulated stale state; no live source connected" },
+    { id: "blocked", label: "Blocked State", desc: "Illustrative rights/compliance scenario, not an actual decision" },
+    { id: "recovery", label: "Recovery Drill", desc: "Illustrative recovery workflow, not durable evidence" },
   ];
 
   const devices: Array<{ id: PrototypeDevice; label: string; width: string }> = [
@@ -75,9 +75,9 @@ export function renderPrototypesViewerHtml(options: PrototypeViewOptions = {}): 
   const screenNavHtml = screens
     .map((s) => {
       const active = s.id === currentScreen ? "active" : "";
-      return `<a href="/prototypes?screen=${s.id}&scenario=${currentScenario}&device=${currentDevice}" class="vmn-btn vmn-btn-outline ${active}" style="min-height: 40px; padding: 6px 12px; font-size: 0.85rem;">
+ return `<a href="/prototypes?screen=${s.id}&scenario=${currentScenario}&device=${currentDevice}" class="vmn-btn vmn-btn-outline ${active} s-ss1kWoUBIJ" >
         <span>${escapeHtml(s.name)}</span>
-        <span style="font-size: 0.7rem; opacity: 0.75; font-family: var(--vmn-font-mono);">${s.code}</span>
+ <span class="s-rizvLiSQHH">${s.code}</span>
       </a>`;
     })
     .join(" ");
@@ -109,26 +109,26 @@ export function renderPrototypesViewerHtml(options: PrototypeViewOptions = {}): 
   const stageClass = `vmn-preview-stage vmn-stage-${currentDevice}`;
 
   return `
-    <div style="margin-bottom: 24px;">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+ <div class="s-jXAzROAz5F">
+ <div class="s-WF37VTogiT">
         <div>
-          <span class="vmn-badge badge-info" style="margin-bottom: 8px;">VMN-UX-RL1 Resolution Prototype</span>
-          <h1 style="font-size: var(--vmn-font-size-page-title); margin: 4px 0 8px 0; font-weight: 800;">
+ <span class="vmn-badge badge-info s-fzy69kMBd1" >VMN-UX-RL1 Resolution Prototype</span>
+ <h1 class="s-7HxObHWiTP">
             Representative UI/UX Prototypes
           </h1>
-          <p style="color: var(--vmn-color-text-muted); font-size: 0.95rem; margin: 0; max-width: 800px;">
+ <p class="s-H18PT94LvI">
             Inspecting the 8 First-Release resolution screens under desktop, tablet, and mobile viewports with simulated operational scenarios (Authority: <code>VMN APP UI UX.docx</code> §1, §7, §8, §14).
           </p>
         </div>
-        <div style="display: flex; gap: 8px;">
-          <a href="/styleguide" class="btn btn-outline" style="min-height: 40px; font-size: 0.85rem;">Living Styleguide</a>
-          <a href="/" class="btn btn-primary" style="min-height: 40px; font-size: 0.85rem;">Live App Overview</a>
+ <div class="s-aTQ0x94bOS">
+ <a href="/styleguide" class="btn btn-outline s-jv_H3_hWre" >Living Styleguide</a>
+ <a href="/" class="btn btn-primary s-jv_H3_hWre" >Live App Overview</a>
         </div>
       </div>
 
       <!-- Screen Selector Bar -->
-      <nav class="card" aria-label="Prototype Screen Selector" style="padding: 12px 16px; margin-bottom: 16px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; background: var(--vmn-surface);">
-        <span style="font-size: 0.8rem; font-weight: 800; text-transform: uppercase; color: var(--vmn-color-text-muted); margin-right: 4px;">Screen:</span>
+ <nav class="card s-Hc-yUsL-Fj" aria-label="Prototype Screen Selector" >
+ <span class="s-EdW7dJ1nvV">Screen:</span>
         ${screenNavHtml}
       </nav>
 
@@ -146,7 +146,7 @@ export function renderPrototypesViewerHtml(options: PrototypeViewOptions = {}): 
     </div>
 
     <!-- Interactive Preview Stage -->
-    <div style="background: #E2E8F0; padding: 24px 16px; border-radius: var(--vmn-radius-panel); box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);">
+ <div class="s-RFGXZvLtig">
       <div class="${stageClass}">
         ${screenContentHtml}
       </div>
@@ -183,62 +183,62 @@ function renderScreenContent(screen: PrototypeScreenId, scenario: PrototypeScena
 function renderScreenHome(scenario: PrototypeScenario): string {
   const isStale = scenario === "stale";
   return `
-    <div class="card vmn-shell-public" style="background: var(--vmn-surface); padding: var(--vmn-content-padding);">
-      ${isStale ? renderStaleNotice("Broadcast schedule last synced 2 hours ago. Live TV playout continues uninterrupted.") : ""}
+ <div class="card vmn-shell-public s-2AtUk0CtKQ" >
+      ${isStale ? renderStaleNotice("Schedule freshness is unknown because no approved source is connected.") : ""}
       
       <!-- 1. Hero Proposition -->
-      <div class="vmn-public-hero" style="border-radius: var(--vmn-radius-panel); padding: 36px 28px;">
-        <span class="vmn-badge badge-ready" style="margin-bottom: 12px; background: rgba(255,255,255,0.15); color: #FFFFFF; border-color: rgba(255,255,255,0.3);">
+ <div class="vmn-public-hero s-RLWEwot0Lx" >
+ <span class="vmn-badge badge-ready s-SviNzP8T_-" >
           Broadcasting &amp; Creative Economy Ecosystem
         </span>
-        <h1 style="font-size: var(--vmn-font-size-hero-compact); font-weight: 800; margin-bottom: 12px;">
-          Powering the African Creative Economy
+ <h1 class="s-X-AgAzL6D0">
+          Virtual Media Network Limited
         </h1>
-        <p style="font-size: 1.1rem; line-height: 1.5; color: #E2E8F0; max-width: 680px; margin-bottom: 24px;">
-          Virtual Media Network Limited operates 24/7 linear television channels on StarTimes, turnkey production infrastructure for African creators, and the direct-to-consumer Azeebo+ digital universe.
+ <p class="s-oUPkLo-8YW">
+          Virtual Media Network Limited brings together linear channel profiles, production infrastructure for African creators, and the federated Azeebo+ ecosystem.
         </p>
-        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-          <a href="/channels" class="btn" style="background: #A5E8CD; color: #0E2B20; font-weight: 700;">Explore Channels</a>
-          <a href="/apply" class="btn btn-outline" style="color: #FFFFFF; border-color: rgba(255,255,255,0.4);">Apply to AFCA Academy</a>
-          <a href="/contact" class="btn btn-outline" style="color: #FFFFFF; border-color: rgba(255,255,255,0.4);">Commercial Enquiry</a>
+ <div class="s-GNTtGikGkV">
+ <a href="/channels" class="btn s-Yrm0zmaVBy" >Explore Channels</a>
+ <a href="/apply" class="btn btn-outline s-T_Ux9z4CH6" >Apply to AFCA Academy</a>
+ <a href="/contact" class="btn btn-outline s-T_Ux9z4CH6" >Commercial Enquiry</a>
         </div>
       </div>
 
       <!-- 2. Television Portfolio -->
-      <section style="margin-top: 32px;">
-        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px;">
-          <h2 style="font-size: var(--vmn-font-size-heading); font-weight: 800; margin: 0;">Linear Television Channels</h2>
-          <span style="font-size: 0.85rem; color: var(--vmn-color-text-muted);">Broadcast via StarTimes DTT / DTH</span>
+ <section class="s-jdErRdP7Vw">
+ <div class="s-X1u32Y8E_Y">
+ <h2 class="s-kiY9qPT64l">Linear Television Channels</h2>
+ <span class="s-WGpZZ_z1O2">Carriage details unverified</span>
         </div>
-        <div class="grid grid-cols-1" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
-          <div class="card" style="border-top: 4px solid #E50914;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <span class="vmn-badge badge-live">Live</span>
-              <span style="font-size: 0.8rem; font-weight: 700; color: var(--vmn-color-text-muted);">Ch 428 DTT / 256 DTH</span>
+ <div class="grid grid-cols-1 s-4qBYC5pvY8" >
+ <div class="card s-cR03ntYskl" >
+ <div class="s-jXl2S6cRQl">
+              <span class="vmn-badge badge-info">Channel profile</span>
+ <span class="s-QXJ2BWOxXS">Carriage details unverified</span>
             </div>
-            <h3 style="margin: 0 0 6px 0; font-size: 1.15rem;">Nigezie Xtreme</h3>
-            <p style="font-size: 0.85rem; color: var(--vmn-color-text-muted); margin-bottom: 12px;">Nigeria's premier 24/7 urban music, youth lifestyle and culture channel.</p>
-            <a href="/prototypes?screen=channel" class="btn btn-outline" style="width: 100%; font-size: 0.85rem;">Channel Details &rarr;</a>
+ <h3 class="s--8YyDPFw84">Nigezie Xtreme</h3>
+ <p class="s-ATxcpEYg9n">Urban music, youth lifestyle, and contemporary culture channel profile.</p>
+ <a href="/prototypes?screen=channel" class="btn btn-outline s-TsQkvSw5DC" >Channel Details &rarr;</a>
           </div>
 
-          <div class="card" style="border-top: 4px solid #FFB800;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <span class="vmn-badge badge-live">Live</span>
-              <span style="font-size: 0.8rem; font-weight: 700; color: var(--vmn-color-text-muted);">Ch 430 DTT / 477 DTH</span>
+ <div class="card s-8YvkPKKI0f" >
+ <div class="s-jXl2S6cRQl">
+              <span class="vmn-badge badge-info">Channel profile</span>
+ <span class="s-QXJ2BWOxXS">Carriage details unverified</span>
             </div>
-            <h3 style="margin: 0 0 6px 0; font-size: 1.15rem;">Orisun — The Source</h3>
-            <p style="font-size: 0.85rem; color: var(--vmn-color-text-muted); margin-bottom: 12px;">Rich Yoruba culture, cinema, music, folklore, and heritage programming.</p>
-            <a href="/channels/oris" class="btn btn-outline" style="width: 100%; font-size: 0.85rem;">Channel Details &rarr;</a>
+ <h3 class="s--8YyDPFw84">Orisun — The Source</h3>
+ <p class="s-ATxcpEYg9n">Rich Yoruba culture, cinema, music, folklore, and heritage programming.</p>
+ <a href="/channels/oris" class="btn btn-outline s-TsQkvSw5DC" >Channel Details &rarr;</a>
           </div>
 
-          <div class="card" style="border-top: 4px solid #0369A1;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <span class="vmn-badge badge-live">Live</span>
-              <span style="font-size: 0.8rem; font-weight: 700; color: var(--vmn-color-text-muted);">Ch 432 DTT / 480 DTH</span>
+ <div class="card s-7ndtghkGqf" >
+ <div class="s-jXl2S6cRQl">
+              <span class="vmn-badge badge-info">Channel profile</span>
+ <span class="s-QXJ2BWOxXS">Carriage details unverified</span>
             </div>
-            <h3 style="margin: 0 0 6px 0; font-size: 1.15rem;">Isi Mbido — The Beginning</h3>
-            <p style="font-size: 0.85rem; color: var(--vmn-color-text-muted); margin-bottom: 12px;">Igbo language, customs, traditional drama, and authentic storytelling.</p>
-            <a href="/channels/imbd" class="btn btn-outline" style="width: 100%; font-size: 0.85rem;">Channel Details &rarr;</a>
+ <h3 class="s--8YyDPFw84">Isi Mbido — The Beginning</h3>
+ <p class="s-ATxcpEYg9n">Igbo language, customs, traditional drama, and authentic storytelling.</p>
+ <a href="/channels/imbd" class="btn btn-outline s-TsQkvSw5DC" >Channel Details &rarr;</a>
           </div>
         </div>
       </section>
@@ -246,13 +246,13 @@ function renderScreenHome(scenario: PrototypeScenario): string {
       <!-- 3. Azeebo+ Gateway Banner -->
       <section class="vmn-azeebo-gateway-banner">
         <div>
-          <span class="vmn-badge badge-info" style="margin-bottom: 8px;">Federated Consumer Gateway</span>
-          <h3 style="margin: 0 0 6px 0; font-size: 1.25rem;">Azeebo+ Streaming &amp; Digital Experience</h3>
-          <p style="font-size: 0.9rem; color: var(--vmn-color-text-muted); margin: 0; max-width: 600px;">
+ <span class="vmn-badge badge-info s-fzy69kMBd1" >Federated Consumer Gateway</span>
+ <h3 class="s-My14PRdW73">Azeebo+ Streaming &amp; Digital Experience</h3>
+ <p class="s-AMzHB6Cv2W">
             Stream full episodes, backstage masterclasses, and music specials direct to consumer.
           </p>
         </div>
-        <a href="/azeebo/gateway" class="btn btn-primary" style="min-height: 44px; white-space: nowrap;">
+ <a href="/azeebo/gateway" class="btn btn-primary s-Kwt_c99fyG" >
           Launch Azeebo+ Universe &rarr;
         </a>
       </section>
@@ -266,49 +266,42 @@ function renderScreenHome(scenario: PrototypeScenario): string {
 function renderScreenChannel(scenario: PrototypeScenario): string {
   const isStale = scenario === "stale";
   return `
-    <div class="card" style="background: var(--vmn-surface); padding: var(--vmn-content-padding);">
-      ${isStale ? renderStaleNotice("Transmission guide sync delayed. Live StarTimes playout operational.") : ""}
-
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--vmn-color-border);">
-        <div>
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-            <span class="vmn-badge badge-live">Live On Air</span>
-            <span style="font-size: 0.85rem; font-weight: 700; color: var(--vmn-color-text-muted);">StarTimes Ch 428 DTT / 256 DTH</span>
+ <div class="card s-2AtUk0CtKQ" >
+ ${isStale ? renderStaleNotice("Transmission guide freshness is unknown; no approved source is connected.") : ""} <div class="s-pMxv3vJkjW">
+          <div>
+ <div class="s-4ad8h0QMBD s-pMxv3vJkjW">
+              <span class="vmn-badge badge-info">Channel profile</span>
+ <span class="s-Q3ACHsUPFF">Carriage details unverified</span>
           </div>
-          <h1 style="font-size: var(--vmn-font-size-page-title); margin: 0; font-weight: 800; color: #E50914;">
+ <h1 class="s-a-LB7wOVJO">
             Nigezie Xtreme (NXTR)
           </h1>
-          <p style="font-size: 0.95rem; color: var(--vmn-color-text-muted); margin: 4px 0 0 0;">
+ <p class="s-78l2hYjzXA">
             The Definitive Pulse of Urban Music &amp; African Youth Culture
           </p>
         </div>
-        <div style="display: flex; gap: 8px;">
+ <div class="s-aTQ0x94bOS">
           <a href="/advertising" class="btn btn-primary">Book Commercial Airtime</a>
           <a href="/contact" class="btn btn-outline">Enquiry</a>
         </div>
       </div>
 
-      <!-- Channel Technical Slate -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px;">
-        <div class="stat-box"><span class="stat-lbl">Video Standard</span><strong>1080i50 HD</strong></div>
-        <div class="stat-box"><span class="stat-lbl">Audio Target</span><strong>EBU R128 (-23 LUFS)</strong></div>
-        <div class="stat-box"><span class="stat-lbl">Broadcast Reach</span><strong>3.2M+ Households</strong></div>
-        <div class="stat-box"><span class="stat-lbl">Uplink Station</span><strong>Lagos Hub / Eutelsat 16A</strong></div>
+ <div class="card" role="note" >
+        Technical standards, coverage, and uplink details are omitted until validated against approved operational evidence.
       </div>
 
       <!-- Schedule Notice - No Fake Now/Next (Authority Rule §8.2) -->
-      <div class="card" role="note" style="background: var(--vmn-surface-accent); border: 1px solid #86EFAC; padding: 16px 20px; border-radius: var(--vmn-radius-md);">
-        <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--vmn-color-primary); margin-bottom: 6px;">
+ <div class="card s-vV2ZFaH4hZ" role="note" >
+ <div class="s-O51iQssC0f">
           ${renderIcon("broadcast", { size: 16 })}
           <span>Public Broadcast Schedule Notice</span>
         </div>
-        <p style="font-size: 0.9rem; margin: 0; color: var(--vmn-color-text-main);">
-          Linear schedule data is synchronized directly from the Master Control Room automation playout engine. 
-          View our verified 24-hour programme lineup in the operator schedule console.
+ <p class="s-TH4vWjx1Gd">
+          No approved live schedule source is connected to this environment. Operational programme lineups are not published here.
         </p>
-        <div style="margin-top: 12px;">
-          <a href="/prototypes?screen=schedule" class="btn btn-outline" style="font-size: 0.85rem; padding: 6px 14px; min-height: 40px;">
-            Inspect Live Schedule Console &rarr;
+ <div class="s-nJzuIJPje9">
+ <a href="/prototypes?screen=schedule" class="btn btn-outline s-3FRzAOu08N" >
+            Inspect Schedule Console &rarr;
           </a>
         </div>
       </div>
@@ -342,77 +335,75 @@ function renderScreenWork(scenario: PrototypeScenario): string {
           ${renderIcon("broadcast", { size: 14 })}
           <span>Consoles Catalog</span>
         </a>
-        <div class="vmn-work-rail-title" style="margin-top: 16px;">Operator</div>
-        <div style="padding: 6px 12px; font-size: 0.8rem; color: var(--vmn-color-text-muted);">
+ <div class="vmn-work-rail-title s-0mWmubkRs3" >Operator</div>
+ <div class="s-yaQ1Wd-ncP">
           <strong>D. Adeyemi</strong><br>
-          <span style="font-size: 0.75rem;">MCR Traffic Director</span>
+ <span class="s-orRLFYu8o-">MCR Traffic Director</span>
         </div>
       </aside>
 
       <!-- Main Workbench Work Area -->
       <div class="vmn-work-main">
         <!-- Priority 1 Blocker Tray (§8.5 Mandatory Order) -->
-        <div class="vmn-blocker-tray" ${isBlocked ? 'style="border-color: #EF4444; background: #FEF2F2;"' : ""}>
+ <div class="vmn-blocker-tray" ${isBlocked ? '' : ""}>
           <div class="vmn-blocker-tray-title">
             ${renderIcon("alert", { size: 18 })}
             <span>Priority Blocker Tray &mdash; ${isBlocked ? "CRITICAL BLOCKER ACTIVE" : "Immediate Action Required"}</span>
           </div>
           <div class="vmn-blocker-item">
             <div>
-              <strong>NXTR-BLK-049: Missing Rights Clearance for Filler Segment #4102</strong><br>
-              <span style="font-size: 0.8rem; color: var(--vmn-color-text-muted);">Scheduled 21:45 UTC &bull; Origin: External Syndication Partner</span>
+              <strong>Sample rights-block scenario — illustrative only</strong><br>
+ <span class="s-Zda0APXQzv">No real rights case or scheduled slot is represented.</span>
             </div>
-            <a href="/prototypes?screen=schedule&scenario=blocked" class="btn btn-outline" style="font-size: 0.8rem; padding: 4px 10px; min-height: 36px;">Review Rights</a>
+ <a href="/prototypes?screen=schedule&scenario=blocked" class="btn btn-outline s-HDQeaD48M5" >Review Rights</a>
           </div>
           <div class="vmn-blocker-item">
             <div>
-              <strong>REC-GTCO-881: Unreconciled 30s Airtime Spot Discrepancy</strong><br>
-              <span style="font-size: 0.8rem; color: var(--vmn-color-text-muted);">As-run timestamp mismatch +42s &bull; StarTimes Eutelsat feed</span>
+              <strong>Sample reconciliation scenario — illustrative only</strong><br>
+ <span class="s-Zda0APXQzv">No as-run or carriage telemetry is connected.</span>
             </div>
-            <a href="/prototypes?screen=proof" class="btn btn-outline" style="font-size: 0.8rem; padding: 4px 10px; min-height: 36px;">Reconcile Spot</a>
+ <a href="/prototypes?screen=proof" class="btn btn-outline s-HDQeaD48M5" >Reconcile Spot</a>
           </div>
         </div>
 
         <!-- 1.6:1 Split Work Items & Detail Pane -->
         <div class="vmn-split-16-1">
           <!-- Primary Task Column -->
-          <div class="card" style="background: var(--vmn-surface);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-              <h2 style="font-size: var(--vmn-font-size-heading); margin: 0; font-weight: 800;">Assigned Work Queue</h2>
-              <span class="vmn-badge badge-info">4 Active Tasks</span>
+ <div class="card s-M1XN5DD7rQ" >
+ <div class="s-KUQGzdrAEa">
+ <h2 class="s-srhFO5P93o">Sample Work Queue</h2>
+              <span class="vmn-badge badge-info">Illustrative only</span>
             </div>
             
-            <div style="display: flex; flex-direction: column; gap: 10px;">
-              <div class="card" style="padding: 14px; border-left: 4px solid var(--vmn-color-primary); background: var(--vmn-surface-alt);">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                  <span style="font-weight: 700;">AFCA-REV-2026-092 &bull; Cohort Application</span>
+ <div class="s-RksozYn_b3">
+ <div class="card s-2cKuqB4iS0" >
+ <div class="s-WBoMmQ5iPU">
+ <span class="s-Qqy2DuK6Be">AFCA-REV-2026-092 &bull; Cohort Application</span>
                   <span class="vmn-badge badge-warning">Awaiting Review</span>
                 </div>
-                <p style="font-size: 0.85rem; margin: 0 0 8px 0; color: var(--vmn-color-text-muted);">Applicant: T. Oladipo &bull; Directing &amp; Cinematography Track</p>
-                <a href="/prototypes?screen=application" class="btn btn-outline" style="font-size: 0.8rem; padding: 4px 10px; min-height: 36px;">Open Candidate Dossier</a>
+ <p class="s-sp-Q9959-M">Applicant: T. Oladipo &bull; Directing &amp; Cinematography Track</p>
+ <a href="/prototypes?screen=application" class="btn btn-outline s-HDQeaD48M5" >Open Candidate Dossier</a>
               </div>
 
-              <div class="card" style="padding: 14px; border-left: 4px solid #1655BC; background: var(--vmn-surface-alt);">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                  <span style="font-weight: 700;">VTM-ENG-088 &bull; Talent Acceptance</span>
-                  <span class="vmn-badge badge-ready">Terms Sent</span>
+ <div class="card s-St-_Xhbhqi" >
+ <div class="s-WBoMmQ5iPU">
+ <span class="s-Qqy2DuK6Be">Sample talent acceptance — illustrative</span>
+                  <span class="vmn-badge badge-info">Prototype only</span>
                 </div>
-                <p style="font-size: 0.85rem; margin: 0 0 8px 0; color: var(--vmn-color-text-muted);">Talent: K. Balogun &bull; Sound Design Contract for ONE Studios</p>
-                <a href="/prototypes?screen=terms" class="btn btn-outline" style="font-size: 0.8rem; padding: 4px 10px; min-height: 36px;">Review Agreement</a>
+ <p class="s-sp-Q9959-M">No real talent engagement or contract status is represented.</p>
+ <a href="/prototypes?screen=terms" class="btn btn-outline s-HDQeaD48M5" >Review Agreement</a>
               </div>
             </div>
           </div>
 
           <!-- Quick Context / Info Rail -->
-          <div class="card" style="background: var(--vmn-surface-accent); border: 1px solid #86EFAC;">
-            <h3 style="font-size: 1rem; margin: 0 0 10px 0; font-weight: 800; color: var(--vmn-color-primary);">Operator Context</h3>
-            <p style="font-size: 0.85rem; color: var(--vmn-color-text-main); line-height: 1.5; margin-bottom: 12px;">
-              Active Shift: 18:00 &ndash; 02:00 UTC<br>
-              Playout Engine: Master Automation v3.2<br>
-              Transmission Gate: ${isBlocked ? '<span style="color: #DC2626; font-weight: 700;">Blocked (Red)</span>' : '<span style="color: var(--vmn-color-primary); font-weight: 700;">Locked (Green)</span>'}
+ <div class="card s-HxNG84yhf2" >
+ <h3 class="s-zw2apZGjlq">Operator Context</h3>
+ <p class="s-5yNS0RpWH2">
+              Prototype only — live shift, playout engine, and transmission-gate status are unavailable.
             </p>
-            <div style="font-size: 0.8rem; color: var(--vmn-color-text-muted); border-top: 1px dashed #CBD5E1; padding-top: 8px;">
-              All actions logged to immutable SHA-256 audit ledger.
+ <div class="s-tgMgDSt2ur">
+              Prototype interactions are not recorded in an operational audit ledger.
             </div>
           </div>
         </div>
@@ -428,48 +419,48 @@ function renderScreenClient(scenario: PrototypeScenario): string {
   const isStale = scenario === "stale";
   return `
     <div class="vmn-shell-portal">
-      ${isStale ? renderStaleNotice("Client proof telemetry awaiting final StarTimes daily ingest reconciliation.") : ""}
+      ${isStale ? renderStaleNotice("Prototype proof data is illustrative; no StarTimes reconciliation source is connected.") : ""}
       <!-- Counterparty Banner -->
       <div class="vmn-portal-banner">
         <div>
-          <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--vmn-color-text-muted); font-weight: 700;">
+ <div class="s-RXQtu1lQIZ">
             Counterparty Sponsor Portal
           </div>
-          <div class="vmn-portal-counterparty">Guaranty Trust Bank (GTCO Plc)</div>
-          <div style="font-size: 0.85rem; color: var(--vmn-color-text-muted); margin-top: 2px;">
-            Campaign Contract Ref: <strong>GTCO-NXTR-2026-Q3-019</strong>
+          <div class="vmn-portal-counterparty">Sample Counterparty (Illustrative)</div>
+ <div class="s-fClvy0XunL">
+            Campaign Contract Ref: <strong>PROTOTYPE-ONLY</strong>
           </div>
         </div>
-        <div style="display: flex; gap: 8px; align-items: center;">
-          <span class="vmn-report-released-badge">Audited Release</span>
-          <span class="vmn-badge badge-ready">Contract Active</span>
+ <div class="s-66kjxA-b-z">
+          <span class="vmn-badge badge-info">Illustrative prototype</span>
         </div>
       </div>
 
+      <div class="card" role="note">Illustrative prototype data only — not a client commitment, released proof report, or verified transmission record.</div>
       <!-- Scope & Commitments Summary -->
-      <div class="card" style="background: var(--vmn-surface); margin-bottom: 24px;">
-        <h2 style="font-size: var(--vmn-font-size-heading); font-weight: 800; margin-top: 0;">Approved Campaign Deliverables</h2>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px;">
-          <div class="stat-box"><span class="stat-lbl">Contracted Spots</span><strong>120 Total Airings</strong></div>
-          <div class="stat-box"><span class="stat-lbl">Delivered &amp; Audited</span><strong style="color: var(--vmn-color-primary);">118 Verified Spots</strong></div>
-          <div class="stat-box"><span class="stat-lbl">Make-Good Scheduled</span><strong>2 Rescheduled Spots</strong></div>
-          <div class="stat-box"><span class="stat-lbl">Compliance Score</span><strong>98.33% Verified</strong></div>
+ <div class="card s-Rl_MTfinnP" >
+ <h2 class="s-OsqitOkOMz">Illustrative Campaign Deliverables</h2>
+ <div class="s-ELadvnv3j3">
+          <div class="stat-box"><span class="stat-lbl">Contracted Spots</span><strong>Sample only</strong></div>
+          <div class="stat-box"><span class="stat-lbl">Delivered &amp; Audited</span><strong>Not verified</strong></div>
+          <div class="stat-box"><span class="stat-lbl">Make-Good Scheduled</span><strong>Not verified</strong></div>            <div class="stat-box"><span class="stat-lbl">Compliance assessment</span><strong>Not available</strong></div>
+
         </div>
       </div>
 
-      <!-- Controlled Proof Report: Released vs Draft Preview Distinction (§14.1) -->
-      <div class="card" style="background: var(--vmn-surface); border: 1px solid var(--vmn-color-border);">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+      <!-- Illustrative proof data — not an operational report -->
+ <div class="card s-QJ5gns6ZS6" >
+ <div class="s-KUQGzdrAEa">
           <div>
-            <span class="vmn-report-released-badge">Official Released Proof of Air</span>
-            <h3 style="margin: 6px 0 2px 0; font-size: 1.15rem;">Broadcast Transmission Log Certification</h3>
-            <span style="font-size: 0.8rem; color: var(--vmn-color-text-muted);">Released by Head of Broadcast Operations on 2026-09-29 &bull; SHA-256 Verified</span>
+            <span class="vmn-badge badge-info">Sample proof — not released</span>
+ <h3 class="s-6QHpM2lglN">Broadcast Transmission Log Certification</h3>
+ <span class="s-Zda0APXQzv">No signed proof artifact is attached to this prototype.</span>
           </div>
-          <button type="button" class="btn btn-outline" style="min-height: 40px; font-size: 0.85rem;">Download Signed PDF</button>
+          <span class="vmn-badge badge-info">No downloadable signed artifact</span>
         </div>
 
-        <div style="overflow-x: auto;">
-          <table class="table" style="width: 100%; font-size: 0.85rem;">
+ <div class="s-QtRFDAL0Yl">
+ <table class="table s-TsQkvSw5DC" >
             <thead>
               <tr>
                 <th>Spot ID</th>
@@ -477,7 +468,7 @@ function renderScreenClient(scenario: PrototypeScenario): string {
                 <th>Scheduled UTC</th>
                 <th>Actual Transmission</th>
                 <th>Variance</th>
-                <th>StarTimes Transponder</th>
+                <th>Carrier Source</th>
                 <th>Status</th>
               </tr>
             </thead>
@@ -488,8 +479,8 @@ function renderScreenClient(scenario: PrototypeScenario): string {
                 <td>14:30:00</td>
                 <td>14:30:02</td>
                 <td>+2s</td>
-                <td>11.014 GHz (DTT)</td>
-                <td><span class="asrun-diff-badge asrun-diff-matched">Matched 100%</span></td>
+                <td>Not specified</td>
+                <td><span class="vmn-badge badge-info">Illustrative only</span></td>
               </tr>
               <tr>
                 <td><code>GTCO-NX-002</code></td>
@@ -497,8 +488,8 @@ function renderScreenClient(scenario: PrototypeScenario): string {
                 <td>17:15:00</td>
                 <td>17:15:00</td>
                 <td>0s</td>
-                <td>11.014 GHz (DTT)</td>
-                <td><span class="asrun-diff-badge asrun-diff-matched">Matched 100%</span></td>
+                <td>Not specified</td>
+                <td><span class="vmn-badge badge-info">Illustrative only</span></td>
               </tr>
               <tr>
                 <td><code>GTCO-OR-003</code></td>
@@ -506,8 +497,8 @@ function renderScreenClient(scenario: PrototypeScenario): string {
                 <td>20:00:00</td>
                 <td>20:00:05</td>
                 <td>+5s</td>
-                <td>11.014 GHz (DTH)</td>
-                <td><span class="asrun-diff-badge asrun-diff-matched">Matched 100%</span></td>
+                <td>Not specified</td>
+                <td><span class="vmn-badge badge-info">Illustrative only</span></td>
               </tr>
             </tbody>
           </table>
@@ -523,56 +514,56 @@ function renderScreenClient(scenario: PrototypeScenario): string {
 function renderScreenApplication(scenario: PrototypeScenario): string {
   const isRecovery = scenario === "recovery";
   return `
-    <div class="card" style="background: var(--vmn-surface); padding: var(--vmn-content-padding);">
+ <div class="card s-2AtUk0CtKQ" >
       ${isRecovery ? `
-        <div class="card" role="status" style="background: #DCFCE7; border: 1px solid #86EFAC; margin-bottom: 20px; padding: 16px;">
-          <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #166534;">
+ <div class="card s-Z3JOzMQ3SJ" role="status" >
+ <div class="s-chgo6rh1fB">
             ${renderIcon("check", { size: 16 })}
-            <span>Application Submission Recovered Successfully</span>
+            <span>Illustrative recovery scenario</span>
           </div>
-          <p style="font-size: 0.85rem; margin: 4px 0 0 0; color: #14532D;">
-            Durable acceptance confirmed. Canonical Application Ref: <strong>AFCA-2026-COHORT-4190</strong>. Duplicate creation was prevented.
+ <p class="s-7lr0Wrtj6U">
+            Example only — no durable acceptance or canonical application record is represented by this prototype.
           </p>
         </div>
       ` : ""}
 
-      <div style="margin-bottom: 24px;">
-        <span class="vmn-badge badge-info" style="margin-bottom: 8px;">Admissions Portal &bull; Cohort 2026B</span>
-        <h1 style="font-size: var(--vmn-font-size-page-title); margin: 0; font-weight: 800;">
+ <div class="s-jXAzROAz5F">
+ <span class="vmn-badge badge-info s-fzy69kMBd1" >Prototype admissions portal</span>
+ <h1 class="s-EI38VpLbTK">
           AFCA Creative Academy Application
         </h1>
-        <p style="color: var(--vmn-color-text-muted); font-size: 0.95rem; margin: 4px 0 0 0;">
+ <p class="s-aKEjvNNlks">
           Directing, Cinematography, Sound Design &amp; Broadcast Operations
         </p>
       </div>
 
       <!-- Application Stepper -->
-      <div style="display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 1px solid var(--vmn-color-border); padding-bottom: 12px; overflow-x: auto;">
-        <span class="vmn-badge badge-ready">1. Track Selected</span>
-        <span class="vmn-badge badge-ready">2. Personal Dossier</span>
-        <span class="vmn-badge badge-live" style="background: var(--vmn-surface-accent); color: var(--vmn-color-primary); border-color: #86EFAC;">3. Creative Essay</span>
+ <div class="s-0ClOM-vjZ0">
+        <span class="vmn-badge badge-info">1. Sample track</span>
+        <span class="vmn-badge badge-info">2. Sample dossier</span>
+ <span class="vmn-badge badge-info s-d6qTfsS8pY" >3. Sample essay</span>
         <span class="vmn-badge badge-neutral">4. Review &amp; Submit</span>
       </div>
 
       <!-- Application Form Body -->
       <form action="/apply" method="POST">
         <div class="vmn-form-field mb-4">
-          <label class="vmn-label">Selected Cohort Track</label>
-          <input type="text" class="vmn-input" value="Directing &amp; Cinematography Master Track" readonly style="min-height: 44px; background: var(--vmn-surface-alt);" />
+          <label class="vmn-label">Illustrative Track Selection</label>
+ <input type="text" class="vmn-input s-WBSS2Q3mEj" value="Sample track — not an available cohort listing" readonly />
         </div>
 
         <div class="vmn-form-field mb-4">
           <label class="vmn-label">Personal Statement &amp; Creative Goal (Max 500 characters)</label>
-          <textarea class="vmn-input" rows="4" style="width: 100%; min-height: 100px; padding: 10px;">My goal is to pioneer authentic African cinematic visual language for high-definition broadcast and international distribution through ONE Studios.</textarea>
-          <span style="font-size: 0.75rem; color: var(--vmn-color-text-muted);">152 / 500 characters used</span>
+ <textarea class="vmn-input s-LAVdksEjAP" rows="4" >Sample text only — no application, cohort, facility, or distribution service is represented.</textarea>
+ <span class="s-OdlmY1tzrc">152 / 500 characters used</span>
         </div>
 
         <div class="vmn-form-field mb-4">
           <label class="vmn-label">Portfolio Showreel Link (Vimeo / YouTube / Azeebo Drive)</label>
-          <input type="url" class="vmn-input" value="https://vimeo.com/showcase/afca-demo-2026" style="min-height: 44px;" />
+ <input type="url" class="vmn-input s-GP5FDgmEZf" value="https://example.invalid/sample-portfolio" />
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 24px; border-top: 1px solid var(--vmn-color-border); padding-top: 16px;">
+ <div class="s-GdWT93zeKK">
           <button type="button" class="btn btn-outline">Save In-Progress Draft</button>
           <button type="button" class="btn btn-primary">Review &amp; Submit Application &rarr;</button>
         </div>
@@ -586,78 +577,77 @@ function renderScreenApplication(scenario: PrototypeScenario): string {
  */
 function renderScreenTerms(scenario: PrototypeScenario): string {
   const isBlocked = scenario === "blocked";
-  return `
-    <div class="card" style="background: var(--vmn-surface); padding: var(--vmn-content-padding);">
+ return ` <div class="card" >
+      <div class="card s-2AtUk0CtKQ" role="note">Illustrative agreement scenario only — no actual rights grant, commercial terms, tax treatment, escrow, or acceptance is represented.</div>
       ${isBlocked ? `
-        <div class="vmn-blocker-tray" style="margin-bottom: 20px;">
+ <div class="vmn-blocker-tray s-t1-tAAl8Ne" >
           <div class="vmn-blocker-tray-title">
             ${renderIcon("alert", { size: 18 })}
-            <span>Engagement Acceptance Blocked: Rights Conflict</span>
+            <span>Illustrative engagement blocker</span>
           </div>
-          <p style="margin: 0; font-size: 0.85rem; color: #451A03;">
-            Contract execution paused pending legal review of prior talent exclusivity agreement.
+ <p class="s-zUKfTc_tob">
+            Simulated scenario only — this does not represent an actual legal review or rights decision.
           </p>
         </div>
       ` : ""}
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; border-bottom: 1px solid var(--vmn-color-border); padding-bottom: 16px;">
+ <div class="s-vpAM5c5aV_">
         <div>
-          <span class="vmn-badge badge-ready" style="margin-bottom: 6px;">Verified Talent Marketplace (VTM)</span>
-          <h1 style="font-size: var(--vmn-font-size-page-title); margin: 0; font-weight: 800;">
+ <span class="vmn-badge badge-info s-T-7fjmEHMj" >VTM interface prototype</span>
+ <h1 class="s-EI38VpLbTK">
             Talent Engagement Agreement
           </h1>
-          <span style="font-size: 0.85rem; color: var(--vmn-color-text-muted);">
-            Contract Ref: <strong>VTM-2026-ENG-491</strong> &bull; Version 1.2
+ <span class="s-WGpZZ_z1O2">
+            Sample reference: <strong>PROTOTYPE-ONLY</strong> &bull; Illustrative terms
           </span>
         </div>
         <span class="vmn-badge ${isBlocked ? "badge-live" : "badge-warning"}">
-          ${isBlocked ? "Acceptance Locked" : "Awaiting Counterparty Acceptance"}
+          ${isBlocked ? "Illustrative blocked state" : "Sample state — not submitted"}
         </span>
       </div>
 
       <!-- Crucial Order (§14.1 Review Finding): Work & Economics MUST precede Acceptance Controls -->
-      <section style="margin-bottom: 24px;">
-        <h2 style="font-size: var(--vmn-font-size-heading); font-weight: 800; margin-bottom: 12px;">1. Scope of Work &amp; Deliverables</h2>
-        <p style="font-size: 0.95rem; color: var(--vmn-color-text-main); line-height: 1.6;">
-          Engagement of <strong>K. Balogun</strong> as Lead Sound Designer for ONE Studios episodic production <em>Project Echo</em>. Deliverables include final 5.1 surround sound master mix conforming to EBU R128 (-23 LUFS) broadcast standard.
+ <section class="s-jXAzROAz5F">
+ <h2 class="s-FdQqJDd8Gs">1. Scope of Work &amp; Deliverables</h2>
+ <p class="s-UTQ6hG-ywH">
+          Sample engagement for a sound-design role on a fictional episodic production. Scope and technical deliverables must be supplied and approved for each actual engagement.
         </p>
       </section>
 
       <!-- Financial Economics Breakdown (§8.8 / §14.1) -->
       <section class="vmn-economics-breakdown">
-        <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--vmn-color-primary); margin: 0 0 12px 0;">
+ <h3 class="s-ABjA_A0pct">
           2. Financial Remuneration &amp; Deductions
         </h3>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 12px;">
-          <div class="stat-box"><span class="stat-lbl">Gross Contract Value</span><strong style="font-size: 1.1rem;">NGN 1,800,000</strong></div>
-          <div class="stat-box"><span class="stat-lbl">Statutory Withholding (5%)</span><strong style="color: #991B1B;">- NGN 90,000</strong></div>
-          <div class="stat-box"><span class="stat-lbl">Net Payable to Talent</span><strong style="color: var(--vmn-color-primary); font-size: 1.1rem;">NGN 1,710,000</strong></div>
-          <div class="stat-box"><span class="stat-lbl">Disbursement Cadence</span><strong>50% Advance / 50% Wrap</strong></div>
+ <div class="s-x-A4zUfey5">
+ <div class="stat-box"><span class="stat-lbl">Contract value</span><strong class="s-GQLoTwWBik">Set by approved agreement</strong></div>
+ <div class="stat-box"><span class="stat-lbl">Tax treatment</span><strong class="s-bmiGIgC5Pn">Confirm with Finance</strong></div>
+ <div class="stat-box"><span class="stat-lbl">Talent payable</span><strong class="s-R59aKDce90">Set by approved agreement</strong></div>
+          <div class="stat-box"><span class="stat-lbl">Payment terms</span><strong>Confirm with Finance</strong></div>
         </div>
-        <p style="font-size: 0.8rem; color: var(--vmn-color-text-muted); margin: 0;">
-          Payment released securely via escrow upon delivery sign-off by Executive Producer.
+ <p class="s-qlkLtWtWrk">
+          Payment protection and release conditions must be confirmed for the actual engagement; this prototype does not evidence escrow.
         </p>
       </section>
 
       <!-- Rights Scope -->
-      <section style="margin-bottom: 24px;">
-        <h3 style="font-size: 1rem; font-weight: 800; margin-bottom: 8px;">3. Intellectual Property &amp; Rights Grant</h3>
-        <p style="font-size: 0.85rem; color: var(--vmn-color-text-muted); line-height: 1.5;">
-          Perpetual, worldwide broadcast exploitation rights for StarTimes linear channels and Azeebo+ digital distribution. Commercial soundtrack publishing rights retained by creator with standard revenue sharing.
+ <section class="s-jXAzROAz5F">
+ <h3 class="s-xAkgWbo3dl">3. Intellectual Property &amp; Rights Grant</h3>
+ <p class="s-soSAyR4oE5">
+          Rights are not granted by this prototype. Any actual channel, platform, territory, term, exclusivity, promotional or derivative permissions require an approved rights record and agreement.
         </p>
       </section>
 
       <!-- Acceptance Action (Ordered AFTER Economics & Rights) -->
       <div class="vmn-terms-decision-panel">
-        <div style="margin-bottom: 16px;">
-          <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: 0.9rem;">
-            <input type="checkbox" style="width: 20px; height: 20px; margin-top: 2px;" required />
-            <span>I have read and agree to all terms, deliverables, rights grants, and financial deductions stated in Agreement VTM-2026-ENG-491.</span>
+ <div class="s-BFqsiZ1_zP">
+ <label class="s-Q4sBYV2P9B">
+ <input type="checkbox" class="s-9Isrvn5gw2" required />
+            <span>Prototype preview only. No actual agreement or terms are presented for acceptance.</span>
           </label>
         </div>
-        <div style="display: flex; justify-content: flex-end; gap: 12px;">
-          <button type="button" class="btn btn-outline">Request Amendments</button>
-          <button type="button" class="btn btn-primary" style="min-height: 44px; min-width: 200px;">
-            Record Formal Acceptance
+ <div class="s-tPjVcAQ6CH">
+ <button type="button" class="btn btn-outline">Request Amendments</button> <button type="button" class="btn btn-primary" disabled aria-disabled="true">
+            Prototype only — acceptance unavailable
           </button>
         </div>
       </div>
@@ -671,37 +661,38 @@ function renderScreenTerms(scenario: PrototypeScenario): string {
 function renderScreenSchedule(scenario: PrototypeScenario): string {
   const isBlocked = scenario === "blocked";
   return `
-    <div class="card" style="background: var(--vmn-surface); padding: var(--vmn-content-padding);">
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
+ <div class="card s-2AtUk0CtKQ" >
+      <div class="card s-RUKR5xP7ah" role="note">Illustrative schedule scenario only — not an approved playout schedule.</div>
+ <div class="s-RUKR5xP7ah">
         <div>
-          <span class="vmn-badge badge-live">Master Control Room &bull; Playout Agenda</span>
-          <h1 style="font-size: var(--vmn-font-size-page-title); margin: 4px 0 0 0; font-weight: 800;">
+          <span class="vmn-badge badge-info">Prototype — Schedule Review</span>
+ <h1 class="s-j3Us9MuEtN">
             Broadcast Schedule Review
           </h1>
-          <span style="font-size: 0.85rem; color: var(--vmn-color-text-muted);">
+ <span class="s-WGpZZ_z1O2">
             Channel: <strong>Nigezie Xtreme (NXTR)</strong> &bull; Transmission Date: <strong>2026-09-30</strong>
           </span>
         </div>
-        <div style="display: flex; gap: 8px;">
-          <button type="button" class="btn btn-outline" style="min-height: 40px; font-size: 0.85rem;">Export XMLTV EPG</button>
+ <div class="s-aTQ0x94bOS">
+          <span class="vmn-badge badge-info">No operational export attached</span>
         </div>
       </div>
 
       ${isBlocked ? `
-        <div class="vmn-blocker-tray" style="margin-bottom: 20px;">
+ <div class="vmn-blocker-tray s-t1-tAAl8Ne" >
           <div class="vmn-blocker-tray-title">
             ${renderIcon("alert", { size: 18 })}
-            <span>Transmission Rights Blocker on Segment #4102</span>
+            <span>Illustrative rights-block scenario</span>
           </div>
-          <p style="font-size: 0.9rem; margin: 0; color: #451A03;">
-            Playout automated lock activated. StarTimes transmission will hold last valid visual slate unless rights waiver is uploaded before 21:30 UTC.
+ <p class="s-xAbKeD-Csp">
+            This simulated scenario does not represent a production transmission or rights decision.
           </p>
         </div>
       ` : ""}
 
       <!-- 24/7 Timeline Agenda Table -->
-      <div style="overflow-x: auto;">
-        <table class="table" style="width: 100%; font-size: 0.85rem;">
+ <div class="s-QtRFDAL0Yl">
+ <table class="table s-TsQkvSw5DC" >
           <thead>
             <tr>
               <th>Start UTC</th>
@@ -717,32 +708,32 @@ function renderScreenSchedule(scenario: PrototypeScenario): string {
             <tr>
               <td><code>18:00:00</code></td>
               <td><code>19:00:00</code></td>
-              <td><strong>Xtreme Street Hop Hits</strong></td>
-              <td>1080i50</td>
-              <td>-23 LUFS OK</td>
-              <td><span class="vmn-badge badge-ready">Cleared StarTimes</span></td>
-              <td><span style="color: var(--vmn-color-text-muted);">Passed</span></td>
+              <td><strong>Sample Programme A</strong></td>
+              <td>Sample format</td>
+              <td>Not assessed</td>
+              <td><span class="vmn-badge badge-info">Sample state — not verified</span></td>
+ <td><span class="s-5XUOxDHBPO">Illustrative only</span></td>
             </tr>
-            <tr style="background: var(--vmn-surface-accent);">
+ <tr class="s-5cF2LCAjt6">
               <td><code>19:00:00</code></td>
               <td><code>20:30:00</code></td>
-              <td><strong>Afrobeat Titans Live Concert</strong></td>
-              <td>1080i50</td>
-              <td>-23 LUFS OK</td>
-              <td><span class="vmn-badge badge-ready">Cleared StarTimes</span></td>
-              <td><span class="vmn-badge badge-live">On Air Now</span></td>
+              <td><strong>Sample Programme B</strong></td>
+              <td>Sample format</td>
+              <td>Not assessed</td>
+              <td><span class="vmn-badge badge-info">Sample state — not verified</span></td>
+              <td><span class="vmn-badge badge-info">Illustrative only</span></td>
             </tr>
-            <tr ${isBlocked ? 'style="background: #FEE2E2;"' : ""}>
+ <tr ${isBlocked ? 'class="s-tX57pgKHnh"' : ""}>
               <td><code>20:30:00</code></td>
               <td><code>21:45:00</code></td>
-              <td><strong>Urban Sound Showcase #4102</strong></td>
-              <td>1080i50</td>
-              <td>-23 LUFS OK</td>
+              <td><strong>Sample Programme C</strong></td>
+              <td>Sample format</td>
+              <td>Not assessed</td>
               <td>
-                ${isBlocked ? '<span class="vmn-badge badge-live">RIGHTS BLOCKED</span>' : '<span class="vmn-badge badge-ready">Cleared StarTimes</span>'}
+                <span class="vmn-badge badge-info">${isBlocked ? "Illustrative rights block" : "Sample state — not verified"}</span>
               </td>
               <td>
-                ${isBlocked ? '<button type="button" class="btn btn-outline" style="font-size: 0.75rem; padding: 2px 8px; min-height: 32px;">Resolve Blocker</button>' : '<span style="color: var(--vmn-color-text-muted);">Queued</span>'}
+ ${isBlocked ? '<span class="vmn-badge badge-info">Simulated state</span>' : '<span class="s-5XUOxDHBPO">Illustrative only</span>'}
               </td>
             </tr>
           </tbody>
@@ -758,44 +749,44 @@ function renderScreenSchedule(scenario: PrototypeScenario): string {
 function renderScreenProof(scenario: PrototypeScenario): string {
   const isStale = scenario === "stale";
   return `
-    <div class="card" style="background: var(--vmn-surface); padding: var(--vmn-content-padding);">
-      ${isStale ? renderStaleNotice("Proof-of-air reconciliation sync delayed. As-run log ingest running on 60-minute batch window.") : ""}
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; border-bottom: 1px solid var(--vmn-color-border); padding-bottom: 16px;">
+ <div class="card s-2AtUk0CtKQ" >
+      ${isStale ? renderStaleNotice("This prototype does not connect to a proof-of-air reconciliation source.") : ""}
+ <div class="s-MdHT-qNCVk">
         <div>
-          <span class="vmn-badge badge-ready">Transmission Audit &amp; Governance</span>
-          <h1 style="font-size: var(--vmn-font-size-page-title); margin: 4px 0 0 0; font-weight: 800;">
+          <span class="vmn-badge badge-info">Illustrative Proof Scenario</span>
+ <h1 class="s-j3Us9MuEtN">
             Proof-of-Air Delivery Reconciliation
           </h1>
-          <span style="font-size: 0.85rem; color: var(--vmn-color-text-muted);">
-            Campaign: <strong>GTCO-NXTR-2026-Q3</strong> &bull; Reconciled by Automated Engine v2.4
+ <span class="s-WGpZZ_z1O2">
+            Campaign: <strong>PROTOTYPE-ONLY</strong> &bull; No reconciliation source connected
           </span>
         </div>
-        <div style="display: flex; gap: 8px;">
-          <button type="button" class="btn btn-outline" style="min-height: 40px; font-size: 0.85rem;">Export As-Run CSV</button>
-          <button type="button" class="btn btn-primary" style="min-height: 40px; font-size: 0.85rem;">Publish Client Report</button>
+ <div class="s-aTQ0x94bOS">
+ <button type="button" class="btn btn-outline s-jv_H3_hWre" >Export As-Run CSV</button>
+ <button type="button" class="btn btn-primary s-jv_H3_hWre" >Publish Client Report</button>
         </div>
       </div>
 
       <!-- Reconciliation Scorecards -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 24px;">
-        <div class="stat-box"><span class="stat-lbl">Planned Airings</span><strong>120 Spots</strong></div>
-        <div class="stat-box"><span class="stat-lbl">Matched &amp; Verified</span><strong style="color: var(--vmn-color-primary);">118 Spots</strong></div>
-        <div class="stat-box"><span class="stat-lbl">Pre-empted Spots</span><strong style="color: var(--vmn-color-warning-text);">2 Exceptions</strong></div>
-        <div class="stat-box"><span class="stat-lbl">Audit Integrity</span><strong>SHA-256 Valid</strong></div>
+ <div class="s-8_1VIuXAbq">
+        <div class="stat-box"><span class="stat-lbl">Planned Airings</span><strong>Sample only</strong></div>          <div class="stat-box"><span class="stat-lbl">Source match</span><strong>Not available</strong></div>
+
+        <div class="stat-box"><span class="stat-lbl">Pre-empted Spots</span><strong>Not verified</strong></div>
+        <div class="stat-box"><span class="stat-lbl">Audit Integrity</span><strong>No signed evidence attached</strong></div>
       </div>
 
       <!-- Exception Detail List -->
-      <h3 style="font-size: 1.05rem; font-weight: 800; margin-bottom: 12px;">Pre-emption &amp; Exception Decisions</h3>
-      <div class="card" style="background: var(--vmn-surface-alt); border-left: 4px solid var(--vmn-color-warning-text); padding: 14px; margin-bottom: 20px;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <strong>Spot GTCO-NX-089 &bull; Pre-empted by Live Breaking Presidential Address</strong>
-          <span class="vmn-badge badge-warning">Make-Good Approved</span>
+ <h3 class="s-nSxOOwYKh9">Illustrative Pre-emption Scenario</h3>
+ <div class="card s-RElML3_dn8" >
+ <div class="s-wrzqCFgz1Y">
+          <strong>Sample Spot — simulated pre-emption scenario</strong>
+          <span class="vmn-badge badge-info">Illustrative only — no approval recorded</span>
         </div>
-        <p style="font-size: 0.85rem; margin: 4px 0 8px 0; color: var(--vmn-color-text-muted);">
-          Occurred 2026-09-28 19:15 UTC. Rescheduled to Primetime slot on 2026-10-01 20:30 UTC.
+ <p class="s-P5dl9Oj6Ca">
+          Timing and rescheduling details are illustrative, not operational evidence.
         </p>
-        <span style="font-size: 0.8rem; color: var(--vmn-color-primary); font-weight: 600;">
-          Operator Authorization: D. Adeyemi (MCR Lead)
+ <span class="s-YkK10WR1a4">
+          No operator authorization is represented by this prototype.
         </span>
       </div>
     </div>
@@ -804,12 +795,12 @@ function renderScreenProof(scenario: PrototypeScenario): string {
 
 function renderStaleNotice(message: string): string {
   return `
-    <div class="card" role="alert" style="background: #FFFBEB; border: 1px solid #FDE68A; border-left: 4px solid #D97706; padding: 12px 16px; margin-bottom: 20px;">
-      <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #92400E; font-size: 0.9rem;">
+ <div class="card s-S217meAHMV" role="alert" >
+ <div class="s-1IAuz5H4KX">
         ${renderIcon("clock", { size: 16 })}
         <span>STALE DATA NOTICE &mdash; Authoritative Sync Delayed</span>
       </div>
-      <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: #78350F;">
+ <p class="s-8G2fzKwjg4">
         ${escapeHtml(message)}
       </p>
     </div>

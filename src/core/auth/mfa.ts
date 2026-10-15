@@ -6,7 +6,7 @@
 
 import crypto from "crypto";
 
-import { getMfaSecret, enrollMfaSecret, globalTotpVerifier } from "./totp.js";
+import { getMfaSecret, globalTotpVerifier, verifyTotpSecret } from "./totp.js";
 
 export { enrollMfaSecret, getMfaSecret } from "./totp.js";
 
@@ -57,12 +57,14 @@ export function consumeRecoveryToken(email: string, token: string): boolean {
   return true;
 }
 
-export function verifyStepUpCode(email: string, code: string): { valid: boolean; error?: string } {
-  const secret = getMfaSecret(email);
+export function verifyStepUpCode(email: string, code: string, storedSecret?: string): { valid: boolean; error?: string } {
+  const secret = getMfaSecret(email) || storedSecret;
   if (!secret) {
     return { valid: false, error: "MFA is not enrolled for this account." };
   }
-  const result = globalTotpVerifier.verify(email, secret, code);
+  const result = getMfaSecret(email)
+    ? globalTotpVerifier.verify(email, secret, code)
+    : verifyTotpSecret(email, secret, code);
   return result.valid ? { valid: true } : { valid: false, error: result.error };
 }
 

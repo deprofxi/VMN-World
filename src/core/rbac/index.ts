@@ -26,7 +26,9 @@ export type EnterpriseResource =
   // TODO-SCR-19: enterprise risk & issue registers (UX-REC-004/005).
   // update:risk gates register mutations; reads stay on the feature-flagged
   // workspace surfaces. Derived from broadcast/schedule operational authority.
-  | "risk";
+  | "risk"
+  // Enquiry collection resource (AUD-03)
+  | "enquiry";
 
 export type EnterpriseRole =
   | "SuperAdmin"
@@ -143,6 +145,12 @@ export const ROLE_PERMISSIONS: Record<EnterpriseRole, PermissionRule[]> = {
     { action: "delete", resource: "agent" },
     { action: "approve", resource: "agent" },
     { action: "execute", resource: "agent" },
+    { action: "read", resource: "enquiry" },
+    { action: "create", resource: "enquiry" },
+    { action: "update", resource: "enquiry" },
+    { action: "delete", resource: "enquiry" },
+    { action: "approve", resource: "enquiry" },
+    { action: "execute", resource: "enquiry" },
   ],
 
   ExecutiveLeader: [
@@ -474,6 +482,20 @@ registerDerivedRolePermissions("risk", (role) => {
   ) {
     rules.push({ action: "update", resource: "risk" });
     rules.push({ action: "read", resource: "risk" });
+  }
+  return rules;
+});
+
+// Enquiry access follows the route's explicitly approved roles. Do not infer
+// mutation rights from broad read permissions on talent/contracts.
+registerDerivedRolePermissions("enquiry", (role) => {
+  const rules: PermissionRule[] = [];
+  if (["SuperAdmin", "ExecutiveLeader", "CommercialTrafficOfficer", "TrafficManager", "Auditor"].includes(role)) {
+    rules.push({ action: "read", resource: "enquiry" });
+  }
+  if (["SuperAdmin", "ExecutiveLeader", "CommercialTrafficOfficer"].includes(role)) {
+    rules.push({ action: "create", resource: "enquiry" });
+    rules.push({ action: "update", resource: "enquiry" });
   }
   return rules;
 });

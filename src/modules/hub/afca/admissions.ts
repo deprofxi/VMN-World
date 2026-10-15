@@ -7,7 +7,7 @@
  * and decision recording gated by FF_AFCA_ADMISSIONS_ENABLED.
  */
 
-import { createHash, randomBytes } from "node:crypto";
+import { randomBytes } from "node:crypto";
 import { recordAuditLog } from "../../../core/audit/index.js";
 import { assertFeatureEnabled } from "../../../core/feature-flags/index.js";
 

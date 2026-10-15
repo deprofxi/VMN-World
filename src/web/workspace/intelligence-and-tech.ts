@@ -22,8 +22,8 @@ import { SessionUser } from "../../core/auth/index.js";
 
 function renderEmptyRecords(note: string): string {
   return `
-    <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px dashed var(--vmn-color-border); border-radius: var(--vmn-radius-lg); padding: 24px; margin-bottom: 24px;">
-      <p style="color: var(--vmn-color-secondary-text); font-size: 0.9rem; margin: 0;">${note}</p>
+ <div class="vmn-card s-jBAg6JRnQZ" >
+ <p class="s-s8QClmJr6r">${note}</p>
     </div>
   `;
 }
@@ -45,7 +45,7 @@ export interface HeadspaceDeskSnapshot {
   totalDocuments: number;
 }
 
-export function renderHeadspaceIntelligenceHtml(snapshot: HeadspaceDeskSnapshot | undefined, user?: SessionUser): string {
+export function renderHeadspaceIntelligenceHtml(snapshot: HeadspaceDeskSnapshot | undefined, _user?: SessionUser): string {
   if (!isFeatureEnabled("FF_HEADSPACE_RESEARCH_OPS")) {
     return renderFeatureDisabledNotice(
       "FF_HEADSPACE_RESEARCH_OPS",
@@ -58,63 +58,63 @@ export function renderHeadspaceIntelligenceHtml(snapshot: HeadspaceDeskSnapshot 
   const total = snapshot?.totalDocuments ?? documents.length;
 
   return `
-    <div style="max-width: 1200px; margin: 32px auto; padding: 0 16px;">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+ <div class="s-Llwj6EPzTQ">
+ <div class="s-k5NLeWec9i">
         <div>
-          <span class="vmn-badge badge-ready" style="margin-bottom: 8px; font-weight: 700;">HEADSPACE &bull; UX-HSP-001..008</span>
-          <h1 style="font-size: var(--vmn-font-size-2xl); font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 6px 0;">
+ <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >HEADSPACE &bull; UX-HSP-001..008</span>
+ <h1 class="s-n_bp1PhViu">
             Headspace Strategic Intelligence &amp; Market Research Hub
           </h1>
-          <p style="color: var(--vmn-color-secondary-text); margin: 0; font-size: 0.95rem;">
+ <p class="s-zrikAgYqXF">
             Canonical projection of HeadspaceKnowledgeEngine &bull; Document confidentiality enforced at access time
           </p>
         </div>
-        <div style="display: flex; gap: 8px;">
-          <form method="POST" action="/api/v1/workspace/headspace/documents" style="display: inline;">
-            <button type="submit" class="btn btn-secondary" style="min-height: 44px; display: inline-flex; align-items: center; gap: 6px; font-weight: 700;">
+ <div class="s-aTQ0x94bOS">
+ <form method="POST" action="/api/v1/workspace/headspace/documents" class="s-Q0_DLsKcmN">
+ <button type="submit" class="btn btn-secondary s-kd4he0W4Wm" >
               ${renderIcon("document", { size: 16 })} Register Knowledge Document
             </button>
           </form>
         </div>
       </div>
 
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 24px;">
-        <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md); padding: 16px;">
-          <div style="font-size: 0.85rem; color: var(--vmn-color-secondary-text); font-weight: 600;">Knowledge Documents</div>
-          <div style="font-size: 1.5rem; font-weight: 800; color: var(--vmn-color-brand-cyan); margin-top: 4px;">${total}</div>
-          <div style="font-size: 0.75rem; color: var(--vmn-color-secondary-text); margin-top: 4px;">Canonical, search-indexed</div>
+ <div class="s-LKssrCZ4j1">
+ <div class="vmn-card s-OAPQ4AS9-O" >
+ <div class="s-cU3Cr5m8eq">Knowledge Documents</div>
+ <div class="s-ykrP-ZIQ8m">${total}</div>
+ <div class="s-_tdYXnR5PA">Canonical, search-indexed</div>
         </div>
-        <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md); padding: 16px;">
-          <div style="font-size: 0.85rem; color: var(--vmn-color-secondary-text); font-weight: 600;">Categories in Use</div>
-          <div style="font-size: 1.5rem; font-weight: 800; color: var(--vmn-color-primary-text); margin-top: 4px;">${new Set(documents.map((d) => d.category)).size}</div>
+ <div class="vmn-card s-OAPQ4AS9-O" >
+ <div class="s-cU3Cr5m8eq">Categories in Use</div>
+ <div class="s-5bXu9tLBIv">${new Set(documents.map((d) => d.category)).size}</div>
         </div>
-        <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md); padding: 16px;">
-          <div style="font-size: 0.85rem; color: var(--vmn-color-secondary-text); font-weight: 600;">Access-Controlled</div>
-          <div style="font-size: 1.5rem; font-weight: 800; color: var(--vmn-color-ready); margin-top: 4px;">${documents.filter((d) => d.confidentiality !== "PUBLIC").length}</div>
-          <div style="font-size: 0.75rem; color: var(--vmn-color-secondary-text); margin-top: 4px;">Non-public documents require clearance</div>
+ <div class="vmn-card s-OAPQ4AS9-O" >
+ <div class="s-cU3Cr5m8eq">Access-Controlled</div>
+ <div class="s-Am3eRxce65">${documents.filter((d) => d.confidentiality !== "PUBLIC").length}</div>
+ <div class="s-_tdYXnR5PA">Non-public documents require clearance</div>
         </div>
       </div>
 
-      <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); padding: 24px; margin-bottom: 32px;">
-        <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 16px 0;">
+ <div class="vmn-card s-1lEgQrBXgX" >
+ <h3 class="s-spyfDabz02">
           Knowledge Catalogue (UX-HSP-002)
         </h3>
         ${
           documents.length === 0
             ? renderEmptyRecords("No knowledge documents are registered in the HeadspaceKnowledgeEngine yet — this desk renders canonical records only.")
-            : `<div style="display: flex; flex-direction: column; gap: 16px;">
+ : `<div class="s-jvR2_DF1C2">
           ${documents
             .map(
               (r) => `
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; padding: 16px; background: var(--vmn-color-surface-hover); border-radius: var(--vmn-radius-md); border: 1px solid var(--vmn-color-border);">
+ <div class="s-fbKelQXawM">
               <div>
-                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-                  <span style="font-family: monospace; font-size: 0.8rem; font-weight: 700; color: var(--vmn-color-brand-cyan);">${escapeHtml(r.id)}</span>
+ <div class="s-fNfgHipnYh">
+ <span class="s-Z3gWSXIolr">${escapeHtml(r.id)}</span>
                   <span class="vmn-badge ${r.confidentiality === "PUBLIC" ? "badge-info" : "badge-warning"}">${escapeHtml(r.confidentiality.replace(/_/g, " "))}</span>
                   <span class="vmn-badge badge-neutral">${escapeHtml(r.category.replace(/_/g, " "))}</span>
                 </div>
-                <h4 style="font-size: 1.05rem; font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 4px 0;">${escapeHtml(r.title)}</h4>
-                <div style="font-size: 0.85rem; color: var(--vmn-color-secondary-text);">
+ <h4 class="s-tWHMqvnoKy">${escapeHtml(r.title)}</h4>
+ <div class="s-ypL9N-nGuz">
                   Tags: ${r.tags.slice(0, 4).map((t) => `<strong>${escapeHtml(t)}</strong>`).join(", ") || "—"} &bull; Updated <strong>${escapeHtml(r.updatedAt)}</strong>
                 </div>
               </div>
@@ -142,7 +142,7 @@ export interface Cr8TechIntegrationStatus {
 
 export function renderCr8TechOperationsHtml(
   integrationStatuses: Cr8TechIntegrationStatus[] | undefined,
-  user?: SessionUser
+  _user?: SessionUser
 ): string {
   if (!isFeatureEnabled("FF_CR8TECH_INTEGRATION_OPS")) {
     return renderFeatureDisabledNotice(
@@ -161,43 +161,43 @@ export function renderCr8TechOperationsHtml(
         ];
 
   return `
-    <div style="max-width: 1200px; margin: 32px auto; padding: 0 16px;">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+ <div class="s-Llwj6EPzTQ">
+ <div class="s-k5NLeWec9i">
         <div>
-          <span class="vmn-badge badge-ready" style="margin-bottom: 8px; font-weight: 700;">CR8TECH &bull; UX-CR8-001..008</span>
-          <h1 style="font-size: var(--vmn-font-size-2xl); font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 6px 0;">
+ <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >CR8TECH &bull; UX-CR8-001..008</span>
+ <h1 class="s-n_bp1PhViu">
             Cr8Tech DevOps Integration &amp; Runbook Operations
           </h1>
-          <p style="color: var(--vmn-color-secondary-text); margin: 0; font-size: 0.95rem;">
+ <p class="s-zrikAgYqXF">
             Integration health from authoritative runtime state &bull; Invented endpoint telemetry removed (SCR-14)
           </p>
         </div>
       </div>
 
-      <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); padding: 24px; margin-bottom: 24px;">
-        <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 8px 0;">
+ <div class="vmn-card s-58Wdku8jfj" >
+ <h3 class="s-k4BT8HxObJ">
           Integration Health Register (UX-CR8-002)
         </h3>
-        <p style="color: var(--vmn-color-secondary-text); font-size: 0.85rem; margin-bottom: 16px;">
+ <p class="s-66hKPmji8u">
           Only integrations with a live runtime adapter are shown as OPERATIONAL. External SaaS endpoints (StarTimes telemetry, payment processors, cloud media services) are NOT_CONFIGURED until an accountable owner connects a real adapter — this surface never fabricates endpoint URLs, latencies or SLA figures.
         </p>
-        <div class="table-container" style="overflow-x: auto;">
-          <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+ <div class="table-container s-QtRFDAL0Yl" >
+ <table class="s-fzAoGce9Zz">
             <thead>
-              <tr style="border-bottom: 2px solid var(--vmn-color-border); color: var(--vmn-color-secondary-text);">
-                <th style="padding: 10px 12px;">Integration</th>
-                <th style="padding: 10px 12px;">State</th>
-                <th style="padding: 10px 12px;">Runtime Detail</th>
+ <tr class="s-UnSdr9bWTK">
+ <th class="s-lr_pOFE4_J">Integration</th>
+ <th class="s-lr_pOFE4_J">State</th>
+ <th class="s-lr_pOFE4_J">Runtime Detail</th>
               </tr>
             </thead>
             <tbody>
               ${services
                 .map(
                   (s) => `
-                <tr style="border-bottom: 1px solid var(--vmn-color-border);">
-                  <td style="padding: 12px; font-weight: 700; color: var(--vmn-color-primary-text);">${escapeHtml(s.name)}</td>
-                  <td style="padding: 12px;"><span class="vmn-badge ${s.state === "OPERATIONAL" ? "badge-ready" : "badge-warning"}">${escapeHtml(s.state.replace(/_/g, " "))}</span></td>
-                  <td style="padding: 12px; color: var(--vmn-color-secondary-text);">${escapeHtml(s.detail)}</td>
+ <tr class="s-EK6K8Vq5tY">
+ <td class="s-8i5j_3VdTg">${escapeHtml(s.name)}</td>
+ <td class="s-6FCnPHXEyo"><span class="vmn-badge ${s.state === "OPERATIONAL" ? "badge-ready" : "badge-warning"}">${escapeHtml(s.state.replace(/_/g, " "))}</span></td>
+ <td class="s-gvP_yDU8_J">${escapeHtml(s.detail)}</td>
                 </tr>
               `
                 )
@@ -231,7 +231,7 @@ export interface AgenticOsDeskSnapshot {
   globalKillSwitchEngaged: boolean;
 }
 
-export function renderAgenticOsConsoleHtml(snapshot: AgenticOsDeskSnapshot | undefined, user?: SessionUser): string {
+export function renderAgenticOsConsoleHtml(snapshot: AgenticOsDeskSnapshot | undefined, _user?: SessionUser): string {
   if (!isFeatureEnabled("FF_AGENTIC_OS_AUTOMATION")) {
     return renderFeatureDisabledNotice(
       "FF_AGENTIC_OS_AUTOMATION",
@@ -244,22 +244,22 @@ export function renderAgenticOsConsoleHtml(snapshot: AgenticOsDeskSnapshot | und
   const auditTrail = snapshot?.auditTrail || [];
 
   return `
-    <div style="max-width: 1200px; margin: 32px auto; padding: 0 16px;">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+ <div class="s-Llwj6EPzTQ">
+ <div class="s-k5NLeWec9i">
         <div>
-          <span class="vmn-badge badge-ready" style="margin-bottom: 8px; font-weight: 700;">AGENTIC OS &bull; UX-AGT-001..009</span>
-          <h1 style="font-size: var(--vmn-font-size-2xl); font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 6px 0;">
+ <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >AGENTIC OS &bull; UX-AGT-001..009</span>
+ <h1 class="s-n_bp1PhViu">
             Agentic OS Autonomous AI Governance &amp; Kill Switch Desk
           </h1>
-          <p style="color: var(--vmn-color-secondary-text); margin: 0; font-size: 0.95rem;">
+ <p class="s-zrikAgYqXF">
             Canonical projection of AgenticOperatingSystem &bull; HITL supervisor queue &bull; Fail-closed kill switches
           </p>
         </div>
-        <div style="display: flex; gap: 8px;">
+ <div class="s-aTQ0x94bOS">
           <!-- Emergency Kill Switch Action (real: engageGlobalKillSwitch) -->
-          <form method="POST" action="/api/v1/workspace/aos/killswitch" onsubmit="return confirm('EMERGENCY: Do you want to immediately isolate ALL autonomous agents?');" style="display: inline;">
+ <form method="POST" action="/api/v1/workspace/aos/killswitch" data-confirm="EMERGENCY: Do you want to immediately isolate ALL autonomous agents?" class="s-Q0_DLsKcmN">
             <input type="hidden" name="action" value="KILL_ALL" />
-            <button type="submit" class="btn" style="min-height: 44px; padding: 0 20px; background: var(--vmn-color-error, #DC2626); color: #FFFFFF; font-weight: 800; border: none; border-radius: var(--vmn-radius-md); display: inline-flex; align-items: center; gap: 6px;">
+ <button type="submit" class="btn s-UbGwDHUk_Q" >
               ${renderIcon("lock", { size: 16 })} ${snapshot?.globalKillSwitchEngaged ? "KILL SWITCH ENGAGED" : "HARD ISOLATE ALL AGENTS"}
             </button>
           </form>
@@ -268,53 +268,53 @@ export function renderAgenticOsConsoleHtml(snapshot: AgenticOsDeskSnapshot | und
 
       ${
         snapshot?.globalKillSwitchEngaged
-          ? `<div class="vmn-alert" role="alert" style="background: #FEF2F2; border: 1px solid #DC2626; border-radius: var(--vmn-radius-md); padding: 16px; margin-bottom: 24px;">
-        <div style="font-weight: 800; color: #991B1B;">GLOBAL KILL SWITCH ENGAGED — all agents are isolated pending human disengage.</div>
+ ? `<div class="vmn-alert s-6zhA7w7xb4" role="alert" >
+ <div class="s-Jf-lmSJB7n">GLOBAL KILL SWITCH ENGAGED — all agents are isolated pending human disengage.</div>
       </div>`
           : ""
       }
 
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 24px;">
-        <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md); padding: 16px;">
-          <div style="font-size: 0.85rem; color: var(--vmn-color-secondary-text); font-weight: 600;">Registered Agents</div>
-          <div style="font-size: 1.5rem; font-weight: 800; color: var(--vmn-color-brand-cyan); margin-top: 4px;">${agents.length}</div>
+ <div class="s-LKssrCZ4j1">
+ <div class="vmn-card s-OAPQ4AS9-O" >
+ <div class="s-cU3Cr5m8eq">Registered Agents</div>
+ <div class="s-ykrP-ZIQ8m">${agents.length}</div>
         </div>
-        <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md); padding: 16px;">
-          <div style="font-size: 0.85rem; color: var(--vmn-color-secondary-text); font-weight: 600;">Pending HITL Proposals</div>
-          <div style="font-size: 1.5rem; font-weight: 800; color: var(--vmn-color-primary-text); margin-top: 4px;">${snapshot?.pendingProposals ?? 0}</div>
+ <div class="vmn-card s-OAPQ4AS9-O" >
+ <div class="s-cU3Cr5m8eq">Pending HITL Proposals</div>
+ <div class="s-5bXu9tLBIv">${snapshot?.pendingProposals ?? 0}</div>
         </div>
-        <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md); padding: 16px;">
-          <div style="font-size: 0.85rem; color: var(--vmn-color-secondary-text); font-weight: 600;">Audit Records</div>
-          <div style="font-size: 1.5rem; font-weight: 800; color: var(--vmn-color-ready); margin-top: 4px;">${auditTrail.length}</div>
+ <div class="vmn-card s-OAPQ4AS9-O" >
+ <div class="s-cU3Cr5m8eq">Audit Records</div>
+ <div class="s-Am3eRxce65">${auditTrail.length}</div>
         </div>
       </div>
 
       <!-- Agent Registry (canonical) -->
-      <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); padding: 24px; margin-bottom: 32px;">
-        <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 16px 0;">
+ <div class="vmn-card s-1lEgQrBXgX" >
+ <h3 class="s-spyfDabz02">
           Registered Agents &amp; Tool Authorizations (UX-AGT-003)
         </h3>
         ${
           agents.length === 0
             ? renderEmptyRecords("No agents are registered in the AgenticOperatingSystem yet — this console renders canonical registry records only.")
-            : `<div style="display: flex; flex-direction: column; gap: 16px;">
+ : `<div class="s-jvR2_DF1C2">
           ${agents
             .map(
               (a) => `
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; padding: 16px; background: var(--vmn-color-surface-hover); border-radius: var(--vmn-radius-md); border: 1px solid var(--vmn-color-border);">
-              <div style="flex: 1; min-width: 280px;">
-                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-                  <span style="font-family: monospace; font-size: 0.8rem; font-weight: 700; color: var(--vmn-color-brand-cyan);">${escapeHtml(a.id)}</span>
+ <div class="s-fbKelQXawM">
+ <div class="s-PMIGk7Qf8W">
+ <div class="s-fNfgHipnYh">
+ <span class="s-Z3gWSXIolr">${escapeHtml(a.id)}</span>
                   <span class="vmn-badge ${a.killSwitchEngaged || a.status !== "ACTIVE" ? "badge-danger" : "badge-ready"}">${escapeHtml(a.killSwitchEngaged ? "KILL SWITCH ENGAGED" : a.status)}</span>
                   <span class="vmn-badge badge-neutral">${a.actionsPerformedToday}/${a.maxDailyActions} actions today</span>
                 </div>
-                <h4 style="font-size: 1.05rem; font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 4px 0;">${escapeHtml(a.name)}</h4>
-                <p style="font-size: 0.85rem; color: var(--vmn-color-secondary-text); margin: 0 0 8px 0;">${escapeHtml(a.role.replace(/_/g, " "))} — ${escapeHtml(a.operationalScope)}</p>
+ <h4 class="s-tWHMqvnoKy">${escapeHtml(a.name)}</h4>
+ <p class="s-nn_bvjEsa6">${escapeHtml(a.role.replace(/_/g, " "))} — ${escapeHtml(a.operationalScope)}</p>
               </div>
               <div>
-                <div style="font-size: 0.75rem; color: var(--vmn-color-secondary-text); margin-bottom: 6px;">Authorized Tool Scopes:</div>
-                <div style="display: flex; gap: 4px; flex-wrap: wrap; max-width: 320px;">
-                  ${a.allowedTools.map((p) => `<span class="vmn-badge badge-info" style="font-size: 0.7rem; font-family: monospace;">${escapeHtml(p)}</span>`).join("")}
+ <div class="s-t7w-T5mA1q">Authorized Tool Scopes:</div>
+ <div class="s-hFb6r--Tzj">
+ ${a.allowedTools.map((p) => `<span class="vmn-badge badge-info s-FFX_IENJF5" >${escapeHtml(p)}</span>`).join("")}
                 </div>
               </div>
             </div>
@@ -328,22 +328,22 @@ export function renderAgenticOsConsoleHtml(snapshot: AgenticOsDeskSnapshot | und
       ${
         auditTrail.length === 0
           ? ""
-          : `<div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); padding: 24px;">
-        <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 16px 0;">Agent Action Audit Trail (UX-AGT-007)</h3>
-        <div class="table-container" style="overflow-x: auto;">
-          <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.8rem;">
-            <thead><tr style="border-bottom: 2px solid var(--vmn-color-border); color: var(--vmn-color-secondary-text);"><th style="padding: 8px 10px;">Time (UTC)</th><th style="padding: 8px 10px;">Agent</th><th style="padding: 8px 10px;">Action</th><th style="padding: 8px 10px;">Policy Gate</th></tr></thead>
+ : `<div class="vmn-card s-JOKW7YLeUA" >
+ <h3 class="s-spyfDabz02">Agent Action Audit Trail (UX-AGT-007)</h3>
+ <div class="table-container s-QtRFDAL0Yl" >
+ <table class="s-1tJThyUfqH">
+ <thead><tr class="s-UnSdr9bWTK"><th class="s-JKTsUAJmov">Time (UTC)</th><th class="s-JKTsUAJmov">Agent</th><th class="s-JKTsUAJmov">Action</th><th class="s-JKTsUAJmov">Policy Gate</th></tr></thead>
             <tbody>
               ${auditTrail
                 .slice(-15)
                 .reverse()
                 .map(
                   (r) => `
-                <tr style="border-bottom: 1px solid var(--vmn-color-border);">
-                  <td style="padding: 6px 10px; font-family: monospace;">${escapeHtml(r.timestamp)}</td>
-                  <td style="padding: 6px 10px; font-family: monospace;">${escapeHtml(r.agentId)}</td>
-                  <td style="padding: 6px 10px;">${escapeHtml(r.actionTaken)}</td>
-                  <td style="padding: 6px 10px;"><span class="vmn-badge ${r.wasBlocked ? "badge-danger" : "badge-ready"}">${r.wasBlocked ? "BLOCKED" : "ALLOWED"}</span></td>
+ <tr class="s-EK6K8Vq5tY">
+ <td class="s-mGZC5angeh">${escapeHtml(r.timestamp)}</td>
+ <td class="s-mGZC5angeh">${escapeHtml(r.agentId)}</td>
+ <td class="s-XZobzCOomY">${escapeHtml(r.actionTaken)}</td>
+ <td class="s-XZobzCOomY"><span class="vmn-badge ${r.wasBlocked ? "badge-danger" : "badge-ready"}">${r.wasBlocked ? "BLOCKED" : "ALLOWED"}</span></td>
                 </tr>`
                 )
                 .join("")}

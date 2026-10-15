@@ -5,6 +5,8 @@
 
 import { getPrismaClient, checkDatabaseConnection } from "../index.js";
 import { handleRepoError } from "../repository-mode.js";
+import { validateSettlementInvariants, type SettlementEntity } from "../../domain/types.js";
+import { createRepositoryListPage, normalizeRepositoryListOptions, paginateMemoryRows, RepositoryListOptions, RepositoryListPage } from "./pagination.js";
 
 export interface ContractRecord {
   id: string;
@@ -53,6 +55,19 @@ export class InvoiceRepository {
 
   public getInMemorySettlementsCount(): number {
     return this.settlements.size;
+  }
+
+  /**
+   * TSK-59: the 7-way separation rule is enforced here, on the only writer of the canonical
+   * `Settlement` columns, before anything reaches Postgres or the in-process index. A refusal
+   * writes nothing.
+   */
+  private assertSettlementInvariants(record: SettlementRecord): void {
+    const check = validateSettlementInvariants(record as SettlementEntity);
+    if (check.valid) return;
+    throw new Error(
+      `[VMNL-SETTLEMENT-INVARIANT] Settlement '${record.settlementNumber}' violates 7-Way Financial Separation: ${check.errors.join("; ")}`
+    );
   }
 
   public async createContract(data: {
@@ -176,16 +191,22 @@ export class InvoiceRepository {
     return mem ? { ...mem, source: "MEMORY" } : null;
   }
 
-  public async listContracts(status?: string): Promise<ContractRecord[]> {
+  public async listContracts(status?: string, page: RepositoryListOptions = {}): Promise<RepositoryListPage<ContractRecord>> {
+    const paging = normalizeRepositoryListOptions(page);
     const db = await checkDatabaseConnection();
     if (db.connected) {
       try {
         const client = getPrismaClient();
         const found = await client.contract.findMany({
-          where: status ? { status: status as any } : undefined,
+          where: {
+            ...(status ? { status: status as any } : {}),
+            ...(paging.after ? { contractNumber: { gt: paging.after } } : {}),
+          },
+          orderBy: { contractNumber: "asc" },
+          take: paging.limit + 1,
         });
         if (found.length > 0) {
-          return found.map((c) => ({
+          return createRepositoryListPage(found.map((c) => ({
             id: c.id,
             contractNumber: c.contractNumber,
             title: c.title,
@@ -197,10 +218,10 @@ export class InvoiceRepository {
             startDate: c.startDate,
             endDate: c.endDate,
             signedAt: c.signedAt ?? undefined,
-            source: "DB",
+            source: "DB" as const,
             createdAt: c.createdAt,
             updatedAt: c.updatedAt,
-          }));
+          })), (contract) => contract.contractNumber, paging.limit);
         }
       } catch (err: any) {
         await handleRepoError("contract", "list", err);
@@ -211,7 +232,7 @@ export class InvoiceRepository {
     if (status) {
       list = list.filter((c) => c.status === status);
     }
-    return list;
+    return paginateMemoryRows(list, (contract) => contract.contractNumber, paging);
   }
 
   public async createSettlement(data: {
@@ -248,6 +269,7 @@ export class InvoiceRepository {
       createdAt: now,
       updatedAt: now,
     };
+    this.assertSettlementInvariants(record);
 
     const db = await checkDatabaseConnection();
     if (db.connected) {
@@ -354,6 +376,12 @@ export class InvoiceRepository {
   ): Promise<SettlementRecord | null> {
     const db = await checkDatabaseConnection();
     if (db.connected) {
+      // TSK-59: moving a settlement to RECONCILED or PAID is the moment the canonical model says its
+      // seven columns must be internally consistent, so the stored row is guarded before the
+      // transition is written — outside the try, because an invariant refusal is a caller error, not
+      // a repository outage for `handleRepoError` to downgrade. A status change never moves money.
+      const existing = await this.getSettlement(settlementNumber);
+      if (existing) this.assertSettlementInvariants(existing);
       try {
         const client = getPrismaClient();
         const updated = await client.settlement.update({
@@ -388,6 +416,7 @@ export class InvoiceRepository {
 
     const mem = this.settlements.get(settlementNumber);
     if (!mem) return null;
+    this.assertSettlementInvariants(mem);
     const updatedMem: SettlementRecord = {
       ...mem,
       status,
@@ -399,16 +428,22 @@ export class InvoiceRepository {
     return updatedMem;
   }
 
-  public async listSettlements(status?: string): Promise<SettlementRecord[]> {
+  public async listSettlements(status?: string, page: RepositoryListOptions = {}): Promise<RepositoryListPage<SettlementRecord>> {
+    const paging = normalizeRepositoryListOptions(page);
     const db = await checkDatabaseConnection();
     if (db.connected) {
       try {
         const client = getPrismaClient();
         const found = await client.settlement.findMany({
-          where: status ? { status: status as any } : undefined,
+          where: {
+            ...(status ? { status: status as any } : {}),
+            ...(paging.after ? { settlementNumber: { gt: paging.after } } : {}),
+          },
+          orderBy: { settlementNumber: "asc" },
+          take: paging.limit + 1,
         });
         if (found.length > 0) {
-          return found.map((s) => ({
+          return createRepositoryListPage(found.map((s) => ({
             id: s.id,
             settlementNumber: s.settlementNumber,
             contractId: s.contractId ?? undefined,
@@ -422,10 +457,10 @@ export class InvoiceRepository {
             partnerShareAmount: Number(s.partnerShareAmount || 0),
             currency: s.currency,
             reconciledAt: s.reconciledAt ?? undefined,
-            source: "DB",
+            source: "DB" as const,
             createdAt: s.createdAt,
             updatedAt: s.updatedAt,
-          }));
+          })), (settlement) => settlement.settlementNumber, paging.limit);
         }
       } catch (err: any) {
         await handleRepoError("settlement", "list", err);
@@ -436,6 +471,6 @@ export class InvoiceRepository {
     if (status) {
       list = list.filter((s) => s.status === status);
     }
-    return list;
+    return paginateMemoryRows(list, (settlement) => settlement.settlementNumber, paging);
   }
 }

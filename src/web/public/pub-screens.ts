@@ -2,8 +2,8 @@
  * Complete Public Surface Web Screens (UX-PUB-001 to UX-PUB-028)
  * Authority: VMNL-AZP-VMN-UIUX-001 §4.1 / tasks.md §3.1
  *
- * Implements remaining public surfaces with full WCAG 2.2 Level AA compliance,
- * responsive fluid typography, high-contrast states, and accessible navigation.
+ * Implements public surfaces with accessibility-minded markup; conformance requires
+ * verification against the rendered experience and is not claimed by this module.
  */
 
 import { PUBLIC_CHANNELS } from "./channels.js";
@@ -15,46 +15,46 @@ import { listEpisodeMasters } from "../../modules/broadcast/episode-masters.js";
  */
 export function renderAboutPageHtml(): string {
   return `
-    <article class="container" style="max-width: 1000px; margin: 0 auto; padding: var(--vmn-space-8) var(--vmn-space-4);">
-      <header style="margin-bottom: var(--vmn-space-8); text-align: center;">
-        <span class="vmn-badge badge-ready" style="margin-bottom: var(--vmn-space-2);">Corporate Governance</span>
-        <h1 style="font-size: var(--vmn-font-size-4xl); font-weight: 800; color: var(--vmn-text-primary); margin-bottom: var(--vmn-space-4);">
+ <article class="container s-2nHGlX-U0t" >
+ <header class="s-2udxTC4LQH">
+ <span class="vmn-badge badge-ready s-tPnc4j8Rfj" >Corporate Governance</span>
+ <h1 class="s-7wOXUA0Lid">
           About Virtual Media Network Limited (VMNL)
         </h1>
-        <p style="font-size: var(--vmn-font-size-lg); color: var(--vmn-text-secondary); max-width: 720px; margin: 0 auto; line-height: 1.6;">
-          Pioneering West Africa's media, linear broadcast, creative infrastructure, and youth entertainment technology ecosystems.
+ <p class="s-K0k-rvOz9S">
+          A media company with public profiles for linear channels and proposed creative-economy programme areas. Operational reach and service availability require verification.
         </p>
       </header>
 
-      <section class="card" style="margin-bottom: var(--vmn-space-8); padding: var(--vmn-space-8);">
-        <h2 style="font-size: var(--vmn-font-size-2xl); font-weight: 700; color: var(--vmn-text-primary); margin-bottom: var(--vmn-space-4);">
+ <section class="card s-Kk_TX9a-yW" >
+ <h2 class="s-y7lMjPUysy">
           Enterprise Mission & Mandate
         </h2>
-        <p style="color: var(--vmn-text-secondary); line-height: 1.7; margin-bottom: var(--vmn-space-4);">
-          Virtual Media Network Limited operates Nigeria's premier broadcast television networks on the StarTimes DTT/DTH satellite platform, delivering 24/7 high-definition youth culture, indigenous heritage, and musical programming to over 15 million households across West Africa.
+ <p class="s-gLpm1d0BEF">
+          Virtual Media Network Limited develops linear channel profiles, creative infrastructure, and media services. Carriage, audience reach, and live transmission claims require independent verification.
         </p>
-        <p style="color: var(--vmn-text-secondary); line-height: 1.7;">
-          Through our Creative Economy Ecosystem, we bridge the gap between creative passion and institutional capital, integrating education (AFCA Academy), verified talent management (VTM), slate co-financing (VCF), state-of-the-art studio facilities (ONE Studios), and international content syndication (TEND).
+ <p class="s-RStw7YfZ3A">
+          The Creative Economy Hub describes potential areas including learning, talent, production, funding, events, and distribution enquiries. Accreditation, talent verification, funding, facilities, rights, and service availability are not established by this page.
         </p>
       </section>
 
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--vmn-space-6); margin-bottom: var(--vmn-space-8);">
-        <div class="card" style="padding: var(--vmn-space-6); border-top: 4px solid var(--vmn-secondary);">
-          <h3 style="font-size: var(--vmn-font-size-xl); font-weight: 700; color: var(--vmn-text-primary); margin-bottom: var(--vmn-space-2);">Three Flagship Channels</h3>
-          <p style="color: var(--vmn-text-secondary); font-size: var(--vmn-font-size-sm); line-height: 1.6;">
-            Nigezie Xtreme (Ch 428 DTT / 312 DTH), Orisun (Ch 430 DTT / 315 DTH), and Isi Mbido (Ch 432 DTT / 318 DTH).
+ <div class="s-bjVu6Z7Rt5">
+ <div class="card s-PCC97mWQBM" >
+ <h3 class="s-wIa9aAsAdX">Three Flagship Channels</h3>
+ <p class="s-3R0tLWTHcB">
+            Nigezie Xtreme, Orisun, and Isi Mbido. Carriage numbers and transmission status are not asserted here.
           </p>
         </div>
-        <div class="card" style="padding: var(--vmn-space-6); border-top: 4px solid var(--vmn-secondary);">
-          <h3 style="font-size: var(--vmn-font-size-xl); font-weight: 700; color: var(--vmn-text-primary); margin-bottom: var(--vmn-space-2);">Creative Economy Hub</h3>
-          <p style="color: var(--vmn-text-secondary); font-size: var(--vmn-font-size-sm); line-height: 1.6;">
-            Empowering 50,000+ emerging creators through structured apprenticeships, capital grants, and commercial casting.
+ <div class="card s-PCC97mWQBM" >
+ <h3 class="s-wIa9aAsAdX">Creative Economy Hub</h3>
+ <p class="s-3R0tLWTHcB">
+            Creative-economy programmes and opportunities are described in this prototype; participation, grants, placements, and reach are not verified here.
           </p>
         </div>
-        <div class="card" style="padding: var(--vmn-space-6); border-top: 4px solid var(--vmn-secondary);">
-          <h3 style="font-size: var(--vmn-font-size-xl); font-weight: 700; color: var(--vmn-text-primary); margin-bottom: var(--vmn-space-2);">Azeebo+ Streaming</h3>
-          <p style="color: var(--vmn-text-secondary); font-size: var(--vmn-font-size-sm); line-height: 1.6;">
-            Federated consumer streaming across 8 dynamic entertainment universes with deep linear TV attribution.
+ <div class="card s-PCC97mWQBM" >
+ <h3 class="s-wIa9aAsAdX">Azeebo+ Streaming</h3>
+ <p class="s-3R0tLWTHcB">
+            Azeebo+ is a federated service. Availability, catalogues, and audience attribution depend on its separately operated systems.
           </p>
         </div>
       </div>
@@ -70,35 +70,16 @@ export function renderPublicScheduleHtml(): string {
   const channelBlocks = channels
     .map(
       (c) => `
-    <div class="card" style="margin-bottom: var(--vmn-space-6); padding: var(--vmn-space-6);">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--vmn-space-4); border-bottom: 1px solid var(--vmn-color-border-subtle); padding-bottom: var(--vmn-space-3);">
+ <div class="card s-aOQEhVcQ_B" >
+ <div class="s-Kgr3QucRG7">
         <div>
-          <span style="font-weight: 800; font-size: 1.25rem; color: var(--vmn-primary);">${c.name}</span>
-          <span style="color: var(--vmn-text-muted); font-size: 0.9rem; margin-left: 8px;">DTT Ch. ${c.dttChannel} · DTH Ch. ${c.dthChannel}</span>
+ <span class="s-qNsmp8l7l6">${c.name}</span>
+ <span class="s-hVWSD2LpPP">${c.isProvisional ? "Carriage details unverified" : `DTT Ch. ${c.dttChannel ?? "—"} · DTH Ch. ${c.dthChannel ?? "—"}`}</span>
         </div>
-        <span class="vmn-badge badge-live">ON AIR NOW (WAT)</span>
+        <span class="vmn-badge badge-info">Schedule not verified</span>
       </div>
-      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--vmn-space-4);">
-        <div style="background: var(--vmn-color-surface-subtle); padding: 12px; border-radius: 6px;">
-          <div style="font-size: 0.75rem; font-weight: 700; color: var(--vmn-primary);">06:00 - 09:00</div>
-          <div style="font-weight: 700; color: var(--vmn-text-primary);">Morning Afro-Beats Digest</div>
-          <div style="font-size: 0.8rem; color: var(--vmn-text-muted);">Music Video Playlist</div>
-        </div>
-        <div style="background: var(--vmn-color-surface-subtle); padding: 12px; border-radius: 6px;">
-          <div style="font-size: 0.75rem; font-weight: 700; color: var(--vmn-primary);">09:00 - 12:00</div>
-          <div style="font-weight: 700; color: var(--vmn-text-primary);">Youth Culture & Live Pulse</div>
-          <div style="font-size: 0.8rem; color: var(--vmn-text-muted);">Interactive Talk / Live Phone-in</div>
-        </div>
-        <div style="background: var(--vmn-color-surface-subtle); padding: 12px; border-radius: 6px;">
-          <div style="font-size: 0.75rem; font-weight: 700; color: var(--vmn-primary);">12:00 - 15:00</div>
-          <div style="font-weight: 700; color: var(--vmn-text-primary);">VTM Top 20 Countdown</div>
-          <div style="font-size: 0.8rem; color: var(--vmn-text-muted);">Music Chart Show</div>
-        </div>
-        <div style="background: var(--vmn-color-surface-subtle); padding: 12px; border-radius: 6px;">
-          <div style="font-size: 0.75rem; font-weight: 700; color: var(--vmn-primary);">18:00 - 21:00</div>
-          <div style="font-weight: 700; color: var(--vmn-text-primary);">Prime Time Flagship Drama</div>
-          <div style="font-size: 0.8rem; color: var(--vmn-text-muted);">ONE Studios Original Production</div>
-        </div>
+ <div class="card" role="note" >
+        No approved, source-backed schedule is connected. Programme entries are not published as operational listings.
       </div>
       ${renderEpisodeMasterSummaryHtml(listEpisodeMasters(c.code))}
     </div>
@@ -107,14 +88,14 @@ export function renderPublicScheduleHtml(): string {
     .join("\n");
 
   return `
-    <article class="container" style="max-width: 1000px; margin: 0 auto; padding: var(--vmn-space-8) var(--vmn-space-4);">
-      <header style="margin-bottom: var(--vmn-space-8);">
+ <article class="container s-2nHGlX-U0t" >
+ <header class="s-8KqcJvoCxL">
         <span class="vmn-badge badge-ready">Broadcast Programming</span>
-        <h1 style="font-size: var(--vmn-font-size-3xl); font-weight: 800; color: var(--vmn-text-primary); margin-top: 8px;">
+ <h1 class="s-yrxYod1Dke">
           Linear Broadcast Schedule & EPG
         </h1>
-        <p style="color: var(--vmn-text-secondary); font-size: var(--vmn-font-size-base);">
-          Live 24/7 broadcast program guide for West Africa Time (WAT, UTC+1). Source-backed schedule updated every 60 minutes.
+ <p class="s-_Ozz6dYSwY">
+          Schedule data is shown only when an approved, source-backed programme schedule is available.
         </p>
       </header>
       ${channelBlocks}
@@ -127,55 +108,55 @@ export function renderPublicScheduleHtml(): string {
  */
 export function renderAdvertisingSponsorshipHtml(): string {
   return `
-    <article class="container" style="max-width: 1000px; margin: 0 auto; padding: var(--vmn-space-8) var(--vmn-space-4);">
-      <header style="text-align: center; margin-bottom: var(--vmn-space-8);">
+ <article class="container s-2nHGlX-U0t" >
+ <header class="s-LGES5Rz7dF">
         <span class="vmn-badge badge-live">Commercial Media Solutions</span>
-        <h1 style="font-size: var(--vmn-font-size-4xl); font-weight: 800; color: var(--vmn-text-primary); margin: var(--vmn-space-3) 0;">
+ <h1 class="s-gjfPYbnwwq">
           Advertising, Sponsorship & Brand Integration
         </h1>
-        <p style="font-size: var(--vmn-font-size-lg); color: var(--vmn-text-secondary); max-width: 700px; margin: 0 auto;">
-          Connect your brand with over 15 million dedicated youth and pan-African viewers across linear television, digital video, and experiential events.
+ <p class="s-tV7d4vigIM">
+          Contact the commercial team to discuss potential placements and request current, source-backed reach and terms for your brief.
         </p>
       </header>
 
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--vmn-space-6); margin-bottom: var(--vmn-space-8);">
-        <div class="card" style="padding: var(--vmn-space-6); text-align: center;">
-          <div style="margin-bottom: 8px; color: var(--vmn-accent-primary); display: flex; justify-content: center;">
+ <div class="s-bjVu6Z7Rt5">
+ <div class="card s-VXNSD_KFY5" >
+ <div class="s-49lsVfsW0o">
             ${renderIcon("tv", { size: 32 })}
           </div>
-          <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--vmn-text-primary);">Linear TV Spots</h2>
-          <p style="color: var(--vmn-text-secondary); font-size: 0.9rem; line-height: 1.6;">
-            15s, 30s, and 60s spots across Nigezie Xtreme, Orisun, and Isi Mbido with cryptographic Proof-of-Air compliance certificates.
+ <h2 class="s-F_XTn6m8wX">Linear TV Spots</h2>
+ <p class="s-iLZxUGepNI">
+            Ask the commercial team about availability. Any placement, schedule, carriage, pricing, and proof-of-air terms require confirmation against current records.
           </p>
         </div>
-        <div class="card" style="padding: var(--vmn-space-6); text-align: center;">
-          <div style="margin-bottom: 8px; color: var(--vmn-accent-primary); display: flex; justify-content: center;">
+ <div class="card s-VXNSD_KFY5" >
+ <div class="s-49lsVfsW0o">
             ${renderIcon("broadcast", { size: 32 })}
           </div>
-          <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--vmn-text-primary);">Programme Sponsorship</h2>
-          <p style="color: var(--vmn-text-secondary); font-size: 0.9rem; line-height: 1.6;">
-            Title sponsorships, Lower-third strap graphics, presenter wardrobe placement, and co-branded content segments.
+ <h2 class="s-F_XTn6m8wX">Programme Sponsorship</h2>
+ <p class="s-iLZxUGepNI">
+            These are illustrative placement categories only. Inventory, schedule, talent participation, rights clearance, and commercial terms require current confirmation.
           </p>
         </div>
-        <div class="card" style="padding: var(--vmn-space-6); text-align: center;">
-          <div style="margin-bottom: 8px; color: var(--vmn-accent-primary); display: flex; justify-content: center;">
+ <div class="card s-VXNSD_KFY5" >
+ <div class="s-49lsVfsW0o">
             ${renderIcon("film", { size: 32 })}
           </div>
-          <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--vmn-text-primary);">Fusion Events Activation</h2>
-          <p style="color: var(--vmn-text-secondary); font-size: 0.9rem; line-height: 1.6;">
-            Experiential brand lounges, concert naming rights, on-ground product sampling, and live broadcast integration.
+ <h2 class="s-F_XTn6m8wX">Fusion Events Activation</h2>
+ <p class="s-iLZxUGepNI">
+            These are illustrative activation categories only. Events, venues, naming rights, permissions, and broadcast integration are not confirmed.
           </p>
         </div>
       </div>
 
-      <div class="card" style="text-align: center; padding: var(--vmn-space-8); background: var(--vmn-color-surface-subtle);">
-        <h2 style="font-size: var(--vmn-font-size-2xl); font-weight: 800; color: var(--vmn-text-primary); margin-bottom: 8px;">
+ <div class="card s-wpOGH5ukU_" >
+ <h2 class="s-DITO9sm-WL">
           Request a Customized Media Rate Card
         </h2>
-        <p style="color: var(--vmn-text-secondary); margin-bottom: var(--vmn-space-6);">
+ <p class="s-z7WHKvYK0h">
           Speak with our commercial sales team for primetime package discounts, campaign schedules, and cross-platform opportunities.
         </p>
-        <a href="/enquiry?vertical=COMMERCIAL_ADVERTISING" class="btn btn-primary button button--primary" style="display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 var(--vmn-space-8); font-size: 1rem; font-weight: 700;">
+ <a href="/enquiry?vertical=COMMERCIAL_ADVERTISING" class="btn btn-primary button button--primary s-1OZuJEopSQ" >
           Submit Commercial Enquiry &rarr;
         </a>
       </div>
@@ -188,52 +169,52 @@ export function renderAdvertisingSponsorshipHtml(): string {
  */
 export function renderEnquiryContactHtml(preselectedVertical: string = "COMMERCIAL_ADVERTISING"): string {
   return `
-    <article class="container" style="max-width: 800px; margin: 0 auto; padding: var(--vmn-space-8) var(--vmn-space-4);">
-      <header style="margin-bottom: var(--vmn-space-8); text-align: center;">
+ <article class="container s-0VRn54WLCl" >
+ <header class="s-2udxTC4LQH">
         <span class="vmn-badge badge-ready">Intake Desk</span>
-        <h1 style="font-size: var(--vmn-font-size-3xl); font-weight: 800; color: var(--vmn-text-primary); margin-top: 8px;">
+ <h1 class="s-yrxYod1Dke">
           Commercial Enquiry & Partnership Request
         </h1>
-        <p style="color: var(--vmn-text-secondary); font-size: 1rem; line-height: 1.6;">
-          Submit your requirements to our commercial and partnerships team. Every request receives a durable tracking reference.
+ <p class="s-F2VYtMRxsW">
+          Submit an enquiry. Response timing and durable tracking are not guaranteed in this environment; please do not include sensitive personal information.
         </p>
       </header>
 
-      <form method="POST" action="/api/v1/enquiries" class="card" style="padding: var(--vmn-space-8); display: flex; flex-direction: column; gap: var(--vmn-space-4);">
+ <form method="POST" action="/api/v1/enquiries" class="card s-sqzC72lluV" >
         <div>
-          <label for="fullName" style="display: block; font-weight: 700; margin-bottom: 6px; color: var(--vmn-text-primary);">
-            Full Name <span style="color: var(--vmn-semantic-error);">*</span>
+ <label for="fullName" class="s-oMHwiwajnC">
+ Full Name <span class="s-R3NEaqY8J-">*</span>
           </label>
-          <input type="text" id="fullName" name="fullName" required placeholder="e.g. Dr. Ngozi Adeyemi" class="input" style="width: 100%; min-height: 44px; padding: 8px 12px;" />
+ <input type="text" id="fullName" name="fullName" required placeholder="e.g. Dr. Ngozi Adeyemi" class="input s-UPrN9pHjcM" />
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--vmn-space-4);">
+ <div class="s-ZINITLBrbS">
           <div>
-            <label for="email" style="display: block; font-weight: 700; margin-bottom: 6px; color: var(--vmn-text-primary);">
-              Email Address <span style="color: var(--vmn-semantic-error);">*</span>
+ <label for="email" class="s-oMHwiwajnC">
+ Email Address <span class="s-R3NEaqY8J-">*</span>
             </label>
-            <input type="email" id="email" name="email" required placeholder="ngozi@company.ng" class="input" style="width: 100%; min-height: 44px; padding: 8px 12px;" />
+ <input type="email" id="email" name="email" required placeholder="ngozi@company.ng" class="input s-UPrN9pHjcM" />
           </div>
           <div>
-            <label for="phone" style="display: block; font-weight: 700; margin-bottom: 6px; color: var(--vmn-text-primary);">
+ <label for="phone" class="s-oMHwiwajnC">
               Phone Number
             </label>
-            <input type="tel" id="phone" name="phone" placeholder="+234 803 123 4567" class="input" style="width: 100%; min-height: 44px; padding: 8px 12px;" />
+ <input type="tel" id="phone" name="phone" placeholder="+234 803 123 4567" class="input s-UPrN9pHjcM" />
           </div>
         </div>
 
         <div>
-          <label for="organisationName" style="display: block; font-weight: 700; margin-bottom: 6px; color: var(--vmn-text-primary);">
+ <label for="organisationName" class="s-oMHwiwajnC">
             Organisation / Company
           </label>
-          <input type="text" id="organisationName" name="organisationName" placeholder="e.g. Sterling Brand Communications" class="input" style="width: 100%; min-height: 44px; padding: 8px 12px;" />
+ <input type="text" id="organisationName" name="organisationName" placeholder="e.g. Sterling Brand Communications" class="input s-UPrN9pHjcM" />
         </div>
 
         <div>
-          <label for="vertical" style="display: block; font-weight: 700; margin-bottom: 6px; color: var(--vmn-text-primary);">
-            Enquiry Type <span style="color: var(--vmn-semantic-error);">*</span>
+ <label for="vertical" class="s-oMHwiwajnC">
+ Enquiry Type <span class="s-R3NEaqY8J-">*</span>
           </label>
-          <select id="vertical" name="vertical" class="input" style="width: 100%; min-height: 44px; padding: 8px 12px;">
+ <select id="vertical" name="vertical" class="input s-UPrN9pHjcM" >
             <option value="COMMERCIAL_ADVERTISING" ${preselectedVertical === "COMMERCIAL_ADVERTISING" ? "selected" : ""}>Television Advertising & Spots</option>
             <option value="SPONSORSHIP" ${preselectedVertical === "SPONSORSHIP" ? "selected" : ""}>Programme & Channel Sponsorship</option>
             <option value="PARTNERSHIP" ${preselectedVertical === "PARTNERSHIP" ? "selected" : ""}>Institutional & Brand Partnership</option>
@@ -245,20 +226,20 @@ export function renderEnquiryContactHtml(preselectedVertical: string = "COMMERCI
         </div>
 
         <div>
-          <label for="message" style="display: block; font-weight: 700; margin-bottom: 6px; color: var(--vmn-text-primary);">
-            Project Details & Requirements <span style="color: var(--vmn-semantic-error);">*</span>
+ <label for="message" class="s-oMHwiwajnC">
+ Project Details & Requirements <span class="s-R3NEaqY8J-">*</span>
           </label>
-          <textarea id="message" name="message" required rows="5" placeholder="Please outline your campaign flight dates, target demographics, and budget guidelines..." class="input" style="width: 100%; padding: 12px;"></textarea>
+ <textarea id="message" name="message" required rows="5" placeholder="Please outline your campaign flight dates, target demographics, and budget guidelines..." class="input s-zCt9vSwGkS" ></textarea>
         </div>
 
-        <div style="background: var(--vmn-color-surface-subtle); padding: 16px; border-radius: 6px; display: flex; align-items: flex-start; gap: 12px;">
-          <input type="checkbox" id="ndprConsent" name="ndprConsent" value="true" required style="width: 20px; height: 20px; margin-top: 2px;" />
-          <label for="ndprConsent" style="font-size: 0.85rem; color: var(--vmn-text-secondary); line-height: 1.5;">
-            <strong>NDPR Compliance Consent:</strong> I confirm that I authorize Virtual Media Network Limited to process this contact information strictly for the purpose of fulfilling this business inquiry under the Nigeria Data Protection Regulation (NDPR).
+ <div class="s-uaYMBvJysP">
+ <input type="checkbox" id="ndprConsent" name="ndprConsent" value="true" required class="s-9Isrvn5gw2" />
+ <label for="ndprConsent" class="s-EIgsbg6jRv">
+            <strong>Enquiry acknowledgement:</strong> I understand that the information I submit is provided to VMNL for this enquiry. The privacy notice and handling details require review before they can be represented here as complete.
           </label>
         </div>
 
-        <button type="submit" class="btn btn-primary button button--primary" style="min-height: 48px; font-size: 1rem; font-weight: 700; margin-top: 8px;">
+ <button type="submit" class="btn btn-primary button button--primary s-jZKe1VmC9A" >
           Submit Formal Enquiry
         </button>
       </form>
@@ -271,51 +252,51 @@ export function renderEnquiryContactHtml(preselectedVertical: string = "COMMERCI
  */
 export function renderHelpPageHtml(): string {
   return `
-    <article class="container" style="max-width: 900px; margin: 0 auto; padding: var(--vmn-space-8) var(--vmn-space-4);">
-      <header style="margin-bottom: var(--vmn-space-8); text-align: center;">
+ <article class="container s-Gq1CYI3m9m" >
+ <header class="s-2udxTC4LQH">
         <span class="vmn-badge badge-info">Support Center</span>
-        <h1 style="font-size: var(--vmn-font-size-3xl); font-weight: 800; color: var(--vmn-text-primary); margin-top: 8px;">
+ <h1 class="s-yrxYod1Dke">
           VMN Help & Resource Directory
         </h1>
-        <p style="color: var(--vmn-text-secondary); font-size: 1rem;">
+ <p class="s-AuP1EyxEBf">
           Frequently asked questions, broadcast reception guides, admissions help, and technical support.
         </p>
       </header>
 
-      <div style="display: flex; flex-direction: column; gap: var(--vmn-space-4);">
-        <details class="card" style="padding: var(--vmn-space-4);" open>
-          <summary style="font-weight: 700; font-size: 1.1rem; cursor: pointer; color: var(--vmn-text-primary);">
-            How do I tune into Nigezie Xtreme, Orisun, and Isi Mbido on StarTimes?
+ <div class="s-6mqdXZ0QST">
+ <details class="card s-njnyYzrM3s" open>
+ <summary class="s-nCsaVwVLOM">
+            How can I find verified reception and carriage information for VMNL channels?
           </summary>
-          <p style="color: var(--vmn-text-secondary); margin-top: 12px; line-height: 1.6;">
-            On terrestrial decoders (DTT antenna), find Nigezie Xtreme on Channel 428, Orisun on Channel 430, and Isi Mbido on Channel 432. On satellite dishes (DTH), find Nigezie Xtreme on Channel 312, Orisun on Channel 315, and Isi Mbido on Channel 318.
+ <p class="s-WUIZpJO7QW">
+            Carriage numbers are not verified in this environment. Please check current information with StarTimes or the broadcaster before tuning.
           </p>
         </details>
 
-        <details class="card" style="padding: var(--vmn-space-4);">
-          <summary style="font-weight: 700; font-size: 1.1rem; cursor: pointer; color: var(--vmn-text-primary);">
+ <details class="card s-njnyYzrM3s" >
+ <summary class="s-nCsaVwVLOM">
             How do I apply for the AFCA Film & Creative Arts Academy?
           </summary>
-          <p style="color: var(--vmn-text-secondary); margin-top: 12px; line-height: 1.6;">
-            Visit our admissions portal at <a href="/apply" style="color: var(--vmn-primary); font-weight: 600;">/apply</a> to select your desired cohort and track (Cinematography, Directing, Screenwriting, Sound Engineering, or Creative Producing). Applications are reviewed on a rolling basis.
+ <p class="s-WUIZpJO7QW">
+ The <a href="/apply" class="s-cHOzN4N0WC">admissions page</a> provides an enquiry route. Course offerings, cohort availability, application windows, and admission decisions require current confirmation; submitting an enquiry does not guarantee admission.
           </p>
         </details>
 
-        <details class="card" style="padding: var(--vmn-space-4);">
-          <summary style="font-weight: 700; font-size: 1.1rem; cursor: pointer; color: var(--vmn-text-primary);">
+ <details class="card s-njnyYzrM3s" >
+ <summary class="s-nCsaVwVLOM">
             How can artists submit music videos for broadcast review?
           </summary>
-          <p style="color: var(--vmn-text-secondary); margin-top: 12px; line-height: 1.6;">
-            Registered creators on the VTM portal can submit digital master files directly through the creator dashboard. Videos undergo technical quality control (QC) and NBC broadcast compliance screening before broadcast slotting.
+ <p class="s-WUIZpJO7QW">
+            A connected creator upload and review workflow is not available from this public site. Ask through the enquiry page about current submission routes; review, rights clearance, regulatory review, and scheduling must not be assumed.
           </p>
         </details>
 
-        <details class="card" style="padding: var(--vmn-space-4);">
-          <summary style="font-weight: 700; font-size: 1.1rem; cursor: pointer; color: var(--vmn-text-primary);">
+ <details class="card s-njnyYzrM3s" >
+ <summary class="s-nCsaVwVLOM">
             Where can I verify an AFCA Certificate or Proof-of-Air Report?
           </summary>
-          <p style="color: var(--vmn-text-secondary); margin-top: 12px; line-height: 1.6;">
-            Every verifiable document issued by VMNL contains an immutable cryptographic reference hash that can be verified online anytime at <a href="/verify/afca" style="color: var(--vmn-primary); font-weight: 600;">/verify/afca</a> or <a href="/verify/poa" style="color: var(--vmn-primary); font-weight: 600;">/verify/poa</a>.
+ <p class="s-WUIZpJO7QW">
+ The verification pages report records available in this environment. A hash alone does not establish that a source record, credential, transmission, or underlying evidence is authentic or current. <a href="/verify/afca" class="s-cHOzN4N0WC">/verify/afca</a> and <a href="/verify/poa" class="s-cHOzN4N0WC">/verify/poa</a> are record lookup paths.
           </p>
         </details>
       </div>
@@ -328,36 +309,36 @@ export function renderHelpPageHtml(): string {
  */
 export function renderPrivacyPageHtml(): string {
   return `
-    <article class="container" style="max-width: 900px; margin: 0 auto; padding: var(--vmn-space-8) var(--vmn-space-4);">
-      <header style="margin-bottom: var(--vmn-space-6);">
+ <article class="container s-Gq1CYI3m9m" >
+ <header class="s-MCZWkljUQG">
         <span class="vmn-badge badge-ready">Legal & Privacy Governance</span>
-        <h1 style="font-size: var(--vmn-font-size-3xl); font-weight: 800; color: var(--vmn-text-primary); margin-top: 8px;">
+ <h1 class="s-yrxYod1Dke">
           Privacy Policy & Data Protection Notice
         </h1>
-        <p style="color: var(--vmn-text-secondary);">
-          Compliant with the Nigeria Data Protection Act (NDPA) and NDPR Regulatory Framework.
+ <p class="s-58Gu8QFAOn">
+          This page is a preliminary information surface, not a reviewed privacy notice or a representation of legal compliance. Retention, lawful basis, data-subject processes, and contact details require approval by VMNL's accountable privacy and legal reviewers.
         </p>
       </header>
 
-      <div class="card" style="padding: var(--vmn-space-8); line-height: 1.7; color: var(--vmn-text-secondary);">
-        <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--vmn-text-primary); margin-bottom: 8px;">1. Information We Collect</h2>
-        <p style="margin-bottom: 16px;">
-          Virtual Media Network Limited collects information necessary to execute broadcast contracts, process admissions to the AFCA Academy, manage creative talent engagements, and respond to commercial inquiries.
+ <div class="card s-twPUsMLc3n" >
+ <h2 class="s-aMXDq93VWh">1. Information We Collect</h2>
+ <p class="s-BFqsiZ1_zP">
+          The forms on this site may request contact and enquiry information. The purposes, retention periods, recipients, and data-subject process for each workflow have not been confirmed in this page; avoid submitting sensitive personal information until an approved notice is published.
         </p>
 
-        <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--vmn-text-primary); margin-bottom: 8px;">2. Lawful Basis for Processing</h2>
-        <p style="margin-bottom: 16px;">
-          We process personal data on the lawful basis of contractual necessity, compliance with legal obligations, and explicit informed consent provided via affirmative opt-in checkboxes.
+ <h2 class="s-aMXDq93VWh">2. Lawful Basis for Processing</h2>
+ <p class="s-BFqsiZ1_zP">
+          This page does not determine or represent a lawful basis for any processing. That basis and the associated notice require review and approval by VMNL's accountable privacy and legal reviewers.
         </p>
 
-        <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--vmn-text-primary); margin-bottom: 8px;">3. Data Security & Storage</h2>
-        <p style="margin-bottom: 16px;">
-          All sensitive identification records, rate cards, and financial transactions are encrypted at rest using AES-256 and in transit using TLS 1.3. We do not sell personal data to third parties.
+ <h2 class="s-aMXDq93VWh">3. Data Security & Storage</h2>
+ <p class="s-BFqsiZ1_zP">
+          This page does not make claims about encryption, access controls, data sharing, or security certification. Those controls and any no-sale representation require verification against deployed systems and an approved privacy notice.
         </p>
 
-        <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--vmn-text-primary); margin-bottom: 8px;">4. Data Protection Officer</h2>
+ <h2 class="s-aMXDq93VWh">4. Data Protection Officer</h2>
         <p>
-          To exercise your rights to data rectification, erasure, or portability, contact our Data Protection Officer at: <code style="color: var(--vmn-primary);">dpo@vmnl.ng</code>.
+          A verified privacy contact and complete data-subject request process have not been confirmed for publication. Do not rely on this preliminary page as instructions for exercising privacy rights.
         </p>
       </div>
     </article>
@@ -369,35 +350,32 @@ export function renderPrivacyPageHtml(): string {
  */
 export function renderAccessibilityPageHtml(): string {
   return `
-    <article class="container" style="max-width: 900px; margin: 0 auto; padding: var(--vmn-space-8) var(--vmn-space-4);">
-      <header style="margin-bottom: var(--vmn-space-6);">
+ <article class="container s-Gq1CYI3m9m" >
+ <header class="s-MCZWkljUQG">
         <span class="vmn-badge badge-ready">Digital Inclusion</span>
-        <h1 style="font-size: var(--vmn-font-size-3xl); font-weight: 800; color: var(--vmn-text-primary); margin-top: 8px;">
-          Accessibility Statement (WCAG 2.2 Level AA)
+ <h1 class="s-yrxYod1Dke">
+          Accessibility Statement — Conformance Not Yet Assessed
         </h1>
-        <p style="color: var(--vmn-text-secondary);">
-          Our formal commitment to accessible, inclusive digital experiences for all viewers and creators.
+ <p class="s-58Gu8QFAOn">
+          Accessibility is an engineering target. Manual keyboard, screen-reader, mobile, and WCAG 2.2 AA conformance reviews remain outstanding; this page does not claim conformance.
         </p>
       </header>
 
-      <div class="card" style="padding: var(--vmn-space-8); line-height: 1.7; color: var(--vmn-text-secondary);">
-        <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--vmn-text-primary); margin-bottom: 8px;">Conformance Standard</h2>
-        <p style="margin-bottom: 16px;">
-          Virtual Media Network Limited is committed to ensuring digital accessibility for people with disabilities. We continually improve the user experience for everyone and apply the Web Content Accessibility Guidelines (WCAG) 2.2 Level AA standards across all public and authenticated web applications.
+ <div class="card s-twPUsMLc3n" >
+ <h2 class="s-aMXDq93VWh">Conformance Standard</h2>
+ <p class="s-BFqsiZ1_zP">
+          WCAG 2.2 Level AA is a target, not a verified conformance claim. Coverage across public and authenticated workflows has not been established by a complete manual and assistive-technology assessment.
         </p>
 
-        <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--vmn-text-primary); margin-bottom: 8px;">Key Accessibility Implementations</h2>
-        <ul style="padding-left: 20px; margin-bottom: 16px;">
-          <li><strong>Color Contrast:</strong> Minimum 4.5:1 contrast ratio for all standard text and 3:1 for large graphical controls.</li>
-          <li><strong>Touch Target Sizing:</strong> All interactive buttons and touch points satisfy the minimum 44x44px boundary.</li>
-          <li><strong>Keyboard Navigation:</strong> Complete keyboard traversal with high-contrast visible focus rings.</li>
-          <li><strong>Reduced Motion:</strong> Fully responsive to <code>@media (prefers-reduced-motion: reduce)</code> preferences.</li>
-          <li><strong>Screen Reader Support:</strong> Semantic HTML landmarks (header, nav, main, article, footer) and descriptive ARIA labels.</li>
+ <h2 class="s-aMXDq93VWh">Key Accessibility Implementations</h2>
+ <ul class="s-bG9yzdLYMU">
+          <li>Accessibility checks and design tokens exist in parts of the application; they are not evidence that every rendered page or workflow meets a conformance criterion.</li>
+          <li>Keyboard-only, screen-reader, contrast, zoom/reflow, and mobile reviews are outstanding and must be completed before a conformance claim is made.</li>
         </ul>
 
-        <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--vmn-text-primary); margin-bottom: 8px;">Feedback & Assistance</h2>
+ <h2 class="s-aMXDq93VWh">Feedback & Assistance</h2>
         <p>
-          If you encounter any accessibility barriers on our digital platforms, please reach out to our team at <code style="color: var(--vmn-primary);">accessibility@vmnl.ng</code>.
+ If you encounter any accessibility barriers on our digital platforms, please reach out to our team at <code class="s-FgPBD5MSYz">accessibility@vmnl.ng</code>.
         </p>
       </div>
     </article>

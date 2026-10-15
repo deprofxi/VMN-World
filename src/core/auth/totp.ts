@@ -115,6 +115,11 @@ export class TotpVerifier {
 
 export const globalTotpVerifier = new TotpVerifier();
 
+const storedSecretVerifier = new TotpVerifier();
+export function verifyTotpSecret(userId: string, secret: string, code: string): TotpVerifyResult {
+  return storedSecretVerifier.verify(userId, secret, code);
+}
+
 /**
  * Sandbox MFA secret store. In production this column lives on the User record
  * (prisma `mfaSecret`); the sandbox keeps an in-memory map keyed by email.
@@ -134,4 +139,5 @@ export function getMfaSecret(email: string): string | undefined {
 
 export function _resetMfaSecretsForTesting(): void {
   sandboxSecrets.clear();
+  storedSecretVerifier._resetForTesting();
 }

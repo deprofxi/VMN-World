@@ -12,6 +12,21 @@
  * - Milestone invoicing requires verified Proof-of-Performance / Proof-of-Air delivery.
  */
 
+import { registerDurableStore, stageDurableWrite } from "../../../core/database/durable-journal.js";
+import {
+  loadSalesDeals,
+  persistSalesDeal,
+} from "../../../core/database/repositories/release-critical.repository.js";
+
+/**
+ * TSK-60 box 3 — the Quote-to-Cash portfolio is the client portal's canonical
+ * record list, so it cannot live in one process's Map: before this store a
+ * restart emptied every counterparty's portfolio while the portal's `SOURCE:`
+ * line still presented the records as canonical. Every mutation below stages
+ * the whole deal, and `hydrate()` rebuilds the read index at boot.
+ */
+registerDurableStore<SalesDeal>("salesDeal", persistSalesDeal);
+
 export type SalesStage =
   | "LEAD"
   | "OPPORTUNITY"
@@ -76,13 +91,38 @@ export class QuoteToCashSalesEngine {
     };
 
     this.deals.set(deal.id, deal);
+    this.stageDeal(deal, null);
     return deal;
+  }
+
+  /**
+   * Stage one deal for the durable portfolio. A new deal rolls back by removal;
+   * a mutation rolls back to the field values it held before the call, because
+   * the durable row still holds exactly those — dropping the index entry would
+   * hide a contract that really exists, and keeping the mutation would show a
+   * stage the database rejected.
+   */
+  private stageDeal(deal: SalesDeal, prior: SalesDeal | null): void {
+    stageDurableWrite<SalesDeal>({
+      store: "salesDeal",
+      key: deal.id,
+      payload: deal,
+      rollback: () => {
+        if (prior) {
+          Object.assign(deal, prior);
+        } else {
+          this.deals.delete(deal.id);
+        }
+      },
+    });
   }
 
   public advanceStage(dealId: string, nextStage: SalesStage): SalesDeal {
     const deal = this.getDealOrThrow(dealId);
+    const prior = { ...deal };
     deal.stage = nextStage;
     deal.updatedAt = new Date();
+    this.stageDeal(deal, prior);
     return deal;
   }
 
@@ -101,12 +141,14 @@ export class QuoteToCashSalesEngine {
       throw new Error("[QTC-AUTH-01] Dual control violation: Sales Lead and Finance Approver must be distinct individuals.");
     }
 
+    const prior = { ...deal };
     deal.salesLeadApprovedAt = new Date();
     deal.financeApproverId = params.financeApproverId;
     deal.financeApprovedAt = new Date();
     deal.stage = "CONTRACT_SIGNED";
     deal.updatedAt = new Date();
 
+    this.stageDeal(deal, prior);
     return deal;
   }
 
@@ -116,12 +158,14 @@ export class QuoteToCashSalesEngine {
       throw new Error(`[QTC-DEP-01] Cannot record deposit in state '${deal.stage}'. Contract must be signed.`);
     }
 
+    const prior = { ...deal };
     deal.depositAmountNgn = depositAmountNgn;
     deal.cashCollectedAmountNgn += depositAmountNgn;
     deal.depositPaidAt = new Date();
     deal.stage = "DEPOSIT_RECEIVED";
     deal.updatedAt = new Date();
 
+    this.stageDeal(deal, prior);
     return deal;
   }
 
@@ -135,12 +179,14 @@ export class QuoteToCashSalesEngine {
       throw new Error("[QTC-INV-01] Invoicing requires verified proof-of-performance documentation.");
     }
 
+    const prior = { ...deal };
     deal.proofOfPerformanceVerified = true;
     deal.proofDocumentUrl = proofDocumentUrl;
     deal.invoicedAmountNgn += invoiceAmountNgn;
     deal.stage = "INVOICED";
     deal.updatedAt = new Date();
 
+    this.stageDeal(deal, prior);
     return deal;
   }
 
@@ -160,11 +206,13 @@ export class QuoteToCashSalesEngine {
       throw new Error("[QTC-CASH-01] Cash payment amount must be greater than zero.");
     }
     const deal = this.getDealOrThrow(dealId);
+    const prior = { ...deal };
     deal.cashCollectedAmountNgn += amountNgn;
     deal.stage = "CASH_COLLECTED";
 
     this.recalculateRecognizedRevenue(deal);
     deal.updatedAt = new Date();
+    this.stageDeal(deal, prior);
     return deal;
   }
 
@@ -206,16 +254,27 @@ export class QuoteToCashSalesEngine {
         `[QTC-REC-03] Recognition of ${amountNgn} exceeds the remaining contract value headroom (${Math.max(headroom, 0)}). Consolidated revenue must not be inflated beyond the contract (Canonical Law 7).`
       );
     }
+    const prior = { ...deal };
     deal.recognizedRevenueNgn += amountNgn;
     if (deal.recognizedRevenueNgn >= deal.totalContractValueNgn) {
       deal.stage = "REVENUE_RECOGNIZED";
     }
     deal.updatedAt = new Date();
+    this.stageDeal(deal, prior);
     return deal;
   }
 
   public getDeal(id: string): SalesDeal | undefined {
     return this.deals.get(id);
+  }
+
+  /**
+   * Boot hydration (TSK-60 box 3): adopt the durable portfolio. The desk holds
+   * this instance, so hydration replaces the whole index rather than merging —
+   * a deal the database does not have is a deal that was never written.
+   */
+  public hydrate(deals: SalesDeal[]): void {
+    this.deals = new Map(deals.map((deal) => [deal.id, deal]));
   }
 
   /**
@@ -234,4 +293,16 @@ export class QuoteToCashSalesEngine {
     }
     return deal;
   }
+}
+
+/**
+ * Boot hydration (TSK-60 box 3) for the engine the server actually serves with:
+ * the counterparty portal reads `context.salesEngine`, so the durable rows load
+ * into that instance. Returns the count so the boot log states what was
+ * recovered instead of implying a portfolio exists.
+ */
+export async function hydrateSalesEngine(engine: QuoteToCashSalesEngine): Promise<{ deals: number }> {
+  const deals = await loadSalesDeals();
+  engine.hydrate(deals);
+  return { deals: deals.length };
 }

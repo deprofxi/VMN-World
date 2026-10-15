@@ -170,7 +170,7 @@ export class CommercialProposalStore {
  */
 export function renderProposalBuilderHtml(
   proposalOrStore: CommercialProposalStore | CommercialProposal | undefined,
-  user?: SessionUser
+  _user?: SessionUser
 ): string {
   if (!isFeatureEnabled("FF_COMMERCIAL_PROPOSAL_BUILDER")) {
     return renderFeatureDisabledNotice(
@@ -183,27 +183,27 @@ export function renderProposalBuilderHtml(
   const proposal = resolveRendererInput(proposalOrStore);
 
   return `
-    <div style="max-width: 1080px; margin: 32px auto; padding: 0 16px;">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+ <div class="s-pDOVXGiU2L">
+ <div class="s-k5NLeWec9i">
         <div>
-          <span class="vmn-badge badge-info" style="margin-bottom: 8px; font-weight: 700;">SALES PIPELINE &bull; UX-COM-006</span>
-          <h1 style="font-size: var(--vmn-font-size-2xl); font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 4px 0;">
+ <span class="vmn-badge badge-info s-Dnmmv3HPR8" >SALES PIPELINE &bull; UX-COM-006</span>
+ <h1 class="s-EnfZSIVIG1">
             Commercial Proposal Builder
           </h1>
           ${
             proposal
-              ? `<p style="color: var(--vmn-color-secondary-text); margin: 0; font-size: 0.95rem;">
+ ? `<p class="s-zrikAgYqXF">
             Proposal Ref: <code>${escapeHtml(proposal.id)}</code> &bull; Client: <strong>${escapeHtml(proposal.clientName)}</strong> &bull; Canonical deal: <code>${escapeHtml(proposal.dealId)}</code>
           </p>`
-              : `<p style="color: var(--vmn-color-secondary-text); margin: 0; font-size: 0.95rem;">
+ : `<p class="s-zrikAgYqXF">
             No commercial proposals exist in the canonical store yet. Create one via <code>POST /api/v1/commercial/proposals</code> — this surface renders canonical records only and never invents rows.
           </p>`
           }
         </div>
         ${
           proposal
-            ? `<div style="display: flex; gap: 10px;">
-          <a href="/workspace/commercial/proposals/${escapeHtml(proposal.id)}/quote" class="btn btn-primary" style="min-height: 44px; display: inline-flex; align-items: center; gap: 6px;">
+ ? `<div class="s-1ffWzM6Quc">
+ <a href="/workspace/commercial/proposals/${escapeHtml(proposal.id)}/quote" class="btn btn-primary s-oskDBiEZSv" >
             ${renderIcon("document", { size: 16 })} Preview Quote &rarr;
           </a>
         </div>`
@@ -213,45 +213,45 @@ export function renderProposalBuilderHtml(
       ${
         proposal
           ? `
-      <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); padding: 24px; margin-bottom: 24px;">
-        <h2 style="font-size: 1.1rem; font-weight: 700; color: var(--vmn-color-primary-text); margin: 0 0 16px 0;">
+ <div class="vmn-card s-58Wdku8jfj" >
+ <h2 class="s-GQWXb2_MRq">
           Campaign Flight Parameters
         </h2>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
+ <div class="s-_kPDsWlOkW">
           <div>
-            <div style="font-size: 0.75rem; color: var(--vmn-color-text-muted); text-transform: uppercase; font-weight: 700;">Campaign Title</div>
-            <div style="font-weight: 600; color: var(--vmn-color-primary-text);">${escapeHtml(proposal.campaignTitle)}</div>
+ <div class="s-Nb3w08KQ-O">Campaign Title</div>
+ <div class="s-RvEwnh2gYk">${escapeHtml(proposal.campaignTitle)}</div>
           </div>
           <div>
-            <div style="font-size: 0.75rem; color: var(--vmn-color-text-muted); text-transform: uppercase; font-weight: 700;">Flight Period</div>
-            <div style="font-weight: 600; color: var(--vmn-color-primary-text);">${escapeHtml(proposal.flightStart)} &rarr; ${escapeHtml(proposal.flightEnd)}</div>
+ <div class="s-Nb3w08KQ-O">Flight Period</div>
+ <div class="s-RvEwnh2gYk">${escapeHtml(proposal.flightStart)} &rarr; ${escapeHtml(proposal.flightEnd)}</div>
           </div>
           <div>
-            <div style="font-size: 0.75rem; color: var(--vmn-color-text-muted); text-transform: uppercase; font-weight: 700;">Account Executive</div>
-            <div style="font-weight: 600; color: var(--vmn-color-primary-text);">${escapeHtml(proposal.accountExec)}</div>
+ <div class="s-Nb3w08KQ-O">Account Executive</div>
+ <div class="s-RvEwnh2gYk">${escapeHtml(proposal.accountExec)}</div>
           </div>
           <div>
-            <div style="font-size: 0.75rem; color: var(--vmn-color-text-muted); text-transform: uppercase; font-weight: 700;">Lifecycle State</div>
+ <div class="s-Nb3w08KQ-O">Lifecycle State</div>
             <div><span class="vmn-badge ${proposal.status === "ACCEPTED" ? "badge-ready" : "badge-warning"}">${escapeHtml(proposal.status)}</span></div>
           </div>
         </div>
       </div>
 
       <!-- Inventory Spot Package Table -->
-      <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); overflow: hidden; margin-bottom: 24px;">
-        <div style="padding: 16px 20px; border-bottom: 1px solid var(--vmn-color-border); background: var(--vmn-color-background); display: flex; justify-content: space-between; align-items: center;">
-          <span style="font-weight: 700; color: var(--vmn-color-primary-text);">Spot Placement Packages &amp; Volume Incentives</span>
+ <div class="vmn-card s-wcVsfAg15v" >
+ <div class="s-dLeS_DPTdT">
+ <span class="s-v9ujfxeGxB">Spot Placement Packages &amp; Volume Incentives</span>
           <span class="vmn-badge badge-success">${proposal.items.length} Package Items</span>
         </div>
-        <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
+ <table class="s-StXB6StjnQ">
           <thead>
-            <tr style="border-bottom: 2px solid var(--vmn-color-border); text-align: left;">
-              <th style="padding: 12px 16px; font-weight: 700;">Inventory Item &amp; Daypart</th>
-              <th style="padding: 12px 16px; font-weight: 700;">Channel</th>
-              <th style="padding: 12px 16px; font-weight: 700; text-align: center;">Units</th>
-              <th style="padding: 12px 16px; font-weight: 700; text-align: right;">Rate Card</th>
-              <th style="padding: 12px 16px; font-weight: 700; text-align: center;">Volume Disc.</th>
-              <th style="padding: 12px 16px; font-weight: 700; text-align: right;">Net Subtotal</th>
+ <tr class="s-A_Iz40xZtX">
+ <th class="s-MKAnYaImTh">Inventory Item &amp; Daypart</th>
+ <th class="s-MKAnYaImTh">Channel</th>
+ <th class="s-oMc7U7Ha0O">Units</th>
+ <th class="s-PlZob6utH8">Rate Card</th>
+ <th class="s-oMc7U7Ha0O">Volume Disc.</th>
+ <th class="s-PlZob6utH8">Net Subtotal</th>
             </tr>
           </thead>
           <tbody>
@@ -259,16 +259,16 @@ export function renderProposalBuilderHtml(
               .map((it) => {
                 const itemNet = it.units * it.ratePerUnitNgn * (1 - it.discountPercent / 100);
                 return `
-              <tr style="border-bottom: 1px solid var(--vmn-color-border);">
-                <td style="padding: 12px 16px;">
-                  <div style="font-weight: 700; color: var(--vmn-color-primary-text);">${escapeHtml(it.name)}</div>
-                  <div style="font-size: 0.75rem; color: var(--vmn-color-text-muted);">${escapeHtml(it.daypart)}</div>
+ <tr class="s-EK6K8Vq5tY">
+ <td class="s-te3BDKRRsJ">
+ <div class="s-v9ujfxeGxB">${escapeHtml(it.name)}</div>
+ <div class="s-OdlmY1tzrc">${escapeHtml(it.daypart)}</div>
                 </td>
-                <td style="padding: 12px 16px; color: var(--vmn-color-secondary-text);">${escapeHtml(it.channel)}</td>
-                <td style="padding: 12px 16px; text-align: center; font-weight: 700;">${it.units}</td>
-                <td style="padding: 12px 16px; text-align: right; color: var(--vmn-color-secondary-text);">&#8358;${it.ratePerUnitNgn.toLocaleString()}</td>
-                <td style="padding: 12px 16px; text-align: center;"><span class="vmn-badge badge-info">-${it.discountPercent}%</span></td>
-                <td style="padding: 12px 16px; text-align: right; font-weight: 800; color: var(--vmn-color-primary-text);">&#8358;${Math.round(itemNet).toLocaleString()}</td>
+ <td class="s-_QxDliOZ47">${escapeHtml(it.channel)}</td>
+ <td class="s-V08YmU-HsM">${it.units}</td>
+ <td class="s-W_dnHLVmdE">&#8358;${it.ratePerUnitNgn.toLocaleString()}</td>
+ <td class="s-LFVsd3Qfe0"><span class="vmn-badge badge-info">-${it.discountPercent}%</span></td>
+ <td class="s-8r9s_0NSbH">&#8358;${Math.round(itemNet).toLocaleString()}</td>
               </tr>
             `;
               })
@@ -278,17 +278,17 @@ export function renderProposalBuilderHtml(
       </div>
 
       <!-- Financial Totals Summary Card -->
-      <div style="display: flex; justify-content: flex-end;">
-        <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); padding: 24px; width: 100%; max-width: 440px;">
-          <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; color: var(--vmn-color-secondary-text);">
+ <div class="s--PW0UlQXH-">
+ <div class="vmn-card s-hVjsKwradD" >
+ <div class="s-puEqlkbKzT">
             <span>Gross Rate Card Total:</span>
             <span>&#8358;${computeProposalTotals(proposal.items).grossTotal.toLocaleString()}</span>
           </div>
-          <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.9rem; color: #059669; font-weight: 600;">
+ <div class="s-7QIZhf2_08">
             <span>Volume Incentive Savings:</span>
             <span>-&#8358;${computeProposalTotals(proposal.items).totalSavings.toLocaleString()}</span>
           </div>
-          <div style="display: flex; justify-content: space-between; border-top: 2px solid var(--vmn-color-border); padding-top: 12px; font-size: 1.25rem; font-weight: 800; color: var(--vmn-color-primary-text);">
+ <div class="s-bPo7Difu_U">
             <span>Net Contract Value:</span>
             <span>&#8358;${computeProposalTotals(proposal.items).netTotal.toLocaleString()}</span>
           </div>
@@ -322,13 +322,13 @@ export function renderQuoteReviewHtml(
 
   if (!proposal) {
     return `
-    <div style="max-width: 960px; margin: 32px auto; padding: 0 16px;">
-      <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); padding: 32px;">
-        <span class="vmn-badge badge-warning" style="margin-bottom: 8px; font-weight: 700;">BINDING MEDIA QUOTE &bull; UX-COM-007</span>
-        <h1 style="font-size: var(--vmn-font-size-2xl); font-weight: 800; color: var(--vmn-color-primary-text); margin: 8px 0 12px 0;">
+ <div class="s-k3X1RRTyyB">
+ <div class="vmn-card s-UfkZM9inhs" >
+ <span class="vmn-badge badge-warning s-Dnmmv3HPR8" >BINDING MEDIA QUOTE &bull; UX-COM-007</span>
+ <h1 class="s-x9iw23zc1_">
           Broadcasting Quotation &amp; Term Sheet
         </h1>
-        <p style="color: var(--vmn-color-secondary-text); margin: 0;">
+ <p class="s-74eGsJhV6B">
           No quote is available: the requested proposal does not exist in the canonical store. Quotes are issued only from created proposals linked to a Quote-to-Cash deal.
         </p>
       </div>
@@ -339,15 +339,15 @@ export function renderQuoteReviewHtml(
   const accepted = proposal.status === "ACCEPTED";
 
   return `
-    <div style="max-width: 960px; margin: 32px auto; padding: 0 16px;">
+ <div class="s-k3X1RRTyyB">
       ${
         successNotice
           ? `
-        <div class="vmn-alert" style="background: #ECFDF5; border: 1px solid #10B981; border-radius: var(--vmn-radius-md); padding: 16px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px;">
-          <div style="color: #059669;">${renderIcon("check", { size: 24 })}</div>
+ <div class="vmn-alert s-NKbeyCer0q" >
+ <div class="s-Fq1eaiclek">${renderIcon("check", { size: 24 })}</div>
           <div>
-            <div style="font-weight: 700; color: #065F46;">Quote Accepted &amp; Contract Signed</div>
-            <div style="font-size: 0.85rem; color: #047857;">${escapeHtml(successNotice)}</div>
+ <div class="s-4jLxKmoprh">Quote Accepted &amp; Contract Signed</div>
+ <div class="s-huAjaSyPZk">${escapeHtml(successNotice)}</div>
           </div>
         </div>
       `
@@ -356,53 +356,53 @@ export function renderQuoteReviewHtml(
       ${
         errorMessage
           ? `
-        <div class="vmn-alert" role="alert" style="background: #FEF2F2; border: 1px solid #DC2626; border-radius: var(--vmn-radius-md); padding: 16px; margin-bottom: 24px;">
-          <div style="font-weight: 700; color: #991B1B;">Acceptance not completed</div>
-          <div style="font-size: 0.85rem; color: #B91C1C;">${escapeHtml(errorMessage)}</div>
+ <div class="vmn-alert s-6zhA7w7xb4" role="alert" >
+ <div class="s-Hr-29x9Riz">Acceptance not completed</div>
+ <div class="s-fBvDcjQpto">${escapeHtml(errorMessage)}</div>
         </div>
       `
           : ""
       }
 
-      <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); padding: 32px; box-shadow: var(--vmn-shadow-md);">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid var(--vmn-color-border); padding-bottom: 20px; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+ <div class="vmn-card s-sQ4H2l8IG7" >
+ <div class="s-xCgVe5R7-o">
           <div>
-            <span class="vmn-badge badge-warning" style="margin-bottom: 8px; font-weight: 700;">BINDING MEDIA QUOTE &bull; UX-COM-007</span>
-            <h1 style="font-size: var(--vmn-font-size-2xl); font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 6px 0;">
+ <span class="vmn-badge badge-warning s-Dnmmv3HPR8" >BINDING MEDIA QUOTE &bull; UX-COM-007</span>
+ <h1 class="s-n_bp1PhViu">
               Broadcasting Quotation &amp; Term Sheet
             </h1>
-            <div style="font-size: 0.9rem; color: var(--vmn-color-secondary-text);">
+ <div class="s-4s4trEJKoc">
               Client: <strong>${escapeHtml(proposal.clientName)}</strong> &bull; Campaign: <strong>${escapeHtml(proposal.campaignTitle)}</strong> &bull; Canonical deal: <code>${escapeHtml(proposal.dealId)}</code>
             </div>
           </div>
-          <div style="text-align: right;">
-            <div style="font-size: 0.75rem; color: var(--vmn-color-text-muted); text-transform: uppercase; font-weight: 700;">Total Investment</div>
-            <div style="font-size: 1.75rem; font-weight: 800; color: var(--vmn-color-primary-text);">&#8358;${netTotal.toLocaleString()}</div>
-            <div style="font-size: 0.8rem; color: var(--vmn-color-text-muted);">Exclusive of 7.5% VAT</div>
+ <div class="s-E8vgO5r8HT">
+ <div class="s-Nb3w08KQ-O">Total Investment</div>
+ <div class="s-Bd0-zgvy61">&#8358;${netTotal.toLocaleString()}</div>
+ <div class="s-Zda0APXQzv">Exclusive of 7.5% VAT</div>
           </div>
         </div>
 
-        <div style="margin-bottom: 28px;">
-          <h2 style="font-size: 1.1rem; font-weight: 700; color: var(--vmn-color-primary-text); margin-bottom: 12px;">
+ <div class="s-PkP2-D_KTq">
+ <h2 class="s-whGI4FvLGc">
             Executive Summary &amp; Carriage Terms
           </h2>
-          <p style="color: var(--vmn-color-secondary-text); font-size: 0.95rem; line-height: 1.6; margin: 0 0 12px 0;">
+ <p class="s-9lzrNLZoT4">
             Virtual Media Network Limited guarantees scheduled playout across the StarTimes DTT/DTH satellite transponder footprint in accordance with the NBC 7th Edition Broadcast Code. Proof-of-Air certificates with frame-accurate as-run logs will be released within 24 hours of flight.
           </p>
-          <p style="color: var(--vmn-color-secondary-text); font-size: 0.85rem; line-height: 1.6; margin: 0;">
+ <p class="s-EC84oGvvhB">
             Acceptance executes the governed quote-to-contract handoff on the canonical sales deal (stage ${escapeHtml(proposal.status === "ACCEPTED" ? "CONTRACT_SIGNED" : "PROPOSAL")}): sales-lead and finance dual authorisation is recorded before the contract is binding.
           </p>
         </div>
 
         ${
           accepted
-            ? `<div class="vmn-alert" style="background: #ECFDF5; border: 1px solid #10B981; border-radius: var(--vmn-radius-md); padding: 16px;">
-          <div style="font-weight: 700; color: #065F46;">This quote was accepted${proposal.acceptedAt ? ` on ${escapeHtml(proposal.acceptedAt.toISOString().substring(0, 10))}` : ""}${proposal.acceptedBy ? ` by ${escapeHtml(proposal.acceptedBy)}` : ""}. The canonical contract is signed; no further acceptance is possible.</div>
+ ? `<div class="vmn-alert s-PKduv4p2I5" >
+ <div class="s-4jLxKmoprh">This quote was accepted${proposal.acceptedAt ? ` on ${escapeHtml(proposal.acceptedAt.toISOString().substring(0, 10))}` : ""}${proposal.acceptedBy ? ` by ${escapeHtml(proposal.acceptedBy)}` : ""}. The canonical contract is signed; no further acceptance is possible.</div>
         </div>`
-            : `<form method="POST" action="/api/v1/commercial/quotes/${escapeHtml(proposal.id)}/accept" style="border-top: 1px solid var(--vmn-color-border); padding-top: 24px;">
-          <div class="vmn-form-field" style="margin-bottom: 20px;">
-            <label for="sign-name" class="vmn-label" style="font-weight: 600; display: block; margin-bottom: 6px;">
-              Authorised Signatory Full Legal Name <span style="color: #DC2626;" aria-hidden="true">*</span>
+ : `<form method="POST" action="/api/v1/commercial/quotes/${escapeHtml(proposal.id)}/accept" class="s-ybLJvGp_-m">
+ <div class="vmn-form-field s-t1-tAAl8Ne" >
+ <label for="sign-name" class="vmn-label s-d6tlFZezBi" >
+ Authorised Signatory Full Legal Name <span class="s-4oFCuHkv7e" aria-hidden="true">*</span>
             </label>
             <input
               id="sign-name"
@@ -411,22 +411,22 @@ export function renderQuoteReviewHtml(
               required
               placeholder="e.g. Group Commercial Director"
               class="vmn-input"
-              style="width: 100%; height: 44px; padding: 0 12px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md);"
+ class="s-npZXKSAIoi"
             />
           </div>
 
-          <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; margin-bottom: 24px;">
-            <input type="checkbox" name="termsConfirmed" required style="margin-top: 4px;" />
-            <span style="font-size: 0.875rem; color: var(--vmn-color-primary-text); line-height: 1.4;">
+ <label class="s-F0WRsenTRl">
+ <input type="checkbox" name="termsConfirmed" required class="s-xxNz4ecjPo" />
+ <span class="s-pooHE0Pomj">
               I formally confirm acceptance of the spot placement schedule, rate card discounts, and standard commercial advertising agreement terms.
             </span>
           </label>
 
-          <div style="display: flex; gap: 12px;">
-            <button type="submit" class="btn btn-primary" style="min-height: 48px; padding: 0 28px; font-weight: 700; cursor: pointer;">
+ <div class="s-1jFqfgs1FA">
+ <button type="submit" class="btn btn-primary s-jK_oHpQVeg" >
               ${renderIcon("check", { size: 16 })} Digitally Accept Quote &amp; Generate Contract
             </button>
-            <a href="/workspace/commercial/proposals/${escapeHtml(proposal.id)}/builder" class="btn btn-secondary" style="min-height: 48px; padding: 0 20px; display: inline-flex; align-items: center;">
+ <a href="/workspace/commercial/proposals/${escapeHtml(proposal.id)}/builder" class="btn btn-secondary s-rQ5Hnx2FIg" >
               Modify Proposal
             </a>
           </div>

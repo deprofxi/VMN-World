@@ -7,6 +7,7 @@ export * from "./traffic/index.js";
 export * from "./playout/index.js";
 export * from "./carriage/index.js";
 export * from "./asrun/index.js";
+export * from "./asrun/exceptions.js";
 export * from "./screens/index.js";
 export * from "./billing/index.js";
 export * from "./sponsorship/index.js";

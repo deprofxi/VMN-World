@@ -2,11 +2,11 @@
  * Broadcast Executive Dashboard (Screen 1: SCR-BCST-01) & Web Surface Layout
  * Authority: VMNL-AZP-VMN-BRD-PRD-001 — R1.2A §46 / VMNL-AZP-VMN-CCPP-001 §8
  *
- * Adheres strictly to UI/UX Standards:
+ * Intended presentation standards (not a conformance certification):
  * - 4px / 8px spacing token scale
- * - WCAG 2.2 Level AA color contrast ratios (>= 4.5:1 text, >= 3:1 graphical)
+ * - Accessibility-minded presentation; full WCAG 2.2 AA conformance is not verified here
  * - Touch targets >= 44x44px
- * - Complete interactive state matrix
+ * - Interactive states are implemented where applicable; completeness requires review
  * - Accessible semantic HTML structure
  */
 
@@ -15,8 +15,17 @@ import { BROADCAST_SCREEN_INVENTORY } from "../../modules/broadcast/screens/inde
 import { PUBLIC_CHANNELS } from "./channels.js";
 import { VMN_ENTERPRISE_PILLARS, VMN_LEADERSHIP, CorporatePortalService } from "./corporate.js";
 import { HUB_SHOWCASES } from "./hub.js";
-import { getConfig } from "../../core/config/index.js";
 import { escapeHtml, renderIcon } from "../components/index.js";
+import { PUBLIC_INDEXABLE_PATHS } from "./public-route-registry.js";
+
+export function serializeJsonLd(value: unknown): string {
+  return JSON.stringify(value)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026")
+    .replace(/\u2028/g, "\\u2028")
+    .replace(/\u2029/g, "\\u2029");
+}
 
 import { SessionUser } from "../../core/auth/index.js";
 
@@ -26,6 +35,7 @@ export interface MasterLayoutOptions {
   counterpartyName?: string;
   projectName?: string;
   sessionUser?: SessionUser | null;
+  description?: string;
 }
 
 export function renderMasterLayout(
@@ -39,7 +49,10 @@ export function renderMasterLayout(
   // SEO registry so public surfaces carry complete social/crawler metadata.
   const safeTitle = escapeHtml(title);
   const seo = CorporatePortalService.getSeoMetadata();
-  const canonicalUrl = activeNav === "/" ? seo.canonicalUrl : `${seo.canonicalUrl.replace(/\/+$/, "")}${activeNav}`;
+  const canonicalPath = activeNav.split("?")[0] || "/";
+  const canonicalUrl = PUBLIC_INDEXABLE_PATHS.has(canonicalPath)
+    ? `${seo.canonicalUrl.replace(/\/+$/, "")}${canonicalPath === "/" ? "" : canonicalPath}`
+    : undefined;
   const ogTags = Object.entries(seo.openGraph)
     .map(([property, content]) => `<meta property="${escapeHtml(property)}" content="${escapeHtml(content)}">`)
     .join("\n  ");
@@ -64,7 +77,7 @@ export function renderMasterLayout(
 
   if (effectiveShell === "identity") {
     shellContent = `
-      <div class="vmn-shell-identity" style="min-height: 70vh; padding: 20px 0;">
+ <div class="vmn-shell-identity s-6zHWoHowdm" >
         ${bodyContent}
       </div>
     `;
@@ -88,10 +101,10 @@ export function renderMasterLayout(
           <a href="/prototypes?screen=work" class="vmn-work-rail-link ${activeNav.startsWith("/prototypes") ? "active" : ""}">
             <span>R1.1 Prototypes</span>
           </a>
-          <div class="vmn-work-rail-title" style="margin-top: 14px;">Operator Context</div>
-          <div style="padding: 6px 12px; font-size: 0.8rem; color: var(--vmn-color-text-muted);">
+ <div class="vmn-work-rail-title s-smrs69HMBJ" >Operator Context</div>
+ <div class="s-yaQ1Wd-ncP">
             <strong>Role:</strong> ${escapeHtml(options?.operatorRole || "Broadcast Operations")}<br>
-            <span style="font-size: 0.75rem;">Gate: Locked (Green)</span>
+ <span class="s-orRLFYu8o-">Gate: Locked (Green)</span>
           </div>
         </aside>
         <div class="vmn-work-main">
@@ -104,15 +117,15 @@ export function renderMasterLayout(
       <div class="vmn-shell-portal">
         <div class="vmn-portal-banner">
           <div>
-            <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--vmn-color-text-muted); font-weight: 700;">
+ <div class="s-RXQtu1lQIZ">
               Counterparty Portal
             </div>
             <div class="vmn-portal-counterparty">${escapeHtml(options?.counterpartyName || "Authorized Counterparty")}</div>
-            ${options?.projectName ? `<div style="font-size: 0.85rem; color: var(--vmn-color-text-muted); margin-top: 2px;">Project Ref: <strong>${escapeHtml(options.projectName)}</strong></div>` : ""}
+ ${options?.projectName ? `<div class="s-fClvy0XunL">Project Ref: <strong>${escapeHtml(options.projectName)}</strong></div>` : ""}
           </div>
-          <div style="display: flex; gap: 8px; align-items: center;">
+ <div class="s-66kjxA-b-z">
             <span class="vmn-badge badge-ready">Authenticated &amp; Verified</span>
-            <a href="/prototypes?screen=client" class="btn btn-outline" style="min-height: 40px; font-size: 0.85rem;">Delivery Proof</a>
+ <a href="/prototypes?screen=client" class="btn btn-outline s-jv_H3_hWre" >Delivery Proof</a>
           </div>
         </div>
         ${bodyContent}
@@ -126,20 +139,78 @@ export function renderMasterLayout(
     `;
   }
 
+  // Dynamic structured data (AUD-29 / BreadcrumbList & Course)
+  const structuredDataList: object[] = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      name: "Virtual Media Network Limited",
+      url: seo.canonicalUrl,
+      logo: `${seo.canonicalUrl}/favicon.ico`,
+      description: seo.description,
+    },
+  ];
+
+  if (canonicalUrl && activeNav !== "/" && !activeNav.startsWith("/api")) {
+    const segments = activeNav.split("/").filter(Boolean);
+    const itemListElement = [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: seo.canonicalUrl,
+      },
+    ];
+    let currentPath = "";
+    segments.forEach((seg, index) => {
+      currentPath += `/${seg}`;
+      itemListElement.push({
+        "@type": "ListItem",
+        position: index + 2,
+        name: seg.charAt(0).toUpperCase() + seg.slice(1).replace(/-/g, " "),
+        item: `${seo.canonicalUrl.replace(/\/+$/, "")}${currentPath}`,
+      });
+    });
+    structuredDataList.push({
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement,
+    });
+  }
+
+  if (activeNav.includes("afca") || activeNav.includes("course") || activeNav.includes("academy")) {
+    structuredDataList.push({
+      "@context": "https://schema.org",
+      "@type": "Course",
+      name: safeTitle,
+      description: options?.description || "AFCA Creative Academy Professional Broadcast & Film Curriculum",
+      provider: {
+        "@type": "Organization",
+        name: "AFCA Creative Academy",
+        sameAs: seo.canonicalUrl,
+      },
+    });
+  }
+
+  const jsonLdScripts = structuredDataList
+    .map((item) => `<script type="application/ld+json">${serializeJsonLd(item)}</script>`)
+    .join("\n  ");
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${safeTitle} | Virtual Media Network Limited</title>
-  <meta name="description" content="Virtual Media Network Limited (VMNL) - Linear TV Broadcasting, Creative Economy Hub, and Azeebo+ Federation.">
-  <link rel="canonical" href="${escapeHtml(canonicalUrl)}">
+  <meta name="description" content="${options?.description ? escapeHtml(options.description) : `${safeTitle} — Virtual Media Network Limited (VMNL), linear channel profiles, creative economy hub, and federated media ecosystem.`}">
+  ${canonicalUrl ? `<link rel="canonical" href="${escapeHtml(canonicalUrl)}">` : '<meta name="robots" content="noindex, nofollow">'}
   ${ogTags}
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="${safeTitle} | VMNL">
   <meta name="twitter:image" content="${escapeHtml(seo.openGraph["og:image"] || "")}">
   <link rel="icon" href="/favicon.ico" type="image/x-icon">
   <link rel="stylesheet" href="/assets/styles.css">
+  ${jsonLdScripts}
 </head>
 <body>
   <a href="#main-content" class="skip-to-content">Skip to content</a>
@@ -159,7 +230,7 @@ export function renderMasterLayout(
       <a href="/docs" class="${activeNav.startsWith("/docs") ? "active" : ""}">API Docs</a>
       <a href="/styleguide" class="${activeNav.startsWith("/styleguide") ? "active" : ""}">Styleguide</a>
     </nav>
-    <div class="vmn-header-controls" style="display: flex; align-items: center; gap: 8px; margin-left: auto; flex-wrap: wrap;">
+ <div class="vmn-header-controls s-ptjc12saB7" >
       <!-- Upgrade 5: Interactive Persona Role Switcher -->
       <select id="vmn-persona-switcher" class="vmn-persona-select" aria-label="Simulate Persona Role" title="Simulate Persona Role">
         <option value="visitor" ${selectedPersona === "visitor" ? "selected" : ""}>Role: Visitor</option>
@@ -182,51 +253,40 @@ export function renderMasterLayout(
         <span class="vmn-theme-sun" aria-hidden="true">${renderIcon("sun", { size: 18 })}</span>
       </button>
 
-      <div class="vmn-auth-nav" style="display: flex; align-items: center; gap: 8px;">
+ <div class="vmn-auth-nav s-MIjaETFWG6" >
         ${options?.sessionUser ? `
-          <a href="/select-workspace" class="vmn-user-badge" title="Active Account: ${escapeHtml(options.sessionUser.email)}" style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 9999px; background: var(--vmn-color-surface-subtle); border: 1px solid var(--vmn-color-border); font-size: 0.8rem; color: var(--vmn-color-primary-text); text-decoration: none;">
-            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10B981;" aria-hidden="true"></span>
+ <a href="/select-workspace" class="vmn-user-badge s-l1BkvSuQ0r" title="Active Account: ${escapeHtml(options.sessionUser.email)}" >
+ <span class="s-pwaogUn48s" aria-hidden="true"></span>
             <span>${escapeHtml(options.sessionUser.email.split("@")[0])}</span>
-            <span class="vmn-badge badge-info" style="font-size: 0.65rem; padding: 2px 6px;">${escapeHtml(options.sessionUser.roles[0] || "Operator")}</span>
+ <span class="vmn-badge badge-info s-JGXixDqttN" >${escapeHtml(options.sessionUser.roles[0] || "Operator")}</span>
           </a>
-          <a href="/select-workspace" class="btn btn-outline" style="min-height: 44px; padding: 0 12px; font-size: 0.8rem; text-decoration: none; display: inline-flex; align-items: center;">Switch</a>
-          <a href="/sign-out" class="btn btn-secondary" style="min-height: 44px; padding: 0 12px; font-size: 0.8rem; text-decoration: none; display: inline-flex; align-items: center;">Sign Out</a>
+ <a href="/select-workspace" class="btn btn-outline s-7FzfRckINI" >Switch</a>
+ <form method="GET" action="/sign-out" class="s-OZBX34IsZp">
+ <button class="btn btn-secondary" type="submit" >Sign Out</button>
+          </form>
         ` : `
-          <a href="/sign-in" class="btn btn-primary" style="min-height: 44px; padding: 0 16px; font-size: 0.85rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+ <a href="/sign-in" class="btn btn-primary s-oeOZ4DWkWB" >
             Sign In
           </a>
         `}
       </div>
 
       <!-- Upgrade 3: Mobile Hamburger Button -->
-      <button id="vmn-mobile-menu-btn" class="vmn-hamburger-btn" type="button" aria-label="Open Navigation Drawer" title="Open Navigation Menu">
+      <button id="vmn-mobile-menu-btn" class="vmn-hamburger-btn" type="button" aria-label="Open Navigation Drawer" aria-controls="vmn-mobile-drawer" aria-expanded="false" title="Open Navigation Menu">
         ${renderIcon("menu", { size: 22 })}
       </button>
     </div>
-  </header>
+  </header>    <!-- Broadcast carriage and playout are unavailable without verified sources -->
 
-  <!-- Upgrade 4: Live Broadcast Playout Status Ticker & Health Bar -->
-  <div class="vmn-playout-ticker" role="region" aria-label="Live Linear Broadcast Playout Ticker">
+  <div class="vmn-playout-ticker" role="region" aria-label="Broadcast Status Notice">
     <div class="vmn-ticker-channels">
-      <span class="vmn-ticker-pill">
-        <span class="vmn-ticker-dot" aria-hidden="true"></span>
-        <span>Nigezie Xtreme</span>
-        <span class="vmn-ticker-tech">CH 428 DTT · 1080i50 · ON AIR</span>
-      </span>
-      <span class="vmn-ticker-pill">
-        <span class="vmn-ticker-dot" aria-hidden="true"></span>
-        <span>Orisun</span>
-        <span class="vmn-ticker-tech">CH 430 DTT · 1080i50 · ON AIR</span>
-      </span>
-      <span class="vmn-ticker-pill">
-        <span class="vmn-ticker-dot" aria-hidden="true"></span>
-        <span>Isi Mbido</span>
-        <span class="vmn-ticker-tech">CH 432 DTT · 1080i50 · ON AIR</span>
-      </span>
+      <span class="vmn-ticker-pill"><span>Nigezie Xtreme — profile</span></span>
+      <span class="vmn-ticker-pill"><span>Orisun — The Source — profile</span></span>
+      <span class="vmn-ticker-pill"><span>Isi Mbido — The Beginning — profile</span></span>
     </div>
-    <div style="display: flex; align-items: center; gap: 14px;">
-      <span style="font-size: 0.75rem; color: #94A3B8;">Playout Engine: <strong style="color: #22C55E;">Operational (0 Active Alerts)</strong></span>
-      <a href="/broadcast/dashboard" style="color: #A5E8CD; text-decoration: underline; font-size: 0.75rem;">MCR Console</a>
+ <div class="s-uZB0rvzbTa">
+ <span class="s-SsndUGHwNV">Carriage and live playout status: not verified in this environment.</span>
+ <a href="/broadcast/dashboard" class="s-RkrlTxtnr0">MCR Console</a>
     </div>
   </div>
 
@@ -235,21 +295,20 @@ export function renderMasterLayout(
   </main>
 
   <footer class="vmn-footer">
-    <p>&copy; 2026 Virtual Media Network Limited (VMNL). All rights reserved. ${getConfig().COMPANY_RC_NUMBER}.</p>
-    <p style="margin-top: 8px; font-size: 0.75rem;">
-      Operates Nigezie Xtreme, Orisun — The Source, Isi Mbido — The Beginning on StarTimes DTT/DTH | 
-      Engineered to WCAG 2.2 Level AA &amp; NBC Broadcast Code standards | 
-      <a href="/prototypes" style="color: var(--vmn-color-text-muted); text-decoration: underline; margin-right: 8px;">R1.1 Prototypes</a> |
-      <a href="/styleguide" style="color: var(--vmn-color-text-muted); text-decoration: underline; margin-left: 4px;">Design System Styleguide</a>
+    <p>&copy; ${new Date().getUTCFullYear()} Virtual Media Network Limited (VMNL). Company registration reference is not available in this environment.</p>
+ <p class="s-HMPTnqxttI">
+      Carriage, regulatory alignment, and accessibility conformance require independent verification |
+ <a href="/prototypes" class="s-ow5mQx8PkA">R1.1 Prototypes</a> |
+ <a href="/styleguide" class="s-X2rKp2NoRP s-ow5mQx8PkA">Design System Styleguide</a>
     </p>
   </footer>
 
   <!-- Upgrade 3: Mobile Touch Drawer -->
-  <div id="vmn-drawer-backdrop" class="vmn-drawer-backdrop" aria-hidden="true"></div>
-  <aside id="vmn-mobile-drawer" class="vmn-mobile-drawer" role="dialog" aria-modal="true" aria-label="Mobile Navigation Drawer">
+  <div id="vmn-drawer-backdrop" class="vmn-drawer-backdrop" aria-hidden="true" inert></div>
+  <aside id="vmn-mobile-drawer" class="vmn-mobile-drawer" aria-label="Mobile Navigation" aria-hidden="true" inert>
     <div class="vmn-drawer-header">
-      <div style="font-weight: 800; font-size: 1.1rem; color: var(--vmn-color-primary-text);">VMN Navigation</div>
-      <button id="vmn-drawer-close" class="btn btn-outline" style="min-height: 44px; min-width: 44px; padding: 0; display: inline-flex; align-items: center; justify-content: center;" aria-label="Close Navigation Drawer" type="button">
+ <div class="s-I2zXYM0lPc">VMN Navigation</div>
+ <button id="vmn-drawer-close" class="btn btn-outline s-TYZl3AGPJs" aria-label="Close Navigation Drawer" type="button">
         ${renderIcon("x", { size: 20 })}
       </button>
     </div>
@@ -290,8 +349,8 @@ export function renderMasterLayout(
         <span>Styleguide</span>
         ${renderIcon("chevronRight", { size: 16 })}
       </a>
-      <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--vmn-color-border);">
-        <button id="vmn-mobile-cmd-trigger" class="btn btn-outline" style="width: 100%; justify-content: flex-start; gap: 10px;" type="button">
+ <div class="s-6KhtRR-75u">
+ <button id="vmn-mobile-cmd-trigger" class="btn btn-outline s-9jB4MKeVDu" type="button">
           ${renderIcon("search", { size: 16 })}
           <span>Command Palette (Cmd+K)</span>
         </button>
@@ -301,27 +360,27 @@ export function renderMasterLayout(
 
   <!-- Upgrade 3: Sticky Mobile Action Bar -->
   <nav class="vmn-mobile-action-bar" aria-label="Quick Mobile Actions">
-    <a href="/" class="btn btn-outline" style="flex: 1; min-height: 44px; padding: 6px 10px; font-size: 0.8rem; text-decoration: none;">
+ <a href="/" class="btn btn-outline s-HesoKjT-3s" >
       Overview
     </a>
-    <a href="/channels" class="btn btn-outline" style="flex: 1; min-height: 44px; padding: 6px 10px; font-size: 0.8rem; text-decoration: none;">
+ <a href="/channels" class="btn btn-outline s-HesoKjT-3s" >
       Channels
     </a>
-    <a href="/prototypes" class="btn btn-primary" style="flex: 1; min-height: 44px; padding: 6px 10px; font-size: 0.8rem; text-decoration: none;">
+ <a href="/prototypes" class="btn btn-primary s-HesoKjT-3s" >
       Prototypes
     </a>
-    <button id="vmn-mobile-quick-jump" class="btn btn-secondary" style="min-height: 44px; min-width: 44px; padding: 0;" aria-label="Open Quick Jump" type="button">
+ <button id="vmn-mobile-quick-jump" class="btn btn-secondary s-CQl5S4Goep" aria-label="Open Quick Jump" type="button">
       ${renderIcon("command", { size: 18 })}
     </button>
   </nav>
 
   <!-- Upgrade 1: Universal Command Palette (Cmd+K) Modal -->
-  <div id="vmn-cmd-backdrop" class="vmn-cmd-backdrop" role="dialog" aria-modal="true" aria-label="Command Palette">
+  <div id="vmn-cmd-backdrop" class="vmn-cmd-backdrop" aria-hidden="true">
     <div class="vmn-cmd-dialog">
       <div class="vmn-cmd-header">
         ${renderIcon("search", { size: 20 })}
         <input type="text" id="vmn-cmd-input" class="vmn-cmd-input" placeholder="Type a screen, destination, or command..." autocomplete="off" spellcheck="false" aria-label="Search destinations and commands">
-        <button id="vmn-cmd-close" class="btn btn-outline" style="min-height: 44px; min-width: 44px; padding: 0; display: inline-flex; align-items: center; justify-content: center;" aria-label="Close Command Palette" type="button">
+ <button id="vmn-cmd-close" class="btn btn-outline s-TYZl3AGPJs" aria-label="Close Command Palette" type="button">
           ${renderIcon("x", { size: 16 })}
         </button>
       </div>
@@ -335,229 +394,7 @@ export function renderMasterLayout(
     </div>
   </div>
 
-  <script>
-  (function() {
-    // 1. Theme Switcher Engine
-    const themeBtn = document.getElementById("vmn-theme-toggle");
-    const savedTheme = localStorage.getItem("vmn-theme");
-    const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const initialTheme = savedTheme || (prefersDark ? "dark" : "light");
-
-    function applyTheme(theme) {
-      if (theme === "dark") {
-        document.documentElement.setAttribute("data-theme", "dark");
-      } else {
-        document.documentElement.removeAttribute("data-theme");
-      }
-      try { localStorage.setItem("vmn-theme", theme); } catch (e) {}
-    }
-
-    if (initialTheme === "dark") {
-      applyTheme("dark");
-    }
-
-    if (themeBtn) {
-      themeBtn.addEventListener("click", function() {
-        const isDark = document.documentElement.getAttribute("data-theme") === "dark";
-        applyTheme(isDark ? "light" : "dark");
-      });
-    }
-
-    // 2. Mobile Drawer Navigation
-    const mobileMenuBtn = document.getElementById("vmn-mobile-menu-btn");
-    const drawer = document.getElementById("vmn-mobile-drawer");
-    const backdrop = document.getElementById("vmn-drawer-backdrop");
-    const drawerCloseBtn = document.getElementById("vmn-drawer-close");
-
-    function openDrawer() {
-      if (drawer && backdrop) {
-        drawer.classList.add("open");
-        backdrop.classList.add("open");
-      }
-    }
-    function closeDrawer() {
-      if (drawer && backdrop) {
-        drawer.classList.remove("open");
-        backdrop.classList.remove("open");
-      }
-    }
-
-    if (mobileMenuBtn) mobileMenuBtn.addEventListener("click", openDrawer);
-    if (drawerCloseBtn) drawerCloseBtn.addEventListener("click", closeDrawer);
-    if (backdrop) backdrop.addEventListener("click", closeDrawer);
-
-    // 3. Interactive Persona Switcher
-    const personaSwitcher = document.getElementById("vmn-persona-switcher");
-    if (personaSwitcher) {
-      personaSwitcher.addEventListener("change", function(e) {
-        const role = e.target.value;
-        try { localStorage.setItem("vmn-persona", role); } catch (e) {}
-        if (role === "visitor") window.location.href = "/";
-        else if (role === "applicant") window.location.href = "/prototypes?screen=application";
-        else if (role === "talent") window.location.href = "/prototypes?screen=terms";
-        else if (role === "client") window.location.href = "/prototypes?screen=client";
-        else if (role === "operator") window.location.href = "/prototypes?screen=work";
-      });
-    }
-
-    // 4. Universal Command Palette (Cmd+K)
-    const cmdBackdrop = document.getElementById("vmn-cmd-backdrop");
-    const cmdInput = document.getElementById("vmn-cmd-input");
-    const cmdResults = document.getElementById("vmn-cmd-results");
-    const cmdCloseBtn = document.getElementById("vmn-cmd-close");
-    const cmdTrigger = document.getElementById("vmn-cmd-trigger");
-    const mobileCmdTrigger = document.getElementById("vmn-mobile-cmd-trigger");
-    const mobileQuickJump = document.getElementById("vmn-mobile-quick-jump");
-
-    const COMMAND_ITEMS = [
-      { category: "Primary Surfaces", title: "Public Overview", url: "/", hint: "Enterprise Proposition" },
-      { category: "Primary Surfaces", title: "Linear Television Channels", url: "/channels", hint: "Nigezie, Orisun, Isi Mbido" },
-      { category: "Primary Surfaces", title: "Creative Economy Hub", url: "/hub", hint: "Talent, Production, Academy" },
-      { category: "Primary Surfaces", title: "Operator Workstations", url: "/workspace", hint: "Broadcast & Hub Operations" },
-      { category: "Primary Surfaces", title: "Broadcast Consoles Catalog", url: "/broadcast/screens", hint: "Operational Screens Catalog" },
-      { category: "Primary Surfaces", title: "Broadcast Executive Dashboard", url: "/broadcast/dashboard", hint: "MCR Operations" },
-      { category: "Primary Surfaces", title: "Azeebo+ Gateway", url: "/azeebo/gateway", hint: "Streaming Federation" },
-      { category: "Primary Surfaces", title: "UI/UX Prototypes Viewer", url: "/prototypes", hint: "8 R1.1 Screens & Scenarios" },
-      { category: "Primary Surfaces", title: "Design System Styleguide", url: "/styleguide", hint: "Canonical R1.1 Tokens" },
-      { category: "Primary Surfaces", title: "API Documentation", url: "/docs", hint: "OpenAPI Specification" },
-
-      { category: "R1.1 Critical Prototypes", title: "UX-PUB-001: Public Home", url: "/prototypes?screen=home", hint: "First-Release Screen 1" },
-      { category: "R1.1 Critical Prototypes", title: "UX-PUB-004: Channel Hub & Program Guide", url: "/prototypes?screen=channel", hint: "First-Release Screen 2" },
-      { category: "R1.1 Critical Prototypes", title: "UX-HUB-001: Multi-workspace Hub Workstation", url: "/prototypes?screen=work", hint: "First-Release Screen 3" },
-      { category: "R1.1 Critical Prototypes", title: "UX-PRJ-002: Counterparty Sponsor Portal", url: "/prototypes?screen=client", hint: "First-Release Screen 4" },
-      { category: "R1.1 Critical Prototypes", title: "UX-APP-002: AFCA Academy Application", url: "/prototypes?screen=application", hint: "First-Release Screen 5" },
-      { category: "R1.1 Critical Prototypes", title: "UX-VTM-008: Talent Engagement Agreement", url: "/prototypes?screen=terms", hint: "First-Release Screen 6" },
-      { category: "R1.1 Critical Prototypes", title: "UX-BR-012: Broadcast Master Schedule Review", url: "/prototypes?screen=schedule", hint: "First-Release Screen 7" },
-      { category: "R1.1 Critical Prototypes", title: "UX-BR-030: Proof-of-Air Delivery Reconciliation", url: "/prototypes?screen=proof", hint: "First-Release Screen 8" },
-
-      { category: "Simulated Operational Scenarios", title: "Scenario: Normal Operating State", url: "/prototypes?scenario=normal", hint: "All systems green" },
-      { category: "Simulated Operational Scenarios", title: "Scenario: Stale Data Notice (Degraded)", url: "/prototypes?scenario=stale", hint: "Simulate feed latency" },
-      { category: "Simulated Operational Scenarios", title: "Scenario: Transmission Rights Blocker", url: "/prototypes?scenario=blocked", hint: "Simulate audit hold" },
-      { category: "Simulated Operational Scenarios", title: "Scenario: Network Idempotent Recovery", url: "/prototypes?scenario=recovery", hint: "Simulate retry success" }
-    ];
-
-    let selectedIndex = 0;
-    let filteredItems = [...COMMAND_ITEMS];
-
-    function renderCommandResults() {
-      if (!cmdResults) return;
-      if (filteredItems.length === 0) {
-        cmdResults.innerHTML = '<div style="padding: 24px; text-align: center; color: var(--vmn-color-text-muted);">No matching destinations found.</div>';
-        return;
-      }
-
-      let currentCategory = "";
-      let html = "";
-      filteredItems.forEach(function(item, idx) {
-        if (item.category !== currentCategory) {
-          currentCategory = item.category;
-          html += '<div class="vmn-cmd-category">' + currentCategory + '</div>';
-        }
-        const isSelected = idx === selectedIndex;
-        html += '<a href="' + item.url + '" class="vmn-cmd-item ' + (isSelected ? 'selected' : '') + '" data-index="' + idx + '">';
-        html += '  <div>';
-        html += '    <div style="font-weight: 600;">' + item.title + '</div>';
-        html += '    <div style="font-size: 0.75rem; color: var(--vmn-color-text-muted);">' + item.hint + '</div>';
-        html += '  </div>';
-        html += '  <span style="font-size: 0.75rem; font-family: var(--vmn-font-mono); color: var(--vmn-color-text-muted);">' + item.url + '</span>';
-        html += '</a>';
-      });
-      cmdResults.innerHTML = html;
-    }
-
-    function openCommandPalette() {
-      if (!cmdBackdrop) return;
-      closeDrawer();
-      cmdBackdrop.classList.add("open");
-      selectedIndex = 0;
-      filteredItems = [...COMMAND_ITEMS];
-      if (cmdInput) {
-        cmdInput.value = "";
-        cmdInput.focus();
-      }
-      renderCommandResults();
-    }
-
-    function closeCommandPalette() {
-      if (!cmdBackdrop) return;
-      cmdBackdrop.classList.remove("open");
-    }
-
-    if (cmdTrigger) cmdTrigger.addEventListener("click", openCommandPalette);
-    if (mobileCmdTrigger) mobileCmdTrigger.addEventListener("click", openCommandPalette);
-    if (mobileQuickJump) mobileQuickJump.addEventListener("click", openCommandPalette);
-    if (cmdCloseBtn) cmdCloseBtn.addEventListener("click", closeCommandPalette);
-
-    if (cmdBackdrop) {
-      cmdBackdrop.addEventListener("click", function(e) {
-        if (e.target === cmdBackdrop) closeCommandPalette();
-      });
-    }
-
-    if (cmdInput) {
-      cmdInput.addEventListener("input", function(e) {
-        const query = e.target.value.toLowerCase().trim();
-        if (!query) {
-          filteredItems = [...COMMAND_ITEMS];
-        } else {
-          filteredItems = COMMAND_ITEMS.filter(function(item) {
-            return item.title.toLowerCase().indexOf(query) !== -1 ||
-                   item.hint.toLowerCase().indexOf(query) !== -1 ||
-                   item.url.toLowerCase().indexOf(query) !== -1 ||
-                   item.category.toLowerCase().indexOf(query) !== -1;
-          });
-        }
-        selectedIndex = 0;
-        renderCommandResults();
-      });
-
-      cmdInput.addEventListener("keydown", function(e) {
-        if (e.key === "ArrowDown") {
-          e.preventDefault();
-          if (filteredItems.length > 0) {
-            selectedIndex = (selectedIndex + 1) % filteredItems.length;
-            renderCommandResults();
-            ensureVisible();
-          }
-        } else if (e.key === "ArrowUp") {
-          e.preventDefault();
-          if (filteredItems.length > 0) {
-            selectedIndex = (selectedIndex - 1 + filteredItems.length) % filteredItems.length;
-            renderCommandResults();
-            ensureVisible();
-          }
-        } else if (e.key === "Enter") {
-          e.preventDefault();
-          if (filteredItems[selectedIndex]) {
-            window.location.href = filteredItems[selectedIndex].url;
-          }
-        }
-      });
-    }
-
-    function ensureVisible() {
-      const selectedEl = cmdResults && cmdResults.querySelector(".vmn-cmd-item.selected");
-      if (selectedEl && selectedEl.scrollIntoView) {
-        selectedEl.scrollIntoView({ block: "nearest" });
-      }
-    }
-
-    // Keyboard Shortcuts: Cmd+K / Ctrl+K and Escape
-    window.addEventListener("keydown", function(e) {
-      if ((e.metaKey || e.ctrlKey) && (e.key === "k" || e.key === "K")) {
-        e.preventDefault();
-        if (cmdBackdrop && cmdBackdrop.classList.contains("open")) {
-          closeCommandPalette();
-        } else {
-          openCommandPalette();
-        }
-      } else if (e.key === "Escape") {
-        closeCommandPalette();
-        closeDrawer();
-      }
-    });
-  })();
-  </script>
+  <script src="/assets/app.js" defer></script>
 </body>
 </html>`;
 }
@@ -567,11 +404,11 @@ export function renderHomePageHtml(): string {
     (p) => `
     <div class="card">
       <span class="vmn-badge badge-info">Core Pillar</span>
-      <h3>${p.name}</h3>
-      <p><strong>${p.tagline}</strong></p>
-      <p>${p.description}</p>
+      <h3>${escapeHtml(p.name)}</h3>
+      <p><strong>${escapeHtml(p.tagline)}</strong></p>
+      <p>${escapeHtml(p.description)}</p>
       <div>
-        <a href="${p.route}" class="btn btn-outline" style="min-height: 44px; display: inline-flex; align-items: center;">Explore ${p.name} &rarr;</a>
+ <a href="${escapeHtml(p.route)}" class="btn btn-outline s-VJeXj8pErV" >Explore ${escapeHtml(p.name)} &rarr;</a>
       </div>
     </div>`
   ).join("");
@@ -579,104 +416,103 @@ export function renderHomePageHtml(): string {
   const leadershipHtml = VMN_LEADERSHIP.map(
     (l) => `
     <div class="card">
-      <h3>${l.name}</h3>
-      <p style="color: var(--vmn-secondary); font-weight: 600;">${l.title}</p>
-      <p>${l.bio}</p>
+      <h3>${escapeHtml(l.name)}</h3>
+ <p class="s-IKxj0RyDd9">${escapeHtml(l.title)}</p>
+      <p>${escapeHtml(l.bio)}</p>
     </div>`
   ).join("");
 
   return `
     <!-- UX-PUB-001 Public Home (Docx §8.1 Strict Content Order) -->
     <!-- 1. Approved Identity & Enterprise Proposition -->
-    <div class="vmn-public-hero">
-      <span class="vmn-badge badge-ready" style="margin-bottom: 12px; background: rgba(255,255,255,0.15); color: #FFFFFF; border-color: rgba(255,255,255,0.3);">
-        Enterprise &amp; Creative Economy Ecosystem
+ <div class="vmn-public-hero"> <span class="vmn-badge badge-info" >
+        Company &amp; Service Information
+
       </span>
-      <h1 style="font-size: var(--vmn-font-size-hero); font-weight: 800; margin-bottom: 16px;">
-        Powering the African Creative Economy
+ <h1 class="s-fXYCwQiExM">
+        Virtual Media Network Limited
       </h1>
-      <p style="font-size: 1.15rem; color: #E2E8F0; max-width: 800px; margin-bottom: 24px; line-height: 1.6;">
-        Virtual Media Network Limited orchestrates 24/7 linear television broadcasting on StarTimes, 
-        turnkey Creative Economy infrastructure for African creators, and the direct-to-consumer Azeebo+ federation.
+ <p class="s-XeMbtwZkHw">
+        Company information and preliminary channel and service profiles. Operational reach and availability require independent confirmation.
       </p>
 
       <!-- 2. Primary Discovery Actions -->
-      <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-        <a href="/channels" class="btn" style="background: #A5E8CD; color: #0E2B20; font-weight: 700; min-height: 44px; display: inline-flex; align-items: center;">Explore Channels</a>
-        <a href="/apply" class="btn btn-outline" style="color: #FFFFFF; border-color: rgba(255,255,255,0.4); min-height: 44px; display: inline-flex; align-items: center;">Apply to AFCA Academy</a>
-        <a href="/contact" class="btn btn-outline" style="color: #FFFFFF; border-color: rgba(255,255,255,0.4); min-height: 44px; display: inline-flex; align-items: center;">Commercial Enquiry</a>
-        <a href="/azeebo/gateway" class="btn btn-outline" style="color: #FFFFFF; border-color: rgba(255,255,255,0.4); min-height: 44px; display: inline-flex; align-items: center;">Open Azeebo+</a>
+ <div class="s-GNTtGikGkV">
+ <a href="/channels" class="btn s--8JyK_kOM6" >Explore Channels</a>
+ <a href="/apply" class="btn btn-outline s-ZGGQlq0DNk" >Apply to AFCA Academy</a>
+ <a href="/contact" class="btn btn-outline s-ZGGQlq0DNk" >Commercial Enquiry</a>
+ <a href="/azeebo/gateway" class="btn btn-outline s-ZGGQlq0DNk" >Open Azeebo+</a>
       </div>
     </div>
 
     <!-- 3. Television Portfolio -->
-    <section style="margin-bottom: 40px;">
-      <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px;">
-        <h2 style="font-size: var(--vmn-font-size-heading); font-weight: 800; margin: 0;">Linear Television Portfolio</h2>
-        <span style="font-size: 0.85rem; color: var(--vmn-color-text-muted);">24/7 StarTimes DTT &amp; Satellite Carriage</span>
+ <section class="s-v5Ur2NUF3i">
+ <div class="s-X1u32Y8E_Y">
+ <h2 class="s-kiY9qPT64l">Linear Television Portfolio</h2>
+ <span class="s-WGpZZ_z1O2">Carriage details require independent verification</span>
       </div>
-      <div class="grid grid-cols-1" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
-        <div class="card" style="border-top: 4px solid #E50914;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <span class="vmn-badge badge-live">Live On Air</span>
-            <span style="font-size: 0.8rem; font-weight: 700; color: var(--vmn-color-text-muted);">Ch 428 DTT / 256 DTH</span>
+ <div class="grid grid-cols-1 s-U3mAiGQfXk" >
+ <div class="card s-cR03ntYskl" >
+ <div class="s-jXl2S6cRQl">
+            <span class="vmn-badge badge-info">Channel profile</span>
+ <span class="s-QXJ2BWOxXS">Carriage details unverified</span>
           </div>
-          <h3 style="margin: 0 0 6px 0;">Nigezie Xtreme</h3>
-          <p style="font-size: 0.9rem; color: var(--vmn-color-text-muted); margin-bottom: 16px;">
-            Urban music, youth lifestyle and African contemporary culture broadcast in HD 1080i50.
+ <h3 class="s-mPpGGeNTY-">Nigezie Xtreme</h3>
+ <p class="s-wkp7gtaNQP">
+            Illustrative channel profile only — programming, transmission format, and operating status are not verified.
           </p>
-          <a href="/channels" class="btn btn-outline" style="width: 100%; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem;">View Channel &rarr;</a>
+ <a href="/channels" class="btn btn-outline s-fOBIvQAQx9" >View Channel &rarr;</a>
         </div>
 
-        <div class="card" style="border-top: 4px solid #FFB800;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <span class="vmn-badge badge-live">Live On Air</span>
-            <span style="font-size: 0.8rem; font-weight: 700; color: var(--vmn-color-text-muted);">Ch 430 DTT / 477 DTH</span>
+ <div class="card s-8YvkPKKI0f" >
+ <div class="s-jXl2S6cRQl">
+            <span class="vmn-badge badge-info">Channel profile</span>
+ <span class="s-QXJ2BWOxXS">Carriage details unverified</span>
           </div>
-          <h3 style="margin: 0 0 6px 0;">Orisun &mdash; The Source</h3>
-          <p style="font-size: 0.9rem; color: var(--vmn-color-text-muted); margin-bottom: 16px;">
-            Yoruba language, drama, cultural events, music, and heritage entertainment.
+ <h3 class="s-mPpGGeNTY-">Orisun &mdash; The Source</h3>
+ <p class="s-wkp7gtaNQP">
+            Illustrative channel profile only — programme catalogue and current language/genre offering are not verified.
           </p>
-          <a href="/channels" class="btn btn-outline" style="width: 100%; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem;">View Channel &rarr;</a>
+ <a href="/channels" class="btn btn-outline s-fOBIvQAQx9" >View Channel &rarr;</a>
         </div>
 
-        <div class="card" style="border-top: 4px solid #0369A1;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <span class="vmn-badge badge-live">Live On Air</span>
-            <span style="font-size: 0.8rem; font-weight: 700; color: var(--vmn-color-text-muted);">Ch 432 DTT / 480 DTH</span>
+ <div class="card s-7ndtghkGqf" >
+ <div class="s-jXl2S6cRQl">
+            <span class="vmn-badge badge-info">Channel profile</span>
+ <span class="s-QXJ2BWOxXS">Carriage details unverified</span>
           </div>
-          <h3 style="margin: 0 0 6px 0;">Isi Mbido &mdash; The Beginning</h3>
-          <p style="font-size: 0.9rem; color: var(--vmn-color-text-muted); margin-bottom: 16px;">
-            Authentic Igbo drama, customs, linguistic preservation, and traditional storytelling.
+ <h3 class="s-mPpGGeNTY-">Isi Mbido &mdash; The Beginning</h3>
+ <p class="s-wkp7gtaNQP">
+            Illustrative channel profile only — programme catalogue, language offering, and production status are not verified.
           </p>
-          <a href="/channels" class="btn btn-outline" style="width: 100%; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem;">View Channel &rarr;</a>
+ <a href="/channels" class="btn btn-outline s-fOBIvQAQx9" >View Channel &rarr;</a>
         </div>
       </div>
     </section>
 
     <!-- 4. Three Enterprise Pillars -->
-    <section style="margin-bottom: 40px;">
-      <h2 style="font-size: var(--vmn-font-size-heading); font-weight: 800; margin-bottom: 16px;">The Three Enterprise Pillars</h2>
+ <section class="s-v5Ur2NUF3i">
+ <h2 class="s-s6pDqxPgfb">The Three Enterprise Pillars</h2>
       <div class="grid-3">${pillarsHtml}</div>
     </section>
 
     <!-- 5. Azeebo+ Federated Gateway Banner -->
     <section class="vmn-azeebo-gateway-banner">
       <div>
-        <span class="vmn-badge badge-info" style="margin-bottom: 8px;">Consumer Streaming Universe</span>
-        <h3 style="margin: 0 0 6px 0; font-size: 1.25rem;">Azeebo+ Digital Federation</h3>
-        <p style="font-size: 0.95rem; color: var(--vmn-color-text-muted); margin: 0; max-width: 650px;">
-          Seamlessly connect linear TV viewers with on-demand streaming, masterclasses, and digital commerce.
+ <span class="vmn-badge badge-info s-fzy69kMBd1" >Federated Service Information</span>
+ <h3 class="s-My14PRdW73">Azeebo+ Digital Federation</h3>
+ <p class="s-pcv7bzKm7i">
+          Azeebo+ operates separately. Service integration, catalogue, masterclasses, commerce, and availability are not verified by this site.
         </p>
       </div>
-      <a href="/azeebo/gateway" class="btn btn-primary" style="white-space: nowrap;">
+ <a href="/azeebo/gateway" class="btn btn-primary s-k8bh1Lt-AT" >
         Open Azeebo+ Gateway &rarr;
       </a>
     </section>
 
     <!-- 6. Executive Leadership -->
-    <section style="margin-top: 40px;">
-      <h2 style="font-size: var(--vmn-font-size-heading); font-weight: 800; margin-bottom: 16px;">Executive Leadership</h2>
+ <section class="s-OlWl1HuGdH">
+ <h2 class="s-s6pDqxPgfb">Executive Leadership</h2>
       <div class="grid-3">${leadershipHtml}</div>
     </section>
   `;
@@ -686,33 +522,31 @@ export function renderChannelsPageHtml(): string {
   const channels = getAllActiveChannels();
   const channelsHtml = channels.map((c) => {
     const pub = PUBLIC_CHANNELS.find((p) => p.code === c.code);
+
     // AUD-21: no fabricated schedule data is published. The platform's own
     // honesty gate refuses placeholder EPG on the API; the public page must
     // carry the same provenance discipline via an explicit notice instead of
     // hardcoded now/next programmes.
     const widgetHtml = `
-      <div class="card" role="note" aria-label="Schedule availability notice" style="background: var(--vmn-surface-alt); padding: 12px 16px; border: 1px solid var(--vmn-surface-border); border-radius: var(--vmn-radius-md);">
+ <div class="card s-KTPdfm94PP" role="note" aria-label="Schedule availability notice" >
         <strong>Schedule Notice:</strong> The now/next programme widget is unavailable because no approved schedule source is connected. Programme data will appear here once the approved schedule is published.
       </div>
     `;
 
     return `
       <div class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span class="vmn-badge badge-live">Live On Air</span>
-          <span style="font-weight: 700; color: var(--vmn-text-muted);">StarTimes Ch ${c.starTimesCarriage.dttChannelNumber} DTT / ${c.starTimesCarriage.dthChannelNumber} DTH</span>
+ <div class="s-wrzqCFgz1Y">
+          <span class="vmn-badge badge-info">Channel profile</span>
+ <span class="s-sMs-d-vDCO">Carriage details unverified</span>
         </div>
-        <h2 style="color: ${pub?.accentColor || "inherit"}">${c.name} (${c.code})</h2>
-        <p><strong>${c.tagline}</strong></p>
-        <p>${c.targetAudience}</p>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.85rem;">
-          <div class="stat-box"><span class="stat-lbl">Resolution</span><span style="font-weight: 700;">${c.resolution}</span></div>
-          <div class="stat-box"><span class="stat-lbl">Audio Standard</span><span style="font-weight: 700;">EBU R128 (-23 LUFS)</span></div>
-        </div>
-        <div style="margin-top: 12px;">
+ <h2 style="color: ${pub?.accentColor || "inherit"}">${c.name} (${c.code})</h2>
+ <p role="note" class="s-PohgnhBczo">Channel profile details, audience, and programming are illustrative and have not been independently verified.</p>
+ <p role="note" class="s-PohgnhBczo">Live transmission status is not available from a verified source.</p>
+ <p role="note" class="s-wNcgL978zj">Technical transmission specifications are not independently verified in this environment.</p>
+ <div class="s-nJzuIJPje9">
           ${widgetHtml}
         </div>
-        <div style="margin-top: 12px; display: flex; gap: 12px;">
+ <div class="s-7YQOhpfSlA">
           <a href="/api/v1/broadcast/epg/${c.code}" class="btn btn-outline" target="_blank">XMLTV Feed Status</a>
         </div>
       </div>
@@ -721,8 +555,8 @@ export function renderChannelsPageHtml(): string {
 
   return `
     <section>
-      <h1 style="font-size: 2.25rem; font-weight: 800; margin-bottom: 8px;">Linear Television Networks</h1>
-      <p style="color: var(--vmn-text-muted); margin-bottom: 24px;">Flagship Nigerian television channels broadcasting 24/7 on StarTimes DTT and DTH platforms.</p>
+ <h1 class="s-EvOiLPkWFM">Linear Television Networks</h1> <p class="s-CiIddUhIXm">Channel profiles for Nigezie Xtreme, Orisun, and Isi Mbido. Audience, carriage, transmission, technical format, and approved schedules are not verified in this environment.</p>
+
       <div class="grid-3">${channelsHtml}</div>
     </section>
   `;
@@ -731,24 +565,24 @@ export function renderChannelsPageHtml(): string {
 export function renderHubPageHtml(): string {
   const showcases = Object.values(HUB_SHOWCASES).map(
     (h) => `
-    <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+ <div class="card s-b7eWsqp9Kb" >
       <div>
-        <span class="vmn-badge badge-info">${h.vertical.replace(/_/g, " ")}</span>
-        <h3 style="font-size: 1.25rem; font-weight: 700; margin-top: 8px;">${h.title}</h3>
-        <p style="color: var(--vmn-color-primary); font-weight: 600; font-size: 0.95rem; margin-top: 4px;">${h.tagline}</p>
-        <p style="color: var(--vmn-text-muted); font-size: 0.9rem; margin-top: 8px;">${h.description}</p>
+        <span class="vmn-badge badge-info">${escapeHtml(h.vertical.replace(/_/g, " "))}</span>
+ <h3 class="s-IAGJCAkVYI">${escapeHtml(h.title)}</h3>
+ <p class="s-UV4jR8FkaI">${escapeHtml(h.tagline)}</p>
+ <p class="s-c2PfvaQ8Fc">${escapeHtml(h.description)}</p>
       </div>
-      <div style="margin-top: 16px;">
-        <a href="${h.route}" class="btn btn-primary" style="text-decoration: none; width: 100%; text-align: center; min-height: 44px; display: inline-flex; align-items: center; justify-content: center;">${h.callToAction} &rarr;</a>
+ <div class="s-0mWmubkRs3">
+ <a href="${escapeHtml(h.route)}" class="btn btn-primary s-G-ZfEXX507" >${escapeHtml(h.callToAction)} &rarr;</a>
       </div>
     </div>`
   ).join("");
 
   return `
     <section>
-      <h1 style="font-size: 2.25rem; font-weight: 800; margin-bottom: 8px;">Creative Economy Hub</h1>
-      <p style="color: var(--vmn-text-muted); margin-bottom: 24px;">
-        Ten integrated verticals accelerating African creative talent from discovery and training to financing and global monetization.
+ <h1 class="s-EvOiLPkWFM">Creative Economy Hub</h1>
+ <p class="s-CiIddUhIXm">
+        Preliminary profiles describe potential programme areas; service availability, training, financing, rights, and monetization are not verified.
       </p>
       <div class="grid-3">${showcases}</div>
     </section>
@@ -759,104 +593,67 @@ export function renderDashboardHtml(): string {
   const screens = BROADCAST_SCREEN_INVENTORY.slice(0, 8);
   const screenCardsHtml = screens.map(
     (s) => `
-    <div class="card" style="padding: 16px;">
-      <div style="display: flex; justify-content: space-between;">
+ <div class="card s-hytmU7OdYa" >
+ <div class="s-bZSnD2ctGg">
         <span class="vmn-badge badge-info">${s.screenId}</span>
-        <span style="font-size: 0.75rem; color: var(--vmn-text-muted);">${s.primaryRole}</span>
+ <span class="s-odCaPyPU5v">${s.primaryRole}</span>
       </div>
-      <h4 style="font-size: 1rem; font-weight: 700;">${s.name}</h4>
-      <p style="font-size: 0.85rem;">${s.description}</p>
-      <code style="font-size: 0.75rem; background: var(--vmn-surface-alt); padding: 4px; border-radius: 4px;">${s.route}</code>
+ <h4 class="s-yctsEeBqm4">${s.name}</h4>
+ <p class="s-kzqO8p4Zcp">${s.description}</p>
+ <code class="s-6B2xY_NIp2">${s.route}</code>
     </div>`
   ).join("");
 
   return `
     <section>
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+ <div class="s-2CkJPDLqd9">
         <div>
-          <span class="vmn-badge badge-ready">Operational Screen: SCR-BCST-01</span>
-          <h1 style="font-size: 2.25rem; font-weight: 800; margin-top: 4px;">Broadcast Executive Dashboard</h1>
-          <p style="color: var(--vmn-text-muted);">Real-time monitoring across NXTR, ORIS, IMBD, StarTimes carriage, playout, and financial yield.</p>
+          <span class="vmn-badge badge-info">Operational Screen: SCR-BCST-01</span>
+ <h1 class="s-fbLZVvKdwC">Broadcast Executive Dashboard</h1>
+ <p class="s-PohgnhBczo">Live transmission, carriage, playout, and financial telemetry are not connected to a verified source in this environment.</p>
         </div>
-        <div style="display: flex; gap: 12px;">
+ <div class="s-1jFqfgs1FA">
           <a href="/docs" class="btn btn-outline" id="btn-eval-gates">Release Gates API Reference</a>
           <a href="/metrics" class="btn btn-outline" target="_blank">View Prometheus Metrics</a>
         </div>
       </div>
 
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 32px;">
-        <div class="stat-box">
-          <span class="stat-lbl">Active Linear Channels</span>
-          <span class="stat-val">3 / 3</span>
-          <span style="font-size: 0.75rem; color: var(--vmn-success);">NXTR, ORIS, IMBD On-Air</span>
-        </div>
-        <div class="stat-box">
-          <span class="stat-lbl">StarTimes Carriage</span>
-          <span class="stat-val">99.98%</span>
-          <span style="font-size: 0.75rem; color: var(--vmn-success);">Zero active transponder faults</span>
-        </div>
-        <div class="stat-box">
-          <span class="stat-lbl">Playout Cache Autonomy</span>
-          <span class="stat-val">48.0 Hours</span>
-          <span style="font-size: 0.75rem; color: var(--vmn-success);">Autonomous offline cache ready</span>
-        </div>
-        <div class="stat-box">
-          <span class="stat-lbl">Commercial Airing Rate</span>
-          <span class="stat-val">100.0%</span>
-          <span style="font-size: 0.75rem; color: var(--vmn-success);">Certificates of Airing issued</span>
-        </div>
+ <div class="card" role="status" >
+        <strong>Telemetry unavailable.</strong> This screen has no verified live data connection; illustrative metrics are intentionally withheld.
       </div>
 
       <div class="grid-2">
         <div class="card">
-          <h3>Transmission & Carriage Status</h3>
-          <p>Real-time telemetry from StarTimes DTT/DTH headend encoders:</p>
-          <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 8px;">
-            <div style="display: flex; justify-content: space-between; padding: 12px; background: var(--vmn-surface-alt); border-radius: var(--vmn-radius-md);">
-              <div>
-                <strong>Nigezie Xtreme (NXTR)</strong><br>
-                <small style="color: var(--vmn-text-muted);">PID 1042 | DTT Ch 428 / DTH Ch 312</small>
-              </div>
-              <span class="vmn-badge badge-ready">ONLINE 1080i50</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; padding: 12px; background: var(--vmn-surface-alt); border-radius: var(--vmn-radius-md);">
-              <div>
-                <strong>Orisun (ORIS)</strong><br>
-                <small style="color: var(--vmn-text-muted);">PID 1044 | DTT Ch 430 / DTH Ch 315</small>
-              </div>
-              <span class="vmn-badge badge-ready">ONLINE 1080i50</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; padding: 12px; background: var(--vmn-surface-alt); border-radius: var(--vmn-radius-md);">
-              <div>
-                <strong>Isi Mbido (IMBD)</strong><br>
-                <small style="color: var(--vmn-text-muted);">PID 1046 | DTT Ch 432 / DTH Ch 318</small>
-              </div>
-              <span class="vmn-badge badge-ready">ONLINE 1080i50</span>
-            </div>
+          <h3>Transmission &amp; Carriage Status</h3>
+          <p>Headend telemetry is not connected in this environment. No verified live status is available.</p>
+ <div class="s-KZv4iqugu6">
+            <div class="card" role="note">Nigezie Xtreme (NXTR) — carriage and transmission status unavailable.</div>
+            <div class="card" role="note">Orisun (ORIS) — carriage and transmission status unavailable.</div>
+            <div class="card" role="note">Isi Mbido (IMBD) — carriage and transmission status unavailable.</div>
           </div>
         </div>
 
         <div class="card">
           <h3>Azeebo+ Federation Circuit Breaker</h3>
           <p>Event mesh and direct-to-consumer referral bridge status:</p>
-          <div class="stat-box" style="margin-top: 8px;">
-            <span class="stat-lbl">Circuit Breaker State</span>
-            <span class="stat-val" style="color: var(--vmn-success);">CLOSED (Healthy)</span>
-            <span style="font-size: 0.75rem; color: var(--vmn-text-muted);">Zero fault trips in last 24h. DLQ depth: 0 items</span>
+ <div class="stat-box s-NsoK_xD1ma" role="note">
+            <span class="stat-lbl">Federation Status</span>
+            <span class="stat-val">Not connected</span>
+ <span class="s-odCaPyPU5v">No verified circuit-breaker or queue telemetry is available.</span>
           </div>
-          <div style="margin-top: 12px;">
-            <p><strong>Azeebo+ 8 Universes Referral Links:</strong> Active and tracking QR scans with NDPR SHA-256 telemetry.</p>
+ <div class="s-nJzuIJPje9">
+            <p>Referral-link activity is not reported without a connected, verified Azeebo+ source.</p>
           </div>
         </div>
       </div>
 
-      <div style="margin-top: 40px;">
-        <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 8px;">Broadcast Operational Screens Quick-Access</h2>
-        <p style="color: var(--vmn-text-muted); margin-bottom: 16px;">Core control surfaces from the complete 33-screen operational inventory (R1.2A §46):</p>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+ <div class="s-OlWl1HuGdH">
+ <h2 class="s-_TKh5cydie">Broadcast Operational Screens Quick-Access</h2>
+ <p class="s-wksV0PHkk4">Core control surfaces from the complete 33-screen operational inventory (R1.2A §46):</p>
+ <div class="s-U3mAiGQfXk">
           ${screenCardsHtml}
         </div>
-        <div style="margin-top: 16px; text-align: center; display: flex; justify-content: center; gap: 12px;">
+ <div class="s-dW2umzynPj">
           <a href="/broadcast/screens" class="btn btn-primary">Browse All 33 Operational Screen Surfaces &rarr;</a>
           <a href="/api/v1/broadcast/screens" class="btn btn-outline" target="_blank">View JSON Schema</a>
         </div>

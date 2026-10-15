@@ -10,8 +10,10 @@
  */
 
 import crypto from "crypto";
-import { isFeatureEnabled, assertFeatureEnabled } from "../../../core/feature-flags/index.js";
+import { assertFeatureEnabled } from "../../../core/feature-flags/index.js";
 import { recordAuditLog } from "../../../core/audit/index.js";
+import { registerDurableStore, stageDurableWrite } from "../../../core/database/durable-journal.js";
+import { loadCommercialEnquiries, persistCommercialEnquiry } from "../../../core/database/repositories/release-critical.repository.js";
 
 export type EnquiryVertical =
   | "COMMERCIAL_ADVERTISING"
@@ -58,9 +60,42 @@ export interface SubmitEnquiryInput {
   idempotencyKey?: string;
 }
 
-// Durable in-memory store with resilient index lookups
+// TSK-17: the intake queue's read index. Rows live in the `CommercialEnquiry`
+// table; this Map is the projection the synchronous desk surfaces read, and it
+// is rebuilt from the durable store by `refreshEnquiryIndex()` at boot.
 const enquiryStore: Map<string, EnquiryRecord> = new Map(); // Key: reference
 const idempotencyIndex: Map<string, string> = new Map(); // Key: idempotencyKey, Val: reference
+
+registerDurableStore<EnquiryRecord>("commercialEnquiry", persistCommercialEnquiry);
+
+/**
+ * Stages the row behind an index entry. The rollback removes the optimistic
+ * entry again, so a write the database rejects leaves the desk showing the
+ * honest empty state rather than an enquiry that was never filed.
+ */
+function stageEnquiryWrite(record: EnquiryRecord): void {
+  stageDurableWrite<EnquiryRecord>({
+    store: "commercialEnquiry",
+    key: record.reference,
+    payload: record,
+    rollback: () => {
+      enquiryStore.delete(record.reference);
+      if (record.idempotencyKey) idempotencyIndex.delete(record.idempotencyKey);
+    },
+  });
+}
+
+/** Boot hydration (TSK-17): rebuild the intake queue from the durable rows. */
+export async function refreshEnquiryIndex(): Promise<{ enquiries: number }> {
+  const records = await loadCommercialEnquiries();
+  enquiryStore.clear();
+  idempotencyIndex.clear();
+  for (const record of records) {
+    enquiryStore.set(record.reference, record);
+    if (record.idempotencyKey) idempotencyIndex.set(record.idempotencyKey, record.reference);
+  }
+  return { enquiries: enquiryStore.size };
+}
 
 // Failure drill simulation hook for downstream CRM partition
 let downstreamRoutingAvailable = true;
@@ -126,10 +161,10 @@ export async function submitCommercialEnquiry(
     input.ndprConsent === "on";
 
   if (!consent) {
-    const err = new Error("NDPR data-processing consent is required before submission");
+    const err = new Error("Submission acknowledgement is required before submission");
     (err as any).statusCode = 400;
     (err as any).field = "ndprConsent";
-    (err as any).code = "NDPR_CONSENT_REQUIRED";
+    (err as any).code = "SUBMISSION_ACKNOWLEDGEMENT_REQUIRED";
     throw err;
   }
 
@@ -181,6 +216,7 @@ export async function submitCommercialEnquiry(
   if (input.idempotencyKey) {
     idempotencyIndex.set(input.idempotencyKey, reference);
   }
+  stageEnquiryWrite(record);
 
   // AC-10: Audit Log without sensitive message body
   try {
@@ -257,6 +293,7 @@ export async function retryDownstreamRouting(reference: string): Promise<Enquiry
   }
 
   enquiryStore.set(reference, record);
+  stageEnquiryWrite(record);
   return record;
 }
 
@@ -275,5 +312,6 @@ export function assignEnquiryOperator(reference: string, operatorEmail: string):
   }
   record.updatedAt = new Date().toISOString();
   enquiryStore.set(reference, record);
+  stageEnquiryWrite(record);
   return record;
 }

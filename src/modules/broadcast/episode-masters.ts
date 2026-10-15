@@ -133,6 +133,30 @@ function reindex(): void {
 }
 
 /**
+ * AUD-15: runs `fn` over `items` with bounded concurrency, preserving input
+ * order in the results. Caps concurrent DB round-trips so a burst of pages
+ * cannot exhaust the pool, while removing the strict-sequential wall clock.
+ */
+const MAX_CONCURRENT_DB_PAGES = 8;
+
+async function mapWithBoundedConcurrency<T, R>(
+  items: T[],
+  limit: number,
+  fn: (item: T) => Promise<R>
+): Promise<R[]> {
+  const results: R[] = new Array(items.length);
+  let next = 0;
+  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (next < items.length) {
+      const index = next++;
+      results[index] = await fn(items[index]);
+    }
+  });
+  await Promise.all(workers);
+  return results;
+}
+
+/**
  * Rebuilds the in-memory index from the canonical repository (DB when
  * connected, the repository's memory fallback otherwise). Called once at
  * server boot after the golden DAM assets are registered; tests may call it
@@ -142,25 +166,43 @@ export async function refreshEpisodeMasterIndex(
   options: { repository?: ScheduleRepository } = {}
 ): Promise<{ channels: number; programmes: number; episodes: number }> {
   const repository = options.repository ?? defaultRepository;
-  const all: EpisodeMasterStoredRow[] = [];
   let programmeCount = 0;
   let episodeCount = 0;
 
-  for (const channel of getAllActiveChannels()) {
-    const programmes = await repository.listProgrammes(channel.code);
-    programmeCount += programmes.length;
-    const episodes: EpisodeMasterSourceEpisode[] = [];
-    for (const programme of programmes) {
-      const channelEpisodes = await repository.listEpisodes(programme.code);
-      episodeCount += channelEpisodes.length;
-      episodes.push(...channelEpisodes);
-    }
-    all.push(...projectEpisodeMasters({ channelCode: channel.code, programmes, episodes }));
-  }
+  // AUD-15: channels and per-programme episode listings run with bounded
+  // concurrency instead of strict-sequential round-trips. Cursor paging within
+  // a single list stays sequential (cursors are ordered); per-list results are
+  // re-joined in input order so projection and counts are deterministic.
+  const channels = getAllActiveChannels();
+  const perChannelRows = await mapWithBoundedConcurrency(channels, MAX_CONCURRENT_DB_PAGES, async (channel) => {
+    const programmes: Awaited<ReturnType<typeof repository.listProgrammes>>["rows"] = [];
+    let programmeCursor: string | undefined;
+    do {
+      const page = await repository.listProgrammes(channel.code, { after: programmeCursor });
+      programmes.push(...page.rows);
+      programmeCursor = page.nextCursor;
+    } while (programmeCursor);
 
-  storedRows = all;
+    const episodeLists = await mapWithBoundedConcurrency(programmes, MAX_CONCURRENT_DB_PAGES, async (programme) => {
+      const episodes: EpisodeMasterSourceEpisode[] = [];
+      let episodeCursor: string | undefined;
+      do {
+        const page = await repository.listEpisodes(programme.code, { after: episodeCursor });
+        episodes.push(...page.rows);
+        episodeCursor = page.nextCursor;
+      } while (episodeCursor);
+      return episodes;
+    });
+    const episodes = episodeLists.flat();
+
+    programmeCount += programmes.length;
+    episodeCount += episodes.length;
+    return projectEpisodeMasters({ channelCode: channel.code, programmes, episodes });
+  });
+
+  storedRows = perChannelRows.flat();
   reindex();
-  return { channels: getAllActiveChannels().length, programmes: programmeCount, episodes: episodeCount };
+  return { channels: channels.length, programmes: programmeCount, episodes: episodeCount };
 }
 
 /** Sync read for web renderers. Omit channelCode for all channels (EPG inspector). */

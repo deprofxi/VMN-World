@@ -35,10 +35,11 @@ export const CANONICAL_CHANNELS: Record<string, BroadcastChannelConfig> = {
     resolution: "1080i50",
     audioFormat: "Stereo / EBU R128 (-23 LUFS)",
     starTimesCarriage: {
-      dttChannelNumber: 428,
-      dthChannelNumber: 312,
+      // AUD-09: carriage numbers/PIDs are deployment facts from a verified
+      // StarTimes/NBC carriage record — never hard-coded (CLAUDE.md broadcast
+      // law). Values stay unset until carriage is confirmed; `isProvisional`
+      // keeps every rendering in honest "unverified" mode.
       bouquetTier: "Basic",
-      servicePid: 1042,
       isProvisional: true, // Marked provisional per CLAUDE.md until formal StarTimes/NBC certificate confirmation
     },
     isActive: true,
@@ -54,10 +55,8 @@ export const CANONICAL_CHANNELS: Record<string, BroadcastChannelConfig> = {
     resolution: "1080i50",
     audioFormat: "Stereo / EBU R128 (-23 LUFS)",
     starTimesCarriage: {
-      dttChannelNumber: 430,
-      dthChannelNumber: 315,
+      // AUD-09: carriage numbers/PIDs unset — supplied only by a verified carriage record.
       bouquetTier: "Basic",
-      servicePid: 1044,
       isProvisional: true, // Marked provisional per CLAUDE.md until formal StarTimes/NBC certificate confirmation
     },
     isActive: true,
@@ -73,10 +72,8 @@ export const CANONICAL_CHANNELS: Record<string, BroadcastChannelConfig> = {
     resolution: "1080i50",
     audioFormat: "Stereo / EBU R128 (-23 LUFS)",
     starTimesCarriage: {
-      dttChannelNumber: 432,
-      dthChannelNumber: 318,
+      // AUD-09: carriage numbers/PIDs unset — supplied only by a verified carriage record.
       bouquetTier: "Basic",
-      servicePid: 1046,
       isProvisional: true, // Marked provisional per CLAUDE.md until formal StarTimes/NBC certificate confirmation
     },
     isActive: true,

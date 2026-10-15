@@ -104,13 +104,13 @@ const MEDIA_REF_STATE_COLOR: Record<ContentMediaRefBadge["state"], string> = {
  */
 export function renderMediaRefBadgesHtml(badges: ContentMediaRefBadge[], emptyText = "No media references"): string {
   if (badges.length === 0) {
-    return `<span style="color: var(--vmn-color-text-muted, #64748b); font-size: 0.8rem;">${escapeHtml(emptyText)}</span>`;
+ return `<span class="s-GcwZlN-zUp">${escapeHtml(emptyText)}</span>`;
   }
   return badges
     .map((b) => {
       const color = MEDIA_REF_STATE_COLOR[b.state];
       const detail = b.detail ? ` title="${escapeHtml(b.detail)}"` : "";
-      return `<span${detail} style="display: inline-block; border: 1px solid var(--vmn-color-border, #e2e8f0); border-radius: 999px; padding: 2px 10px; margin: 2px 4px 2px 0; font-size: 0.78rem;"><strong style="color: ${color};">${escapeHtml(b.state)}</strong> ${escapeHtml(b.label)}<span style="color: var(--vmn-color-text-muted, #64748b); font-family: monospace;"> · ${escapeHtml(b.assetId)}</span></span>`;
+ return `<span${detail} class="s-P3mdFH2Rdl"><strong style="color: ${color};">${escapeHtml(b.state)}</strong> ${escapeHtml(b.label)}<span class="s-wazT-oUSIh"> · ${escapeHtml(b.assetId)}</span></span>`;
     })
     .join("");
 }
@@ -127,7 +127,7 @@ export function renderMediaPickerHtml(projection: MediaPickerProjection): string
 
   if (assets.length === 0) {
     return `
-  <section class="card" aria-labelledby="media-picker-heading" style="padding: var(--vmn-space-8);">
+ <section class="card s-kqRH8I4df0" aria-labelledby="media-picker-heading" >
     <h2 id="media-picker-heading">Approved Media Picker</h2>
     <p data-testid="media-picker-empty">No approved media assets are registered yet. Upload a master through the DAM endpoints
     (<code>POST /api/v1/storage/upload-url</code>, then <code>POST /api/v1/cms/media-assets</code>) — assets appear here
@@ -139,34 +139,34 @@ export function renderMediaPickerHtml(projection: MediaPickerProjection): string
     .map((a) => {
       const stateBadge =
         a.accessState === "AVAILABLE"
-          ? `<span style="color: var(--vmn-color-success-600, #15803d); font-weight: 600;">AVAILABLE</span>`
-          : `<span style="color: var(--vmn-color-danger-600, #b91c1c); font-weight: 600;">${escapeHtml(a.accessState)}</span>`;
-      const notes = a.accessNotes ? `<div style="font-size: 0.8rem; color: var(--vmn-color-text-muted, #64748b);">${escapeHtml(a.accessNotes)}</div>` : "";
+ ? `<span class="s-ikxPfbl-nL">AVAILABLE</span>`
+ : `<span class="s-B0d0sZ8CYA">${escapeHtml(a.accessState)}</span>`;
+ const notes = a.accessNotes ? `<div class="s-ylo9D2ENqA">${escapeHtml(a.accessNotes)}</div>` : "";
       const selector = a.selectable
         ? `<input type="radio" name="mediaAssetId" value="${escapeHtml(a.assetId)}" aria-label="Select ${escapeHtml(a.title)}">`
         : `<span aria-hidden="true">—</span>`;
       return `      <tr>
         <td>${selector}</td>
-        <td><strong>${escapeHtml(a.title)}</strong><div style="font-size: 0.78rem; color: var(--vmn-color-text-muted, #64748b); font-family: monospace;">${escapeHtml(a.assetId)}</div></td>
-        <td>${escapeHtml(a.mimeType)}<div style="font-size: 0.78rem;">${formatBytes(a.sizeBytes)}</div></td>
-        <td>${escapeHtml(a.provenance)}<div style="font-size: 0.78rem; color: var(--vmn-color-text-muted, #64748b);">by ${escapeHtml(a.registeredBy)} · ${escapeHtml(a.registeredAt.slice(0, 10))}</div></td>
+ <td><strong>${escapeHtml(a.title)}</strong><div class="s-sGwxze6eZT">${escapeHtml(a.assetId)}</div></td>
+ <td>${escapeHtml(a.mimeType)}<div class="s-p2jBWkaaxX">${formatBytes(a.sizeBytes)}</div></td>
+ <td>${escapeHtml(a.provenance)}<div class="s-9DUd7eES3z">by ${escapeHtml(a.registeredBy)} · ${escapeHtml(a.registeredAt.slice(0, 10))}</div></td>
         <td>${stateBadge}${notes}</td>
       </tr>`;
     })
     .join("\n");
 
   return `
-  <section class="card" aria-labelledby="media-picker-heading" style="padding: var(--vmn-space-8);">
+ <section class="card s-kqRH8I4df0" aria-labelledby="media-picker-heading" >
     <h2 id="media-picker-heading">Approved Media Picker</h2>
-    <p style="margin-bottom: var(--vmn-space-4);">
+ <p class="s-Y2zrxdGou0">
       ${summary.total} asset${summary.total === 1 ? "" : "s"} in the registry — ${summary.available} available,
       ${summary.quarantined} quarantined, ${summary.failed} failed. Only AVAILABLE assets satisfy the
       UIUX-001 §7.3 evidence-attachment contract; quarantined/failed rows are shown with their reason for review.
     </p>
-    <div style="overflow-x: auto;">
-      <table style="width: 100%; border-collapse: collapse;" data-testid="media-picker-table">
+ <div class="s-QtRFDAL0Yl">
+ <table class="s-C8adFL88uc" data-testid="media-picker-table">
         <thead>
-          <tr style="text-align: left; border-bottom: 2px solid var(--vmn-color-border, #e2e8f0);">
+ <tr class="s-PA70Feg2tu">
             <th scope="col">Select</th>
             <th scope="col">Asset</th>
             <th scope="col">Type / Size</th>

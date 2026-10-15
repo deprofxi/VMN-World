@@ -9,7 +9,7 @@ export const OPENAPI_SPEC = {
     title: "Virtual Media Network Limited (VMNL) Enterprise API",
     version: "1.0.0",
     description:
-      "Enterprise REST API runtime powering Broadcast Linear Television (NXTR, ORIS, IMBD on StarTimes DTT/DTH), the Creative Economy Hub, Headspace/Cr8Tech/Agentic OS, Azeebo+ Federation, Quote-to-Cash Ledger, and Quality Release Gates.",
+      "Enterprise REST API runtime for linear broadcast channel profiles, the Creative Economy Hub, Headspace/Cr8Tech/Agentic OS, Azeebo+ Federation, Quote-to-Cash Ledger, and Quality Release Gates. StarTimes carriage details are unverified unless explicitly returned as verified by the runtime.",
     contact: {
       name: "VMNL Engineering Architecture Team",
       email: "architecture@vmnl.ng",
@@ -174,9 +174,10 @@ export const OPENAPI_SPEC = {
                           code: { type: "string", enum: ["NXTR", "ORIS", "IMBD"] },
                           name: { type: "string" },
                           videoStandard: { type: "string", example: "1080i50" },
-                          dttChannelNumber: { type: "integer", example: 428 },
-                          dthChannelNumber: { type: "integer", example: 312 },
-                          starTimesPid: { type: "integer", example: 1042 },
+                          dttChannelNumber: { type: "integer", description: "Present only when carriage details have been verified." },
+                          dthChannelNumber: { type: "integer", description: "Present only when carriage details have been verified." },
+                          starTimesPid: { type: "integer", description: "Present only when the service PID has been verified." },
+                          carriageStatus: { type: "string", enum: ["VERIFIED", "UNVERIFIED"] },
                           isActive: { type: "boolean" },
                         },
                       },
@@ -533,13 +534,13 @@ export const OPENAPI_SPEC = {
       post: {
         tags: ["Federation"],
         summary: "Ingest Azeebo+ Event Mesh Webhook",
-        description: "Accepts a federation event for dispatch. The production partner signature, timestamp, and replay-protection contract is not yet verified; this route does not currently authenticate the advertised Azeebo+ signature header and must not be used as a production webhook receiver.",
+        description: "Prototype federation event dispatch. The local HMAC format is not an approved production partner contract; ingestion is hard-disabled in production and staging until signature, timestamp, replay, and idempotency requirements are approved and tested.",
         parameters: [
           {
             name: "X-Azeebo-Signature",
             in: "header",
             required: false,
-            description: "Reserved pending verification of the partner signature contract; not validated by the current handler.",
+            description: "Prototype-only local signing input; not a production Azeebo+ contract.",
             schema: { type: "string" },
           },
         ],
@@ -548,7 +549,8 @@ export const OPENAPI_SPEC = {
           content: { "application/json": { schema: { type: "object" } } },
         },
         responses: {
-          "200": { description: "Event handled by the current prototype dispatch path; delivery is not verified." },
+          "200": { description: "Event handled by the non-production prototype dispatch path; delivery is not verified." },
+          "501": { description: "Disabled in production/staging pending approved partner signature and replay contract." },
           "503": { description: "Federation dependency or circuit is unavailable." },
         },
       },
@@ -650,7 +652,7 @@ export const OPENAPI_SPEC = {
       post: {
         tags: ["Finance & Commercial"],
         summary: "Paystack Payment Webhook Ingestion",
-        description: "Ingests payment notifications with HMAC-SHA512 signature validation.",
+        description: "Validates Paystack HMAC-SHA512 signatures and accepts only successful incoming NGN charge.success events. Transfer events and other event types are not processed; provider-event deduplication is not durable yet.",
         security: [{ paystackSignature: [] }],
         parameters: [
           {
@@ -662,11 +664,35 @@ export const OPENAPI_SPEC = {
         ],
         requestBody: {
           required: true,
-          content: { "application/json": { schema: { type: "object" } } },
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["event", "data"],
+                properties: {
+                  event: { type: "string", enum: ["charge.success", "transfer.success"] },
+                  data: {
+                    type: "object",
+                    required: ["id", "reference", "amount", "currency", "status"],
+                    properties: {
+                      id: { oneOf: [{ type: "string", minLength: 1 }, { type: "integer", minimum: 1 }] },
+                      reference: { type: "string", minLength: 1, maxLength: 200 },
+                      amount: { type: "integer", minimum: 1, description: "Minor currency units." },
+                      currency: { type: "string", enum: ["NGN"] },
+                      status: { type: "string", description: "Must be success for an ingested charge." },
+                      paid_at: { type: "string", format: "date-time" },
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
         responses: {
-          "200": { description: "Webhook accepted and processed." },
-          "401": { description: "Invalid HMAC signature." },
+          "200": { description: "Supported charge event accepted for in-memory reconciliation." },
+          "400": { description: "Malformed JSON or transaction/event fields failed validation." },
+          "401": { description: "Missing, invalid, or unconfigured HMAC signature." },
+          "501": { description: "Unsupported event type, including transfer.success." },
         },
       },
     },
@@ -674,7 +700,7 @@ export const OPENAPI_SPEC = {
       post: {
         tags: ["Finance & Commercial"],
         summary: "Flutterwave Payment Webhook Ingestion",
-        description: "Ingests charge and transfer webhooks with verif-hash validation.",
+        description: "Validates the Flutterwave verif-hash and accepts only successful incoming NGN charge.completed events. Transfer events and other event types are not processed; provider-event deduplication is not durable yet.",
         security: [{ flutterwaveSignature: [] }],
         parameters: [
           {
@@ -686,11 +712,71 @@ export const OPENAPI_SPEC = {
         ],
         requestBody: {
           required: true,
-          content: { "application/json": { schema: { type: "object" } } },
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["event", "data"],
+                properties: {
+                  event: { type: "string", enum: ["charge.completed", "transfer.completed"] },
+                  data: {
+                    type: "object",
+                    required: ["id", "tx_ref", "amount", "currency", "status"],
+                    properties: {
+                      id: { oneOf: [{ type: "string", minLength: 1 }, { type: "integer", minimum: 1 }] },
+                      tx_ref: { type: "string", minLength: 1, maxLength: 200 },
+                      amount: { type: "number", exclusiveMinimum: 0 },
+                      currency: { type: "string", enum: ["NGN"] },
+                      status: { type: "string", enum: ["successful"] },
+                      created_at: { type: "string", format: "date-time" },
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
         responses: {
-          "200": { description: "Webhook accepted and processed." },
-          "401": { description: "Invalid verification hash." },
+          "200": { description: "Supported charge event accepted for in-memory reconciliation." },
+          "400": { description: "Malformed JSON or transaction/event fields failed validation." },
+          "401": { description: "Missing, invalid, or unconfigured verification hash." },
+          "501": { description: "Unsupported event type, including transfer.completed." },
+        },
+      },
+    },
+    "/api/v1/enquiries": {
+      get: {
+        tags: ["Creative Economy Hub"],
+        summary: "List commercial enquiries",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          "200": { description: "Authorized enquiry records." },
+          "401": { description: "Unauthenticated.", content: { "application/problem+json": { schema: { $ref: "#/components/schemas/Problem" } } } },
+          "403": { description: "Permission denied.", content: { "application/problem+json": { schema: { $ref: "#/components/schemas/Problem" } } } },
+          "422": { description: "Invalid query.", content: { "application/problem+json": { schema: { $ref: "#/components/schemas/Problem" } } } },
+        },
+      },
+    },
+    "/api/v1/privacy/export-request": {
+      get: {
+        tags: ["System"],
+        summary: "Get the authenticated user's privacy export request status",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          "200": { description: "Self-service export status." },
+          "401": { description: "Unauthenticated.", content: { "application/problem+json": { schema: { $ref: "#/components/schemas/Problem" } } } },
+        },
+      },
+      post: {
+        tags: ["System"],
+        summary: "Request a personal data export",
+        security: [{ bearerAuth: [] }],
+        requestBody: { required: true, content: { "application/json": { schema: { type: "object" } } } },
+        responses: {
+          "202": { description: "Request recorded; archive generation is not available." },
+          "401": { description: "Unauthenticated.", content: { "application/problem+json": { schema: { $ref: "#/components/schemas/Problem" } } } },
+          "403": { description: "Subject mismatch.", content: { "application/problem+json": { schema: { $ref: "#/components/schemas/Problem" } } } },
+          "422": { description: "Invalid request.", content: { "application/problem+json": { schema: { $ref: "#/components/schemas/Problem" } } } },
         },
       },
     },
@@ -764,6 +850,20 @@ export const OPENAPI_SPEC = {
     },
   },
   components: {
+    schemas: {
+      Problem: {
+        type: "object",
+        required: ["type", "title", "status", "detail"],
+        properties: {
+          type: { type: "string", format: "uri-reference" },
+          title: { type: "string" },
+          status: { type: "integer", minimum: 400, maximum: 599 },
+          detail: { type: "string" },
+          instance: { type: "string", format: "uri-reference" },
+          errors: { type: "array", items: { type: "object" } },
+        },
+      },
+    },
     securitySchemes: {
       bearerAuth: {
         type: "http",
@@ -813,19 +913,19 @@ export function renderDocsHtml(): string {
                   : { bg: "#FEF3C7", text: "#B45309", border: "#FDE68A" };
 
               return `
-              <div style="background:var(--vmn-surface); border:1px solid var(--vmn-surface-border); border-radius:8px; padding:16px; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-                <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
-                  <div style="display:flex; align-items:center; gap:10px;">
-                    <span style="background:${badgeColor.bg}; color:${badgeColor.text}; border:1px solid ${badgeColor.border}; font-weight:800; font-size:0.75rem; padding:3px 8px; border-radius:4px; font-family:monospace;">
+ <div class="s-mIc0qJhc62">
+ <div class="s-KERpgNAVPL">
+ <div class="s-6pa906dkoy">
+ <span style="background:${badgeColor.bg}; color:${badgeColor.text}; border:1px solid ${badgeColor.border}; font-weight:800; font-size:0.75rem; padding:3px 8px; border-radius:4px; font-family:monospace;">
                       ${methodUpper}
                     </span>
-                    <code style="font-size:0.95rem; font-weight:700; color:var(--vmn-primary);">${path}</code>
+ <code class="s-bFJHiO04Ym">${path}</code>
                   </div>
-                  <span style="font-size:0.85rem; font-weight:600; color:var(--vmn-text-muted);">${def.summary || ""}</span>
+ <span class="s-TID-rgEsFG">${def.summary || ""}</span>
                 </div>
-                <p style="font-size:0.875rem; color:var(--vmn-text-muted); margin-bottom:10px;">${def.description || def.summary || ""}</p>
-                <div style="display:flex; gap:8px; align-items:center;">
-                  <a href="${methodUpper === "GET" ? path.replace(/\{.*\}/, "NXTR") : "/api/v1/openapi.json"}" target="_blank" class="btn btn-outline" style="min-height:36px; padding:4px 12px; font-size:0.8rem;">
+ <p class="s-1UFq2LQ7OE">${def.description || def.summary || ""}</p>
+ <div class="s-yFCr8u7ohF">
+ <a href="${methodUpper === "GET" ? path.replace(/\{.*\}/, "NXTR") : "/api/v1/openapi.json"}" target="_blank" class="btn btn-outline s-J-08aM07_f" >
                     ${methodUpper === "GET" ? "Test Query &rarr;" : "View Schema"}
                   </a>
                 </div>
@@ -837,10 +937,10 @@ export function renderDocsHtml(): string {
         .join("");
 
       return `
-      <section style="margin-bottom:32px;">
-        <div style="border-bottom:2px solid var(--vmn-secondary); padding-bottom:8px; margin-bottom:16px;">
-          <h2 style="font-size:1.4rem; font-weight:800; color:var(--vmn-primary);">${tag.name}</h2>
-          <p style="color:var(--vmn-text-muted); font-size:0.9rem;">${tag.description}</p>
+ <section class="s-KijRP4397F">
+ <div class="s-ZarZ4-GkKR">
+ <h2 class="s-uUzRf8Opdm">${tag.name}</h2>
+ <p class="s-06Fvui29kx">${tag.description}</p>
         </div>
         ${methodsHtml}
       </section>
@@ -849,26 +949,26 @@ export function renderDocsHtml(): string {
     .join("");
 
   return `
-  <section style="display:flex; flex-direction:column; gap:24px;">
-    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;">
+ <section class="s-hJqXKfH1_e">
+ <div class="s-eNztNGULjh">
       <div>
-        <nav aria-label="Breadcrumb" style="font-size:0.85rem; color:var(--vmn-text-muted); margin-bottom:8px;">
-          <a href="/" style="color:var(--vmn-secondary); text-decoration:none;">Home</a> &gt; 
+ <nav aria-label="Breadcrumb" class="s-SFIks6VJ6b">
+ <a href="/" class="s-v8cyEOQoqd">Home</a> &gt; 
           <span>API Documentation</span>
         </nav>
-        <h1 style="font-size:2rem; font-weight:800; color:var(--vmn-primary);">VMNL Enterprise API Reference</h1>
-        <p style="color:var(--vmn-text-muted); margin-top:4px;">
+ <h1 class="s-6qUvL7-0sm">VMNL Enterprise API Reference</h1>
+ <p class="s-NLOlqgzjPV">
           Interactive OpenAPI 3.1 specification for broadcast, creative hub, intelligence, federation, and financial services.
         </p>
       </div>
-      <div style="display:flex; gap:12px; align-items:center;">
+ <div class="s-iJRgfp58Su">
         <a href="/api/v1/openapi.json" target="_blank" class="btn btn-outline">Raw OpenAPI 3.1 JSON &rarr;</a>
         <a href="/broadcast/screens" class="btn btn-primary">33 Screen Surfaces</a>
       </div>
     </div>
 
     <!-- Overview Stats -->
-    <div class="grid-3" style="margin-top:0;">
+ <div class="grid-3 s-KRt7uwFSzR" >
       <div class="card stat-box">
         <span class="stat-val">${totalEndpointCount}</span>
         <span class="stat-lbl">Enterprise REST Endpoints</span>

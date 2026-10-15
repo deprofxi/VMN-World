@@ -78,7 +78,7 @@ export interface ThreeWayReconciliationResult {
   carrierFaults: number;
   discrepancies: number;
   certificates: ProofOfAirCertificate[];
-  reconciliationStatus: "VERIFIED_ALL_MATCHED" | "PARTIAL_DISCREPANCY" | "CRITICAL_AIRING_FAILURE";
+  reconciliationStatus: "ALL_SUPPLIED_INPUTS_MATCHED" | "PARTIAL_DISCREPANCY" | "CRITICAL_AIRING_FAILURE";
 }
 
 /**
@@ -155,13 +155,13 @@ export function buildBinaryProofOfAirPdf(cert: {
     "BT",
     "/F2 12 Tf",
     "52 742 Td",
-    "(VIRTUAL MEDIA NETWORK LIMITED - BROADCAST REVENUE ASSURANCE) Tj",
+    "(VMNL - BROADCAST RECONCILIATION RECORD) Tj",
     "ET",
     "0 0 0 rg",
     "BT",
     "/F2 16 Tf",
     "50 684 Td",
-    "(CERTIFICATE OF BROADCAST PERFORMANCE & PROOF-OF-AIR) Tj",
+    "(PROOF-OF-AIR RECONCILIATION RECORD - NOT TRANSMISSION VERIFICATION) Tj",
     "/F1 10 Tf",
     "0 -28 Td",
     `(${escapePdfText(`Certificate ID:       ${cert.certificateId}`)}) Tj`,
@@ -178,20 +178,20 @@ export function buildBinaryProofOfAirPdf(cert: {
     "0 -18 Td",
     `(${escapePdfText(`Aired Duration:       ${cert.durationSeconds} seconds`)}) Tj`,
     "0 -18 Td",
-    `(${escapePdfText(`Transmission Carrier: ${cert.carrierLockVerified !== false ? "VERIFIED CARRIER LOCK (StarTimes DTT/DTH Uplink)" : "PENDING RECONCILIATION"}`)}) Tj`,
+    `(${escapePdfText(`Transmission Carrier: ${cert.carrierLockVerified === true ? "LOCK REPORTED IN SUPPLIED INPUT - NOT INDEPENDENTLY VALIDATED" : "NOT VERIFIED - carrier evidence absent"}`)}) Tj`,
     "0 -18 Td",
     `(${escapePdfText(`Verification URL:     ${cert.verificationUrl}`)}) Tj`,
     "0 -18 Td",
     `(${escapePdfText(`Timestamp Generated:  ${cert.generatedAt.toISOString()}`)}) Tj`,
     "0 -28 Td",
     "/F2 10 Tf",
-    "(Tamper-Evident Playout SHA-256 Digest:) Tj",
+    "(Certificate Record SHA-256 Digest:) Tj",
     "0 -16 Td",
     "/F1 8 Tf",
     `(${escapePdfText(cert.cryptographicSignature)}) Tj`,
     "0 -32 Td",
     "/F1 9 Tf",
-    "(Issued under authority of VMNL Master Control Playout & Revenue Assurance Operations (CCPP-001 §19).) Tj",
+    "(Generated from application data; not independent proof of transmission or accounting treatment.) Tj",
     "ET",
     "0.8 0.8 0.8 RG",
     "1 w",
@@ -234,7 +234,7 @@ export function buildBinaryProofOfAirPdf(cert: {
 }
 
 /**
- * Generates an audit-grade Base64-encoded PDF/document payload for a Proof-of-Air certificate.
+ * Generates a reconciliation-record PDF. It does not independently verify source evidence or broadcast occurrence.
  */
 export function generateProofOfAirDocument(cert: Omit<ProofOfAirCertificate, "documentBase64" | "verificationUrl">): {
   documentBase64: string;
@@ -308,7 +308,7 @@ export function performThreeWayMatch(
       airedTimestamp: playoutMatch.actualStartTime,
       durationSeconds: playoutMatch.actualDurationSeconds,
       cryptographicSignature: signature,
-      isVerified: true,
+      isVerified: false,
       generatedAt: new Date(),
       carrierLockVerified: true,
     };
@@ -324,7 +324,7 @@ export function performThreeWayMatch(
     certificates.push(fullCert);
   }
 
-  const status = discrepancies === 0 ? "VERIFIED_ALL_MATCHED" : preempted > 0 ? "PARTIAL_DISCREPANCY" : "CRITICAL_AIRING_FAILURE";
+  const status = discrepancies === 0 ? "ALL_SUPPLIED_INPUTS_MATCHED" : preempted > 0 ? "PARTIAL_DISCREPANCY" : "CRITICAL_AIRING_FAILURE";
 
   return {
     channelCode,
@@ -370,7 +370,7 @@ export function reconcileAsRunLogs(
         airedTimestamp: item.actualStartTime,
         durationSeconds: item.actualDurationSeconds,
         cryptographicSignature: signature,
-        isVerified: true,
+        isVerified: false,
         generatedAt: new Date(),
       };
 

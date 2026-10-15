@@ -7,6 +7,25 @@
  * co-branded segments) and automatically audits playout fulfillment against contracted minimums.
  */
 
+import { registerDurableStore, stageDurableWrite } from "../../../core/database/durable-journal.js";
+import {
+  loadSponsorBindings,
+  loadSponsorFulfillments,
+  persistSponsorBinding,
+  persistSponsorFulfillment,
+} from "../../../core/database/repositories/release-critical.repository.js";
+
+/**
+ * TSK-17 (report.md CA-12): a sponsor binding is a contracted obligation and a
+ * fulfilment record is the evidence it was met, so both live in
+ * `SponsorBindingRecord` / `SponsorFulfillmentRecord` rather than in one
+ * process's Maps. Entitlement delivery counters are deliberately not staged
+ * here: they are derived from impression logs the entitlement owner replays, and
+ * CA-12 lists the binding, not the entitlement.
+ */
+registerDurableStore<SponsorBinding>("sponsorBinding", persistSponsorBinding);
+registerDurableStore<SponsorBindingFulfillment>("sponsorFulfillment", persistSponsorFulfillment);
+
 export interface SponsorEntitlement {
   id: string;
   sponsorName: string;
@@ -141,7 +160,29 @@ export class SponsorshipEngine {
     }
     const full: SponsorBinding = { ...binding, fulfilledPlacements: 0 };
     this.bindings.set(full.id, full);
+    this.stageBinding(full);
     return full;
+  }
+
+  private stageBinding(binding: SponsorBinding): void {
+    stageDurableWrite<SponsorBinding>({
+      store: "sponsorBinding",
+      key: binding.id,
+      payload: binding,
+      rollback: () => {
+        this.bindings.delete(binding.id);
+      },
+    });
+  }
+
+  /**
+   * Boot hydration (TSK-17): adopt the durable bindings and their fulfilment
+   * evidence. `entitlements` stay process-side (see the note above), so the
+   * report resolves sponsor names only for entitlements the caller re-registers.
+   */
+  public hydrate(bindings: SponsorBinding[], fulfillments: SponsorBindingFulfillment[]): void {
+    this.bindings = new Map(bindings.map((binding) => [binding.id, binding]));
+    this.fulfillmentRecords = [...fulfillments];
   }
 
   public getBinding(id: string): SponsorBinding | undefined {
@@ -199,6 +240,21 @@ export class SponsorshipEngine {
       fulfillmentPercent,
     };
     this.fulfillmentRecords.push(record);
+    // The binding's counter moved with this record, so both rows are staged:
+    // a restart must not bring back a binding whose evidence is missing, or
+    // evidence that a counter nobody persisted claims is complete.
+    this.stageBinding(binding);
+    stageDurableWrite<SponsorBindingFulfillment>({
+      store: "sponsorFulfillment",
+      key: `${record.bindingId}:${record.asRunLogId}`,
+      payload: record,
+      rollback: () => {
+        this.fulfillmentRecords = this.fulfillmentRecords.filter(
+          (posted) => !(posted.bindingId === record.bindingId && posted.asRunLogId === record.asRunLogId)
+        );
+        if (binding.fulfilledPlacements > 0) binding.fulfilledPlacements -= 1;
+      },
+    });
     return record;
   }
 
@@ -269,4 +325,17 @@ export interface SponsorBindingFulfillment {
   placementsRequired: number;
   isComplete: boolean;
   fulfillmentPercent: number;
+}
+
+/**
+ * Boot hydration (TSK-17) for the engine a server actually serves with: the
+ * desk holds the instance, so the durable rows are loaded into that instance
+ * rather than into a module-level copy nobody reads.
+ */
+export async function hydrateSponsorshipEngine(
+  engine: SponsorshipEngine
+): Promise<{ bindings: number; fulfillments: number }> {
+  const [bindings, fulfillments] = await Promise.all([loadSponsorBindings(), loadSponsorFulfillments()]);
+  engine.hydrate(bindings, fulfillments);
+  return { bindings: bindings.length, fulfillments: fulfillments.length };
 }

@@ -2,216 +2,160 @@
  * S-CLIENT Counterparty & Client Portal (UX-PRJ-002, UX-COM-010, UX-POR-002)
  * Authority: VMN APP UI UX.docx §8.4 / VMN UI UX CLAUDE CODE PROMPTS .docx S-CLIENT / J-RL1-07
  *
+ * TSK-13 (`report.md` CA-09): this portal is a projection over canonical
+ * `QuoteToCashSalesEngine` deals scoped by `clientOrgId`. The former
+ * `MOCK_CLIENT_PROJECTS` registry — with its invented as-run timestamps,
+ * certificate numbers and SHA-256 "compliance signatures" — is deleted. On a
+ * counterparty surface that is worse than an empty one: it presented
+ * fabricated transmission evidence as the client's own proof of performance.
+ * Where the canonical record carries no field, the screen states NOT
+ * CONNECTED and names the missing source instead of filling the gap.
+ *
  * Implements:
  * - UX-PRJ-002: Client Project Identity & Approved Commercial Scope
- * - UX-COM-010: Delivery Commitments Table (deliverable, due date, delivery state, released supporting proof)
- * - UX-POR-002: Released Proof-of-Performance & Transmission Certificates
+ * - UX-COM-010: Delivery Commitments Table (identity canonical; delivery feed NOT CONNECTED)
+ * - UX-POR-002: Released Proof-of-Performance (the deal's own proof document;
+ *   per-airing transmission certificates NOT CONNECTED)
  * - Dispute / Question Submission Form (POST /api/v1/client/projects/:projectId/questions)
  */
 
 import { escapeHtml } from "../components/escape.js";
 import { renderIcon } from "../components/icons.js";
+import { SalesDeal, SalesStage } from "../../modules/finance/sales/index.js";
 
-export interface ClientCommitment {
-  id: string;
-  deliverable: string;
-  channel: string;
-  daypart: string;
-  flightRange: string;
-  scheduledRuns: number;
-  deliveredRuns: number;
-  deliveryState: "RELEASED" | "SCHEDULED" | "IN_PROGRESS" | "MAKE_GOOD_REQUIRED";
-  proofCertificateId?: string;
-  lastAsRunTimestamp?: string;
-}
-
-export interface ReleasedProofReport {
-  id: string;
-  certificateNumber: string;
-  asRunTimestamp: string;
-  channel: string;
-  spotTitle: string;
-  durationSeconds: number;
-  carrier: string;
-  complianceSignature: string;
-  verified: boolean;
-}
-
+/**
+ * The portal's view of one canonical deal. Every field is copied from the
+ * record or derived from its stage by `statusFromStage`; none is invented at
+ * render time.
+ */
 export interface ClientProject {
   id: string;
   orgId: string;
-  orgName: string;
   title: string;
   commercialRef: string;
+  stage: SalesStage;
   status: "ACTIVE" | "COMPLETED" | "IN_RECONCILIATION";
   contractValueNgn: number;
-  flightStart: string;
-  flightEnd: string;
-  accountExec: string;
-  commitments: ClientCommitment[];
-  releasedProofs: ReleasedProofReport[];
+  depositAmountNgn: number;
+  invoicedAmountNgn: number;
+  cashCollectedAmountNgn: number;
+  recognizedRevenueNgn: number;
+  proofOfPerformanceVerified: boolean;
+  proofDocumentUrl?: string;
+  openedOn: string;
 }
 
-export const MOCK_CLIENT_PROJECTS: Record<string, ClientProject> = {
-  "PRJ-VMN-2026-088": {
-    id: "PRJ-VMN-2026-088",
-    orgId: "org-dangote",
-    orgName: "Dangote Group Holdings",
-    title: "Q3 2026 Pan-African Industrial Awareness Campaign",
-    commercialRef: "COMM-DAG-8842",
-    status: "ACTIVE",
-    contractValueNgn: 45000000,
-    flightStart: "2026-09-01",
-    flightEnd: "2026-10-31",
-    accountExec: "Chidinma Nwosu (Senior Commercial Director)",
-    commitments: [
-      {
-        id: "COM-001",
-        deliverable: "30s Prime Time Spot (News at 8PM)",
-        channel: "VMN News 24 (StarTimes 112)",
-        daypart: "Prime 20:00 - 21:00",
-        flightRange: "01 Sep - 30 Sep 2026",
-        scheduledRuns: 60,
-        deliveredRuns: 58,
-        deliveryState: "RELEASED",
-        proofCertificateId: "CERT-TX-2026-09228",
-        lastAsRunTimestamp: "2026-09-29T20:14:32Z",
-      },
-      {
-        id: "COM-002",
-        deliverable: "15s Sports Squeeze-Back In-Game",
-        channel: "VMN Sports HD (StarTimes 240)",
-        daypart: "Live Match Live-Action",
-        flightRange: "10 Sep - 25 Oct 2026",
-        scheduledRuns: 24,
-        deliveredRuns: 20,
-        deliveryState: "IN_PROGRESS",
-        proofCertificateId: "CERT-TX-2026-09241",
-        lastAsRunTimestamp: "2026-09-28T16:45:10Z",
-      },
-      {
-        id: "COM-003",
-        deliverable: "Co-Sponsorship Ident (Morning Africa)",
-        channel: "VMN General Entertainment",
-        daypart: "Morning 07:00 - 09:00",
-        flightRange: "01 Oct - 31 Oct 2026",
-        scheduledRuns: 30,
-        deliveredRuns: 0,
-        deliveryState: "SCHEDULED",
-      },
-      {
-        id: "COM-004",
-        deliverable: "Late Night Financial Bulletin Crawler",
-        channel: "VMN News 24 (StarTimes 112)",
-        daypart: "Late 22:30 - 23:00",
-        flightRange: "15 Sep - 20 Sep 2026",
-        scheduledRuns: 10,
-        deliveredRuns: 8,
-        deliveryState: "MAKE_GOOD_REQUIRED",
-        proofCertificateId: "CERT-TX-2026-09199",
-        lastAsRunTimestamp: "2026-09-20T22:45:00Z",
-      },
-    ],
-    releasedProofs: [
-      {
-        id: "PRF-001",
-        certificateNumber: "CERT-TX-2026-09228",
-        asRunTimestamp: "2026-09-29T20:14:32+01:00",
-        channel: "VMN News 24 (StarTimes 112)",
-        spotTitle: "Dangote Cement - Building the Continent (30s)",
-        durationSeconds: 30,
-        carrier: "Eutelsat 16A Ku-Band DTT Downlink",
-        complianceSignature: "SHA256:d8a4f9104c9e830b1e4f9b8c0a82b992147",
-        verified: true,
-      },
-      {
-        id: "PRF-002",
-        certificateNumber: "CERT-TX-2026-09241",
-        asRunTimestamp: "2026-09-28T16:45:10+01:00",
-        channel: "VMN Sports HD (StarTimes 240)",
-        spotTitle: "Dangote Fertiliser - Harvest Wealth Squeeze (15s)",
-        durationSeconds: 15,
-        carrier: "StarTimes Multiplex Transponder 4",
-        complianceSignature: "SHA256:7bc902fa438012bbec30291df994a0081e2",
-        verified: true,
-      },
-      {
-        id: "PRF-003",
-        certificateNumber: "CERT-TX-2026-09199",
-        asRunTimestamp: "2026-09-20T22:45:00+01:00",
-        channel: "VMN News 24 (StarTimes 112)",
-        spotTitle: "Dangote Refinery - Energy for Africa Crawler",
-        durationSeconds: 20,
-        carrier: "Eutelsat 16A Ku-Band DTT Downlink",
-        complianceSignature: "SHA256:1a8fe99023c9a174092b34a9d01247fa10c",
-        verified: true,
-      },
-    ],
-  },
-};
+/**
+ * One stated rule, so a reader can check it rather than trust a switch:
+ * revenue recognised closes the project; an invoice raised but not yet
+ * collected (or collected but not recognised) is being reconciled; anything
+ * earlier is live commercial work.
+ */
+export function statusFromStage(stage: SalesStage): ClientProject["status"] {
+  if (stage === "REVENUE_RECOGNIZED") return "COMPLETED";
+  if (stage === "INVOICED" || stage === "CASH_COLLECTED") return "IN_RECONCILIATION";
+  return "ACTIVE";
+}
+
+export function toClientProject(deal: SalesDeal): ClientProject {
+  return {
+    id: deal.id,
+    orgId: deal.clientOrgId,
+    title: deal.dealName,
+    commercialRef: deal.salesLeadId,
+    stage: deal.stage,
+    status: statusFromStage(deal.stage),
+    contractValueNgn: deal.totalContractValueNgn,
+    depositAmountNgn: deal.depositAmountNgn,
+    invoicedAmountNgn: deal.invoicedAmountNgn,
+    cashCollectedAmountNgn: deal.cashCollectedAmountNgn,
+    recognizedRevenueNgn: deal.recognizedRevenueNgn,
+    proofOfPerformanceVerified: deal.proofOfPerformanceVerified,
+    proofDocumentUrl: deal.proofDocumentUrl,
+    openedOn: deal.createdAt.toISOString().substring(0, 10),
+  };
+}
 
 /**
- * Renders the Organisation Projects Overview (UX-POR-001)
+ * Tenant scoping happens here, not in the template: a portfolio is exactly the
+ * deals whose canonical `clientOrgId` equals the caller's organisation. An
+ * empty result is an empty portfolio — the renderer never falls back to
+ * another organisation's records.
+ */
+export function projectClientPortfolio(deals: SalesDeal[], orgId: string): ClientProject[] {
+  return deals.filter((d) => d.clientOrgId === orgId).map(toClientProject);
+}
+
+/**
+ * Renders the Organisation Projects Overview (UX-POR-001).
+ * The `SOURCE:` line is a provenance statement, not decoration: every row is a
+ * canonical deal read from the sales engine — hydrated from durable `SalesDealRecord`
+ * rows at boot — and filtered to this organisation.
  */
 export function renderClientProjectsListHtml(orgId: string, projects: ClientProject[]): string {
-  const orgName = projects[0]?.orgName || "Client Enterprise";
-
   return `
-    <div style="max-width: 1040px; margin: 32px auto; padding: 0 16px;">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+ <div class="s-X25-xxgYS8">
+ <div class="s-k5NLeWec9i">
         <div>
-          <span class="vmn-badge badge-info" style="margin-bottom: 8px; font-weight: 700;">COUNTERPARTY PORTAL &bull; S-CLIENT</span>
-          <h1 style="font-size: var(--vmn-font-size-2xl); font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 4px 0;">
-            ${escapeHtml(orgName)} &bull; Commercial Campaigns
+ <span class="vmn-badge badge-info s-Dnmmv3HPR8" >COUNTERPARTY PORTAL &bull; S-CLIENT</span>
+ <h1 class="s-EnfZSIVIG1">
+            ${escapeHtml(orgId)} &bull; Commercial Projects
           </h1>
-          <p style="color: var(--vmn-color-secondary-text); margin: 0; font-size: 0.95rem;">
-            Inspect transmission proof-of-performance, delivery certificates, and active broadcast schedules.
+ <p class="s-zrikAgYqXF">
+            Approved commercial scope and proof-of-performance position for the deals contracted to your organisation.
+            SOURCE: SalesDealRecord (durable, Postgres) hydrated into QuoteToCashSalesEngine.listDeals() &bull; scoped to clientOrgId = ${escapeHtml(orgId)}
           </p>
-        </div>
-        <div style="display: flex; gap: 8px;">
-          <a href="/portal/client/organisations/${escapeHtml(orgId)}/projects/PRJ-VMN-2026-088" class="btn btn-primary" style="min-height: 44px; display: inline-flex; align-items: center; gap: 6px;">
-            ${renderIcon("document", { size: 16 })} Active Campaign
-          </a>
         </div>
       </div>
 
-      <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); overflow: hidden;">
-        <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+ ${projects.length === 0 ? `<div class="vmn-card s-6KYnYzlM1L" >
+ <p class="s-ywnZrRwXf4">
+            No canonical deal exists for organisation <code>${escapeHtml(orgId)}</code>. This portfolio renders empty
+            rather than showing another organisation's records or demonstration data.
+          </p>
+        </div>` : `<div class="vmn-card s-6KYnYzlM1L" >
+ <table class="s-okYEyeZcgY">
           <thead>
-            <tr style="background: var(--vmn-color-background); border-bottom: 2px solid var(--vmn-color-border); text-align: left;">
-              <th style="padding: 12px 16px; font-weight: 700;">Campaign Title</th>
-              <th style="padding: 12px 16px; font-weight: 700;">Contract Ref</th>
-              <th style="padding: 12px 16px; font-weight: 700;">Flight Dates</th>
-              <th style="padding: 12px 16px; font-weight: 700;">Contract Value</th>
-              <th style="padding: 12px 16px; font-weight: 700;">Status</th>
-              <th style="padding: 12px 16px; font-weight: 700; text-align: right;">Action</th>
+ <tr class="s-vhJLkBexH-">
+ <th class="s-MKAnYaImTh">Deal</th>
+ <th class="s-MKAnYaImTh">Commercial Ref</th>
+ <th class="s-MKAnYaImTh">Opened</th>
+ <th class="s-MKAnYaImTh">Contract Value</th>
+ <th class="s-MKAnYaImTh">Cash Collected</th>
+ <th class="s-MKAnYaImTh">Stage</th>
+ <th class="s-PlZob6utH8">Action</th>
             </tr>
           </thead>
           <tbody>
             ${projects
               .map(
                 (p) => `
-              <tr style="border-bottom: 1px solid var(--vmn-color-border);">
-                <td style="padding: 14px 16px; font-weight: 700; color: var(--vmn-color-primary-text);">
-                  ${escapeHtml(p.title)}
+ <tr class="s-EK6K8Vq5tY">
+ <td class="s-y1XhyBCIUt">
+                  <div>${escapeHtml(p.title)}</div>
+ <div class="s-OdlmY1tzrc">${escapeHtml(p.id)}</div>
                 </td>
-                <td style="padding: 14px 16px; font-family: monospace; color: var(--vmn-color-secondary-text);">
-                  ${escapeHtml(p.commercialRef)}
+ <td class="s-ITcs2tU9KG">
+                  <code>${escapeHtml(p.commercialRef)}</code>
                 </td>
-                <td style="padding: 14px 16px; color: var(--vmn-color-secondary-text);">
-                  ${escapeHtml(p.flightStart)} &rarr; ${escapeHtml(p.flightEnd)}
+ <td class="s-ljWZvMFJIB">
+                  ${escapeHtml(p.openedOn)}
                 </td>
-                <td style="padding: 14px 16px; font-weight: 700; color: var(--vmn-color-primary-text);">
+ <td class="s-y1XhyBCIUt">
                   &#8358;${p.contractValueNgn.toLocaleString()}
                 </td>
-                <td style="padding: 14px 16px;">
-                  <span class="vmn-badge ${p.status === "ACTIVE" ? "badge-success" : p.status === "COMPLETED" ? "badge-neutral" : "badge-warning"}">
+ <td class="s-y1XhyBCIUt">
+                  &#8358;${p.cashCollectedAmountNgn.toLocaleString()}
+                </td>
+ <td class="s-rjntaejdF6">
+ <span class="vmn-badge ${p.status === "ACTIVE" ? "badge-success" : p.status === "COMPLETED" ? "badge-neutral" : "badge-warning"}">
                     ${escapeHtml(p.status)}
                   </span>
+                  <div class="s-OdlmY1tzrc">${escapeHtml(p.stage)}</div>
                 </td>
-                <td style="padding: 14px 16px; text-align: right;">
-                  <a href="/portal/client/organisations/${escapeHtml(orgId)}/projects/${escapeHtml(p.id)}" class="btn btn-outline" style="min-height: 44px; padding: 0 16px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px;">
-                    ${renderIcon("document", { size: 14 })} View Proof &amp; Scope
+ <td class="s-IBwGVBB9k7">
+ <a href="/portal/client/organisations/${encodeURIComponent(p.orgId)}/projects/${encodeURIComponent(p.id)}" class="btn btn-outline s-xpqECJulZc" >
+                    ${renderIcon("document", { size: 14 })} View Scope &amp; Proof
                   </a>
                 </td>
               </tr>
@@ -220,39 +164,39 @@ export function renderClientProjectsListHtml(orgId: string, projects: ClientProj
               .join("")}
           </tbody>
         </table>
-      </div>
+      </div>`}
     </div>
   `;
 }
 
 /**
- * UX-PRJ-002, UX-COM-010, UX-POR-002:
- * Project Identity, Scope Summary, Delivery Commitments, Proof Viewer, and Question Form
+ * UX-PRJ-002, UX-COM-010, UX-POR-002: canonical project identity, approved
+ * commercial scope, the deal's own proof-of-performance position, and the
+ * question form. The two delivery sections render an explicit NOT CONNECTED
+ * statement — see the notes on those cards.
  */
 export function renderClientProjectDetailHtml(project: ClientProject, successNotice?: string): string {
-  const totalScheduled = project.commitments.reduce((acc, c) => acc + c.scheduledRuns, 0);
-  const totalDelivered = project.commitments.reduce((acc, c) => acc + c.deliveredRuns, 0);
-  const deliveryPercentage = Math.round((totalDelivered / (totalScheduled || 1)) * 100);
+  const outstandingNgn = project.contractValueNgn - project.cashCollectedAmountNgn;
 
   return `
-    <div style="max-width: 1040px; margin: 32px auto; padding: 0 16px;">
+ <div class="s-X25-xxgYS8">
       <!-- Breadcrumb Navigation -->
-      <nav style="display: flex; gap: 8px; align-items: center; font-size: 0.85rem; color: var(--vmn-color-secondary-text); margin-bottom: 16px;">
-        <a href="/portal/client/organisations/${escapeHtml(project.orgId)}/projects" style="color: var(--vmn-color-text-muted); text-decoration: none;">
-          ${escapeHtml(project.orgName)}
+ <nav class="s-bYDeaBCO2E">
+ <a href="/portal/client/organisations/${encodeURIComponent(project.orgId)}/projects" class="s-dSGpVNZrOE">
+          ${escapeHtml(project.orgId)}
         </a>
         <span>/</span>
-        <span style="color: var(--vmn-color-primary-text); font-weight: 600;">${escapeHtml(project.id)}</span>
+ <span class="s-Rs7wQp2hFQ">${escapeHtml(project.id)}</span>
       </nav>
 
       ${
         successNotice
           ? `
-        <div class="vmn-alert" style="background: #ECFDF5; border: 1px solid #10B981; border-radius: var(--vmn-radius-md); padding: 16px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px;">
-          <div style="color: #059669;">${renderIcon("check", { size: 24 })}</div>
+ <div class="vmn-alert s-NKbeyCer0q" >
+ <div class="s-Fq1eaiclek">${renderIcon("check", { size: 24 })}</div>
           <div>
-            <div style="font-weight: 700; color: #065F46;">Transmission Inquiry Logged Successfully</div>
-            <div style="font-size: 0.85rem; color: #047857;">${escapeHtml(successNotice)}</div>
+ <div class="s-4jLxKmoprh">Transmission Inquiry Logged Successfully</div>
+ <div class="s-huAjaSyPZk">${escapeHtml(successNotice)}</div>
           </div>
         </div>
       `
@@ -260,182 +204,142 @@ export function renderClientProjectDetailHtml(project: ClientProject, successNot
       }
 
       <!-- Header & Identity (UX-PRJ-002) -->
-      <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); padding: 28px; margin-bottom: 24px;">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
+ <div class="vmn-card s-siWzyk-6ha" >
+ <div class="s-GdqqA-3ley">
           <div>
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+ <div class="s-gOIKrH4R8Q">
               <span class="vmn-badge badge-info">PROJECT &bull; UX-PRJ-002</span>
               <span class="vmn-badge ${project.status === "ACTIVE" ? "badge-success" : "badge-warning"}">${escapeHtml(project.status)}</span>
             </div>
-            <h1 style="font-size: var(--vmn-font-size-2xl); font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 6px 0;">
+ <h1 class="s-n_bp1PhViu">
               ${escapeHtml(project.title)}
             </h1>
-            <div style="font-size: 0.9rem; color: var(--vmn-color-secondary-text);">
-              Client: <strong>${escapeHtml(project.orgName)}</strong> &bull; Commercial Booking: <code>${escapeHtml(project.commercialRef)}</code>
+ <div class="s-4s4trEJKoc">
+              Client organisation: <strong>${escapeHtml(project.orgId)}</strong> &bull; Commercial booking ref: <code>${escapeHtml(project.commercialRef)}</code>
             </div>
           </div>
-          <div style="text-align: right;">
-            <div style="font-size: 0.75rem; color: var(--vmn-color-text-muted); text-transform: uppercase; font-weight: 700;">Approved Scope Value</div>
-            <div style="font-size: 1.5rem; font-weight: 800; color: var(--vmn-color-primary-text);">
+ <div class="s-E8vgO5r8HT">
+ <div class="s-Nb3w08KQ-O">Approved Scope Value</div>
+ <div class="s-24Vsj18Cis">
               &#8358;${project.contractValueNgn.toLocaleString()}
             </div>
-            <div style="font-size: 0.8rem; color: var(--vmn-color-secondary-text);">Flight: ${escapeHtml(project.flightStart)} &rarr; ${escapeHtml(project.flightEnd)}</div>
+ <div class="s-5lRpk1R_hM">Opened ${escapeHtml(project.openedOn)} &bull; Canonical stage: ${escapeHtml(project.stage)}</div>
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--vmn-color-border);">
+ <div class="s-NH7WjHByZ-">
           <div>
-            <div style="font-size: 0.75rem; color: var(--vmn-color-text-muted); text-transform: uppercase; font-weight: 700;">Account Executive</div>
-            <div style="font-weight: 600; color: var(--vmn-color-primary-text); font-size: 0.9rem;">${escapeHtml(project.accountExec)}</div>
+ <div class="s-Nb3w08KQ-O">Invoiced</div>
+ <div class="s-ucWf-bKQm4">&#8358;${project.invoicedAmountNgn.toLocaleString()}</div>
           </div>
           <div>
-            <div style="font-size: 0.75rem; color: var(--vmn-color-text-muted); text-transform: uppercase; font-weight: 700;">Spots Completed</div>
-            <div style="font-weight: 600; color: var(--vmn-color-primary-text); font-size: 0.9rem;">${totalDelivered} of ${totalScheduled} spots (${deliveryPercentage}%)</div>
+ <div class="s-Nb3w08KQ-O">Cash Collected</div>
+ <div class="s-ucWf-bKQm4">&#8358;${project.cashCollectedAmountNgn.toLocaleString()} &bull; &#8358;${outstandingNgn.toLocaleString()} outstanding</div>
           </div>
           <div>
-            <div style="font-size: 0.75rem; color: var(--vmn-color-text-muted); text-transform: uppercase; font-weight: 700;">Released As-Run Proofs</div>
-            <div style="font-weight: 600; color: var(--vmn-color-primary-text); font-size: 0.9rem;">${project.releasedProofs.length} Certificates Available</div>
+ <div class="s-Nb3w08KQ-O">Revenue Recognized</div>
+ <div class="s-ucWf-bKQm4">&#8358;${project.recognizedRevenueNgn.toLocaleString()}</div>
           </div>
         </div>
+ <p class="s-OdlmY1tzrc">
+          SOURCE: SalesDealRecord (durable, Postgres) &rarr; deal ${escapeHtml(project.id)} read from QuoteToCashSalesEngine.getDeal() &bull; every figure above is read from that record.
+        </p>
       </div>
 
       <!-- Commitments Table (UX-COM-010) -->
-      <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); padding: 24px; margin-bottom: 24px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+ <div class="vmn-card s-58Wdku8jfj" >
+ <div class="s-KUQGzdrAEa">
           <div>
-            <span class="vmn-badge badge-neutral" style="margin-bottom: 4px; font-weight: 700;">DELIVERY COMMITMENTS &bull; UX-COM-010</span>
-            <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--vmn-color-primary-text); margin: 0;">
+ <span class="vmn-badge badge-neutral s-s-AMDODb4g" >DELIVERY COMMITMENTS &bull; UX-COM-010</span>
+ <h2 class="s-W7P2kBG2my">
               Contracted Broadcast Commitments &amp; Flight Status
             </h2>
           </div>
         </div>
 
-        <div style="overflow-x: auto;">
-          <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
-            <thead>
-              <tr style="background: var(--vmn-color-background); border-bottom: 2px solid var(--vmn-color-border); text-align: left;">
-                <th style="padding: 10px 12px; font-weight: 700;">Deliverable</th>
-                <th style="padding: 10px 12px; font-weight: 700;">Target Channel / Daypart</th>
-                <th style="padding: 10px 12px; font-weight: 700;">Flight Range</th>
-                <th style="padding: 10px 12px; font-weight: 700; text-align: center;">Runs (Done/Goal)</th>
-                <th style="padding: 10px 12px; font-weight: 700;">State</th>
-                <th style="padding: 10px 12px; font-weight: 700;">Supporting Proof</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${project.commitments
-                .map(
-                  (c) => `
-                <tr style="border-bottom: 1px solid var(--vmn-color-border);">
-                  <td style="padding: 12px; font-weight: 600; color: var(--vmn-color-primary-text);">
-                    ${escapeHtml(c.deliverable)}
-                  </td>
-                  <td style="padding: 12px; color: var(--vmn-color-secondary-text);">
-                    <div>${escapeHtml(c.channel)}</div>
-                    <div style="font-size: 0.75rem; color: var(--vmn-color-text-muted);">${escapeHtml(c.daypart)}</div>
-                  </td>
-                  <td style="padding: 12px; color: var(--vmn-color-secondary-text); font-size: 0.8rem;">
-                    ${escapeHtml(c.flightRange)}
-                  </td>
-                  <td style="padding: 12px; text-align: center; font-weight: 700;">
-                    ${c.deliveredRuns} / ${c.scheduledRuns}
-                  </td>
-                  <td style="padding: 12px;">
-                    <span class="vmn-badge ${
-                      c.deliveryState === "RELEASED"
-                        ? "badge-success"
-                        : c.deliveryState === "IN_PROGRESS"
-                        ? "badge-info"
-                        : c.deliveryState === "MAKE_GOOD_REQUIRED"
-                        ? "badge-warning"
-                        : "badge-neutral"
-                    }">
-                      ${escapeHtml(c.deliveryState)}
-                    </span>
-                  </td>
-                  <td style="padding: 12px;">
-                    ${
-                      c.proofCertificateId
-                        ? `
-                      <a href="#proof-${escapeHtml(c.proofCertificateId)}" style="color: var(--vmn-color-primary); font-family: monospace; font-size: 0.8rem; font-weight: 600;">
-                        ${escapeHtml(c.proofCertificateId)}
-                      </a>
-                    `
-                        : `<span style="color: var(--vmn-color-text-muted); font-size: 0.8rem;">Pending Broadcast</span>`
-                    }
-                  </td>
-                </tr>
-              `
-                )
-                .join("")}
-            </tbody>
-          </table>
+ <div class="s-QtRFDAL0Yl">
+ <span class="vmn-badge badge-warning s-EaY0Ybk4UW" >NOT CONNECTED</span>
+ <p class="s-ywnZrRwXf4">
+          No canonical record binds a booked deliverable to a channel, daypart and run count for this deal.
+          The traffic schedule carries no organisation or deal reference, and
+          <code>CommercialCampaign</code> keys its booking by a free-text client name, so a per-commitment row
+          here could only be invented — which is precisely what this table used to display. Measured delivery is
+          reported by the transmission-exception desk
+          (<a href="/broadcast/asrun/exceptions" class="s-mIXTeYgWwT">/broadcast/asrun/exceptions</a>), which
+          works from ingested as-run logs rather than a projection of a contract.
+ </p>
         </div>
       </div>
 
       <!-- Released Proof Reports Viewer (UX-POR-002) -->
-      <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); padding: 24px; margin-bottom: 24px;" id="proof-viewer">
-        <span class="vmn-badge badge-success" style="margin-bottom: 4px; font-weight: 700;">PROOF OF AIR &bull; UX-POR-002</span>
-        <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 16px 0;">
-          Released Playout Proof &amp; Transmission Certificates
-        </h2>
+ <div class="vmn-card s-58Wdku8jfj" id="proof-viewer">
+ <span class="vmn-badge ${project.proofOfPerformanceVerified ? "badge-success" : "badge-neutral"} s-s-AMDODb4g" >PROOF OF PERFORMANCE &bull; UX-POR-002</span>
+ <h2 class="s-L9EdKXexCi">
+          Released Proof of Performance
+ </h2>
 
-        <div style="display: flex; flex-direction: column; gap: 16px;">
-          ${project.releasedProofs
-            .map(
-              (p) => `
-            <div id="proof-${escapeHtml(p.certificateNumber)}" style="border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md); padding: 16px; background: var(--vmn-color-background);">
-              <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px;">
+ <div class="s-jvR2_DF1C2">
+ ${
+   project.proofOfPerformanceVerified && project.proofDocumentUrl
+     ? `
+ <div class="s-HLbOgdgULw">
+ <div class="s-SvqezOTmDQ">
                 <div>
-                  <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="font-weight: 800; color: var(--vmn-color-primary-text); font-size: 0.95rem;">${escapeHtml(p.spotTitle)}</span>
-                    <span class="vmn-badge badge-success">${renderIcon("check", { size: 12 })} VERIFIED AIRPLAY</span>
+ <div class="s-MIjaETFWG6">
+ <span class="s-fsadX-uz7A">Proof of performance verified on deal ${escapeHtml(project.id)}</span>
+ <span class="vmn-badge badge-success">${renderIcon("check", { size: 12 })} VERIFIED BY FINANCE</span>
+                    </div>
+ <div class="s-hLHhA2FLqE">
+                      The sales engine records this deal's delivery as evidenced before invoicing
+                      (invariant enforced by <code>generateInvoice</code>).
+                    </div>
                   </div>
-                  <div style="font-size: 0.8rem; color: var(--vmn-color-secondary-text); margin-top: 4px;">
-                    Certificate ID: <strong style="font-family: monospace;">${escapeHtml(p.certificateNumber)}</strong> &bull; Carrier: ${escapeHtml(p.carrier)}
+ <div class="s-E8vgO5r8HT">
+ <div class="s-hrWGGJxrzC">
+ <a href="${escapeHtml(project.proofDocumentUrl)}" class="s-mIXTeYgWwT">Open proof document</a>
+                    </div>
                   </div>
                 </div>
-                <div style="text-align: right;">
-                  <div style="font-size: 0.85rem; font-weight: 700; color: var(--vmn-color-primary-text);">
-                    Airtime: ${escapeHtml(new Date(p.asRunTimestamp).toUTCString())}
-                  </div>
-                  <div style="font-size: 0.75rem; color: var(--vmn-color-text-muted);">Duration: ${p.durationSeconds}s &bull; Channel: ${escapeHtml(p.channel)}</div>
-                </div>
               </div>
-              <div style="margin-top: 12px; padding-top: 8px; border-top: 1px dashed var(--vmn-color-border); font-size: 0.75rem; font-family: monospace; color: var(--vmn-color-secondary-text); word-break: break-all;">
-                Cryptographic Playout Hash: ${escapeHtml(p.complianceSignature)}
-              </div>
-            </div>
-          `
-            )
-            .join("")}
+            `
+     : `
+ <p class="s-ywnZrRwXf4">
+ <span class="vmn-badge badge-warning s-EaY0Ybk4UW" >NOT CONNECTED</span>
+                This deal carries no verified proof-of-performance document, and per-airing transmission
+                certificates cannot be listed here: <code>ProofOfAirCertificate</code> identifies its client by a
+                free-text <code>clientName</code> with no organisation reference, so joining a certificate to
+                this counterparty would mean guessing whose airplay it is. Certificates are issued and verified
+                on the broadcast side; a counterparty portal must not resolve identity by string similarity.
+              </p>
+            `
+ }
         </div>
       </div>
 
       <!-- Question / Dispute Submission Form -->
-      <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); padding: 24px;">
-        <span class="vmn-badge badge-neutral" style="margin-bottom: 4px; font-weight: 700;">COUNTERPARTY SUPPORT</span>
-        <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 8px 0;">
+ <div class="vmn-card s-JOKW7YLeUA" >
+ <span class="vmn-badge badge-neutral s-s-AMDODb4g" >COUNTERPARTY SUPPORT</span>
+ <h2 class="s-mZ2box3W_g">
           Submit Inquiry or Discrepancy Notice
         </h2>
-        <p style="color: var(--vmn-color-secondary-text); font-size: 0.9rem; margin: 0 0 20px 0;">
+ <p class="s-ETEn4T1B7B">
           Direct communication with the Voice of Nigeria Commercial Traffic Desk and Transmission Officers.
         </p>
 
-        <form method="POST" action="/api/v1/client/projects/${escapeHtml(project.id)}/questions" style="display: flex; flex-direction: column; gap: 16px;">
+ <form method="POST" action="/api/v1/client/projects/${escapeHtml(project.id)}/questions" class="s-jvR2_DF1C2">
           <input type="hidden" name="orgId" value="${escapeHtml(project.orgId)}" />
 
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+ <div class="s-4qBYC5pvY8">
             <div class="vmn-form-field">
-              <label for="q-topic" class="vmn-label" style="font-weight: 600; display: block; margin-bottom: 6px;">
-                Inquiry Category <span style="color: #DC2626;" aria-hidden="true">*</span>
+ <label for="q-topic" class="vmn-label s-d6tlFZezBi" >
+ Inquiry Category <span class="s-4oFCuHkv7e" aria-hidden="true">*</span>
               </label>
               <select
                 id="q-topic"
                 name="topic"
                 required
                 class="vmn-input"
-                style="width: 100%; height: 44px; padding: 0 12px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md);"
+ class="s-npZXKSAIoi"
               >
                 <option value="PROOF_VERIFICATION">Proof-of-Air Verification Query</option>
                 <option value="MAKE_GOOD_DISCREPANCY">Discrepancy / Make-Good Scheduling</option>
@@ -446,15 +350,15 @@ export function renderClientProjectDetailHtml(project: ClientProject, successNot
             </div>
 
             <div class="vmn-form-field">
-              <label for="q-priority" class="vmn-label" style="font-weight: 600; display: block; margin-bottom: 6px;">
-                Urgency Level <span style="color: #DC2626;" aria-hidden="true">*</span>
+ <label for="q-priority" class="vmn-label s-d6tlFZezBi" >
+ Urgency Level <span class="s-4oFCuHkv7e" aria-hidden="true">*</span>
               </label>
               <select
                 id="q-priority"
                 name="priority"
                 required
                 class="vmn-input"
-                style="width: 100%; height: 44px; padding: 0 12px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md);"
+ class="s-npZXKSAIoi"
               >
                 <option value="NORMAL">Standard Review (Within 24 Hours)</option>
                 <option value="URGENT">High Priority (Active Flight Issue)</option>
@@ -464,8 +368,8 @@ export function renderClientProjectDetailHtml(project: ClientProject, successNot
           </div>
 
           <div class="vmn-form-field">
-            <label for="q-email" class="vmn-label" style="font-weight: 600; display: block; margin-bottom: 6px;">
-              Contact Email for Response <span style="color: #DC2626;" aria-hidden="true">*</span>
+ <label for="q-email" class="vmn-label s-d6tlFZezBi" >
+ Contact Email for Response <span class="s-4oFCuHkv7e" aria-hidden="true">*</span>
             </label>
             <input
               id="q-email"
@@ -474,13 +378,13 @@ export function renderClientProjectDetailHtml(project: ClientProject, successNot
               required
               placeholder="e.g. media-audit@dangote.com"
               class="vmn-input"
-              style="width: 100%; height: 44px; padding: 0 12px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md);"
+ class="s-npZXKSAIoi"
             />
           </div>
 
           <div class="vmn-form-field">
-            <label for="q-message" class="vmn-label" style="font-weight: 600; display: block; margin-bottom: 6px;">
-              Message / Discrepancy Details <span style="color: #DC2626;" aria-hidden="true">*</span>
+ <label for="q-message" class="vmn-label s-d6tlFZezBi" >
+ Message / Discrepancy Details <span class="s-4oFCuHkv7e" aria-hidden="true">*</span>
             </label>
             <textarea
               id="q-message"
@@ -489,11 +393,11 @@ export function renderClientProjectDetailHtml(project: ClientProject, successNot
               rows="4"
               placeholder="Reference the certificate number, airtime stamp, or make-good spot requirement..."
               class="vmn-input"
-              style="width: 100%; padding: 10px 12px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md);"
+ class="s-USa2UeMSTs"
             ></textarea>
           </div>
 
-          <button type="submit" class="btn btn-primary" style="min-height: 46px; font-weight: 700; width: fit-content; padding: 0 24px; cursor: pointer;">
+ <button type="submit" class="btn btn-primary s-vvwm4dSv7F" >
             Transmit Inquiry to Commercial Traffic
           </button>
         </form>

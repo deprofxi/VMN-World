@@ -132,38 +132,38 @@ export function renderSignInHtml(options?: {
   const initialEmail = options?.email ? escapeHtml(options.email) : "";
 
   const personasHtml = SANDBOX_PERSONAS.map((p) => `
-    <form method="POST" action="/sign-in" style="margin: 0;">
+ <form method="POST" action="/sign-in" class="s-_yJ9BjIJay">
       <input type="hidden" name="email" value="${escapeHtml(p.email)}" />
       <input type="hidden" name="quickPersona" value="true" />
       <input type="hidden" name="returnUrl" value="${returnUrl}" />
-      <button type="submit" class="persona-card" style="width: 100%; text-align: left; background: var(--vmn-color-surface-subtle); border: 1px solid var(--vmn-color-border-subtle); border-radius: var(--vmn-radius-md); padding: 12px 14px; cursor: pointer; transition: all 0.15s ease; display: flex; flex-direction: column; gap: 4px; min-height: 44px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-          <strong style="font-size: var(--vmn-font-size-sm); color: var(--vmn-color-primary-text);">${escapeHtml(p.name)}</strong>
-          <span class="vmn-badge badge-${p.badgeTone}" style="font-size: 0.7rem; font-weight: 700;">${escapeHtml(p.role)}</span>
+ <button type="submit" class="persona-card s-iyDiwYtPpY" >
+ <div class="s-EB4HBreqCm">
+ <strong class="s-Kayo_-KaId">${escapeHtml(p.name)}</strong>
+ <span class="vmn-badge badge-${p.badgeTone} s-tDhtntWwE7" >${escapeHtml(p.role)}</span>
         </div>
-        <div style="font-size: 0.75rem; color: var(--vmn-color-secondary-text);">${escapeHtml(p.email)}</div>
-        <div style="font-size: 0.75rem; color: var(--vmn-color-text-muted); line-height: 1.3;">${escapeHtml(p.description)}</div>
+ <div class="s-wUMD0XWoZI">${escapeHtml(p.email)}</div>
+ <div class="s-phs1dNMXu6">${escapeHtml(p.description)}</div>
       </button>
     </form>
   `).join("");
 
   return `
-    <div style="max-width: 960px; margin: 32px auto; padding: 0 16px;">
-      <div style="text-align: center; margin-bottom: 32px;">
-        <div style="display: inline-flex; align-items: center; justify-content: center; width: 56px; height: 56px; border-radius: 50%; background: var(--vmn-accent-primary); color: #FFFFFF; margin-bottom: 16px;">
+ <div class="s-k3X1RRTyyB">
+ <div class="s-j7XXxtqRfY">
+ <div class="s-Fi3mt9Z1sR">
           ${renderIcon("lock", { size: 28 })}
         </div>
-        <h1 style="font-size: var(--vmn-font-size-3xl); font-weight: 800; color: var(--vmn-color-primary-text); margin-bottom: 8px;">
+ <h1 class="s-SE0lHlMXiF">
           Virtual Media Network Limited
         </h1>
-        <p style="font-size: var(--vmn-font-size-base); color: var(--vmn-color-secondary-text); max-width: 560px; margin: 0 auto;">
+ <p class="s-lVTdb54j2O">
           Enterprise Identity &amp; Role-Based Presentation Shell (S-IDENTITY &bull; UX-SYS-001)
         </p>
       </div>
 
       ${errorMessage ? `
-        <div class="vmn-card" style="border-left: 4px solid #DC2626; background: #FEF2F2; color: #991B1B; padding: 14px 18px; margin-bottom: 24px; border-radius: var(--vmn-radius-md);" role="alert">
-          <div style="display: flex; align-items: center; gap: 8px;">
+ <div class="vmn-card s-hkaiqPeXOd" role="alert">
+ <div class="s-MIjaETFWG6">
             ${renderIcon("alert", { size: 18 })}
             <strong>Authentication Failed:</strong> ${errorMessage}
           </div>
@@ -171,30 +171,30 @@ export function renderSignInHtml(options?: {
       ` : ""}
 
       ${infoMessage ? `
-        <div class="vmn-card" style="border-left: 4px solid #059669; background: #ECFDF5; color: #065F46; padding: 14px 18px; margin-bottom: 24px; border-radius: var(--vmn-radius-md);" role="status">
-          <div style="display: flex; align-items: center; gap: 8px;">
+ <div class="vmn-card s-JG9s69_5Dk" role="status">
+ <div class="s-MIjaETFWG6">
             ${renderIcon("check", { size: 18 })}
             ${infoMessage}
           </div>
         </div>
       ` : ""}
 
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 32px; align-items: start;">
+ <div class="s-wK0SWra--n">
         <!-- Left Column: Standard Password Authentication Form -->
-        <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); padding: 32px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-          <h2 style="font-size: var(--vmn-font-size-xl); font-weight: 700; color: var(--vmn-color-primary-text); margin-bottom: 8px;">
+ <div class="vmn-card s-nAKAyM5PRn" >
+ <h2 class="s-S3p32dvRVr">
             Enterprise Sign In
           </h2>
-          <p style="font-size: var(--vmn-font-size-sm); color: var(--vmn-color-secondary-text); margin-bottom: 24px;">
+ <p class="s-9fFtKI3haU">
             Access linear broadcast operations, creative economy workspaces, or administrative tools.
           </p>
 
-          <form method="POST" action="/sign-in" style="display: flex; flex-direction: column; gap: 20px;">
+ <form method="POST" action="/sign-in" class="s-79hbkssy5K">
             <input type="hidden" name="returnUrl" value="${returnUrl}" />
 
             <div class="vmn-form-field">
-              <label for="signin-email" class="vmn-label" style="display: block; font-weight: 600; margin-bottom: 6px; color: var(--vmn-color-primary-text);">
-                Work Email Address <span style="color: #DC2626;" aria-hidden="true">*</span>
+ <label for="signin-email" class="vmn-label s-eaTDM6C2JK" >
+ Work Email Address <span class="s-4oFCuHkv7e" aria-hidden="true">*</span>
               </label>
               <input
                 id="signin-email"
@@ -205,16 +205,16 @@ export function renderSignInHtml(options?: {
                 autocomplete="username"
                 value="${initialEmail}"
                 placeholder="operator@vmnl.ng"
-                style="width: 100%; min-height: 44px; padding: 10px 14px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md); font-size: var(--vmn-font-size-base);"
+ class="s-gU5OdWRUd6"
               />
             </div>
 
             <div class="vmn-form-field">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                <label for="signin-password" class="vmn-label" style="font-weight: 600; color: var(--vmn-color-primary-text);">
-                  Password <span style="color: #DC2626;" aria-hidden="true">*</span>
+ <div class="s-KJjPTgLTC3">
+ <label for="signin-password" class="vmn-label s-RvEwnh2gYk" >
+ Password <span class="s-4oFCuHkv7e" aria-hidden="true">*</span>
                 </label>
-                <a href="/auth/recovery" style="font-size: var(--vmn-font-size-xs); color: var(--vmn-accent-primary); text-decoration: underline;">
+ <a href="/auth/recovery" class="s-H8f23ZoyPI">
                   Forgot password?
                 </a>
               </div>
@@ -226,13 +226,13 @@ export function renderSignInHtml(options?: {
                 required
                 autocomplete="current-password"
                 placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;"
-                style="width: 100%; min-height: 44px; padding: 10px 14px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md); font-size: var(--vmn-font-size-base);"
+ class="s-gU5OdWRUd6"
               />
             </div>
 
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <input id="remember-me" name="rememberMe" type="checkbox" style="width: 18px; height: 18px;" checked />
-              <label for="remember-me" style="font-size: var(--vmn-font-size-sm); color: var(--vmn-color-secondary-text);">
+ <div class="s-MIjaETFWG6">
+ <input id="remember-me" name="rememberMe" type="checkbox" class="s-yKLLiYCFu6" checked />
+ <label for="remember-me" class="s-jdg8Lt989E">
                 Keep session active for 24 hours on this secure terminal
               </label>
             </div>
@@ -240,36 +240,36 @@ export function renderSignInHtml(options?: {
             <button
               type="submit"
               class="btn btn-primary"
-              style="width: 100%; min-height: 46px; font-weight: 700; font-size: var(--vmn-font-size-base); display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;"
+ class="s-R8ms0ZPVVM"
             >
               ${renderIcon("lock", { size: 18 })}
               Sign In to Workstation
             </button>
           </form>
 
-          <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--vmn-color-border-subtle); display: flex; justify-content: space-between; font-size: var(--vmn-font-size-xs); color: var(--vmn-color-text-muted);">
+ <div class="s-ltNfKTObCh">
             <span>Authority: R1.2A &bull; NBC Code</span>
-            <a href="/help/operator" style="color: var(--vmn-color-secondary-text); text-decoration: underline;">Operator SOPs</a>
+ <a href="/help/operator" class="s-JogQmEy8zI">Operator SOPs</a>
           </div>
         </div>
 
         <!-- Right Column: Sandbox One-Click Role Selector -->
-        <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); padding: 32px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <h2 style="font-size: var(--vmn-font-size-xl); font-weight: 700; color: var(--vmn-color-primary-text);">
+ <div class="vmn-card s-nAKAyM5PRn" >
+ <div class="s-jXl2S6cRQl">
+ <h2 class="s-fwPtWRW0y5">
               Sandbox Role Switcher
             </h2>
-            <span class="vmn-badge badge-warning" style="font-size: 0.7rem; font-weight: 800;">DEVELOPER &amp; UAT</span>
+ <span class="vmn-badge badge-warning s-I74lVwfrDO" >DEVELOPER &amp; UAT</span>
           </div>
-          <p style="font-size: var(--vmn-font-size-sm); color: var(--vmn-color-secondary-text); margin-bottom: 16px;">
+ <p class="s-XNpPMhuOZZ">
             Select any enterprise persona to instantly sign in and verify role-based presentation context and screen access rules:
           </p>
 
-          <div style="display: grid; grid-template-columns: 1fr; gap: 10px; max-height: 420px; overflow-y: auto; padding-right: 4px;">
+ <div class="s-BKbud-vrG_">
             ${personasHtml}
           </div>
 
-          <div style="margin-top: 16px; font-size: 0.75rem; color: var(--vmn-color-text-muted); text-align: center;">
+ <div class="s-_BvxilaZoT">
             Tokens conform to salted bcrypt hashes loaded via <code>DEV_SEED_PASSWORD</code> (Zero plaintext in source).
           </div>
         </div>
@@ -285,36 +285,40 @@ export function renderMfaStepUpHtml(options?: {
   returnUrl?: string;
   error?: string;
   userEmail?: string;
+  challenge?: string;
+  csrfToken?: string;
 }): string {
   const returnUrl = options?.returnUrl ? escapeHtml(options.returnUrl) : "/workspace";
   const errorMessage = options?.error ? escapeHtml(options.error) : "";
   const email = options?.userEmail ? escapeHtml(options.userEmail) : "operator@vmnl.ng";
 
   return `
-    <div style="max-width: 520px; margin: 48px auto; padding: 0 16px;">
-      <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); padding: 36px; box-shadow: 0 8px 16px -4px rgba(0,0,0,0.08); text-align: center;">
-        <div style="display: inline-flex; align-items: center; justify-content: center; width: 56px; height: 56px; border-radius: 50%; background: #EFF6FF; color: #2563EB; margin-bottom: 20px;">
+ <div class="s-MuIFkBo9jl">
+ <div class="vmn-card s-ow-aFvSP5Z" >
+ <div class="s-s49bAoIhR5">
           ${renderIcon("shield", { size: 28 })}
         </div>
-        <h1 style="font-size: var(--vmn-font-size-2xl); font-weight: 800; color: var(--vmn-color-primary-text); margin-bottom: 8px;">
+ <h1 class="s-I0_s9EPCFi">
           Step-Up Authentication
         </h1>
-        <p style="font-size: var(--vmn-font-size-sm); color: var(--vmn-color-secondary-text); margin-bottom: 24px; line-height: 1.5;">
+ <p class="s-ii0Mk9RJuc">
           The requested action requires elevated verification for <strong>${email}</strong>. Enter the 6-digit verification code from your authenticator app or hardware token (UX-SYS-002).
         </p>
 
         ${errorMessage ? `
-          <div style="border-left: 4px solid #DC2626; background: #FEF2F2; color: #991B1B; padding: 12px; margin-bottom: 20px; text-align: left; border-radius: 4px; font-size: 0.85rem;" role="alert">
+ <div class="s-ye-3zUjxGH" role="alert">
             ${errorMessage}
           </div>
         ` : ""}
 
-        <form method="POST" action="/auth/mfa" style="display: flex; flex-direction: column; gap: 20px; text-align: left;">
+ <form method="POST" action="/auth/mfa" class="s-1DYWzYm43q">
+          <input type="hidden" name="csrfToken" value="${escapeHtml(options?.csrfToken)}" />
           <input type="hidden" name="returnUrl" value="${returnUrl}" />
+          <input type="hidden" name="challenge" value="${escapeHtml(options?.challenge)}" />
 
           <div class="vmn-form-field">
-            <label for="mfa-code" class="vmn-label" style="font-weight: 600; display: block; margin-bottom: 6px;">
-              6-Digit Security Code <span style="color: #DC2626;" aria-hidden="true">*</span>
+ <label for="mfa-code" class="vmn-label s-d6tlFZezBi" >
+ 6-Digit Security Code <span class="s-4oFCuHkv7e" aria-hidden="true">*</span>
             </label>
             <input
               id="mfa-code"
@@ -327,21 +331,21 @@ export function renderMfaStepUpHtml(options?: {
               inputmode="numeric"
               autocomplete="one-time-code"
               placeholder="123456"
-              style="width: 100%; min-height: 48px; text-align: center; letter-spacing: 0.35em; font-family: monospace; font-size: 1.4rem; font-weight: 700; border: 2px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md);"
+ class="s-lHNcRtzhnP"
             />
           </div>
 
           <button
             type="submit"
             class="btn btn-primary"
-            style="width: 100%; min-height: 46px; font-weight: 700; font-size: var(--vmn-font-size-base); display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;"
+ class="s-R8ms0ZPVVM"
           >
             Verify &amp; Elevate Access
           </button>
         </form>
 
-        <div style="margin-top: 24px; font-size: var(--vmn-font-size-xs); color: var(--vmn-color-text-muted);">
-          Lost authenticator? <a href="/help/operator" style="color: var(--vmn-accent-primary); text-decoration: underline;">Contact MCR Supervisor</a>
+ <div class="s-P7G1TYqGdC">
+ Lost authenticator? <a href="/help/operator" class="s-fVK3IEyRNm">Contact MCR Supervisor</a>
         </div>
       </div>
     </div>
@@ -354,45 +358,53 @@ export function renderMfaStepUpHtml(options?: {
 export function renderAccountRecoveryHtml(options?: {
   submitted?: boolean;
   email?: string;
+  error?: string;
 }): string {
   const isSubmitted = Boolean(options?.submitted);
   const email = options?.email ? escapeHtml(options.email) : "";
+  const errorMessage = options?.error ? escapeHtml(options.error) : "";
 
   return `
-    <div style="max-width: 520px; margin: 48px auto; padding: 0 16px;">
-      <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); padding: 36px; box-shadow: 0 8px 16px -4px rgba(0,0,0,0.08);">
-        <div style="text-align: center; margin-bottom: 24px;">
-          <div style="display: inline-flex; align-items: center; justify-content: center; width: 56px; height: 56px; border-radius: 50%; background: #FEF3C7; color: #D97706; margin-bottom: 16px;">
+ <div class="s-MuIFkBo9jl">
+ <div class="vmn-card s-B939KN9-Au" >
+ <div class="s-OXbXKNybuO">
+ <div class="s-aB0n3QEMVL">
             ${renderIcon("refresh", { size: 28 })}
           </div>
-          <h1 style="font-size: var(--vmn-font-size-2xl); font-weight: 800; color: var(--vmn-color-primary-text); margin-bottom: 8px;">
+ <h1 class="s-I0_s9EPCFi">
             Account Recovery
           </h1>
-          <p style="font-size: var(--vmn-font-size-sm); color: var(--vmn-color-secondary-text);">
+ <p class="s-jdg8Lt989E">
             UX-SYS-003 &bull; Privacy-Safe Identity Recovery
           </p>
         </div>
 
+        ${errorMessage ? `
+ <div class="s-hMyC6wHubA" role="alert">
+            ${errorMessage}
+          </div>
+        ` : ""}
+
         ${isSubmitted ? `
-          <div style="background: #ECFDF5; border: 1px solid #A7F3D0; border-radius: var(--vmn-radius-md); padding: 20px; color: #065F46; line-height: 1.6; margin-bottom: 24px;">
-            <strong style="display: block; font-size: 1rem; margin-bottom: 6px;">Recovery Instructions Dispatched</strong>
-            <p style="margin: 0; font-size: 0.9rem;">
+ <div class="s-gC9G9rkZsd">
+ <strong class="s-RAanTA_4Vh">Recovery Instructions Dispatched</strong>
+ <p class="s-y_IBg_q4Am">
               If a registered enterprise profile matches the address provided, a secure, time-bounded recovery token has been transmitted. In accordance with security policy §8.4, confirmation does not disclose account presence.
             </p>
           </div>
-          <div style="text-align: center;">
-            <a href="/sign-in" class="btn btn-outline" style="min-height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 0 24px;">
+ <div class="s-cqaKw0SXaa">
+ <a href="/sign-in" class="btn btn-outline s--YujMWsWZK" >
               Return to Sign In
             </a>
           </div>
         ` : `
-          <p style="font-size: 0.9rem; color: var(--vmn-color-secondary-text); margin-bottom: 20px; line-height: 1.5;">
+ <p class="s-C8GqDsn_wE">
             Enter your work email address below. We will send you instructions to securely reset your credentials and restore access to your assigned duty stations.
           </p>
-          <form method="POST" action="/auth/recovery" style="display: flex; flex-direction: column; gap: 20px;">
+ <form method="POST" action="/auth/recovery" class="s-79hbkssy5K">
             <div class="vmn-form-field">
-              <label for="recovery-email" class="vmn-label" style="font-weight: 600; display: block; margin-bottom: 6px;">
-                Work Email Address <span style="color: #DC2626;" aria-hidden="true">*</span>
+ <label for="recovery-email" class="vmn-label s-d6tlFZezBi" >
+ Work Email Address <span class="s-4oFCuHkv7e" aria-hidden="true">*</span>
               </label>
               <input
                 id="recovery-email"
@@ -402,14 +414,14 @@ export function renderAccountRecoveryHtml(options?: {
                 required
                 value="${email}"
                 placeholder="operator@vmnl.ng"
-                style="width: 100%; min-height: 44px; padding: 10px 14px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md);"
+ class="s-BrpXIoKEhU"
               />
             </div>
-            <button type="submit" class="btn btn-primary" style="width: 100%; min-height: 46px; font-weight: 700; cursor: pointer;">
+ <button type="submit" class="btn btn-primary s-m6RWwvJwJT" >
               Send Recovery Link
             </button>
-            <div style="text-align: center;">
-              <a href="/sign-in" style="font-size: 0.85rem; color: var(--vmn-accent-primary); text-decoration: underline;">
+ <div class="s-cqaKw0SXaa">
+ <a href="/sign-in" class="s-ZGY1VIL4Bh">
                 Back to Sign In
               </a>
             </div>
@@ -426,7 +438,7 @@ export function renderAccountRecoveryHtml(options?: {
 export function renderWorkspaceSelectionHtml(
   user: SessionUser,
   currentRole?: string,
-  returnUrl?: string
+  _returnUrl?: string
 ): string {
   const activeRole = currentRole || user.roles[0] || "Operator";
   const userRoles = user.roles.length > 0 ? user.roles : ["Operator"];
@@ -453,7 +465,7 @@ export function renderWorkspaceSelectionHtml(
       subtitle: "SCR-BCST-01 to 33",
       url: "/broadcast/screens",
       icon: "broadcast",
-      description: "Direct linear television operations across all 3 channels (NXTR 428, ORIS 430, IMBD 432) and 10 duty stations.",
+      description: "Direct linear television operations across the three channel profiles and broadcast operations workstations. Carriage details require independent verification.",
     },
     {
       role: "BroadcastDirector",
@@ -526,36 +538,36 @@ export function renderWorkspaceSelectionHtml(
     const isCurrent = ws.role === activeRole;
 
     return `
-      <div class="vmn-card" style="background: var(--vmn-color-surface); border: 2px solid ${isCurrent ? "var(--vmn-accent-primary)" : "var(--vmn-color-border)"}; border-radius: var(--vmn-radius-lg); padding: 24px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 2px 4px rgba(0,0,0,0.04);">
+ <div class="vmn-card" style="background: var(--vmn-color-surface); border: 2px solid ${isCurrent ? "var(--vmn-accent-primary)" : "var(--vmn-color-border)"}; border-radius: var(--vmn-radius-lg); padding: 24px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 2px 4px rgba(0,0,0,0.04);">
         <div>
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <div style="width: 40px; height: 40px; border-radius: 8px; background: var(--vmn-color-surface-subtle); display: flex; align-items: center; justify-content: center; color: var(--vmn-accent-primary);">
+ <div class="s-pzA_vTZf72">
+ <div class="s--5BXthbePa">
+ <div class="s-0bb2GI60el">
                 ${renderIcon(ws.icon as any, { size: 20 })}
               </div>
               <div>
-                <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--vmn-color-primary-text); margin: 0;">${escapeHtml(ws.title)}</h3>
-                <span style="font-size: 0.75rem; color: var(--vmn-color-text-muted);">${escapeHtml(ws.subtitle)}</span>
+ <h3 class="s-jxRK7DWv2Q">${escapeHtml(ws.title)}</h3>
+ <span class="s-OdlmY1tzrc">${escapeHtml(ws.subtitle)}</span>
               </div>
             </div>
-            ${isCurrent ? '<span class="vmn-badge badge-ready" style="font-size: 0.7rem; font-weight: 700;">CURRENT ACTIVE</span>' : ""}
+ ${isCurrent ? '<span class="vmn-badge badge-ready s-tDhtntWwE7" >CURRENT ACTIVE</span>' : ""}
           </div>
-          <p style="font-size: 0.85rem; color: var(--vmn-color-secondary-text); margin-bottom: 16px; line-height: 1.5;">
+ <p class="s-opZH8ywGNz">
             ${escapeHtml(ws.description)}
           </p>
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 14px; border-top: 1px solid var(--vmn-color-border-subtle);">
-          <span style="font-size: 0.75rem; font-weight: 600; color: ${hasRole ? "var(--vmn-color-primary-text)" : "var(--vmn-color-text-muted)"};">
+ <div class="s-ANKytrnZet">
+ <span style="font-size: 0.75rem; font-weight: 600; color: ${hasRole ? "var(--vmn-color-primary-text)" : "var(--vmn-color-text-muted)"};">
             ${hasRole ? "Authorized" : "Access Request Required"}
           </span>
 
           ${hasRole ? `
-            <a href="${escapeHtml(ws.url)}" class="btn ${isCurrent ? "btn-primary" : "btn-outline"}" style="min-height: 44px; padding: 0 16px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px;">
+ <a href="${escapeHtml(ws.url)}" class="btn s-xpqECJulZc ${isCurrent ? "btn-primary" : "btn-outline"}" >
               Launch Workspace &rarr;
             </a>
           ` : `
-            <a href="/access-request?role=${encodeURIComponent(ws.role)}" class="btn btn-secondary" style="min-height: 44px; padding: 0 14px; font-size: 0.85rem; display: inline-flex; align-items: center;">
+ <a href="/access-request?role=${encodeURIComponent(ws.role)}" class="btn btn-secondary s-maCDneS_JS" >
               Request Access
             </a>
           `}
@@ -565,24 +577,26 @@ export function renderWorkspaceSelectionHtml(
   }).join("");
 
   return `
-    <div style="max-width: 1080px; margin: 32px auto; padding: 0 16px;">
-      <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 28px; flex-wrap: wrap; gap: 16px;">
+ <div class="s-pDOVXGiU2L">
+ <div class="s-C8JvYetRIl">
         <div>
-          <span class="vmn-badge badge-info" style="margin-bottom: 8px; font-weight: 700;">IDENTITY CONTEXT &bull; J-RL1-02</span>
-          <h1 style="font-size: var(--vmn-font-size-3xl); font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 4px 0;">
+ <span class="vmn-badge badge-info s-Dnmmv3HPR8" >IDENTITY CONTEXT &bull; J-RL1-02</span>
+ <h1 class="s-tbjG2caAQF">
             Select Operational Workspace
           </h1>
-          <p style="font-size: var(--vmn-font-size-base); color: var(--vmn-color-secondary-text); margin: 0;">
+ <p class="s-g4BZ0X7VED">
             Logged in as <strong>${escapeHtml(user.email)}</strong> &bull; Assigned Roles: <code>${escapeHtml(userRoles.join(", "))}</code>
           </p>
         </div>
-        <div style="display: flex; gap: 10px;">
-          <a href="/account/profile" class="btn btn-outline" style="min-height: 44px; font-size: 0.85rem; display: inline-flex; align-items: center; padding: 0 14px;">Account Settings</a>
-          <a href="/sign-out" class="btn btn-secondary" style="min-height: 44px; font-size: 0.85rem; display: inline-flex; align-items: center; padding: 0 14px;">Sign Out</a>
+ <div class="s-1ffWzM6Quc">
+ <a href="/account/profile" class="btn btn-outline s-QozL0KCL7V" >Account Settings</a>
+ <form method="GET" action="/sign-out" class="s-OZBX34IsZp">
+ <button class="btn btn-secondary" type="submit" >Sign Out</button>
+          </form>
         </div>
       </div>
 
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
+ <div class="s-v3V6AtbsTX">
         ${cardsHtml}
       </div>
     </div>
@@ -603,33 +617,33 @@ export function renderAccessDeniedHtml(
   const url = attemptedUrl ? escapeHtml(attemptedUrl) : "/";
 
   return `
-    <div style="max-width: 640px; margin: 48px auto; padding: 0 16px;">
-      <div class="vmn-card" style="background: var(--vmn-color-surface); border: 2px solid #F87171; border-radius: var(--vmn-radius-lg); padding: 36px; text-align: center; box-shadow: 0 8px 16px -4px rgba(0,0,0,0.08);">
-        <div style="display: inline-flex; align-items: center; justify-content: center; width: 56px; height: 56px; border-radius: 50%; background: #FEF2F2; color: #DC2626; margin-bottom: 20px;">
+ <div class="s-spkv-g5ZY1">
+ <div class="vmn-card s-yPXv9Csh09" >
+ <div class="s-j4eoWH6vRA">
           ${renderIcon("alert", { size: 28 })}
         </div>
-        <h1 style="font-size: var(--vmn-font-size-2xl); font-weight: 800; color: var(--vmn-color-primary-text); margin-bottom: 8px;">
+ <h1 class="s-I0_s9EPCFi">
           403 Access Unavailable
         </h1>
-        <p style="font-size: var(--vmn-font-size-base); color: var(--vmn-color-secondary-text); margin-bottom: 24px; line-height: 1.5;">
+ <p class="s-o8pz3UI_Ag">
           Your current session context does not hold the authorization required to access <code>${url}</code>.
         </p>
 
-        <div style="background: var(--vmn-color-surface-subtle); border: 1px solid var(--vmn-color-border-subtle); border-radius: var(--vmn-radius-md); padding: 16px; margin-bottom: 24px; text-align: left; font-size: 0.85rem; line-height: 1.6;">
+ <div class="s-VEGxFoTNOe">
           <div><strong>Authenticated As:</strong> ${email}</div>
           <div><strong>Assigned Roles:</strong> <code>${roles}</code></div>
-          <div><strong>Required Permission:</strong> <span style="color: #DC2626; font-weight: 700;">${required}</span></div>
+ <div><strong>Required Permission:</strong> <span class="s-2ZO5HQM_gX">${required}</span></div>
           <div><strong>Governance Code:</strong> R1.2A &sect;48 &bull; Strict Principle of Least Privilege</div>
         </div>
 
-        <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
-          <a href="/select-workspace" class="btn btn-primary" style="min-height: 44px; padding: 0 20px; font-weight: 600;">
+ <div class="s-wt_QBGg-Bt">
+ <a href="/select-workspace" class="btn btn-primary s-UAaZG8XMXO" >
             Switch Role / Workspace
           </a>
-          <a href="/access-request?url=${encodeURIComponent(attemptedUrl || "")}" class="btn btn-outline" style="min-height: 44px; padding: 0 20px; font-weight: 600;">
+ <a href="/access-request?url=${encodeURIComponent(attemptedUrl || "")}" class="btn btn-outline s-UAaZG8XMXO" >
             Request Elevation
           </a>
-          <a href="/" class="btn btn-secondary" style="min-height: 44px; padding: 0 20px;">
+ <a href="/" class="btn btn-secondary s-YHfPqfjV5E" >
             Return Home
           </a>
         </div>
@@ -644,38 +658,40 @@ export function renderAccessDeniedHtml(
 export function renderAccessRequestHtml(
   user: SessionUser,
   defaultRole?: string,
-  attemptedUrl?: string
+  attemptedUrl?: string,
+  csrfToken?: string
 ): string {
   const role = defaultRole ? escapeHtml(defaultRole) : "MCRSupervisor";
   const url = attemptedUrl ? escapeHtml(attemptedUrl) : "/broadcast/screens";
 
   return `
-    <div style="max-width: 600px; margin: 40px auto; padding: 0 16px;">
-      <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); padding: 36px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
-          <div style="width: 44px; height: 44px; border-radius: 8px; background: #EFF6FF; color: #2563EB; display: flex; align-items: center; justify-content: center;">
+ <div class="s-JSm6mWQN6O">
+ <div class="vmn-card s-ai-7dOPK39" >
+ <div class="s-oBhcGevYkD">
+ <div class="s-Wc0r1Ncztx">
             ${renderIcon("shield", { size: 24 })}
           </div>
           <div>
-            <h1 style="font-size: var(--vmn-font-size-xl); font-weight: 800; color: var(--vmn-color-primary-text); margin: 0;">
+ <h1 class="s-6uQ0SGJI6l">
               Operational Access Elevation
             </h1>
-            <span style="font-size: 0.8rem; color: var(--vmn-color-text-muted);">UX-SYS-009 &bull; Delegated Authority Governance</span>
+ <span class="s-Zda0APXQzv">UX-SYS-009 &bull; Delegated Authority Governance</span>
           </div>
         </div>
 
-        <p style="font-size: 0.9rem; color: var(--vmn-color-secondary-text); margin-bottom: 24px; line-height: 1.5;">
+ <p class="s-R0StpXoHOj">
           Submit a time-bounded role elevation or permission request for user <strong>${escapeHtml(user.email)}</strong>. All access elevations are cryptographically sealed in the audit log.
         </p>
 
-        <form method="POST" action="/access-request" style="display: flex; flex-direction: column; gap: 18px;">
+ <form method="POST" action="/access-request" class="s-agFP9ZFhL6">
           <input type="hidden" name="returnUrl" value="${url}" />
+          ${csrfToken ? `<input type="hidden" name="csrfToken" value="${escapeHtml(csrfToken)}" />` : ""}
 
           <div class="vmn-form-field">
-            <label for="req-role" class="vmn-label" style="font-weight: 600; display: block; margin-bottom: 6px;">
-              Target Operational Role <span style="color: #DC2626;" aria-hidden="true">*</span>
+ <label for="req-role" class="vmn-label s-d6tlFZezBi" >
+ Target Operational Role <span class="s-4oFCuHkv7e" aria-hidden="true">*</span>
             </label>
-            <select id="req-role" name="role" class="vmn-input" style="width: 100%; min-height: 44px; padding: 8px 12px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md);">
+ <select id="req-role" name="role" class="vmn-input s-Zd9b-trn6f" >
               <option value="MCRSupervisor" ${role === "MCRSupervisor" ? "selected" : ""}>MCR Supervisor (Master Control Room)</option>
               <option value="BroadcastDirector" ${role === "BroadcastDirector" ? "selected" : ""}>Broadcast Director (Transmission Authority)</option>
               <option value="CommercialTrafficOfficer" ${role === "CommercialTrafficOfficer" ? "selected" : ""}>Commercial Traffic Officer</option>
@@ -687,10 +703,10 @@ export function renderAccessRequestHtml(
           </div>
 
           <div class="vmn-form-field">
-            <label for="req-duration" class="vmn-label" style="font-weight: 600; display: block; margin-bottom: 6px;">
-              Elevation Duration <span style="color: #DC2626;" aria-hidden="true">*</span>
+ <label for="req-duration" class="vmn-label s-d6tlFZezBi" >
+ Elevation Duration <span class="s-4oFCuHkv7e" aria-hidden="true">*</span>
             </label>
-            <select id="req-duration" name="duration" class="vmn-input" style="width: 100%; min-height: 44px; padding: 8px 12px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md);">
+ <select id="req-duration" name="duration" class="vmn-input s-Zd9b-trn6f" >
               <option value="SHIFT_8H">Single Shift (8 Hours)</option>
               <option value="EMERGENCY_24H">Emergency Outage Window (24 Hours)</option>
               <option value="PERMANENT">Permanent Duty Station Reassignment</option>
@@ -698,8 +714,8 @@ export function renderAccessRequestHtml(
           </div>
 
           <div class="vmn-form-field">
-            <label for="req-justification" class="vmn-label" style="font-weight: 600; display: block; margin-bottom: 6px;">
-              Business &amp; Operational Justification <span style="color: #DC2626;" aria-hidden="true">*</span>
+ <label for="req-justification" class="vmn-label s-d6tlFZezBi" >
+ Business &amp; Operational Justification <span class="s-4oFCuHkv7e" aria-hidden="true">*</span>
             </label>
             <textarea
               id="req-justification"
@@ -708,15 +724,15 @@ export function renderAccessRequestHtml(
               rows="4"
               class="vmn-input"
               placeholder="Detail the broadcast duty, incident reference, or operational requirement..."
-              style="width: 100%; padding: 10px 12px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md);"
+ class="s-USa2UeMSTs"
             ></textarea>
           </div>
 
-          <div style="display: flex; gap: 12px; margin-top: 8px;">
-            <button type="submit" class="btn btn-primary" style="flex: 1; min-height: 46px; font-weight: 700; cursor: pointer;">
+ <div class="s-nJrpNO03gx">
+ <button type="submit" class="btn btn-primary s-R6xXPxcVik" >
               Submit Access Request
             </button>
-            <a href="/select-workspace" class="btn btn-secondary" style="min-height: 46px; padding: 0 20px; display: inline-flex; align-items: center;">
+ <a href="/select-workspace" class="btn btn-secondary s-dPmDjbdu34" >
               Cancel
             </a>
           </div>
@@ -731,56 +747,58 @@ export function renderAccessRequestHtml(
  */
 export function renderAccountSettingsHtml(user: SessionUser): string {
   return `
-    <div style="max-width: 800px; margin: 32px auto; padding: 0 16px;">
-      <div style="margin-bottom: 24px;">
-        <span class="vmn-badge badge-neutral" style="margin-bottom: 8px; font-weight: 700;">USER PROFILE &bull; UX-SYS-011</span>
-        <h1 style="font-size: var(--vmn-font-size-2xl); font-weight: 800; color: var(--vmn-color-primary-text); margin: 0;">
+ <div class="s-j_o2LsN6rz">
+ <div class="s-jXAzROAz5F">
+ <span class="vmn-badge badge-neutral s-Dnmmv3HPR8" >USER PROFILE &bull; UX-SYS-011</span>
+ <h1 class="s-obf-J7lNAE">
           Account &amp; Security Settings
         </h1>
       </div>
 
-      <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); padding: 28px; margin-bottom: 24px;">
-        <h2 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 16px; color: var(--vmn-color-primary-text);">
+ <div class="vmn-card s-siWzyk-6ha" >
+ <h2 class="s-8XyHQIP_yA">
           Operator Identity
         </h2>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 20px;">
+ <div class="s-QfG7EyQfsY">
           <div>
-            <div style="font-size: 0.75rem; color: var(--vmn-color-text-muted); text-transform: uppercase; font-weight: 700;">Email Address</div>
-            <div style="font-size: 1rem; font-weight: 600; color: var(--vmn-color-primary-text);">${escapeHtml(user.email)}</div>
+ <div class="s-Nb3w08KQ-O">Email Address</div>
+ <div class="s-NXtjI4edSi">${escapeHtml(user.email)}</div>
           </div>
           <div>
-            <div style="font-size: 0.75rem; color: var(--vmn-color-text-muted); text-transform: uppercase; font-weight: 700;">User Identifier</div>
-            <div style="font-size: 0.9rem; font-family: monospace; color: var(--vmn-color-secondary-text);">${escapeHtml(user.userId)}</div>
+ <div class="s-Nb3w08KQ-O">User Identifier</div>
+ <div class="s-3lwy5Jm1g-">${escapeHtml(user.userId)}</div>
           </div>
           <div>
-            <div style="font-size: 0.75rem; color: var(--vmn-color-text-muted); text-transform: uppercase; font-weight: 700;">Assigned Roles</div>
-            <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px;">
+ <div class="s-Nb3w08KQ-O">Assigned Roles</div>
+ <div class="s-mKdqcT57so">
               ${user.roles.map((r) => `<span class="vmn-badge badge-info">${escapeHtml(r)}</span>`).join("")}
             </div>
           </div>
         </div>
       </div>
 
-      <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); padding: 28px;">
-        <h2 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 16px; color: var(--vmn-color-primary-text);">
+ <div class="vmn-card s-IP6ONpGkoj" >
+ <h2 class="s-8XyHQIP_yA">
           Quick Security Actions
         </h2>
-        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-          <a href="/select-workspace" class="btn btn-outline" style="min-height: 44px; display: inline-flex; align-items: center; gap: 6px;">
+ <div class="s-GNTtGikGkV">
+ <a href="/select-workspace" class="btn btn-outline s-oskDBiEZSv" >
             ${renderIcon("bolt", { size: 16 })} Switch Active Workspace
           </a>
-          <a href="/auth/mfa" class="btn btn-outline" style="min-height: 44px; display: inline-flex; align-items: center; gap: 6px;">
+ <a href="/auth/mfa" class="btn btn-outline s-oskDBiEZSv" >
             ${renderIcon("shield", { size: 16 })} Configure Step-Up MFA
           </a>
-          <a href="/account/notifications" class="btn btn-outline" style="min-height: 44px; display: inline-flex; align-items: center; gap: 6px;">
+ <a href="/account/notifications" class="btn btn-outline s-oskDBiEZSv" >
             ${renderIcon("info", { size: 16 })} Notification Preferences
           </a>
-          <a href="/account/sessions" class="btn btn-outline" style="min-height: 44px; display: inline-flex; align-items: center; gap: 6px;">
+ <a href="/account/sessions" class="btn btn-outline s-oskDBiEZSv" >
             ${renderIcon("lock", { size: 16 })} Active Sessions
           </a>
-          <a href="/sign-out" class="btn btn-secondary" style="min-height: 44px; display: inline-flex; align-items: center; gap: 6px;">
-            ${renderIcon("lock", { size: 16 })} Sign Out of Workstation
-          </a>
+ <form method="GET" action="/sign-out" class="s-OZBX34IsZp">
+ <button class="btn btn-secondary" type="submit" >
+              ${renderIcon("lock", { size: 16 })} Sign Out of Workstation
+            </button>
+          </form>
         </div>
       </div>
     </div>
@@ -790,43 +808,44 @@ export function renderAccountSettingsHtml(user: SessionUser): string {
 /**
  * UX-SYS-004: Invitation Acceptance
  */
-export function renderInvitationAcceptanceHtml(token?: string, email?: string, error?: string): string {
+export function renderInvitationAcceptanceHtml(token?: string, email?: string, error?: string, csrfToken?: string): string {
   const inviteToken = token || "INV-7849-VMN";
   const inviteEmail = email || "operator.onboarding@vmnl.ng";
   const errorBanner = error
     ? `
-    <div style="border-left: 4px solid #DC2626; background: #FEF2F2; color: #991B1B; padding: 12px 14px; margin-bottom: 20px; border-radius: 4px; font-size: 0.85rem;" role="alert">
+ <div class="s-hMyC6wHubA" role="alert">
       ${escapeHtml(error)}
     </div>`
     : "";
 
   return `
-    <div style="max-width: 520px; margin: 48px auto; padding: 0 16px;">
-      <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); padding: 36px 32px; box-shadow: var(--vmn-shadow-md);">
-        <div style="text-align: center; margin-bottom: 24px;">
-          <span class="vmn-badge badge-info" style="margin-bottom: 12px; font-weight: 700;">INVITATION &bull; UX-SYS-004</span>
-          <h1 style="font-size: var(--vmn-font-size-2xl); font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 8px 0;">
+ <div class="s-MuIFkBo9jl">
+ <div class="vmn-card s-dO7c-Jko1Y" >
+ <div class="s-OXbXKNybuO">
+ <span class="vmn-badge badge-info s-3CrzrsuCx5" >INVITATION &bull; UX-SYS-004</span>
+ <h1 class="s-4hDFIYz_z0">
             Accept Enterprise Invitation
           </h1>
-          <p style="color: var(--vmn-color-secondary-text); font-size: 0.9rem; margin: 0;">
+ <p class="s-s8QClmJr6r">
             You have been invited to join the Voice of Nigeria (VMNL) Broadcast &amp; Commerce Platform.
           </p>
         </div>
 
         ${errorBanner}
 
-        <div style="background: var(--vmn-color-background); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md); padding: 16px; margin-bottom: 24px;">
-          <div style="font-size: 0.75rem; color: var(--vmn-color-text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 4px;">Target Account</div>
-          <div style="font-weight: 700; color: var(--vmn-color-primary-text); font-size: 0.95rem;">${escapeHtml(inviteEmail)}</div>
-          <div style="font-size: 0.8rem; color: var(--vmn-color-secondary-text); margin-top: 4px; font-family: monospace;">Token: ${escapeHtml(inviteToken)}</div>
+ <div class="s-5OWNCdDL8u">
+ <div class="s-fYE4FZVFtz">Target Account</div>
+ <div class="s-QtLcO6bVNZ">${escapeHtml(inviteEmail)}</div>
+ <div class="s-tuESyeq6jM">Token: ${escapeHtml(inviteToken)}</div>
         </div>
 
-        <form method="POST" action="/auth/invitation/accept" style="display: flex; flex-direction: column; gap: 16px;">
+ <form method="POST" action="/auth/invitation/accept" class="s-jvR2_DF1C2">
           <input type="hidden" name="token" value="${escapeHtml(inviteToken)}" />
+          ${csrfToken ? `<input type="hidden" name="csrfToken" value="${escapeHtml(csrfToken)}" />` : ""}
 
           <div class="vmn-form-field">
-            <label for="inv-email" class="vmn-label" style="font-weight: 600; display: block; margin-bottom: 6px;">
-              Invited Email Address <span style="color: #DC2626;" aria-hidden="true">*</span>
+ <label for="inv-email" class="vmn-label s-d6tlFZezBi" >
+ Invited Email Address <span class="s-4oFCuHkv7e" aria-hidden="true">*</span>
             </label>
             <input
               id="inv-email"
@@ -836,16 +855,16 @@ export function renderInvitationAcceptanceHtml(token?: string, email?: string, e
               class="vmn-input"
               value="${escapeHtml(inviteEmail)}"
               placeholder="you@company.com"
-              style="width: 100%; height: 44px; padding: 0 12px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md);"
+ class="s-npZXKSAIoi"
             />
-            <div style="font-size: 0.75rem; color: var(--vmn-color-text-muted); margin-top: 4px;">
+ <div class="s-JPNhjxkr8H">
               Must match the address the invitation was issued to.
             </div>
           </div>
 
           <div class="vmn-form-field">
-            <label for="inv-fullname" class="vmn-label" style="font-weight: 600; display: block; margin-bottom: 6px;">
-              Full Legal Name <span style="color: #DC2626;" aria-hidden="true">*</span>
+ <label for="inv-fullname" class="vmn-label s-d6tlFZezBi" >
+ Full Legal Name <span class="s-4oFCuHkv7e" aria-hidden="true">*</span>
             </label>
             <input
               id="inv-fullname"
@@ -854,13 +873,13 @@ export function renderInvitationAcceptanceHtml(token?: string, email?: string, e
               required
               class="vmn-input"
               placeholder="e.g. Ibrahim Abubakar"
-              style="width: 100%; height: 44px; padding: 0 12px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md);"
+ class="s-npZXKSAIoi"
             />
           </div>
 
           <div class="vmn-form-field">
-            <label for="inv-password" class="vmn-label" style="font-weight: 600; display: block; margin-bottom: 6px;">
-              Create Password <span style="color: #DC2626;" aria-hidden="true">*</span>
+ <label for="inv-password" class="vmn-label s-d6tlFZezBi" >
+ Create Password <span class="s-4oFCuHkv7e" aria-hidden="true">*</span>
             </label>
             <input
               id="inv-password"
@@ -870,21 +889,21 @@ export function renderInvitationAcceptanceHtml(token?: string, email?: string, e
               minlength="12"
               class="vmn-input"
               placeholder="Minimum 12 characters"
-              style="width: 100%; height: 44px; padding: 0 12px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md);"
+ class="s-npZXKSAIoi"
             />
-            <div style="font-size: 0.75rem; color: var(--vmn-color-text-muted); margin-top: 4px;">
+ <div class="s-JPNhjxkr8H">
               Must contain upper, lower, numbers, and symbols.
             </div>
           </div>
 
           <div class="vmn-form-field">
-            <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer; font-size: 0.85rem; color: var(--vmn-color-primary-text);">
-              <input type="checkbox" name="termsAccepted" required style="margin-top: 3px;" />
+ <label class="s-o4A-EPRnJ6">
+ <input type="checkbox" name="termsAccepted" required class="s-RfOVtrZ5JX" />
               <span>I accept the Broadcast Conduct Policy, Commercial Confidentiality, and Terms of Service.</span>
             </label>
           </div>
 
-          <button type="submit" class="btn btn-primary" style="min-height: 48px; font-weight: 700; width: 100%; margin-top: 8px; cursor: pointer;">
+ <button type="submit" class="btn btn-primary s-RfFbU7F3sf" >
             Complete Account Activation
           </button>
         </form>
@@ -898,33 +917,33 @@ export function renderInvitationAcceptanceHtml(token?: string, email?: string, e
  */
 export function renderFirstUseProfileHtml(user: SessionUser): string {
   return `
-    <div style="max-width: 600px; margin: 48px auto; padding: 0 16px;">
-      <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); padding: 36px 32px; box-shadow: var(--vmn-shadow-md);">
-        <div style="margin-bottom: 24px;">
-          <span class="vmn-badge badge-warning" style="margin-bottom: 12px; font-weight: 700;">ONBOARDING &bull; UX-SYS-005</span>
-          <h1 style="font-size: var(--vmn-font-size-2xl); font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 8px 0;">
+ <div class="s-6sXyenBuCp">
+ <div class="vmn-card s-dO7c-Jko1Y" >
+ <div class="s-jXAzROAz5F">
+ <span class="vmn-badge badge-warning s-3CrzrsuCx5" >ONBOARDING &bull; UX-SYS-005</span>
+ <h1 class="s-4hDFIYz_z0">
             First-Use Profile &amp; Workstation Setup
           </h1>
-          <p style="color: var(--vmn-color-secondary-text); font-size: 0.9rem; margin: 0;">
+ <p class="s-s8QClmJr6r">
             Please verify your operational details and workstation settings before commencing transmission duties.
           </p>
         </div>
 
-        <form method="POST" action="/auth/profile-setup" style="display: flex; flex-direction: column; gap: 20px;">
+ <form method="POST" action="/auth/profile-setup" class="s-79hbkssy5K">
           <div class="vmn-form-field">
-            <label class="vmn-label" style="font-weight: 600; display: block; margin-bottom: 6px;">Operator Identifier</label>
+ <label class="vmn-label s-d6tlFZezBi" >Operator Identifier</label>
             <input
               type="text"
               disabled
               value="${escapeHtml(user.userId)}"
               class="vmn-input"
-              style="width: 100%; height: 44px; padding: 0 12px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md); background: var(--vmn-color-background); font-family: monospace;"
+ class="s-32by3lkuBT"
             />
           </div>
 
           <div class="vmn-form-field">
-            <label for="prof-displayname" class="vmn-label" style="font-weight: 600; display: block; margin-bottom: 6px;">
-              Display Name / Playout Sign-off Name <span style="color: #DC2626;" aria-hidden="true">*</span>
+ <label for="prof-displayname" class="vmn-label s-d6tlFZezBi" >
+ Display Name / Playout Sign-off Name <span class="s-4oFCuHkv7e" aria-hidden="true">*</span>
             </label>
             <input
               id="prof-displayname"
@@ -933,13 +952,13 @@ export function renderFirstUseProfileHtml(user: SessionUser): string {
               required
               value="${escapeHtml(user.email.split("@")[0].toUpperCase())}"
               class="vmn-input"
-              style="width: 100%; height: 44px; padding: 0 12px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md);"
+ class="s-npZXKSAIoi"
             />
           </div>
 
           <div class="vmn-form-field">
-            <label for="prof-duty-phone" class="vmn-label" style="font-weight: 600; display: block; margin-bottom: 6px;">
-              Emergency MCR Duty Phone (NG +234) <span style="color: #DC2626;" aria-hidden="true">*</span>
+ <label for="prof-duty-phone" class="vmn-label s-d6tlFZezBi" >
+ Emergency MCR Duty Phone (NG +234) <span class="s-4oFCuHkv7e" aria-hidden="true">*</span>
             </label>
             <input
               id="prof-duty-phone"
@@ -948,19 +967,19 @@ export function renderFirstUseProfileHtml(user: SessionUser): string {
               required
               placeholder="+234 800 000 0000"
               class="vmn-input"
-              style="width: 100%; height: 44px; padding: 0 12px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md);"
+ class="s-npZXKSAIoi"
             />
           </div>
 
           <div class="vmn-form-field">
-            <label for="prof-timezone" class="vmn-label" style="font-weight: 600; display: block; margin-bottom: 6px;">
+ <label for="prof-timezone" class="vmn-label s-d6tlFZezBi" >
               Operational Broadcast Timezone
             </label>
             <select
               id="prof-timezone"
               name="timezone"
               class="vmn-input"
-              style="width: 100%; height: 44px; padding: 0 12px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md);"
+ class="s-npZXKSAIoi"
             >
               <option value="Africa/Lagos" selected>Africa/Lagos (WAT, UTC+1 - Primary VMN Broadcast)</option>
               <option value="UTC">UTC (Universal Coordinated Time - Satellite Uplink)</option>
@@ -968,7 +987,7 @@ export function renderFirstUseProfileHtml(user: SessionUser): string {
             </select>
           </div>
 
-          <button type="submit" class="btn btn-primary" style="min-height: 48px; font-weight: 700; width: 100%; cursor: pointer;">
+ <button type="submit" class="btn btn-primary s-XneFSgE1Un" >
             Confirm Profile &amp; Enter Workstation
           </button>
         </form>
@@ -982,26 +1001,26 @@ export function renderFirstUseProfileHtml(user: SessionUser): string {
  */
 export function renderSessionExpiredHtml(returnUrl: string = "/"): string {
   return `
-    <div style="max-width: 480px; margin: 60px auto; padding: 0 16px;">
-      <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); padding: 36px 32px; box-shadow: var(--vmn-shadow-md); text-align: center;">
-        <div style="width: 56px; height: 56px; border-radius: 50%; background: #FEF3C7; color: #D97706; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto;">
+ <div class="s-nmNdURXkMb">
+ <div class="vmn-card s-YZOIOv_JVW" >
+ <div class="s-_ey9AnF9rR">
           ${renderIcon("warning", { size: 30 })}
         </div>
 
-        <span class="vmn-badge badge-warning" style="margin-bottom: 12px; font-weight: 700;">SECURITY TIMEOUT &bull; UX-SYS-007</span>
-        <h1 style="font-size: var(--vmn-font-size-2xl); font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 10px 0;">
+ <span class="vmn-badge badge-warning s-3CrzrsuCx5" >SECURITY TIMEOUT &bull; UX-SYS-007</span>
+ <h1 class="s-IMY5Fbv7KN">
           Operational Session Expired
         </h1>
-        <p style="color: var(--vmn-color-secondary-text); font-size: 0.95rem; line-height: 1.5; margin: 0 0 24px 0;">
+ <p class="s-mkcIYZJflL">
           Your broadcast security session timed out due to 15 minutes of station inactivity. Playout state and form drafts have been saved to local cache.
         </p>
 
-        <a href="/sign-in?returnUrl=${encodeURIComponent(returnUrl)}" class="btn btn-primary" style="min-height: 48px; width: 100%; display: inline-flex; align-items: center; justify-content: center; font-weight: 700;">
+ <a href="/sign-in?returnUrl=${encodeURIComponent(returnUrl)}" class="btn btn-primary s-fMlAy8xZwg" >
           Sign In to Resume Session
         </a>
 
-        <div style="margin-top: 16px;">
-          <a href="/" style="font-size: 0.85rem; color: var(--vmn-color-text-muted); text-decoration: underline;">
+ <div class="s-0mWmubkRs3">
+ <a href="/" class="s-UlgYnd-XGR">
             Return to Public Landing Page
           </a>
         </div>
@@ -1015,61 +1034,61 @@ export function renderSessionExpiredHtml(returnUrl: string = "/"): string {
  */
 export function renderNotificationPreferencesHtml(user: SessionUser): string {
   return `
-    <div style="max-width: 800px; margin: 32px auto; padding: 0 16px;">
-      <div style="margin-bottom: 24px;">
-        <span class="vmn-badge badge-neutral" style="margin-bottom: 8px; font-weight: 700;">PREFERENCES &bull; UX-SYS-012</span>
-        <h1 style="font-size: var(--vmn-font-size-2xl); font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 8px 0;">
+ <div class="s-j_o2LsN6rz">
+ <div class="s-jXAzROAz5F">
+ <span class="vmn-badge badge-neutral s-Dnmmv3HPR8" >PREFERENCES &bull; UX-SYS-012</span>
+ <h1 class="s-4hDFIYz_z0">
           Notification &amp; Escalation Preferences
         </h1>
-        <p style="color: var(--vmn-color-secondary-text); margin: 0;">
+ <p class="s-74eGsJhV6B">
           Configure critical broadcast alerts, commercial reconciliation notifications, and compliance escalations.
         </p>
       </div>
 
-      <form method="POST" action="/account/notifications" class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); padding: 28px;">
-        <h2 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; color: var(--vmn-color-primary-text);">
+ <form method="POST" action="/account/notifications" class="vmn-card s-IP6ONpGkoj" >
+ <h2 class="s-SFw3up4E3Z">
           Delivery Channels for ${escapeHtml(user.email)}
         </h2>
 
-        <div style="display: flex; flex-direction: column; gap: 20px; margin-bottom: 28px;">
-          <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
-            <input type="checkbox" name="alert_playout_deadair" checked style="margin-top: 4px;" />
+ <div class="s-uquducrKzN">
+ <label class="s-aM09kSk4Vn">
+ <input type="checkbox" name="alert_playout_deadair" checked class="s-xxNz4ecjPo" />
             <div>
-              <div style="font-weight: 700; color: var(--vmn-color-primary-text);">Playout Disruption &amp; Dead-Air Failures (Level 1 CRITICAL)</div>
-              <div style="font-size: 0.85rem; color: var(--vmn-color-secondary-text);">Immediate SMS and audio alarm whenever automated filler engages or playout stalls.</div>
+ <div class="s-v9ujfxeGxB">Playout Disruption &amp; Dead-Air Failures (Level 1 CRITICAL)</div>
+ <div class="s-ypL9N-nGuz">Immediate SMS and audio alarm whenever automated filler engages or playout stalls.</div>
             </div>
           </label>
 
-          <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
-            <input type="checkbox" name="alert_rights_hold" checked style="margin-top: 4px;" />
+ <label class="s-aM09kSk4Vn">
+ <input type="checkbox" name="alert_rights_hold" checked class="s-xxNz4ecjPo" />
             <div>
-              <div style="font-weight: 700; color: var(--vmn-color-primary-text);">Rights Blockers &amp; StarTimes Carriage Expiry</div>
-              <div style="font-size: 0.85rem; color: var(--vmn-color-secondary-text);">Receive notifications 24 hours prior to scheduled broadcast of un-cleared assets.</div>
+ <div class="s-v9ujfxeGxB">Rights Blockers &amp; StarTimes Carriage Expiry</div>
+ <div class="s-ypL9N-nGuz">Receive notifications 24 hours prior to scheduled broadcast of un-cleared assets.</div>
             </div>
           </label>
 
-          <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
-            <input type="checkbox" name="alert_commercial_underdelivery" checked style="margin-top: 4px;" />
+ <label class="s-aM09kSk4Vn">
+ <input type="checkbox" name="alert_commercial_underdelivery" checked class="s-xxNz4ecjPo" />
             <div>
-              <div style="font-weight: 700; color: var(--vmn-color-primary-text);">Commercial Under-delivery &amp; Make-Good Triggers</div>
-              <div style="font-size: 0.85rem; color: var(--vmn-color-secondary-text);">Alerts when as-run logs fail to reconcile with sponsored spot commitments.</div>
+ <div class="s-v9ujfxeGxB">Commercial Under-delivery &amp; Make-Good Triggers</div>
+ <div class="s-ypL9N-nGuz">Alerts when as-run logs fail to reconcile with sponsored spot commitments.</div>
             </div>
           </label>
 
-          <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
-            <input type="checkbox" name="alert_audit_security" checked style="margin-top: 4px;" />
+ <label class="s-aM09kSk4Vn">
+ <input type="checkbox" name="alert_audit_security" checked class="s-xxNz4ecjPo" />
             <div>
-              <div style="font-weight: 700; color: var(--vmn-color-primary-text);">Cryptographic Audit &amp; High-Privilege Changes</div>
-              <div style="font-size: 0.85rem; color: var(--vmn-color-secondary-text);">Notification on feature flag changes, role grants, or emergency overrides.</div>
+ <div class="s-v9ujfxeGxB">Cryptographic Audit &amp; High-Privilege Changes</div>
+ <div class="s-ypL9N-nGuz">Notification on feature flag changes, role grants, or emergency overrides.</div>
             </div>
           </label>
         </div>
 
-        <div style="display: flex; gap: 12px;">
-          <button type="submit" class="btn btn-primary" style="min-height: 44px; padding: 0 24px; font-weight: 700; cursor: pointer;">
+ <div class="s-1jFqfgs1FA">
+ <button type="submit" class="btn btn-primary s-lnwVfi83nm" >
             Save Preferences
           </button>
-          <a href="/account/profile" class="btn btn-secondary" style="min-height: 44px; padding: 0 20px; display: inline-flex; align-items: center;">
+ <a href="/account/profile" class="btn btn-secondary s-mtkKfdtyAq" >
             Back to Profile
           </a>
         </div>
@@ -1094,13 +1113,13 @@ export function renderActiveSessionsHtml(
       ? sessions
           .map(
             (s) => `
-        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--vmn-color-border);">
+ <div class="s-cbKLTxjKjt">
           <div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-weight: 700; color: var(--vmn-color-primary-text); font-size: 1rem;">${escapeHtml(s.deviceLabel)}</span>
+ <div class="s-MIjaETFWG6">
+ <span class="s-nr2jL1Vk4N">${escapeHtml(s.deviceLabel)}</span>
               ${s.revokedAt ? `<span class="vmn-badge badge-neutral">REVOKED</span>` : `<span class="vmn-badge badge-success">ACTIVE</span>`}
             </div>
-            <div style="font-size: 0.85rem; color: var(--vmn-color-secondary-text); margin-top: 4px;">
+ <div class="s-1Mi_BAvYdD">
               IP: ${escapeHtml(s.ipAddress)} &bull; Started ${escapeHtml(s.createdAt.toISOString().replace("T", " ").substring(0, 16))} UTC
             </div>
           </div>
@@ -1109,7 +1128,7 @@ export function renderActiveSessionsHtml(
               ? ""
               : `<form method="POST" action="/account/sessions/revoke">
             <input type="hidden" name="tokenId" value="${escapeHtml(s.tokenId)}" />
-            <button type="submit" class="btn btn-outline" style="min-height: 44px; padding: 0 16px; display: inline-flex; align-items: center; justify-content: center; color: #DC2626; border-color: #DC2626; cursor: pointer;">
+ <button type="submit" class="btn btn-outline s-CVZzKu6qqM" >
               Revoke Access
             </button>
           </form>`
@@ -1117,27 +1136,27 @@ export function renderActiveSessionsHtml(
         </div>`
           )
           .join("")
-      : `<div style="padding: 16px 0; color: var(--vmn-color-secondary-text);">No registered sessions found for this account.</div>`;
+ : `<div class="s-LiTWtW8ZGt">No registered sessions found for this account.</div>`;
     return `
-    <div style="max-width: 800px; margin: 32px auto; padding: 0 16px;">
-      <div style="margin-bottom: 24px;">
-        <span class="vmn-badge badge-neutral" style="margin-bottom: 8px; font-weight: 700;">SESSIONS &bull; UX-SYS-013</span>
-        <h1 style="font-size: var(--vmn-font-size-2xl); font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 8px 0;">
+ <div class="s-j_o2LsN6rz">
+ <div class="s-jXAzROAz5F">
+ <span class="vmn-badge badge-neutral s-Dnmmv3HPR8" >SESSIONS &bull; UX-SYS-013</span>
+ <h1 class="s-4hDFIYz_z0">
           Active Workstation Sessions
         </h1>
-        <p style="color: var(--vmn-color-secondary-text); margin: 0;">
+ <p class="s-74eGsJhV6B">
           Live session registry for ${escapeHtml(user.email)}. Revoking a session invalidates its token immediately.
         </p>
       </div>
-      <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); padding: 28px; margin-bottom: 24px;">
+ <div class="vmn-card s-siWzyk-6ha" >
         ${rows}
       </div>
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <a href="/account/profile" class="btn btn-secondary" style="min-height: 44px; display: inline-flex; align-items: center; padding: 0 20px;">
+ <div class="s-wrzqCFgz1Y">
+ <a href="/account/profile" class="btn btn-secondary s-8lcmUa1Avn" >
           Back to Profile
         </a>
         <form method="POST" action="/account/sessions/revoke-all">
-          <button type="submit" class="btn btn-outline" style="min-height: 44px; color: #DC2626; border-color: #DC2626; cursor: pointer; font-weight: 700;">
+ <button type="submit" class="btn btn-outline s-EkqxLqqgeR" >
             Revoke All Other Sessions
           </button>
         </form>
@@ -1146,56 +1165,56 @@ export function renderActiveSessionsHtml(
   `;
   }
   return `
-    <div style="max-width: 800px; margin: 32px auto; padding: 0 16px;">
-      <div style="margin-bottom: 24px;">
-        <span class="vmn-badge badge-neutral" style="margin-bottom: 8px; font-weight: 700;">SECURITY AUDIT &bull; UX-SYS-013</span>
-        <h1 style="font-size: var(--vmn-font-size-2xl); font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 8px 0;">
+ <div class="s-j_o2LsN6rz">
+ <div class="s-jXAzROAz5F">
+ <span class="vmn-badge badge-neutral s-Dnmmv3HPR8" >SECURITY AUDIT &bull; UX-SYS-013</span>
+ <h1 class="s-4hDFIYz_z0">
           Active Workstation Sessions
         </h1>
-        <p style="color: var(--vmn-color-secondary-text); margin: 0;">
+ <p class="s-74eGsJhV6B">
           Inspect authorized devices currently connected to Voice of Nigeria broadcast consoles with your credentials.
         </p>
       </div>
 
-      <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); padding: 28px; margin-bottom: 24px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--vmn-color-border); padding-bottom: 16px;">
+ <div class="vmn-card s-siWzyk-6ha" >
+ <div class="s-6CE9gm8vME">
           <div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-weight: 700; color: var(--vmn-color-primary-text); font-size: 1rem;">Current Workstation</span>
+ <div class="s-MIjaETFWG6">
+ <span class="s-nr2jL1Vk4N">Current Workstation</span>
               <span class="vmn-badge badge-success">ACTIVE NOW</span>
             </div>
-            <div style="font-size: 0.85rem; color: var(--vmn-color-secondary-text); margin-top: 4px;">
+ <div class="s-1Mi_BAvYdD">
               IP: 192.168.1.104 &bull; Lagos MCR Primary Console &bull; Mozilla/5.0 Enterprise Broadcast Agent
             </div>
           </div>
-          <span style="font-family: monospace; font-size: 0.85rem; color: var(--vmn-color-text-muted);">Session ID: sess-${escapeHtml(user.userId.slice(0, 8))}</span>
+ <span class="s-RzYBnbw9uI">Session ID: sess-${escapeHtml(user.userId.slice(0, 8))}</span>
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 8px;">
+ <div class="s-rzoJeJ4UE6">
           <div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-weight: 700; color: var(--vmn-color-primary-text); font-size: 1rem;">Mobile Supervisor Client</span>
+ <div class="s-MIjaETFWG6">
+ <span class="s-nr2jL1Vk4N">Mobile Supervisor Client</span>
               <span class="vmn-badge badge-neutral">IDLE (42m ago)</span>
             </div>
-            <div style="font-size: 0.85rem; color: var(--vmn-color-secondary-text); margin-top: 4px;">
+ <div class="s-1Mi_BAvYdD">
               IP: 102.89.34.12 &bull; MTN Nigeria Cellular &bull; VMN Mobile Inspection App
             </div>
           </div>
           <form method="POST" action="/account/sessions/revoke">
             <input type="hidden" name="sessionId" value="sess-mobile-002" />
-            <button type="submit" class="btn btn-outline" style="min-height: 44px; padding: 0 16px; display: inline-flex; align-items: center; justify-content: center; color: #DC2626; border-color: #DC2626; cursor: pointer;">
+ <button type="submit" class="btn btn-outline s-CVZzKu6qqM" >
               Revoke Access
             </button>
           </form>
         </div>
       </div>
 
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <a href="/account/profile" class="btn btn-secondary" style="min-height: 44px; display: inline-flex; align-items: center; padding: 0 20px;">
+ <div class="s-wrzqCFgz1Y">
+ <a href="/account/profile" class="btn btn-secondary s-8lcmUa1Avn" >
           Back to Profile
         </a>
         <form method="POST" action="/account/sessions/revoke-all">
-          <button type="submit" class="btn btn-outline" style="min-height: 44px; color: #DC2626; border-color: #DC2626; cursor: pointer; font-weight: 700;">
+ <button type="submit" class="btn btn-outline s-EkqxLqqgeR" >
             Revoke All Other Sessions
           </button>
         </form>
@@ -1211,48 +1230,48 @@ export function renderContextualHelpHtml(topic?: string): string {
   const currentTopic = topic || "general";
 
   return `
-    <div style="max-width: 900px; margin: 32px auto; padding: 0 16px;">
-      <div style="margin-bottom: 24px;">
-        <span class="vmn-badge badge-info" style="margin-bottom: 8px; font-weight: 700;">SOP &bull; UX-SYS-014</span>
-        <h1 style="font-size: var(--vmn-font-size-2xl); font-weight: 800; color: var(--vmn-color-primary-text); margin: 0 0 8px 0;">
+ <div class="s-6m0XILdru8">
+ <div class="s-jXAzROAz5F">
+ <span class="vmn-badge badge-info s-Dnmmv3HPR8" >SOP &bull; UX-SYS-014</span>
+ <h1 class="s-4hDFIYz_z0">
           MCR Contextual Help &amp; Standard Operating Procedures
         </h1>
-        <p style="color: var(--vmn-color-secondary-text); margin: 0;">
+ <p class="s-74eGsJhV6B">
           Active reference documentation for transmission operators, rights officers, and traffic managers.
         </p>
       </div>
 
-      <div style="display: grid; grid-template-columns: 240px 1fr; gap: 24px;">
-        <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); padding: 16px; height: fit-content;">
-          <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: var(--vmn-color-text-muted); margin-bottom: 12px; padding: 0 8px;">
+ <div class="s-AmsMTcznn6">
+ <div class="vmn-card s-dGCBkXqo9J" >
+ <div class="s-IQLhdN3eI5">
             SOP Categories
           </div>
-          <nav style="display: flex; flex-direction: column; gap: 4px;">
-            <a href="/help/operator?topic=general" style="padding: 10px 12px; border-radius: var(--vmn-radius-md); text-decoration: none; font-weight: 600; font-size: 0.9rem; background: ${currentTopic === "general" ? "var(--vmn-color-primary)" : "transparent"}; color: ${currentTopic === "general" ? "#FFFFFF" : "var(--vmn-color-primary-text)"};">
+ <nav class="s-7x86Xf9Fnz">
+ <a href="/help/operator?topic=general" style="padding: 10px 12px; border-radius: var(--vmn-radius-md); text-decoration: none; font-weight: 600; font-size: 0.9rem; background: ${currentTopic === "general" ? "var(--vmn-color-primary)" : "transparent"}; color: ${currentTopic === "general" ? "#FFFFFF" : "var(--vmn-color-primary-text)"};">
               1. Playout &amp; Emergency Filler
             </a>
-            <a href="/help/operator?topic=rights" style="padding: 10px 12px; border-radius: var(--vmn-radius-md); text-decoration: none; font-weight: 600; font-size: 0.9rem; background: ${currentTopic === "rights" ? "var(--vmn-color-primary)" : "transparent"}; color: ${currentTopic === "rights" ? "#FFFFFF" : "var(--vmn-color-primary-text)"};">
+ <a href="/help/operator?topic=rights" style="padding: 10px 12px; border-radius: var(--vmn-radius-md); text-decoration: none; font-weight: 600; font-size: 0.9rem; background: ${currentTopic === "rights" ? "var(--vmn-color-primary)" : "transparent"}; color: ${currentTopic === "rights" ? "#FFFFFF" : "var(--vmn-color-primary-text)"};">
               2. Rights Clearance &amp; Holds
             </a>
-            <a href="/help/operator?topic=traffic" style="padding: 10px 12px; border-radius: var(--vmn-radius-md); text-decoration: none; font-weight: 600; font-size: 0.9rem; background: ${currentTopic === "traffic" ? "var(--vmn-color-primary)" : "transparent"}; color: ${currentTopic === "traffic" ? "#FFFFFF" : "var(--vmn-color-primary-text)"};">
+ <a href="/help/operator?topic=traffic" style="padding: 10px 12px; border-radius: var(--vmn-radius-md); text-decoration: none; font-weight: 600; font-size: 0.9rem; background: ${currentTopic === "traffic" ? "var(--vmn-color-primary)" : "transparent"}; color: ${currentTopic === "traffic" ? "#FFFFFF" : "var(--vmn-color-primary-text)"};">
               3. Commercial Traffic &amp; As-Run
             </a>
-            <a href="/help/operator?topic=escalations" style="padding: 10px 12px; border-radius: var(--vmn-radius-md); text-decoration: none; font-weight: 600; font-size: 0.9rem; background: ${currentTopic === "escalations" ? "var(--vmn-color-primary)" : "transparent"}; color: ${currentTopic === "escalations" ? "#FFFFFF" : "var(--vmn-color-primary-text)"};">
+ <a href="/help/operator?topic=escalations" style="padding: 10px 12px; border-radius: var(--vmn-radius-md); text-decoration: none; font-weight: 600; font-size: 0.9rem; background: ${currentTopic === "escalations" ? "var(--vmn-color-primary)" : "transparent"}; color: ${currentTopic === "escalations" ? "#FFFFFF" : "var(--vmn-color-primary-text)"};">
               4. MCR Escalation Matrix
             </a>
           </nav>
         </div>
 
-        <div class="vmn-card" style="background: var(--vmn-color-surface); border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); padding: 28px;">
+ <div class="vmn-card s-IP6ONpGkoj" >
           ${
             currentTopic === "rights"
               ? `
-            <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 16px; color: var(--vmn-color-primary-text);">
+ <h2 class="s-s6KO0XsRz_">
               SOP-BCST-002: Broadcast Rights Clearance &amp; Blackouts
             </h2>
-            <div style="font-size: 0.95rem; line-height: 1.6; color: var(--vmn-color-secondary-text);">
+ <div class="s-7DQ_ExARZd">
               <p>All linear transmissions on StarTimes DTT/DTH and terrestrial carriage require an active, un-expired rights window. If a rights hold occurs within 2 hours of transmission:</p>
-              <ol style="padding-left: 20px; margin-bottom: 16px;">
+ <ol class="s-bG9yzdLYMU">
                 <li>Do NOT bypass without documented authorization from the Broadcast Rights Coordinator.</li>
                 <li>Submit an expedited Rights Review Request via <code>/broadcast/rights/review-request</code>.</li>
                 <li>If unresolved within 30 minutes of airtime, prime approved secondary cultural filler asset.</li>
@@ -1261,12 +1280,12 @@ export function renderContextualHelpHtml(topic?: string): string {
           `
               : currentTopic === "traffic"
               ? `
-            <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 16px; color: var(--vmn-color-primary-text);">
+ <h2 class="s-s6KO0XsRz_">
               SOP-BCST-003: Commercial Break Reconciliation
             </h2>
-            <div style="font-size: 0.95rem; line-height: 1.6; color: var(--vmn-color-secondary-text);">
+ <div class="s-7DQ_ExARZd">
               <p>Commercial break compliance is audited by the Advertising Regulatory Council of Nigeria (ARCON) and counterparties:</p>
-              <ul style="padding-left: 20px; margin-bottom: 16px;">
+ <ul class="s-bG9yzdLYMU">
                 <li>Ensure as-run log capture matches within 100ms tolerance.</li>
                 <li>Under-delivered spots must be logged to the Proof-of-Air Exceptions Workbench.</li>
                 <li>Make-goods must be rescheduled into equivalent audience dayparts within 48 hours.</li>
@@ -1275,40 +1294,40 @@ export function renderContextualHelpHtml(topic?: string): string {
           `
               : currentTopic === "escalations"
               ? `
-            <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 16px; color: var(--vmn-color-primary-text);">
+ <h2 class="s-s6KO0XsRz_">
               SOP-BCST-004: Master Control Room Escalation Tree
             </h2>
-            <div style="font-size: 0.95rem; line-height: 1.6; color: var(--vmn-color-secondary-text);">
-              <table style="width: 100%; border-collapse: collapse; margin-top: 12px;">
+ <div class="s-7DQ_ExARZd">
+ <table class="s-Cv7ocnTHFs">
                 <thead>
-                  <tr style="border-bottom: 2px solid var(--vmn-color-border); text-align: left;">
-                    <th style="padding: 8px 12px;">Severity</th>
-                    <th style="padding: 8px 12px;">Incident Type</th>
-                    <th style="padding: 8px 12px;">Primary Responder</th>
+ <tr class="s-A_Iz40xZtX">
+ <th class="s-lmg2jNx7rT">Severity</th>
+ <th class="s-lmg2jNx7rT">Incident Type</th>
+ <th class="s-lmg2jNx7rT">Primary Responder</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr style="border-bottom: 1px solid var(--vmn-color-border);">
-                    <td style="padding: 8px 12px;"><span class="vmn-badge badge-warning">L1 - CRITICAL</span></td>
-                    <td style="padding: 8px 12px;">Carrier Outage / Dead Air &gt; 10s</td>
-                    <td style="padding: 8px 12px;">Broadcast Director + Chief Engineer</td>
+ <tr class="s-EK6K8Vq5tY">
+ <td class="s-lmg2jNx7rT"><span class="vmn-badge badge-warning">L1 - CRITICAL</span></td>
+ <td class="s-lmg2jNx7rT">Carrier Outage / Dead Air &gt; 10s</td>
+ <td class="s-lmg2jNx7rT">Broadcast Director + Chief Engineer</td>
                   </tr>
-                  <tr style="border-bottom: 1px solid var(--vmn-color-border);">
-                    <td style="padding: 8px 12px;"><span class="vmn-badge badge-info">L2 - HIGH</span></td>
-                    <td style="padding: 8px 12px;">Rights Conflict / Missing Media File</td>
-                    <td style="padding: 8px 12px;">MCR Supervisor + Rights Coordinator</td>
+ <tr class="s-EK6K8Vq5tY">
+ <td class="s-lmg2jNx7rT"><span class="vmn-badge badge-info">L2 - HIGH</span></td>
+ <td class="s-lmg2jNx7rT">Rights Conflict / Missing Media File</td>
+ <td class="s-lmg2jNx7rT">MCR Supervisor + Rights Coordinator</td>
                   </tr>
                 </tbody>
               </table>
             </div>
           `
               : `
-            <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 16px; color: var(--vmn-color-primary-text);">
+ <h2 class="s-s6KO0XsRz_">
               SOP-BCST-001: Playout Automation &amp; Emergency Fallback
             </h2>
-            <div style="font-size: 0.95rem; line-height: 1.6; color: var(--vmn-color-secondary-text);">
+ <div class="s-7DQ_ExARZd">
               <p>Standard operating procedures for primary transmission playout:</p>
-              <ul style="padding-left: 20px; margin-bottom: 16px;">
+ <ul class="s-bG9yzdLYMU">
                 <li>The automation engine queries scheduled blocks every 60 seconds.</li>
                 <li>If the primary stream drops below 15fps or frame freeze exceeds 3 seconds, automated audio-video filler engages immediately.</li>
                 <li>MCR duty operators must acknowledge the alert in <code>/broadcast/playout/live</code> within 45 seconds to suppress audible buzzer.</li>

@@ -147,6 +147,15 @@ export class BroadcastBillingEngine {
     return this.billingSchedules.get(campaignCode);
   }
 
+  /**
+   * Every schedule this instance holds, oldest campaign first. The broadcast
+   * yield screens take their contracted-value KPI from here, so the alternative
+   * is an operator seeing "no schedules" while the engine holds them.
+   */
+  public listBillingSchedules(): CommercialBillingSchedule[] {
+    return [...this.billingSchedules.values()];
+  }
+
   // ---------------------------------------------------------------------------
   // TODO-FIN-07: Broadcast billing ← as-run linkage (TASK-P2-11)
   //

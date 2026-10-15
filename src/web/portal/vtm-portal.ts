@@ -6,7 +6,6 @@
  * acceptance, casting matching, rate card management, and payout ledger.
  */
 
-import { renderIcon } from "../components/index.js";
 import { isFeatureEnabled, renderFeatureDisabledNotice } from "../../core/feature-flags/index.js";
 import { BUYOUT_MULTIPLIERS, BuyoutTier } from "../../modules/hub/vtm/index.js";
 
@@ -39,87 +38,87 @@ export function renderVtmTermsReviewHtml(contract: MockVtmContract): string {
   const milestoneRows = contract.milestones
     .map(
       (m, idx) => `
-    <tr style="border-bottom: 1px solid var(--vmn-color-border-subtle);">
-      <td style="padding: 12px; font-weight: 700; color: var(--vmn-text-primary);">Milestone ${idx + 1}: ${m.title}</td>
-      <td style="padding: 12px; color: var(--vmn-text-secondary);">${m.deliverable}</td>
-      <td style="padding: 12px; font-weight: 700; color: var(--vmn-primary);">₦${m.amountNgn.toLocaleString()}</td>
-      <td style="padding: 12px;"><span class="vmn-badge badge-ready">${m.status}</span></td>
+ <tr class="s-z7JacQSDqk">
+ <td class="s-0X4a4COY72">Milestone ${idx + 1}: ${m.title}</td>
+ <td class="s-gL0G9B66bL">${m.deliverable}</td>
+ <td class="s-PVlViuuo3G">₦${m.amountNgn.toLocaleString()}</td>
+ <td class="s-6FCnPHXEyo"><span class="vmn-badge badge-ready">${m.status}</span></td>
     </tr>
   `
     )
     .join("\n");
 
   return `
-    <article class="container" style="max-width: 900px; margin: 0 auto; padding: var(--vmn-space-8) var(--vmn-space-4);">
-      <header style="margin-bottom: var(--vmn-space-6); text-align: center;">
+ <article class="container s-Gq1CYI3m9m" >
+ <header class="s-S_I6YpSsii">
         <span class="vmn-badge badge-ready">Contract Agreement</span>
-        <h1 style="font-size: var(--vmn-font-size-3xl); font-weight: 800; color: var(--vmn-text-primary); margin: var(--vmn-space-3) 0;">
+ <h1 class="s-jy1nuvWOw7">
           Talent Engagement Agreement & Terms
         </h1>
-        <p style="color: var(--vmn-text-secondary); font-size: 1rem;">
+ <p class="s-AuP1EyxEBf">
           Reference: <code>${contract.contractNumber}</code> · Project: <strong>${contract.projectName}</strong>
         </p>
       </header>
 
       <!-- Parties and Production Details -->
-      <section class="card" style="margin-bottom: var(--vmn-space-6); padding: var(--vmn-space-6);">
-        <h2 style="font-size: 1.15rem; font-weight: 700; color: var(--vmn-text-primary); margin-bottom: 16px; border-bottom: 1px solid var(--vmn-color-border-subtle); padding-bottom: 8px;">
+ <section class="card s-aOQEhVcQ_B" >
+ <h2 class="s-Om0jVh9g2w">
           Production Engagement Overview
         </h2>
-        <dl style="display: grid; grid-template-columns: 160px 1fr; gap: 12px; margin: 0; font-size: 0.95rem;">
-          <dt style="font-weight: 700; color: var(--vmn-text-secondary);">Production Client:</dt>
-          <dd style="color: var(--vmn-text-primary); margin: 0; font-weight: 600;">${contract.productionCompany}</dd>
-          <dt style="font-weight: 700; color: var(--vmn-text-secondary);">Talent Role:</dt>
-          <dd style="color: var(--vmn-text-primary); margin: 0;">${contract.roleTitle}</dd>
-          <dt style="font-weight: 700; color: var(--vmn-text-secondary);">Shoot Schedule:</dt>
-          <dd style="color: var(--vmn-text-primary); margin: 0;">${contract.startDate} to ${contract.endDate}</dd>
-          <dt style="font-weight: 700; color: var(--vmn-text-secondary);">Escrow Guarantee:</dt>
-          <dd style="color: var(--vmn-semantic-success); margin: 0; font-weight: 600;">100% Funds Secured in VMN Restricted Escrow</dd>
+ <dl class="s-8At14DM17U">
+ <dt class="s-F7gY5MEZDy">Production Client:</dt>
+ <dd class="s-tR1NYl3ZY2">${contract.productionCompany}</dd>
+ <dt class="s-F7gY5MEZDy">Talent Role:</dt>
+ <dd class="s-DwKwdeUqE1">${contract.roleTitle}</dd>
+ <dt class="s-F7gY5MEZDy">Shoot Schedule:</dt>
+ <dd class="s-DwKwdeUqE1">${contract.startDate} to ${contract.endDate}</dd>
+ <dt class="s-F7gY5MEZDy">Escrow Guarantee:</dt>
+ <dd class="s-75J06PRW51">100% Funds Secured in VMN Restricted Escrow</dd>
         </dl>
       </section>
 
       <!-- UX-VTM-009: Economic Breakdown (85/15 Invariant) -->
-      <section class="card" style="margin-bottom: var(--vmn-space-6); padding: var(--vmn-space-6); background: var(--vmn-color-surface-subtle); border-left: 4px solid var(--vmn-primary);">
-        <h2 style="font-size: 1.15rem; font-weight: 700; color: var(--vmn-text-primary); margin-bottom: 12px;">
+ <section class="card s-Y73Zn5KYXu" >
+ <h2 class="s-JSToUoC75z">
           Economic Compensation Breakdown (85/15 Standard Rule)
         </h2>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--vmn-space-4); margin-bottom: 16px;">
-          <div style="background: var(--vmn-surface-card); padding: 16px; border-radius: 6px; text-align: center;">
-            <span style="font-size: 0.8rem; color: var(--vmn-text-secondary); text-transform: uppercase;">Gross Contract Value</span>
-            <div style="font-size: 1.5rem; font-weight: 800; color: var(--vmn-text-primary); margin-top: 4px;">
+ <div class="s-vN-YB36RMH">
+ <div class="s-quN3jXhYhl">
+ <span class="s-xJ657zAsLQ">Gross Contract Value</span>
+ <div class="s-Ajhu2g89sd">
               ₦${contract.totalCompensationNgn.toLocaleString()}
             </div>
           </div>
-          <div style="background: var(--vmn-surface-card); padding: 16px; border-radius: 6px; text-align: center; border: 2px solid var(--vmn-semantic-success);">
-            <span style="font-size: 0.8rem; color: var(--vmn-semantic-success); text-transform: uppercase; font-weight: 700;">Net Talent Payout (85%)</span>
-            <div style="font-size: 1.5rem; font-weight: 800; color: var(--vmn-text-primary); margin-top: 4px;">
+ <div class="s-JRlJ-Qev52">
+ <span class="s-cad0yQ-lDJ">Net Talent Payout (85%)</span>
+ <div class="s-Ajhu2g89sd">
               ₦${contract.netTalentAmountNgn.toLocaleString()}
             </div>
           </div>
-          <div style="background: var(--vmn-surface-card); padding: 16px; border-radius: 6px; text-align: center;">
-            <span style="font-size: 0.8rem; color: var(--vmn-text-muted); text-transform: uppercase;">Platform Fee (15%)</span>
-            <div style="font-size: 1.5rem; font-weight: 800; color: var(--vmn-text-secondary); margin-top: 4px;">
+ <div class="s-quN3jXhYhl">
+ <span class="s-x_D6mNEpV_">Platform Fee (15%)</span>
+ <div class="s-VHqQLTVI9I">
               ₦${contract.platformCommissionNgn.toLocaleString()}
             </div>
           </div>
         </div>
-        <p style="font-size: 0.85rem; color: var(--vmn-text-secondary); margin: 0; line-height: 1.5;">
+ <p class="s-_tqIn3ZPXY">
           Funds are protected under VMNL's 7-way segregated escrow architecture. Net earnings are disbursed directly into verified Nigerian corporate or commercial bank accounts upon milestone acceptance.
         </p>
       </section>
 
       <!-- Milestones Table -->
-      <section class="card" style="margin-bottom: var(--vmn-space-6); padding: 0; overflow-x: auto;">
-        <div style="padding: 16px; font-weight: 700; font-size: 1.1rem; color: var(--vmn-text-primary); border-bottom: 1px solid var(--vmn-color-border-subtle);">
+ <section class="card s-ZBsY0hSfSL" >
+ <div class="s-mv9Y99H955">
           Scheduled Production Milestones & Deliverables
         </div>
-        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.95rem;">
+ <table class="s-t-Ktq1qpPd">
           <thead>
-            <tr style="background: var(--vmn-color-surface-subtle); color: var(--vmn-text-secondary);">
-              <th style="padding: 12px;">Milestone Title</th>
-              <th style="padding: 12px;">Deliverable Requirement</th>
-              <th style="padding: 12px;">Amount</th>
-              <th style="padding: 12px;">Escrow Status</th>
+ <tr class="s-PVPp4tf1N4">
+ <th class="s-6FCnPHXEyo">Milestone Title</th>
+ <th class="s-6FCnPHXEyo">Deliverable Requirement</th>
+ <th class="s-6FCnPHXEyo">Amount</th>
+ <th class="s-6FCnPHXEyo">Escrow Status</th>
             </tr>
           </thead>
           <tbody>
@@ -132,43 +131,43 @@ export function renderVtmTermsReviewHtml(contract: MockVtmContract): string {
       ${
         contract.isSigned
           ? `
-        <div class="card" style="padding: var(--vmn-space-6); text-align: center; border: 2px solid var(--vmn-semantic-success);">
-          <span class="vmn-badge badge-ready" style="margin-bottom: 8px;">Agreement Signed</span>
-          <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--vmn-text-primary); margin-bottom: 8px;">
+ <div class="card s-0d_rKmV0-n" >
+ <span class="vmn-badge badge-ready s-fzy69kMBd1" >Agreement Signed</span>
+ <h2 class="s-aMXDq93VWh">
             Legally Binding Signature Executed
           </h2>
-          <p style="color: var(--vmn-text-secondary); font-size: 0.9rem; margin-bottom: 8px;">
+ <p class="s-EaI1YscjpR">
             Signed on ${contract.signedAt} by verified digital certificate.
           </p>
-          <div style="font-family: monospace; font-size: 0.8rem; color: var(--vmn-text-muted);">
+ <div class="s-Wag9ZD-NOW">
             SHA-256: <code>${contract.signedHash}</code>
           </div>
         </div>
       `
           : `
-        <form method="POST" action="/api/v1/vtm/contracts/${contract.id}/sign" class="card" style="padding: var(--vmn-space-8); display: flex; flex-direction: column; gap: var(--vmn-space-4);">
-          <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--vmn-text-primary); margin-bottom: 4px;">
+ <form method="POST" action="/api/v1/vtm/contracts/${contract.id}/sign" class="card s-sqzC72lluV" >
+ <h2 class="s-2FSZNGekMT">
             Digital Execution & Acceptance
           </h2>
-          <p style="font-size: 0.9rem; color: var(--vmn-text-secondary); line-height: 1.5;">
+ <p class="s--YWDCnnLFV">
             By typing your full legal name below, you execute this talent engagement agreement, acknowledge the 85/15 economic settlement terms, and agree to shoot schedules and deliverable criteria.
           </p>
 
           <div>
-            <label for="legalSignature" style="display: block; font-weight: 700; margin-bottom: 6px; color: var(--vmn-text-primary);">
-              Type Full Legal Name as Electronic Signature <span style="color: var(--vmn-semantic-error);">*</span>
+ <label for="legalSignature" class="s-oMHwiwajnC">
+ Type Full Legal Name as Electronic Signature <span class="s-R3NEaqY8J-">*</span>
             </label>
-            <input type="text" id="legalSignature" name="legalSignature" required placeholder="e.g. Babatunde Olumide" class="input" style="width: 100%; min-height: 44px; padding: 8px 12px;" />
+ <input type="text" id="legalSignature" name="legalSignature" required placeholder="e.g. Babatunde Olumide" class="input s-UPrN9pHjcM" />
           </div>
 
-          <div style="background: var(--vmn-color-surface-subtle); padding: 16px; border-radius: 6px; display: flex; align-items: flex-start; gap: 12px;">
-            <input type="checkbox" id="termsAffirmation" name="termsAffirmation" value="true" required style="width: 20px; height: 20px; margin-top: 2px;" />
-            <label for="termsAffirmation" style="font-size: 0.85rem; color: var(--vmn-text-secondary); line-height: 1.5;">
+ <div class="s-uaYMBvJysP">
+ <input type="checkbox" id="termsAffirmation" name="termsAffirmation" value="true" required class="s-9Isrvn5gw2" />
+ <label for="termsAffirmation" class="s-EIgsbg6jRv">
               I confirm that I have reviewed the scope of work, shoot dates, escrow terms, and deliverable specifications. This digital execution creates a binding legal obligation under Nigerian commercial arbitration law.
             </label>
           </div>
 
-          <button type="submit" class="btn btn-primary button button--primary" style="min-height: 48px; font-size: 1rem; font-weight: 700;">
+ <button type="submit" class="btn btn-primary button button--primary s-HDpEMjHOpj" >
             Sign & Execute Engagement Contract
           </button>
         </form>
@@ -197,22 +196,22 @@ export function renderVtmMarketplaceHtml(opportunities: Array<{
   const cards = opportunities
     .map(
       (opp) => `
-    <div class="card" style="padding: var(--vmn-space-6); display: flex; flex-direction: column; justify-content: space-between;">
+ <div class="card s-_Eo7me1G2b" >
       <div>
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+ <div class="s-QBgwgYUD6o">
           <span class="vmn-badge badge-ready">${opp.matchScore}% Match Score</span>
-          <span style="font-size: 0.8rem; font-weight: 700; color: var(--vmn-text-muted);">${opp.category}</span>
+ <span class="s-LjiBFW-B18">${opp.category}</span>
         </div>
-        <h3 style="font-size: 1.2rem; font-weight: 700; color: var(--vmn-text-primary); margin: 4px 0 8px 0;">${opp.title}</h3>
-        <p style="font-size: 0.9rem; color: var(--vmn-text-secondary); margin-bottom: 12px;">Production: <strong>${opp.production}</strong></p>
-        <div style="font-size: 1.1rem; font-weight: 800; color: var(--vmn-primary); margin-bottom: 8px;">
+ <h3 class="s--AXXFl7-B0">${opp.title}</h3>
+ <p class="s-5ASyq8OqJg">Production: <strong>${opp.production}</strong></p>
+ <div class="s-cdCbWj2_iT">
           ₦${opp.budgetPerDayNgn.toLocaleString()} / day
         </div>
-        <div style="font-size: 0.8rem; color: var(--vmn-text-muted); margin-bottom: 16px;">
+ <div class="s-JOJmlocg2U">
           Buyout: ${opp.buyoutTier.replace(/_/g, " ")} (${BUYOUT_MULTIPLIERS[opp.buyoutTier] || 1}x Multiplier)
         </div>
       </div>
-      <button class="btn btn-primary button button--primary" style="min-height: 44px; width: 100%; font-weight: 700;">
+ <button class="btn btn-primary button button--primary s-qOmA8-82zi" >
         Submit Casting Application
       </button>
     </div>
@@ -221,18 +220,18 @@ export function renderVtmMarketplaceHtml(opportunities: Array<{
     .join("\n");
 
   return `
-    <article class="container" style="max-width: 1200px; margin: 0 auto; padding: var(--vmn-space-8) var(--vmn-space-4);">
-      <header style="margin-bottom: var(--vmn-space-8);">
+ <article class="container s-bJt7BJCshA" >
+ <header class="s-8KqcJvoCxL">
         <span class="vmn-badge badge-ready">VTM Marketplace</span>
-        <h1 style="font-size: var(--vmn-font-size-3xl); font-weight: 800; color: var(--vmn-text-primary); margin-top: 8px;">
+ <h1 class="s-yrxYod1Dke">
           Casting Opportunities & Creative Briefs
         </h1>
-        <p style="color: var(--vmn-text-secondary); margin: 0;">
+ <p class="s-Q99I6jpLHa">
           Curated film, television, and advertising opportunities matching your verified talent tier and skill tags.
         </p>
       </header>
 
-      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: var(--vmn-space-6);">
+ <div class="s-sWhhVoBuXm">
         ${cards}
       </div>
     </article>

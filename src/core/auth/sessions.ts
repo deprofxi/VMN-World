@@ -9,8 +9,20 @@
  */
 
 import crypto from "crypto";
+import type { KeyValueAdapter } from "../cache/index.js";
+import { registerDurableStore, stageDurableWrite } from "../database/durable-journal.js";
+import { loadSessionRecords, persistSessionRecord } from "../database/repositories/release-critical.repository.js";
 
-import { revokeToken } from "./index.js";
+let sessionKvAdapter: KeyValueAdapter | null = null;
+
+/** Hook to connect session storage to a shared Redis/KeyValue adapter */
+export function useKeyValueAdapterForSessions(adapter: KeyValueAdapter): void {
+  sessionKvAdapter = adapter;
+}
+
+export function getSessionKeyValueAdapter(): KeyValueAdapter | null {
+  return sessionKvAdapter;
+}
 
 export interface SessionRecord {
   tokenId: string; // sha-256 of the token, never the raw token
@@ -28,6 +40,49 @@ function tokenIdFor(token: string): string {
 }
 
 const sessionsByUser = new Map<string, Map<string, SessionRecord>>();
+
+/**
+ * TSK-17: the session registry is durable. The KV adapter (Redis, optional) only
+ * shares revocation between processes while it is up; `SessionRecord` rows are
+ * what make "Active Sessions" and a revocation survive a restart, so a revoked
+ * session cannot come back to life by being re-hydrated.
+ *
+ * `tokenId` is the sha-256 digest, never the raw token — the row is no more
+ * sensitive than the registry it projects.
+ */
+registerDurableStore<SessionRecord>("sessionRecord", persistSessionRecord);
+
+function stageSession(record: SessionRecord): void {
+  stageDurableWrite<SessionRecord>({
+    store: "sessionRecord",
+    key: record.tokenId,
+    payload: record,
+    rollback: () => {
+      const userSessions = sessionsByUser.get(record.userId);
+      userSessions?.delete(record.tokenId);
+      if (userSessions && userSessions.size === 0) sessionsByUser.delete(record.userId);
+      revokedTokenIds.delete(record.tokenId);
+    },
+  });
+}
+
+/** Boot hydration (TSK-17): rebuild the registry, including revocation state. */
+export async function refreshSessionIndex(): Promise<{ sessions: number; revoked: number }> {
+  const loaded = await loadSessionRecords();
+  sessionsByUser.clear();
+  revokedTokenIds.clear();
+  let revoked = 0;
+  for (const record of loaded) {
+    const userSessions = sessionsByUser.get(record.userId) || new Map<string, SessionRecord>();
+    userSessions.set(record.tokenId, record);
+    sessionsByUser.set(record.userId, userSessions);
+    if (record.revokedAt) {
+      revokedTokenIds.add(record.tokenId);
+      revoked += 1;
+    }
+  }
+  return { sessions: loaded.length, revoked };
+}
 
 export function registerSession(params: {
   token: string;
@@ -49,6 +104,10 @@ export function registerSession(params: {
   const userSessions = sessionsByUser.get(params.userId) || new Map<string, SessionRecord>();
   userSessions.set(id, record);
   sessionsByUser.set(params.userId, userSessions);
+  stageSession(record);
+  if (sessionKvAdapter) {
+    void sessionKvAdapter.set(`session:${id}`, JSON.stringify(record), 86400 * 1000).catch(() => {});
+  }
   return record;
 }
 
@@ -77,6 +136,10 @@ export function touchSession(token: string, userId: string): void {
   const record = sessionsByUser.get(userId)?.get(id);
   if (record) {
     record.lastSeenAt = new Date();
+    stageSession(record);
+    if (sessionKvAdapter) {
+      void sessionKvAdapter.set(`session:${id}`, JSON.stringify(record), 86400 * 1000).catch(() => {});
+    }
   }
 }
 
@@ -90,6 +153,12 @@ export function revokeSessionById(userId: string, tokenId: string): string | nul
   if (!record) return null;
   if (!record.revokedAt) {
     record.revokedAt = new Date();
+  }
+  revokedTokenIds.add(record.tokenId);
+  stageSession(record);
+  if (sessionKvAdapter) {
+    void sessionKvAdapter.del(`session:${tokenId}`).catch(() => {});
+    void sessionKvAdapter.set(`revoked:${tokenId}`, "1", 86400 * 1000).catch(() => {});
   }
   // The row is retained (marked revoked) so the Active Sessions surface can
   // show revocation history; raw tokens are never retained.
@@ -114,10 +183,35 @@ const revokedTokenIds = new Set<string>();
 
 export function markTokenIdRevoked(tokenId: string): void {
   revokedTokenIds.add(tokenId);
+  if (sessionKvAdapter) {
+    void sessionKvAdapter.set(`revoked:${tokenId}`, "1", 86400 * 1000).catch(() => {});
+  }
 }
 
 export function isTokenIdRevoked(tokenId: string): boolean {
   return revokedTokenIds.has(tokenId);
+}
+
+/**
+ * TSK-27 (CA-26): consult the shared revocation records for a token id. The sync
+ * `isTokenIdRevoked` cannot reach the adapter, so the request entry point awaits
+ * this before any authorization decision: a revocation issued by another
+ * instance lands in the local set here, and every later sync check on the same
+ * request rejects the token too. Returns the revocation state. A shared-backend
+ * failure is NOT a revocation — the signature check still governs.
+ */
+export async function primeRevocationFromSharedStore(tokenId: string): Promise<boolean> {
+  if (revokedTokenIds.has(tokenId)) return true;
+  if (!sessionKvAdapter) return false;
+  try {
+    if (await sessionKvAdapter.get(`revoked:${tokenId}`)) {
+      revokedTokenIds.add(tokenId);
+      return true;
+    }
+  } catch {
+    return false;
+  }
+  return false;
 }
 
 export function computeSessionId(token: string): string {
@@ -127,6 +221,7 @@ export function computeSessionId(token: string): string {
 export function _resetSessionsForTesting(): void {
   sessionsByUser.clear();
   revokedTokenIds.clear();
+  sessionKvAdapter = null;
 }
 
 // ---------------------------------------------------------------------------

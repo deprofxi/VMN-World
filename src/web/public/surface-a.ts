@@ -27,127 +27,92 @@
 
 import { PUBLIC_CHANNELS } from "./channels.js";
 import { renderVerticalLandingPageHtml } from "./hub.js";
-import { resolveNowAndNext, renderNowNextWidgetHtml, defaultViewerTimezone } from "./schedule-presentation.js";
-import { listSchedules } from "../../modules/broadcast/versions/index.js";
 import { listEpisodeMasters } from "../../modules/broadcast/episode-masters.js";
 import { renderEpisodeMastersTableHtml } from "../components/episode-masters.js";
-
-// Helper for UI badges
-function renderBadge(text: string, type: "live" | "ready" | "info" = "info"): string {
-  return `<span class="vmn-badge badge-${type}">${text}</span>`;
-}
+import { getConfiguredFederationOrigin } from "../../core/federation/destinations.js";
+import { escapeHtml } from "../components/escape.js";
 
 // 3. Nigezie Xtreme Channel Page (/channels/nxtr)
 // 4. Orisun Channel Page (/channels/orisun)
 // 5. Isi Mbido Channel Page (/channels/isimbido)
 export function renderChannelDetailPageHtml(
   channelCode: "NXTR" | "ORIS" | "IMBD",
-  viewerTimezoneHeader?: string,
-  options: { now?: Date } = {}
+  _viewerTimezoneHeader?: string,
+  _options: { now?: Date } = {}
 ): string {
   const channel = PUBLIC_CHANNELS.find((c) => c.code === channelCode);
   if (!channel) {
-    return `<div class="card" style="text-align:center; padding:48px 24px;"><h1>Channel Not Found</h1><p>The requested linear channel is not in the active registry.</p><a href="/channels" class="btn btn-primary" style="margin-top:16px;">&larr; Back to Channels</a></div>`;
+ return `<div class="card s-qcqWA_7LQw" ><h1>Channel Not Found</h1><p>The requested linear channel is not in the active registry.</p><a href="/channels" class="btn btn-primary s-ijWaduvsnA" >&larr; Back to Channels</a></div>`;
   }
 
-  const scheduleItems = [
-    { time: "06:00 - 08:30", title: "Early Riser Afro-Beats", type: "Music / Video Playlist", rating: "PG" },
-    { time: "08:30 - 10:00", title: "Street Pulse Morning Digest", type: "Youth Live Chat", rating: "PG-13" },
-    { time: "10:00 - 12:00", title: "Afro-Fusion Top 20 Countdown", type: "Chart Show", rating: "PG" },
-    { time: "12:00 - 14:00", title: "VTM Spotlight: Emerging Stars", type: "Talent Showcase", rating: "PG-13" },
-    { time: "14:00 - 17:00", title: "Non-Stop Afro-Club Hits", type: "Music Videos", rating: "PG" },
-    { time: "17:00 - 18:30", title: "ONE Studios Original: Street Beats", type: "Episodic Drama", rating: "15+" },
-    { time: "18:30 - 21:00", title: "Prime Time LIVE Showcase", type: "Flagship Broadcast", rating: "PG-13" },
-    { time: "21:00 - 23:00", title: "Nollywood Midnight Cinema", type: "Feature Film", rating: "18+" },
-  ];
 
   return `
-  <section style="display:flex; flex-direction:column; gap:24px;">
-    <nav aria-label="Breadcrumb" style="font-size:0.85rem; color:var(--vmn-text-muted);">
-      <a href="/" style="color:var(--vmn-secondary); text-decoration:none;">Home</a> &gt; 
-      <a href="/channels" style="color:var(--vmn-secondary); text-decoration:none;">Channels</a> &gt; 
+ <section class="s-hJqXKfH1_e">
+ <nav aria-label="Breadcrumb" class="s-37h9gF_4Xa">
+ <a href="/" class="s-v8cyEOQoqd">Home</a> &gt; 
+ <a href="/channels" class="s-v8cyEOQoqd">Channels</a> &gt; 
       <span>${channel.name}</span>
     </nav>
 
     <!-- Channel Header Banner -->
-    <div class="card" style="border-left:6px solid ${channel.accentColor}; background: linear-gradient(to right, #FFFFFF, var(--vmn-surface-alt));">
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;">
+ <div class="card s-JIHwESLacR" style="border-left:6px solid ${channel.accentColor}; background: linear-gradient(to right, #FFFFFF, var(--vmn-surface-alt));">
+ <div class="s-eNztNGULjh">
         <div>
-          <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
-            <h1 style="font-size:2.2rem; font-weight:800; color:var(--vmn-primary);">${channel.name}</h1>
-            <span class="vmn-badge badge-live">ON AIR LIVE</span>
+ <div class="s-Lho1bT9qTO">
+ <h1 class="s-lZDniGbktQ">${channel.name}</h1>
+            <span class="vmn-badge badge-info">Channel profile — live status unavailable</span>
           </div>
-          <p style="font-size:1.15rem; font-weight:600; color:var(--vmn-text-muted); margin-bottom:12px;">${channel.tagline}</p>
-          <div style="display:flex; gap:16px; flex-wrap:wrap; font-size:0.9rem;">
-            <span><strong>StarTimes DTT:</strong> Channel ${channel.dttChannel}</span>
-            <span><strong>StarTimes DTH:</strong> Channel ${channel.dthChannel}</span>
+ <p class="s-tOIMThQAOC">${channel.tagline}</p>
+ <div class="s-IQ2Z03BGAL">
+            <span><strong>Carriage:</strong> Details unverified</span>
             <span><strong>Genre:</strong> ${channel.genre}</span>
             <span><strong>Language:</strong> ${channel.primaryLanguage}</span>
           </div>
-        </div>        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
-          <a href="/azeebo" class="btn btn-primary">Watch on Azeebo+ &rarr;</a>
-          <a href="/broadcast/screens/SCR-BCST-14" class="btn btn-outline" style="font-size:0.8rem;">EPG Syndication Spec</a>
+        </div>
+ <div class="s-numIUTWRO1">
+          <a href="/azeebo" class="btn btn-outline s-lNuV4bA1-6">Azeebo+ service information &rarr;</a>
+ <a href="/broadcast/screens/SCR-BCST-14" class="btn btn-outline" >EPG Syndication Spec</a>
         </div>
       </div>
     </div>
 
-    <!-- TODO-BCST-09: On Air Now / Up Next widget from the approved EPG schedule -->
-    ${renderNowNextWidgetHtml(resolveNowAndNext({ channelCode, schedules: listSchedules(), now: options.now }), defaultViewerTimezone(viewerTimezoneHeader))}
 
-    <!-- On Air Now & Up Next Component -->
-    <div class="grid-2" style="margin-top:0;">
-      <div class="card" style="background:#FEF2F2; border-color:#FECACA;">
-        <span style="font-size:0.75rem; font-weight:800; text-transform:uppercase; color:#DC2626; letter-spacing:0.05em;">Currently Airing</span>
-        <h3 style="font-size:1.4rem; font-weight:800; color:#991B1B; margin-top:4px;">Urban Beats Live Prime</h3>
-        <p style="font-size:0.9rem; color:#7F1D1D; margin-top:4px;">Broadcasting frame-accurate live studio mix with interactive on-screen QR codes.</p>
-        <div style="display:flex; gap:8px; margin-top:12px;">
-          ${renderBadge("1080i50 HD", "ready")}
-          ${renderBadge("StarTimes Verified", "info")}
-        </div>
+    <!-- Operational schedule is published only from an approved connected source. -->
+    <div class="card s-KRt7uwFSzR" role="note">
+      No approved, source-backed schedule is connected. Live status and programme listings are unavailable.
+    </div>
+    <!-- On Air Now & Up Next unavailable states -->
+ <div class="grid-2" >
+ <div class="card" role="note" >
+ <span class="s-G_oxiDiwJg">Live status unavailable</span>
+ <p class="s-OS-VhuHLk0">A verified transmission source is not connected.</p>
       </div>
 
-      <div class="card" style="background:#F0F9FF; border-color:#BAE6FD;">
-        <span style="font-size:0.75rem; font-weight:800; text-transform:uppercase; color:#0284C7; letter-spacing:0.05em;">Up Next at 21:00 WAT</span>
-        <h3 style="font-size:1.4rem; font-weight:800; color:#075985; margin-top:4px;">Lagos Street Stories: Episode 4</h3>
-        <p style="font-size:0.9rem; color:#0369A1; margin-top:4px;">ONE Studios original documentary exploring Afrobeats dance subcultures.</p>
-        <div style="display:flex; gap:8px; margin-top:12px;">
-          ${renderBadge("Premiere", "ready")}
-          ${renderBadge("Age 15+", "info")}
-        </div>
+ <div class="card s-dMYR6S1-6a" role="note" >
+ <span class="s-G_oxiDiwJg">Next programme unavailable</span>
+ <p class="s-OS-VhuHLk0">Programme data appears when an approved schedule is published.</p>
       </div>
     </div>
 
-    <!-- 24-Hour Broadcast Schedule Table -->
+    <!-- Empty until an approved schedule source is connected -->
     <div class="card">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-        <h2 style="font-size:1.25rem; font-weight:700;">24-Hour Broadcast Programme Schedule</h2>
-        <span style="font-size:0.85rem; color:var(--vmn-text-muted);">Timezone: West Africa Time (WAT / UTC+1)</span>
+ <div class="s-wUW2k9hp6I">
+ <h2 class="s-5BWXDPE52B">Broadcast Programme Schedule</h2>
+ <span class="s-37h9gF_4Xa">No approved schedule source connected</span>
       </div>
-      <div style="overflow-x:auto;">
-        <table style="width:100%; border-collapse:collapse; text-align:left; font-size:0.9rem;">
+ <div class="s-0GmMSMP86s">
+ <table class="s-b-Ai5vuAKC">
           <thead>
-            <tr style="border-bottom:2px solid var(--vmn-surface-border); color:var(--vmn-text-muted);">
-              <th style="padding:10px 12px;">Air Time (WAT)</th>
-              <th style="padding:10px 12px;">Programme Title</th>
-              <th style="padding:10px 12px;">Type / Genre</th>
-              <th style="padding:10px 12px;">Classification</th>
-              <th style="padding:10px 12px;">Action</th>
+ <tr class="s-y6vAX1Tc3O">
+ <th class="s-drsUO0gkUT">Air Time (WAT)</th>
+ <th class="s-drsUO0gkUT">Programme Title</th>
+ <th class="s-drsUO0gkUT">Type / Genre</th>
+ <th class="s-drsUO0gkUT">Classification</th>
+ <th class="s-drsUO0gkUT">Action</th>
             </tr>
           </thead>
           <tbody>
-            ${scheduleItems
-              .map(
-                (item) => `
-              <tr style="border-bottom:1px solid var(--vmn-surface-border);">
-                <td style="padding:12px; font-weight:700; color:var(--vmn-primary);">${item.time}</td>
-                <td style="padding:12px; font-weight:600;">${item.title}</td>
-                <td style="padding:12px; color:var(--vmn-text-muted);">${item.type}</td>
-                <td style="padding:12px;"><span style="background:#F1F5F9; color:#475569; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:700;">${item.rating}</span></td>
-                <td style="padding:12px;"><a href="/programmes/PRG-001" style="color:var(--vmn-secondary); text-decoration:none; font-weight:600;">View Detail &rarr;</a></td>
-              </tr>
-            `
-              )
-              .join("")}
+ <tr><td colspan="5" role="status" class="s-zzcDR1Eaak">No approved programme listings are available.</td></tr>
           </tbody>
         </table>
       </div>
@@ -165,55 +130,48 @@ export function renderChannelDetailPageHtml(
 // 6. Public Programme Detail Page (/programmes/:id)
 export function renderPublicProgrammeDetailHtml(programmeId: string): string {
   return `
-  <section style="display:flex; flex-direction:column; gap:24px; max-width:960px; margin:0 auto;">
-    <nav aria-label="Breadcrumb" style="font-size:0.85rem; color:var(--vmn-text-muted);">
-      <a href="/" style="color:var(--vmn-secondary); text-decoration:none;">Home</a> &gt; 
-      <a href="/channels" style="color:var(--vmn-secondary); text-decoration:none;">Programmes</a> &gt; 
+ <section class="s-Ap7e8x-cvm">
+ <nav aria-label="Breadcrumb" class="s-37h9gF_4Xa">
+ <a href="/" class="s-v8cyEOQoqd">Home</a> &gt; 
+ <a href="/channels" class="s-v8cyEOQoqd">Programmes</a> &gt; 
       <span>${programmeId}</span>
     </nav>
 
-    <article class="card" style="border-top:5px solid var(--vmn-secondary);">
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;">
+ <article class="card s-ZOFAYSaIa1" >
+      <div class="card s-eNztNGULjh" role="note">Programme synopsis only — schedule, rights, carriage, and availability are not verified here.</div>
+ <div class="s-eNztNGULjh">
         <div>
-          <span style="font-family:monospace; font-weight:700; color:#0284C7; background:#E0F2FE; padding:3px 8px; border-radius:4px; font-size:0.85rem;">${programmeId}</span>
-          <h1 style="font-size:2.2rem; font-weight:800; color:var(--vmn-primary); margin-top:8px;">Urban Beats Live Prime</h1>
-          <p style="font-size:1.1rem; color:var(--vmn-text-muted); margin-top:4px;">Nigeria's highest-energy daily youth music, culture, and street entertainment flagship.</p>
+ <span class="s-iuSTGt3tzW">${programmeId}</span>
+ <h1 class="s-xtS-D5mYmb">Programme profile</h1>
+ <p class="s-akf9yrBcu-">Programme details are unavailable until an approved catalogue record is connected.</p>
         </div>
-        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
-          <span class="vmn-badge badge-ready">Broadcast Master QC Passed</span>
-          <span style="font-size:0.85rem; color:var(--vmn-text-muted);">Broadcast on <strong>Nigezie Xtreme</strong></span>
+ <div class="s-numIUTWRO1">
+          <span class="vmn-badge badge-info">Programme profile — QC status unavailable</span>
+ <span class="s-37h9gF_4Xa">Channel association is not available from a verified programme record.</span>
         </div>
       </div>
 
-      <hr style="border:none; border-top:1px solid var(--vmn-surface-border); margin:20px 0;" />
+ <hr class="s-Uv7OVY7naE" />
 
-      <div class="grid-2" style="margin-top:0;">
+ <div class="grid-2 s-KRt7uwFSzR" >
         <div>
-          <h2 style="font-size:1.1rem; font-weight:700; margin-bottom:8px;">Synopsis & Production Arc</h2>
-          <p style="font-size:0.95rem; color:var(--vmn-text-muted); line-height:1.6;">
-            Recorded in the state-of-the-art ONE Studios Soundstage in Ikeja, Urban Beats Live bridges emerging Nigerian Afrobeats musicians, fashion designers, and digital creators with linear broadcast audiences across Sub-Saharan Africa.
+ <h2 class="s-q5kWKTcjWP">Synopsis & Production Arc</h2>
+ <p class="s-gPnYWUVJUT">
+            Synopsis, production credits, audience reach, and technical specifications are not available from an approved programme record.
           </p>
-          <div style="margin-top:16px; display:flex; flex-wrap:wrap; gap:8px;">
-            ${renderBadge("Soundstage A", "info")}
-            ${renderBadge("5.1 Surround & Stereo", "info")}
-            ${renderBadge("EBU R128 (-23 LUFS)", "ready")}
-          </div>
         </div>
 
         <div>
-          <h2 style="font-size:1.1rem; font-weight:700; margin-bottom:8px;">Broadcast Transmission Slots</h2>
-          <div style="background:var(--vmn-surface-alt); padding:16px; border-radius:8px; border:1px solid var(--vmn-surface-border);">
-            <p><strong>Primary Run:</strong> Weekdays 18:30 – 21:00 WAT</p>
-            <p><strong>Encore Repeat:</strong> Saturdays 14:00 – 16:30 WAT</p>
-            <p><strong>Carriage:</strong> StarTimes DTT Ch 428 / DTH Ch 312</p>
-            <p><strong>Azeebo+ Catch-Up:</strong> Available immediately post-broadcast</p>
+ <h2 class="s-q5kWKTcjWP">Broadcast Transmission Slots</h2>
+ <div class="s-geHjG3K8-9">
+            <p>Transmission windows, carriage, and catch-up availability are not asserted without an approved, source-backed schedule and rights record.</p>
           </div>
         </div>
       </div>
 
-      <div style="margin-top:24px; padding-top:20px; border-top:1px solid var(--vmn-surface-border); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
-        <a href="/channels/nxtr" class="btn btn-outline">&larr; Back to Channel</a>
-        <a href="/azeebo" class="btn btn-primary">Stream Episodes on Azeebo+ &rarr;</a>
+ <div class="s-nTHtyYhUOE">
+        <a href="/channels" class="btn btn-outline">&larr; Back to Channels</a>
+        <a href="/azeebo" class="btn btn-outline">Azeebo+ service information &rarr;</a>
       </div>
     </article>
   </section>
@@ -276,14 +234,14 @@ export function renderDistributionPageHtml(): string {
 // 17. Commercial Partners & Sponsors (/partners)
 export function renderPartnersPageHtml(): string {
   return `
-  <section style="display:flex; flex-direction:column; gap:24px;">
-    <nav aria-label="Breadcrumb" style="font-size:0.85rem; color:var(--vmn-text-muted);">
-      <a href="/" style="color:var(--vmn-secondary); text-decoration:none;">Home</a> &gt; 
+ <section class="s-hJqXKfH1_e">
+ <nav aria-label="Breadcrumb" class="s-37h9gF_4Xa">
+ <a href="/" class="s-v8cyEOQoqd">Home</a> &gt; 
       <span>Partners & Sponsors</span>
     </nav>
-    <div class="card" style="border-left:6px solid var(--vmn-secondary);">
-      <h1 style="font-size:2.2rem; font-weight:800; color:var(--vmn-primary);">Commercial Partnerships & Brand Sponsorships</h1>
-      <p style="font-size:1.15rem; color:var(--vmn-text-muted); margin-top:8px;">
+ <div class="card s-eCGXI5DO0E" >
+ <h1 class="s-lZDniGbktQ">Commercial Partnerships & Brand Sponsorships</h1>
+ <p class="s-_9q80AS-VX">
         Collaborate with VMNL across linear TV advertising, headline show sponsorships, experiential activations, and creator collaborations.
       </p>
     </div>
@@ -299,14 +257,14 @@ export function renderInsightsPageHtml(): string {
 // 19. Careers Directory (/careers)
 export function renderCareersPageHtml(): string {
   return `
-  <section style="display:flex; flex-direction:column; gap:24px;">
-    <nav aria-label="Breadcrumb" style="font-size:0.85rem; color:var(--vmn-text-muted);">
-      <a href="/" style="color:var(--vmn-secondary); text-decoration:none;">Home</a> &gt; 
+ <section class="s-hJqXKfH1_e">
+ <nav aria-label="Breadcrumb" class="s-37h9gF_4Xa">
+ <a href="/" class="s-v8cyEOQoqd">Home</a> &gt; 
       <span>Careers</span>
     </nav>
-    <div class="card" style="border-left:6px solid #059669;">
-      <h1 style="font-size:2.2rem; font-weight:800; color:var(--vmn-primary);">Careers at VMNL</h1>
-      <p style="font-size:1.15rem; color:var(--vmn-text-muted); margin-top:8px;">
+ <div class="card s-nDK2HY3OoY" >
+ <h1 class="s-lZDniGbktQ">Careers at VMNL</h1>
+ <p class="s-_9q80AS-VX">
         Join Africa's premier media network shaping broadcast television, digital streaming, and the creative creator economy.
       </p>
     </div>
@@ -316,24 +274,32 @@ export function renderCareersPageHtml(): string {
 
 // 20. Azeebo+ Information & App Gateway (Open Azeebo+) (/azeebo)
 export function renderAzeeboGatewayPageHtml(): string {
+  // TSK-35 / CLAUDE.md `<azeebo>`: the partner origin is an external fact that a
+  // deployment states in configuration. A public page may not print one on its
+  // own, so the outbound link appears only once an origin is actually configured.
+  const origin = getConfiguredFederationOrigin();
+  const outbound = origin
+    ? `<a href="${escapeHtml(origin)}" target="_blank" rel="noopener noreferrer" class="btn btn-outline">Visit Azeebo+ &rarr;</a>`
+    : `<span class="vmn-badge badge-info">Outbound federation disabled — no Azeebo+ origin is configured for this deployment</span>`;
+
   return `
-  <section style="display:flex; flex-direction:column; gap:24px;">
-    <nav aria-label="Breadcrumb" style="font-size:0.85rem; color:var(--vmn-text-muted);">
-      <a href="/" style="color:var(--vmn-secondary); text-decoration:none;">Home</a> &gt; 
+ <section class="s-hJqXKfH1_e">
+ <nav aria-label="Breadcrumb" class="s-37h9gF_4Xa">
+ <a href="/" class="s-v8cyEOQoqd">Home</a> &gt; 
       <span>Open Azeebo+</span>
     </nav>
-    <div class="card" style="border-left:6px solid #E50914;">
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;">
+ <div class="card s-PAk1PwTj_e" >
+ <div class="s-eNztNGULjh">
         <div>
-          <h1 style="font-size:2.2rem; font-weight:800; color:var(--vmn-primary);">Azeebo+ Streaming & Creator App</h1>
-          <p style="font-size:1.15rem; color:var(--vmn-text-muted); margin-top:8px;">
-            The direct consumer streaming destination connecting 8 distinct entertainment universes.
+ <h1 class="s-lZDniGbktQ">Azeebo+ Streaming & Creator App</h1>
+ <p class="s-_9q80AS-VX">
+            Azeebo+ is a separately operated federated service; availability and catalogue details are not verified here.
           </p>
         </div>
-        <span class="vmn-badge badge-ready">Federated Gateway Active</span>
+        <span class="vmn-badge badge-info">Federated gateway — status unavailable</span>
       </div>
-      <div style="display:flex; gap:12px; margin-top:20px;">
-        <a href="https://azeebo.plus" target="_blank" class="btn btn-primary">Open Web Streaming &rarr;</a>
+ <div class="s-eQzbN1bYIf">
+        ${outbound}
         <a href="/azeebo/gateway" class="btn btn-outline">Universal Link Resolver</a>
       </div>
     </div>

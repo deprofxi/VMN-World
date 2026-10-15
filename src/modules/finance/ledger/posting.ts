@@ -16,11 +16,15 @@
  *   partner splits  = platform commission owed to platform partners
  *
  * Canonical Laws 5 & 7: one consolidated financial truth; internal unit
- * allocations never inflate consolidated external revenue.
+ * allocations never inflate consolidated external revenue. Law 7 is enforced at
+ * the single point where the pillars grow — `SevenWayLedgerEngine.recordPillarAmounts`
+ * refuses an internal amount on an external revenue pillar (`[LEDGER-03]`) — and
+ * the only path that books one is `postInternalUnitAllocation` below.
  */
 
 import { SevenWayLedgerEngine, JournalLine, JournalEntry } from "./index.js";
 import { SalesDeal } from "../sales/index.js";
+import { toKobo, fromKobo } from "../../../core/domain/types.js";
 
 export type LedgerEventSource = "QUOTE_TO_CASH" | "BROADCAST_BILLING" | "TALENT_PAYOUT";
 
@@ -37,6 +41,14 @@ const ACCOUNTS = {
   talentPayable: { accountCode: "2010_TALENT_PAYABLE", accountName: "Talent Payable" },
   platformCommission: { accountCode: "2110_PLATFORM_COMMISSION_PAYABLE", accountName: "Platform Commission Payable" },
   contractClearing: { accountCode: "1290_CONTRACT_CLEARING", accountName: "Contract Clearing" },
+  // Canonical law 7 (TSK-32): a unit-to-unit charge is real double-entry but is
+  // eliminated on consolidation, so it books to its own pair of accounts and
+  // never to receivable or recognized revenue.
+  interUnitCharge: { accountCode: "9100_INTERUNIT_ALLOCATION", accountName: "Inter-unit Allocation (eliminated on consolidation)" },
+  interUnitRecharge: { accountCode: "9200_INTERUNIT_RECHARGE", accountName: "Inter-unit Recharge Counter-account (eliminated on consolidation)" },
+  // TSK-33 (FIN-07): a make-good credit note is a contra item, never revenue.
+  contraRevenue: { accountCode: "4090_CONTRA_REVENUE_ALLOWANCES", accountName: "Contra-Revenue Allowances (credits issued, never revenue)" },
+  clientCreditPayable: { accountCode: "2400_CLIENT_CREDIT_PAYABLE", accountName: "Client Credit Payable (make-good owed to counterparty)" },
 } as const;
 
 export class LedgerPostingService {
@@ -46,6 +58,8 @@ export class LedgerPostingService {
   private postedInvoiced = new Map<string, number>();
   private postedCash = new Map<string, number>();
   private postedRecognized = new Map<string, number>();
+  /** Credit note id → credited value, so one note can only ever be journaled once. */
+  private postedCreditNotes = new Map<string, number>();
 
   constructor(ledger: SevenWayLedgerEngine = new SevenWayLedgerEngine()) {
     this.ledger = ledger;
@@ -201,9 +215,114 @@ export class LedgerPostingService {
     return { entry };
   }
 
+  /**
+   * TSK-33 (FIN-07): journal a make-good credit note issued for undelivered
+   * commercial inventory. The pair is Dr contra-revenue allowance / Cr client
+   * credit payable, which is the mechanical reading of the billing module's own
+   * rule (`modules/broadcast/billing/index.ts:158`) that "a credit note is a
+   * contra item, never revenue": the entry can never advance any of the seven
+   * pillars, so it cannot inflate consolidated revenue (canonical law 5).
+   *
+   * Which revenue stream the credit ultimately nets against is Finance's ruling,
+   * not an engineering inference — PRD §43 "Contract and Finance authority
+   * determine invoicing and accounting treatment". That is why no pillar moves
+   * here; the durable journal entry is the evidence, and the treatment is
+   * recorded as pending under HD-04 / TSK-34.
+   *
+   * The entry id is derived from the credit note id, so a replay after a restart
+   * writes the same `JournalEntryRecord` instead of a second one.
+   */
+  public postMakeGoodCreditNote(params: {
+    creditNoteId: string;
+    campaignCode: string;
+    spotId: string;
+    valueNgn: number;
+    reason: string;
+    issuedBy: string;
+  }): LedgerPostingResult {
+    if (params.valueNgn <= 0) {
+      throw new Error(
+        `[LEDGER-07] Credit note '${params.creditNoteId}' has value ${params.valueNgn} NGN; a contra entry must move a positive amount.`
+      );
+    }
+    if (this.postedCreditNotes.has(params.creditNoteId)) {
+      throw new Error(
+        `[LEDGER-08] Credit note '${params.creditNoteId}' is already posted; a replayed credit would double-count the allowance.`
+      );
+    }
+
+    const entry = this.post({
+      id: `CREDIT:${params.creditNoteId}`,
+      reference: `MG:${params.campaignCode}:${params.spotId}`,
+      description: `Make-good credit note ${params.creditNoteId} (${params.reason}) for campaign ${params.campaignCode}, spot ${params.spotId}, issued by ${params.issuedBy}`,
+      lines: [
+        { ...ACCOUNTS.contraRevenue, debitNgn: params.valueNgn, creditNgn: 0 },
+        { ...ACCOUNTS.clientCreditPayable, debitNgn: 0, creditNgn: params.valueNgn },
+      ],
+    });
+    this.postedCreditNotes.set(params.creditNoteId, params.valueNgn);
+    return { entry };
+  }
+
+  /** Total make-good credits journaled as contra-revenue (TSK-33). */
+  public getCreditedMakeGoodsNgn(): number {
+    return fromKobo(
+      [...this.postedCreditNotes.values()].reduce((sum, value) => sum + toKobo(value), 0)
+    );
+  }
+
+  /**
+   * Canonical law 7 (TSK-32): a charge from one VMN unit to another is a real
+   * double-entry movement, so it is journaled — but it is eliminated on
+   * consolidation, so it advances `internalAllocationsNgn` only and can never
+   * inflate contract / invoiced / recognised / cash revenue. Replaying the same
+   * allocation id is an error rather than a silent no-op: a duplicated
+   * elimination entry is an audit finding, not an idempotency success.
+   */
+  public postInternalUnitAllocation(params: {
+    allocationId: string;
+    fromUnitCode: string;
+    toUnitCode: string;
+    amountNgn: number;
+    description?: string;
+  }): LedgerPostingResult {
+    if (params.amountNgn <= 0) {
+      throw new Error(`[LEDGER-04] Internal allocation '${params.allocationId}' must be greater than zero.`);
+    }
+    if (params.fromUnitCode === params.toUnitCode) {
+      throw new Error(`[LEDGER-05] Internal allocation '${params.allocationId}' names the same unit on both sides.`);
+    }
+    if (this.postedInternalAllocations.has(params.allocationId)) {
+      throw new Error(`[LEDGER-06] Internal allocation '${params.allocationId}' is already posted.`);
+    }
+
+    const ref = `INTERUNIT:${params.allocationId}`;
+    const entry = this.post({
+      id: `${ref}:ELIMINATED`,
+      reference: ref,
+      description:
+        params.description ??
+        `Inter-unit allocation ${params.fromUnitCode} → ${params.toUnitCode} (eliminated on consolidation)`,
+      lines: [
+        { ...ACCOUNTS.interUnitCharge, debitNgn: params.amountNgn, creditNgn: 0 },
+        { ...ACCOUNTS.interUnitRecharge, debitNgn: 0, creditNgn: params.amountNgn },
+      ],
+    });
+    this.ledger.recordPillarAmounts({ internalAllocationsNgn: params.amountNgn }, "INTERNAL_ALLOCATION");
+    this.postedInternalAllocations.set(params.allocationId, params.amountNgn);
+    return { entry };
+  }
+
+  /** Accumulated inter-unit charges eliminated on consolidation (law 7). */
+  public getInternalAllocationsNgn(): number {
+    return this.ledger.getSnapshot().internalAllocationsNgn;
+  }
+
   private billingSeq = 0;
 
   private postedCashApplied = new Map<string, number>();
+
+  private postedInternalAllocations = new Map<string, number>();
 
   private post(params: { id: string; reference: string; description: string; lines: JournalLine[] }): JournalEntry {
     return this.ledger.postJournalEntry(params);

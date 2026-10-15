@@ -12,7 +12,8 @@ import {
   StatusChipProps,
   ProvenanceNoticeProps,
 } from "./tokens.js";
-import { renderIcon } from "./icons.js";
+import { renderIcon, IconName } from "./icons.js";
+import { escapeHtml } from "./escape.js";
 
 export * from "./tokens.js";
 export * from "./icons.js";
@@ -37,48 +38,53 @@ export class ComponentRenderer {
    * Renders semantic, accessible HTML for buttons supporting the full state matrix.
    */
   public static renderButton(props: ButtonProps): string {
-    const state = props.state || "default";
+    const variants = ["primary", "secondary", "danger", "ghost", "outline"] as const;
+    const states = ["default", "hover", "pressed", "focus-visible", "disabled", "loading", "error", "empty"] as const;
+    const variant = variants.includes(props.variant as typeof variants[number]) ? props.variant as typeof variants[number] : "primary";
+    const state = props.state && states.includes(props.state as typeof states[number]) ? props.state as typeof states[number] : "default";
     const isDisabled = state === "disabled" || state === "loading";
     const ariaDisabled = isDisabled ? ' aria-disabled="true"' : "";
     const ariaBusy = state === "loading" ? ' aria-busy="true"' : "";
-    const ariaLabel = props.ariaLabel ? ` aria-label="${props.ariaLabel}"` : "";
-    const onClick = props.onClickHandler ? ` onclick="${props.onClickHandler}"` : "";
+    const ariaLabel = props.ariaLabel ? ` aria-label="${escapeHtml(props.ariaLabel)}"` : "";
+    const actionAttr = props.onClickHandler ? ` data-action="${escapeHtml(props.onClickHandler)}"` : "";
 
-    let content = props.label;
+    let content = escapeHtml(props.label);
     if (state === "loading") {
       content = `${renderIcon("spinner", { size: 16, className: "vmn-spinner-icon" })} Loading...`;
     }
 
     const classes = [
       "vmn-btn",
-      `vmn-btn-${props.variant}`,
+      `vmn-btn-${variant}`,
       `vmn-btn-state-${state}`,
     ].join(" ");
 
-    return `<button type="button" class="${classes}" style="min-width: 44px; min-height: 44px;"${ariaDisabled}${ariaBusy}${ariaLabel}${onClick}>${content}</button>`;
+ return `<button type="button" class="${classes} s-uFwdajinpr" ${ariaDisabled}${ariaBusy}${ariaLabel}${actionAttr}>${content}</button>`;
   }
 
   /**
    * Renders accessible form input with paired label, state indicator, and aria-invalid.
    */
   public static renderInputField(props: InputFieldProps): string {
-    const state = props.state || "default";
+    const states = ["default", "hover", "pressed", "focus-visible", "disabled", "loading", "error", "empty"] as const;
+    const state = props.state && states.includes(props.state as typeof states[number]) ? props.state as typeof states[number] : "default";
+    const safeId = escapeHtml(props.id);
     const isInvalid = state === "error";
     const isDisabled = state === "disabled";
 
-    const ariaInvalid = isInvalid ? ` aria-invalid="true" aria-describedby="${props.id}-error"` : "";
+    const ariaInvalid = isInvalid ? ` aria-invalid="true" aria-describedby="${safeId}-error"` : "";
     const disabledAttr = isDisabled ? ' disabled aria-disabled="true"' : "";
     const requiredAttr = props.required ? ' required aria-required="true"' : "";
 
     const errorHtml =
       isInvalid && props.errorMessage
-        ? `<div id="${props.id}-error" class="vmn-input-error-msg" role="alert">${renderIcon("alert", { size: 14 })} ${props.errorMessage}</div>`
+        ? `<div id="${safeId}-error" class="vmn-input-error-msg" role="alert">${renderIcon("alert", { size: 14 })} ${escapeHtml(props.errorMessage)}</div>`
         : "";
 
     return `
 <div class="vmn-form-field vmn-field-state-${state}">
-  <label for="${props.id}" class="vmn-label">${props.label}${props.required ? ' <span class="vmn-required" aria-hidden="true">*</span>' : ""}</label>
-  <input id="${props.id}" name="${props.id}" type="text" class="vmn-input" value="${props.value}" placeholder="${props.placeholder || ""}" style="min-height: 44px;"${ariaInvalid}${disabledAttr}${requiredAttr}/>
+  <label for="${safeId}" class="vmn-label">${escapeHtml(props.label)}${props.required ? ' <span class="vmn-required" aria-hidden="true">*</span>' : ""}</label>
+ <input id="${safeId}" name="${safeId}" type="text" class="vmn-input s-GP5FDgmEZf" value="${escapeHtml(props.value)}" placeholder="${escapeHtml(props.placeholder || "")}" ${ariaInvalid}${disabledAttr}${requiredAttr}/>
   ${errorHtml}
 </div>`.trim();
   }
@@ -88,12 +94,15 @@ export class ComponentRenderer {
    * Verified WCAG 2.2 AA text contrast on tinted backgrounds.
    */
   public static renderStatusChip(props: StatusChipProps): string {
-    const tone = props.tone || "neutral";
+    const allowedTones = ["live", "success", "info", "warning", "neutral", "provisional"] as const;
+    const tone = allowedTones.includes(props.tone as typeof allowedTones[number]) ? props.tone as typeof allowedTones[number] : "neutral";
     const pulseDot = props.pulsing ? `<span class="vmn-pulse-dot" aria-hidden="true"></span>` : "";
     let iconHtml = "";
 
-    if (props.icon) {
-      iconHtml = renderIcon(props.icon as any, { size: 14 });
+    const iconNames: IconName[] = ["broadcast", "antenna", "lock", "folder", "document", "bolt", "alert", "warning", "inbox", "empty", "hourglass", "spinner", "check", "download", "info", "search", "chevronRight", "send", "calendar", "film", "shield", "play", "refresh", "clock", "chart", "xCircle", "tv", "sun", "moon", "menu", "x", "command", "user"];
+    const safeIcon = typeof props.icon === "string" && iconNames.includes(props.icon as IconName) ? props.icon as IconName : undefined;
+    if (safeIcon) {
+      iconHtml = renderIcon(safeIcon, { size: 14 });
     } else if (tone === "live") {
       iconHtml = renderIcon("broadcast", { size: 14 });
     } else if (tone === "success") {
@@ -104,7 +113,7 @@ export class ComponentRenderer {
       iconHtml = renderIcon("info", { size: 14 });
     }
 
-    return `<span class="status-chip status-chip-${tone}">${pulseDot}${iconHtml}<span>${props.label}</span></span>`;
+    return `<span class="status-chip status-chip-${tone}">${pulseDot}${iconHtml}<span>${escapeHtml(props.label)}</span></span>`;
   }
 
   /**
@@ -112,17 +121,17 @@ export class ComponentRenderer {
    */
   public static renderProvenanceNotice(props: ProvenanceNoticeProps): string {
     const disclaimer = props.disclaimer
-      ? `<span class="provenance-disclaimer" style="opacity:0.85;">(${props.disclaimer})</span>`
+ ? `<span class="provenance-disclaimer s-uYaziOvnwy" >(${escapeHtml(props.disclaimer)})</span>`
       : "";
     const sourceHtml = props.source
-      ? ` <span class="provenance-source" style="font-size:0.85em; opacity:0.9;">[Source: ${props.source}]</span>`
+ ? ` <span class="provenance-source s-41KCHIiQy5" >[Source: ${escapeHtml(props.source)}]</span>`
       : "";
 
     return `
 <div class="provenance-notice" role="note" aria-label="Data Provenance Notice">
   ${renderIcon("alert", { size: 16 })}
   <div>
-    <strong>Provenance Notice:</strong> ${props.message}${sourceHtml} ${disclaimer}
+    <strong>Provenance Notice:</strong> ${escapeHtml(props.message)}${sourceHtml} ${disclaimer}
   </div>
 </div>`.trim();
   }
@@ -131,14 +140,15 @@ export class ComponentRenderer {
    * Renders accessible skeleton placeholder while asynchronous data is loading (DT-205).
    */
   public static renderLoadingSkeleton(props: LoadingSkeletonProps = {}): string {
-    const lines = props.lines || 3;
-    const height = props.heightPx || 16;
-    const width = props.width || "100%";
+    const lines = Number.isInteger(props.lines) ? Math.min(12, Math.max(1, props.lines!)) : 3;
+    const height = Number.isInteger(props.heightPx) ? Math.min(400, Math.max(1, props.heightPx!)) : 16;
+    const requestedWidth = props.width || "100%";
+    const width = /^(100|[1-9]?\d)%$/.test(requestedWidth) || /^\d{1,4}(px|rem)$/.test(requestedWidth) ? requestedWidth : "100%";
 
     const rows = Array.from({ length: lines })
       .map(
         (_, i) =>
-          `<div class="vmn-skeleton-line" style="height:${height}px; width:${i === lines - 1 ? "75%" : width}; background: #E2E8F0; border-radius: 4px; margin-bottom: 8px; animation: pulse 1.5s infinite ease-in-out;"></div>`
+ `<div class="vmn-skeleton-line" style="height:${height}px; width:${i === lines - 1 ? "75%" : width}; background: #E2E8F0; border-radius: 4px; margin-bottom: 8px; animation: pulse 1.5s infinite ease-in-out;"></div>`
       )
       .join("");
 
@@ -153,14 +163,14 @@ export class ComponentRenderer {
    */
   public static renderEmptyState(title: string, description: string, actionLabel?: string): string {
     const actionBtn = actionLabel
-      ? `<div class="vmn-empty-action" style="margin-top: 16px;">${ComponentRenderer.renderButton({ label: actionLabel, variant: "primary" })}</div>`
+ ? `<div class="vmn-empty-action s-0mWmubkRs3" >${ComponentRenderer.renderButton({ label: actionLabel, variant: "primary" })}</div>`
       : "";
 
     return `
-<div class="vmn-empty-state" role="status" aria-live="polite" style="text-align: center; padding: 48px 24px; border: 1px dashed var(--vmn-color-control-border); border-radius: var(--vmn-radius-md); background: var(--vmn-surface);">
-  <div class="vmn-empty-icon" aria-hidden="true" style="margin-bottom: 16px; color: var(--vmn-color-text-muted);">${renderIcon("inbox", { size: 48 })}</div>
-  <h3 class="vmn-empty-title" style="font-size: 1.25rem; font-weight: 700; margin-bottom: 8px;">${title}</h3>
-  <p class="vmn-empty-description" style="color: var(--vmn-color-text-muted); max-width: 480px; margin: 0 auto;">${description}</p>
+<div class="vmn-empty-state s-gL5bnGjInx" role="status" aria-live="polite" >
+ <div class="vmn-empty-icon s-f0udfBR-jp" aria-hidden="true" >${renderIcon("inbox", { size: 48 })}</div>
+ <h3 class="vmn-empty-title s-mdl9T4T5FU" >${escapeHtml(title)}</h3>
+ <p class="vmn-empty-description s-1OIeVVVuRI" >${escapeHtml(description)}</p>
   ${actionBtn}
 </div>`.trim();
   }
@@ -170,19 +180,19 @@ export class ComponentRenderer {
    */
   public static renderErrorState(props: ErrorStateProps): string {
     const retryBtn = props.retryActionLabel
-      ? `<div style="margin-top: 16px;">${ComponentRenderer.renderButton({ label: props.retryActionLabel, variant: "primary" })}</div>`
+ ? `<div class="s-0mWmubkRs3">${ComponentRenderer.renderButton({ label: props.retryActionLabel, variant: "primary" })}</div>`
       : "";
     const codeTag = props.errorCode
-      ? `<div style="font-family: var(--vmn-font-mono); font-size: 0.8rem; color: #991B1B; margin-top: 4px;">Code: ${props.errorCode}</div>`
+ ? `<div class="s-OVCPXaGto7">Code: ${escapeHtml(props.errorCode)}</div>`
       : "";
 
     return `
-<div class="vmn-error-state" role="alert" style="padding: 24px; border: 1px solid #FCA5A5; background: #FEF2F2; border-radius: var(--vmn-radius-md); color: #991B1B;">
-  <div style="display: flex; align-items: flex-start; gap: 12px;">
-    <div style="flex-shrink: 0; margin-top: 2px;">${renderIcon("alert", { size: 24 })}</div>
+<div class="vmn-error-state s-0X4cIIckia" role="alert" >
+ <div class="s-STdn5Pyea8">
+ <div class="s-BK3-_R3yB-">${renderIcon("alert", { size: 24 })}</div>
     <div>
-      <h3 style="font-size: 1.1rem; font-weight: 700; margin: 0 0 4px 0; color: #991B1B;">${props.title}</h3>
-      <p style="margin: 0; font-size: 0.95rem; color: #7F1D1D;">${props.message}</p>
+ <h3 class="s-gZM3PnzqB8">${escapeHtml(props.title)}</h3>
+ <p class="s-kzLLCipvLX">${escapeHtml(props.message)}</p>
       ${codeTag}
       ${retryBtn}
     </div>
@@ -198,30 +208,30 @@ export class ComponentRenderer {
 export function renderStyleguideHtml(): string {
   return `
 <div class="styleguide-container">
-  <div style="margin-bottom: 32px; border-bottom: 1px solid var(--vmn-color-border); padding-bottom: 16px;">
-    <h1 style="font-size: 2rem; font-weight: 800; margin-bottom: 8px;">VMNL Living Design System & Styleguide</h1>
-    <p style="color: var(--vmn-color-text-muted); font-size: 1.05rem;">
-      Canonical Component State Matrix & Token Specification. Engineered to WCAG 2.2 Level AA standards.
+ <div class="s-i9z1ngnRgk">
+ <h1 class="s-wI1qW9LmYg">VMNL Living Design System & Styleguide</h1>
+ <p class="s-TeKJLhWjrY">
+      Canonical Component State Matrix & Token Specification. Accessibility characteristics require independent evaluation for each workflow and assistive technology.
     </p>
   </div>
 
   <!-- R1.1 Prototype Showcase Banner -->
-  <div class="card" style="background: var(--vmn-surface-accent); border: 1px solid #86EFAC; margin-bottom: 36px; padding: 22px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; border-radius: var(--vmn-radius-panel);">
+ <div class="card s-f2qYLRTcZk" >
     <div>
-      <span class="vmn-badge badge-ready" style="margin-bottom: 6px;">VMN-UX-RL1 Prototype Architecture</span>
-      <h3 style="margin: 0 0 4px 0; font-size: 1.25rem;">Interactive Representative Prototypes</h3>
-      <p style="margin: 0; font-size: 0.9rem; color: var(--vmn-color-text-main);">
+ <span class="vmn-badge badge-ready s-T-7fjmEHMj" >VMN-UX-RL1 Prototype Architecture</span>
+ <h3 class="s-ke5oDEmePG">Interactive Representative Prototypes</h3>
+ <p class="s-4d76DPsh2d">
         Inspect all 8 first-release screens across desktop, tablet, and mobile viewports with simulated operational scenarios (Normal, Stale Data, Blocked, Recovery).
       </p>
     </div>
-    <a href="/prototypes" class="btn btn-primary" style="white-space: nowrap;">
+ <a href="/prototypes" class="btn btn-primary s-k8bh1Lt-AT" >
       Launch Prototypes Viewer &rarr;
     </a>
   </div>
 
   <!-- 1. Color Tokens Palette -->
-  <section style="margin-bottom: 48px;">
-    <h2 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 16px;">1. Color Tokens (WCAG 2.2 AA/AAA Verified)</h2>
+ <section class="s-VH3WyOOC5H">
+ <h2 class="s-Gq0p87FzNT">1. Color Tokens (contrast values are design targets; verify in context)</h2>
     <div class="vmn-foundation-grid">
       <article class="vmn-foundation-card">
         <span class="vmn-foundation-card-label">Primary action · Forest</span>
@@ -241,8 +251,8 @@ export function renderStyleguideHtml(): string {
     </div>
   </section>
 
-  <section style="margin-bottom: 48px;" aria-labelledby="styleguide-foundations-title">
-    <h2 id="styleguide-foundations-title" style="font-size: 1.4rem; font-weight: 700; margin-bottom: 16px;">Design Foundations</h2>
+ <section class="s-VH3WyOOC5H" aria-labelledby="styleguide-foundations-title">
+ <h2 id="styleguide-foundations-title" class="s-Gq0p87FzNT">Design Foundations</h2>
     <div class="vmn-foundation-grid">
       <article class="vmn-foundation-card">
         <span class="vmn-foundation-card-label">Layout rhythm</span>
@@ -263,41 +273,41 @@ export function renderStyleguideHtml(): string {
   </section>
 
   <!-- Presentation Shells Overview (Docx §2, §5) -->
-  <section style="margin-bottom: 48px;">
-    <h2 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 16px;">Three Presentation Shells (Docx §2 &amp; §5)</h2>
-    <div class="grid grid-3" style="gap: 16px;">
-      <div class="card" style="border-top: 4px solid var(--vmn-color-primary);">
-        <span class="vmn-badge badge-info" style="margin-bottom: 8px;">S-PUBLIC</span>
-        <h3 style="margin: 0 0 6px 0; font-size: 1.1rem;">Public Discovery Shell</h3>
-        <p style="font-size: 0.85rem; color: var(--vmn-color-text-muted); margin: 0 0 12px 0;">
+ <section class="s-VH3WyOOC5H">
+ <h2 class="s-Gq0p87FzNT">Three Presentation Shells (Docx §2 &amp; §5)</h2>
+ <div class="grid grid-3 s-8ZIgmkRZGT" >
+ <div class="card s-iXOSygMEgb" >
+ <span class="vmn-badge badge-info s-fzy69kMBd1" >S-PUBLIC</span>
+ <h3 class="s-pmn1SFRFxA">Public Discovery Shell</h3>
+ <p class="s-j8CUrUlyn5">
           Editorial layout for channel discovery, admissions, Azeebo+ gateway, and public enquiries.
         </p>
-        <a href="/" class="btn btn-outline" style="font-size: 0.8rem; width: 100%;">View Public Home &rarr;</a>
+ <a href="/" class="btn btn-outline s-CA8Lk2-5Tg" >View Public Home &rarr;</a>
       </div>
-      <div class="card" style="border-top: 4px solid #1655BC;">
-        <span class="vmn-badge badge-ready" style="margin-bottom: 8px;">S-WORK</span>
-        <h3 style="margin: 0 0 6px 0; font-size: 1.1rem;">Workstation Shell</h3>
-        <p style="font-size: 0.85rem; color: var(--vmn-color-text-muted); margin: 0 0 12px 0;">
+ <div class="card s-87JfJJ5PuL" >
+ <span class="vmn-badge badge-ready s-fzy69kMBd1" >S-WORK</span>
+ <h3 class="s-pmn1SFRFxA">Workstation Shell</h3>
+ <p class="s-j8CUrUlyn5">
           Operator workbench with 188px navigation rail, priority Blocker Tray, and 1.6:1 two-column split.
         </p>
-        <a href="/workspace" class="btn btn-outline" style="font-size: 0.8rem; width: 100%;">Open Workstation &rarr;</a>
+ <a href="/workspace" class="btn btn-outline s-CA8Lk2-5Tg" >Open Workstation &rarr;</a>
       </div>
-      <div class="card" style="border-top: 4px solid #FFB800;">
-        <span class="vmn-badge badge-warning" style="margin-bottom: 8px;">S-PORTAL</span>
-        <h3 style="margin: 0 0 6px 0; font-size: 1.1rem;">Counterparty Portal Shell</h3>
-        <p style="font-size: 0.85rem; color: var(--vmn-color-text-muted); margin: 0 0 12px 0;">
+ <div class="card s-8YvkPKKI0f" >
+ <span class="vmn-badge badge-warning s-fzy69kMBd1" >S-PORTAL</span>
+ <h3 class="s-pmn1SFRFxA">Counterparty Portal Shell</h3>
+ <p class="s-j8CUrUlyn5">
           Sponsor and talent portal with verified scope, draft vs released report stamps, and safe terms.
         </p>
-        <a href="/prototypes?screen=client" class="btn btn-outline" style="font-size: 0.8rem; width: 100%;">Inspect Client Portal &rarr;</a>
+ <a href="/prototypes?screen=client" class="btn btn-outline s-CA8Lk2-5Tg" >Inspect Client Portal &rarr;</a>
       </div>
     </div>
   </section>
 
   <!-- 2. Buttons State Matrix -->
-  <section style="margin-bottom: 48px;">
-    <h2 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 16px;">2. Button State Matrix (44px Minimum Touch Targets)</h2>
+ <section class="s-VH3WyOOC5H">
+ <h2 class="s-Gq0p87FzNT">2. Button State Matrix (44px Minimum Touch Targets)</h2>
     <div class="card">
-      <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 16px;">
+ <div class="s-nYnSQCz6yS">
         ${ComponentRenderer.renderButton({ label: "Primary Default", variant: "primary", state: "default" })}
         ${ComponentRenderer.renderButton({ label: "Primary Hover", variant: "primary", state: "hover" })}
         ${ComponentRenderer.renderButton({ label: "Primary Active", variant: "primary", state: "pressed" })}
@@ -305,7 +315,7 @@ export function renderStyleguideHtml(): string {
         ${ComponentRenderer.renderButton({ label: "Primary Disabled", variant: "primary", state: "disabled" })}
         ${ComponentRenderer.renderButton({ label: "Primary Loading", variant: "primary", state: "loading" })}
       </div>
-      <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+ <div class="s-t_fTx9c6se">
         ${ComponentRenderer.renderButton({ label: "Secondary Default", variant: "secondary" })}
         ${ComponentRenderer.renderButton({ label: "Outline Action", variant: "outline" })}
         ${ComponentRenderer.renderButton({ label: "Danger Action", variant: "danger" })}
@@ -314,9 +324,9 @@ export function renderStyleguideHtml(): string {
   </section>
 
   <!-- 3. Status Chips -->
-  <section style="margin-bottom: 48px;">
-    <h2 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 16px;">3. Status Chips (Non-Color Status Encoding)</h2>
-    <div class="card" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+ <section class="s-VH3WyOOC5H">
+ <h2 class="s-Gq0p87FzNT">3. Status Chips (Non-Color Status Encoding)</h2>
+ <div class="card s-t_fTx9c6se" >
       ${ComponentRenderer.renderStatusChip({ label: "ON AIR LIVE", tone: "live", pulsing: true })}
       ${ComponentRenderer.renderStatusChip({ label: "SYNCHRONIZED", tone: "success" })}
       ${ComponentRenderer.renderStatusChip({ label: "SYSTEM INFO", tone: "info" })}
@@ -327,8 +337,8 @@ export function renderStyleguideHtml(): string {
   </section>
 
   <!-- 4. Provenance Notices -->
-  <section style="margin-bottom: 48px;">
-    <h2 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 16px;">4. Data Provenance & Verification Notice (DT-203)</h2>
+ <section class="s-VH3WyOOC5H">
+ <h2 class="s-Gq0p87FzNT">4. Data Provenance & Verification Notice (DT-203)</h2>
     ${ComponentRenderer.renderProvenanceNotice({
       message: "StarTimes linear carriage telemetry is currently operating under provisional verification.",
       source: "StarTimes Telemetry Bridge",
@@ -337,9 +347,9 @@ export function renderStyleguideHtml(): string {
   </section>
 
   <!-- 5. Form Fields Matrix -->
-  <section style="margin-bottom: 48px;">
-    <h2 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 16px;">5. Form Fields State Matrix</h2>
-    <div class="card grid grid-2" style="gap: 24px;">
+ <section class="s-VH3WyOOC5H">
+ <h2 class="s-Gq0p87FzNT">5. Form Fields State Matrix</h2>
+ <div class="card grid grid-2 s-EJ3KpNnbe_" >
       <div>
         ${ComponentRenderer.renderInputField({
           id: "styleguide-input-normal",
@@ -363,9 +373,9 @@ export function renderStyleguideHtml(): string {
   </section>
 
   <!-- 6. Empty & Error States -->
-  <section style="margin-bottom: 48px;">
-    <h2 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 16px;">6. Resilient Empty & Error States (DT-205)</h2>
-    <div class="grid grid-2" style="gap: 24px;">
+ <section class="s-VH3WyOOC5H">
+ <h2 class="s-Gq0p87FzNT">6. Resilient Empty & Error States (DT-205)</h2>
+ <div class="grid grid-2 s-EJ3KpNnbe_" >
       <div>
         ${ComponentRenderer.renderEmptyState(
           "No Scheduled As-Run Logs Found",
@@ -385,8 +395,8 @@ export function renderStyleguideHtml(): string {
   </section>
 
   <!-- 7. Loading Skeletons -->
-  <section style="margin-bottom: 48px;">
-    <h2 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 16px;">7. Accessible Loading Skeletons</h2>
+ <section class="s-VH3WyOOC5H">
+ <h2 class="s-Gq0p87FzNT">7. Accessible Loading Skeletons</h2>
     <div class="card">
       ${ComponentRenderer.renderLoadingSkeleton({ lines: 4, heightPx: 18 })}
     </div>

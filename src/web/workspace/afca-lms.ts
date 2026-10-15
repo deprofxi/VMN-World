@@ -18,23 +18,23 @@ export function renderAfcaLearnerDashboardHtml(): string {
   }
 
   return `
-    <article class="container" style="max-width: 1200px; margin: 0 auto; padding: var(--vmn-space-8) var(--vmn-space-4);">
-      <header style="margin-bottom: var(--vmn-space-8); display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px;">
+ <article class="container s-bJt7BJCshA" >
+ <header class="s-Boi4l_mmSk">
         <div>
           <span class="vmn-badge badge-ready">AFCA Academy LMS</span>
-          <h1 style="font-size: var(--vmn-font-size-3xl); font-weight: 800; color: var(--vmn-text-primary); margin-top: 8px;">
+ <h1 class="s-yrxYod1Dke">
             Learner Studio: Masterclass & Cohort Hub
           </h1>
-          <p style="color: var(--vmn-text-secondary); margin: 0;">
+ <p class="s-Q99I6jpLHa">
             Track your curriculum progress, stream video masterclasses, submit film projects, and review faculty feedback.
           </p>
         </div>
-        <div style="display: flex; gap: 12px;">
-          <a href="/workspace/afca/assignments" class="button button--secondary" style="min-height: 44px; display: inline-flex; align-items: center; gap: 8px;">
+ <div class="s-1jFqfgs1FA">
+ <a href="/workspace/afca/assignments" class="button button--secondary s-6OO3ji7nfQ" >
             ${renderIcon("document", { size: 16 })}
             <span>Assignments</span>
           </a>
-          <a href="/workspace/afca/certificates" class="button button--primary" style="min-height: 44px; display: inline-flex; align-items: center; gap: 8px;">
+ <a href="/workspace/afca/certificates" class="button button--primary s-6OO3ji7nfQ" >
             ${renderIcon("shield", { size: 16 })}
             <span>Certificates</span>
           </a>
@@ -42,58 +42,58 @@ export function renderAfcaLearnerDashboardHtml(): string {
       </header>
 
       <!-- Active Course Progress Banner -->
-      <section class="card" style="margin-bottom: var(--vmn-space-8); padding: var(--vmn-space-6); background: var(--vmn-color-surface-subtle); border-left: 4px solid var(--vmn-primary);">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+ <section class="card s-IuHbObGg_A" >
+ <div class="s-6W91SIFLj4">
           <div>
-            <span style="font-size: 0.85rem; font-weight: 700; color: var(--vmn-primary);">ACTIVE COHORT · CIN-2026-A</span>
-            <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--vmn-text-primary); margin: 4px 0;">
+ <span class="s-39UcIgUZOu">ACTIVE COHORT · CIN-2026-A</span>
+ <h2 class="s-8DSQwxWaVK">
               Advanced Cinematography: Visual Storytelling & Lighting Architecture
             </h2>
           </div>
           <span class="vmn-badge badge-live">Module 4 of 6 Active</span>
         </div>
-        <div style="background: var(--vmn-surface-card); height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 8px;">
-          <div style="background: var(--vmn-primary); width: 68%; height: 100%;"></div>
+ <div class="s-O5bB7GePE-">
+ <div class="s-WMX383OvhB"></div>
         </div>
-        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--vmn-text-secondary);">
+ <div class="s-TFD5CajzC8">
           <span>68% Syllabus Completed (34/50 Hours)</span>
           <span>Next Submission Deadline: Friday, 23:59 WAT</span>
         </div>
       </section>
 
       <!-- Grid: Lessons & Modules -->
-      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: var(--vmn-space-6);">
+ <div class="s-7qFsWzHKss">
         <div>
-          <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--vmn-text-primary); margin-bottom: var(--vmn-space-4);">
+ <h2 class="s-y7USoDv1BJ">
             Curriculum Modules & Masterclass Streams
           </h2>
 
-          <div style="display: flex; flex-direction: column; gap: var(--vmn-space-4);">
-            <div class="card" style="padding: var(--vmn-space-4); display: flex; justify-content: space-between; align-items: center;">
+ <div class="s-6mqdXZ0QST">
+ <div class="card s-sT4i6WSrDu" >
               <div>
-                <span style="font-size: 0.75rem; font-weight: 700; color: var(--vmn-text-muted);">MODULE 01</span>
-                <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--vmn-text-primary); margin: 2px 0;">Optics, Sensors & Dynamic Range Mastery</h3>
-                <p style="font-size: 0.85rem; color: var(--vmn-text-secondary); margin: 0;">Completed · Grade: 94% Distinction</p>
+ <span class="s-OvZtx61L7a">MODULE 01</span>
+ <h3 class="s-z-deQPE4iA">Optics, Sensors & Dynamic Range Mastery</h3>
+ <p class="s-B4vv0J13Es">Completed · Grade: 94% Distinction</p>
               </div>
               <span class="vmn-badge badge-ready">Completed</span>
             </div>
 
-            <div class="card" style="padding: var(--vmn-space-4); display: flex; justify-content: space-between; align-items: center;">
+ <div class="card s-sT4i6WSrDu" >
               <div>
-                <span style="font-size: 0.75rem; font-weight: 700; color: var(--vmn-text-muted);">MODULE 02</span>
-                <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--vmn-text-primary); margin: 2px 0;">Three-Point Lighting & Negative Fill in West African Sets</h3>
-                <p style="font-size: 0.85rem; color: var(--vmn-text-secondary); margin: 0;">Completed · Grade: 88% Merit</p>
+ <span class="s-OvZtx61L7a">MODULE 02</span>
+ <h3 class="s-z-deQPE4iA">Three-Point Lighting & Negative Fill in West African Sets</h3>
+ <p class="s-B4vv0J13Es">Completed · Grade: 88% Merit</p>
               </div>
               <span class="vmn-badge badge-ready">Completed</span>
             </div>
 
-            <div class="card" style="padding: var(--vmn-space-4); display: flex; justify-content: space-between; align-items: center; border: 2px solid var(--vmn-primary);">
+ <div class="card s-oDHsgBVghn" >
               <div>
-                <span style="font-size: 0.75rem; font-weight: 700; color: var(--vmn-primary);">CURRENT LESSON</span>
-                <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--vmn-text-primary); margin: 2px 0;">Atmospheric Practical Lighting & Colour Temperature</h3>
-                <p style="font-size: 0.85rem; color: var(--vmn-text-secondary); margin: 0;">Streaming Lesson · 45 mins remaining</p>
+ <span class="s-M1Oh39uGaa">CURRENT LESSON</span>
+ <h3 class="s-z-deQPE4iA">Atmospheric Practical Lighting & Colour Temperature</h3>
+ <p class="s-B4vv0J13Es">Streaming Lesson · 45 mins remaining</p>
               </div>
-              <a href="/workspace/afca/player" class="button button--primary" style="min-height: 36px; padding: 4px 14px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px;">
+ <a href="/workspace/afca/player" class="button button--primary s--0X38FFT3b" >
                 ${renderIcon("play", { size: 14 })}
                 <span>Stream</span>
               </a>
@@ -102,18 +102,18 @@ export function renderAfcaLearnerDashboardHtml(): string {
         </div>
 
         <div>
-          <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--vmn-text-primary); margin-bottom: var(--vmn-space-4);">
+ <h2 class="s-y7USoDv1BJ">
             Upcoming Milestones
           </h2>
-          <div class="card" style="padding: var(--vmn-space-4);">
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; color: var(--vmn-primary);">
+ <div class="card s-njnyYzrM3s" >
+ <div class="s-enz6t9SnTN">
               ${renderIcon("calendar", { size: 18 })}
-              <span style="font-weight: 700;">Live Peer Critique</span>
+ <span class="s-Qqy2DuK6Be">Live Peer Critique</span>
             </div>
-            <p style="font-size: 0.9rem; color: var(--vmn-text-secondary); line-height: 1.5; margin-bottom: 12px;">
+ <p class="s-sU15yyZ7lO">
               Group lighting rushes review with lead faculty and guest cinematographer.
             </p>
-            <div style="font-size: 0.8rem; color: var(--vmn-text-muted);">Tomorrow, 14:00 WAT</div>
+ <div class="s-MsCnZy-ydt">Tomorrow, 14:00 WAT</div>
           </div>
         </div>
       </div>
@@ -130,50 +130,50 @@ export function renderAfcaGradebookHtml(): string {
   }
 
   return `
-    <article class="container" style="max-width: 1200px; margin: 0 auto; padding: var(--vmn-space-8) var(--vmn-space-4);">
-      <header style="margin-bottom: var(--vmn-space-6); display: flex; justify-content: space-between; align-items: flex-end;">
+ <article class="container s-bJt7BJCshA" >
+ <header class="s-f9_catyM9z">
         <div>
           <span class="vmn-badge badge-ready">Academic Governance</span>
-          <h1 style="font-size: var(--vmn-font-size-3xl); font-weight: 800; color: var(--vmn-text-primary); margin-top: 8px;">
+ <h1 class="s-yrxYod1Dke">
             Faculty Gradebook & Assessment Rubrics
           </h1>
-          <p style="color: var(--vmn-text-secondary); margin: 0;">
+ <p class="s-Q99I6jpLHa">
             Score student film submissions across weighted rubric criteria. Pass mark is 70%.
           </p>
         </div>
       </header>
 
-      <div class="card" style="padding: 0; overflow-x: auto;">
-        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.95rem;">
+ <div class="card s-13LQTcSiDf" >
+ <table class="s-t-Ktq1qpPd">
           <thead>
-            <tr style="background: var(--vmn-color-surface-subtle); border-bottom: 2px solid var(--vmn-color-border-subtle); color: var(--vmn-text-secondary);">
-              <th style="padding: 12px;">Student ID</th>
-              <th style="padding: 12px;">Name</th>
-              <th style="padding: 12px;">Project</th>
-              <th style="padding: 12px;">Score</th>
-              <th style="padding: 12px;">Status</th>
-              <th style="padding: 12px; text-align: right;">Action</th>
+ <tr class="s-Dikd2v9UTB">
+ <th class="s-6FCnPHXEyo">Student ID</th>
+ <th class="s-6FCnPHXEyo">Name</th>
+ <th class="s-6FCnPHXEyo">Project</th>
+ <th class="s-6FCnPHXEyo">Score</th>
+ <th class="s-6FCnPHXEyo">Status</th>
+ <th class="s-Uw0RpPbWMz">Action</th>
             </tr>
           </thead>
           <tbody>
-            <tr style="border-bottom: 1px solid var(--vmn-color-border-subtle);">
-              <td style="padding: 12px; font-weight: 700;">STU-8801</td>
-              <td style="padding: 12px; font-weight: 600; color: var(--vmn-text-primary);">Amina Yusuf</td>
-              <td style="padding: 12px; color: var(--vmn-text-secondary);">Short Film Rushes #3</td>
-              <td style="padding: 12px; font-weight: 700; color: var(--vmn-primary);">88%</td>
-              <td style="padding: 12px;"><span class="vmn-badge badge-ready">PASSED (MERIT)</span></td>
-              <td style="padding: 12px; text-align: right;">
-                <button class="button button--secondary" style="min-height: 36px; padding: 4px 12px; font-size: 0.85rem;">Edit Feedback</button>
+ <tr class="s-z7JacQSDqk">
+ <td class="s-oSOvhqxIsW">STU-8801</td>
+ <td class="s-EEPGDTfs-0">Amina Yusuf</td>
+ <td class="s-gL0G9B66bL">Short Film Rushes #3</td>
+ <td class="s-PVlViuuo3G">88%</td>
+ <td class="s-6FCnPHXEyo"><span class="vmn-badge badge-ready">PASSED (MERIT)</span></td>
+ <td class="s-Uw0RpPbWMz">
+ <button class="button button--secondary s-yMjn0NdDu-" >Edit Feedback</button>
               </td>
             </tr>
-            <tr style="border-bottom: 1px solid var(--vmn-color-border-subtle);">
-              <td style="padding: 12px; font-weight: 700;">STU-8802</td>
-              <td style="padding: 12px; font-weight: 600; color: var(--vmn-text-primary);">Emeka Kalu</td>
-              <td style="padding: 12px; color: var(--vmn-text-secondary);">Short Film Rushes #3</td>
-              <td style="padding: 12px; font-weight: 700; color: var(--vmn-text-muted);">Pending</td>
-              <td style="padding: 12px;"><span class="vmn-badge badge-live">SUBMITTED</span></td>
-              <td style="padding: 12px; text-align: right;">
-                <button class="button button--primary" style="min-height: 36px; padding: 4px 12px; font-size: 0.85rem;">Grade Rubric</button>
+ <tr class="s-z7JacQSDqk">
+ <td class="s-oSOvhqxIsW">STU-8802</td>
+ <td class="s-EEPGDTfs-0">Emeka Kalu</td>
+ <td class="s-gL0G9B66bL">Short Film Rushes #3</td>
+ <td class="s-6zC5gg0N-9">Pending</td>
+ <td class="s-6FCnPHXEyo"><span class="vmn-badge badge-live">SUBMITTED</span></td>
+ <td class="s-Uw0RpPbWMz">
+ <button class="button button--primary s-yMjn0NdDu-" >Grade Rubric</button>
               </td>
             </tr>
           </tbody>

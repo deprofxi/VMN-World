@@ -4,14 +4,37 @@
  */
 
 import { PrismaClient } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
+import { AsyncLocalStorage } from "node:async_hooks";
 import { getConfig } from "../config/index.js";
 
 let prismaInstance: PrismaClient | null = null;
 let poolInstance: Pool | null = null;
 
+// TSK-18: the durability journal runs a whole response batch — the business rows
+// and the audit entries recorded for them — inside one Prisma transaction.
+// Persisters are synchronous-domain adapters that each call `getPrismaClient()`
+// themselves, so the transaction is installed for the duration of the flush in
+// this async context: every client they obtain is the transactional one, and a
+// persister that escaped to the outer client would silently write *outside* the
+// transaction it believes it is part of.
+const transactionScope = new AsyncLocalStorage<Prisma.TransactionClient>();
+
+/** Run `fn` with `tx` as the client every `getPrismaClient()` call resolves to. */
+export function withTransactionClient<T>(tx: Prisma.TransactionClient, fn: () => Promise<T>): Promise<T> {
+  return transactionScope.run(tx, fn);
+}
+
+/** True while the current async context is inside a journal flush transaction. */
+export function isInTransactionScope(): boolean {
+  return transactionScope.getStore() !== undefined;
+}
+
 export function getPrismaClient(): PrismaClient {
+  const scoped = transactionScope.getStore();
+  if (scoped) return scoped as unknown as PrismaClient;
   if (!prismaInstance) {
     const config = getConfig();
     poolInstance = new Pool({

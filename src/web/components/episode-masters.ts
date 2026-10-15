@@ -23,12 +23,12 @@ const STATE_COLORS: Record<EpisodeMasterState, string> = {
 function renderStateCell(row: EpisodeMasterRow): string {
   const color = STATE_COLORS[row.state];
   if (row.state === "NO_REFERENCE") {
-    return `<span style="color:${color}; font-size:0.8rem; font-weight:700;">No master reference</span>`;
+ return `<span style="color:${color}; font-size:0.8rem; font-weight:700;">No master reference</span>`;
   }
   if (row.state === "UNREGISTERED") {
-    return `<span style="color:${color}; font-size:0.8rem; font-weight:700;">UNREGISTERED</span> <span style="font-family:monospace; font-size:0.78rem; color:var(--vmn-text-muted);">${escapeHtml(row.mediaAssetId)}</span>`;
+ return `<span style="color:${color}; font-size:0.8rem; font-weight:700;">UNREGISTERED</span> <span class="s-Wb159Mw4sr">${escapeHtml(row.mediaAssetId)}</span>`;
   }
-  return `<span style="color:${color}; font-size:0.8rem; font-weight:700;">${row.state}</span> <span style="font-family:monospace; font-size:0.78rem; color:var(--vmn-text-muted);">${escapeHtml(row.mediaAssetId)}</span>${row.assetTitle ? ` · ${escapeHtml(row.assetTitle)}` : ""}`;
+ return `<span style="color:${color}; font-size:0.8rem; font-weight:700;">${row.state}</span> <span class="s-Wb159Mw4sr">${escapeHtml(row.mediaAssetId)}</span>${row.assetTitle ? ` · ${escapeHtml(row.assetTitle)}` : ""}`;
 }
 
 const EMPTY_STATE_TEXT =
@@ -47,38 +47,38 @@ export function renderEpisodeMastersTableHtml(
   if (rows.length === 0) {
     return `
     <div class="card" role="region" aria-label="${escapeHtml(heading)}">
-      <h2 style="font-size:1.15rem; font-weight:700; margin-bottom:8px;">${escapeHtml(heading)}</h2>
-      <p style="color:var(--vmn-text-muted); font-size:0.9rem; margin:0;">${EMPTY_STATE_TEXT}</p>
+ <h2 class="s-0AseXnZokY">${escapeHtml(heading)}</h2>
+ <p class="s-BnV4bAX0S5">${EMPTY_STATE_TEXT}</p>
     </div>`;
   }
 
   const rowsHtml = rows
     .map(
       (row) => `
-          <tr style="border-bottom:1px solid var(--vmn-surface-border);">
-            <td style="padding:10px 12px; font-weight:600;">${escapeHtml(row.programmeTitle)}</td>
-            <td style="padding:10px 12px; font-family:monospace; font-size:0.82rem; white-space:nowrap;">${escapeHtml(row.episodeCode)}</td>
-            <td style="padding:10px 12px; color:var(--vmn-text-muted);">${escapeHtml(row.episodeTitle)}</td>
-            <td style="padding:10px 12px;">${renderStateCell(row)}</td>
+ <tr class="s-luRfE-TINB">
+ <td class="s-fcnnoYGhc3">${escapeHtml(row.programmeTitle)}</td>
+ <td class="s-EbkeYA0uDR">${escapeHtml(row.episodeCode)}</td>
+ <td class="s-XJMZ8Jmu4T">${escapeHtml(row.episodeTitle)}</td>
+ <td class="s-drsUO0gkUT">${renderStateCell(row)}</td>
           </tr>`
     )
     .join("");
 
   return `
     <div class="card" role="region" aria-label="${escapeHtml(heading)}">
-      <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
-        <h2 style="font-size:1.15rem; font-weight:700; margin:0;">${escapeHtml(heading)}</h2>
-        <span style="font-size:0.85rem; color:var(--vmn-text-muted);">${rows.length} episode${rows.length === 1 ? "" : "s"} · canonical BroadcastEpisode → DAM registry chain</span>
+ <div class="s-RbdLgOeBnZ">
+ <h2 class="s-5yiBMOtiRi">${escapeHtml(heading)}</h2>
+ <span class="s-37h9gF_4Xa">${rows.length} episode${rows.length === 1 ? "" : "s"} · canonical BroadcastEpisode → DAM registry chain</span>
       </div>
-      ${options.note ? `<p style="font-size:0.85rem; color:var(--vmn-text-muted); margin:0 0 12px;">${escapeHtml(options.note)}</p>` : ""}
-      <div style="overflow-x:auto;">
-        <table style="width:100%; border-collapse:collapse; text-align:left; font-size:0.9rem;">
+ ${options.note ? `<p class="s-Bn4hJjdmcO">${escapeHtml(options.note)}</p>` : ""}
+ <div class="s-0GmMSMP86s">
+ <table class="s-b-Ai5vuAKC">
           <thead>
-            <tr style="border-bottom:2px solid var(--vmn-surface-border); color:var(--vmn-text-muted);">
-              <th scope="col" style="padding:10px 12px;">Programme</th>
-              <th scope="col" style="padding:10px 12px;">Episode</th>
-              <th scope="col" style="padding:10px 12px;">Title</th>
-              <th scope="col" style="padding:10px 12px;">Master asset &amp; access state</th>
+ <tr class="s-y6vAX1Tc3O">
+ <th scope="col" class="s-drsUO0gkUT">Programme</th>
+ <th scope="col" class="s-drsUO0gkUT">Episode</th>
+ <th scope="col" class="s-drsUO0gkUT">Title</th>
+ <th scope="col" class="s-drsUO0gkUT">Master asset &amp; access state</th>
             </tr>
           </thead>
           <tbody>${rowsHtml}
@@ -95,7 +95,7 @@ export function renderEpisodeMastersTableHtml(
  */
 export function renderEpisodeMasterSummaryHtml(rows: EpisodeMasterRow[]): string {
   if (rows.length === 0) {
-    return `<p style="font-size:0.82rem; color:var(--vmn-text-muted); margin:8px 0 0;">Episode masters: not loaded in this environment (no BroadcastEpisode → DAM linkage available).</p>`;
+ return `<p class="s-lLqQ4wPot4">Episode masters: not loaded in this environment (no BroadcastEpisode → DAM linkage available).</p>`;
   }
 
   const programmes = new Set(rows.map((r) => r.programmeCode)).size;
@@ -115,5 +115,5 @@ export function renderEpisodeMasterSummaryHtml(rows: EpisodeMasterRow[]): string
   if (counts.NO_REFERENCE) parts.push(`no reference ${counts.NO_REFERENCE}`);
   const color = problems > 0 ? "var(--vmn-color-warning-600, #b45309)" : "var(--vmn-color-success-600, #15803d)";
 
-  return `<p style="font-size:0.82rem; color:${color}; margin:8px 0 0;"><strong>DAM masters:</strong> ${escapeHtml(parts.join(" · "))}</p>`;
+ return `<p style="font-size:0.82rem; color:${color}; margin:8px 0 0;"><strong>DAM masters:</strong> ${escapeHtml(parts.join(" · "))}</p>`;
 }

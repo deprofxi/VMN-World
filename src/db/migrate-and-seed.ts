@@ -47,8 +47,8 @@ export async function runDatabaseSeed(): Promise<{ success: boolean; stats: Reco
           where: { code: ch.code },
           update: {
             name: ch.name,
-            dttChannelNumber: ch.dtt,
-            dthChannelNumber: ch.dth,
+            dttChannelNumber: ch.dtt ?? null,
+            dthChannelNumber: ch.dth ?? null,
           },
           create: {
             id: ch.id,
@@ -56,8 +56,8 @@ export async function runDatabaseSeed(): Promise<{ success: boolean; stats: Reco
             name: ch.name,
             tagline: `${ch.name} - Nigerian Creative Authority`,
             primaryLanguage: ch.code === "ORIS" ? "Yoruba" : ch.code === "IMBD" ? "Igbo" : "English / Pidgin",
-            dttChannelNumber: ch.dtt,
-            dthChannelNumber: ch.dth,
+            dttChannelNumber: ch.dtt ?? null,
+            dthChannelNumber: ch.dth ?? null,
             isProvisional: true,
           },
         });
@@ -271,10 +271,19 @@ export async function runDatabaseSeed(): Promise<{ success: boolean; stats: Reco
 
 /**
  * Per-entity honesty for the seed summary. `persistenceMode` describes what
- * reached Postgres, but two stat families never touch a table: `schedules`
- * are the in-memory schedule authority (there is no Postgres schedule table)
- * and `damAssets` are in-memory DAM registry records. Labeling them as
- * database-persisted would be a false evidence claim (canonical law 20).
+ * this CLI run wrote through Prisma, and two stat families must not borrow it:
+ *   - `schedules` — TSK-20 `sandbox-state (schedule-day)`. There is no schedule
+ *     or version model in `prisma/schema.prisma` at all, so this is the only
+ *     copy the entity has, not a fallback for one.
+ *   - `damAssets` — `registerMediaAsset` *does* have a durable store
+ *     (`mediaAssetRecord`, TSK-17), but it writes by staging
+ *     (`src/core/storage/index.ts:328`) and this CLI never drains the journal:
+ *     `flushDurableJournal` is called from boot (`src/api/server.ts:422`), not
+ *     from here. So after `pnpm db:seed` exits the count reached the process
+ *     registry and no table. The label says in-memory because that is what the
+ *     seed actually achieved.
+ * Labeling either as database-persisted would be a false evidence claim
+ * (canonical law 20).
  */
 export function seedStatLabel(key: string, persistenceMode: string): string {
   if (key === "schedules") return "IN-MEMORY SCHEDULE AUTHORITY (no Postgres table)";

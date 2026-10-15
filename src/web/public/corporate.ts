@@ -2,10 +2,11 @@
  * Public VMN Corporate Portal Pages & Structured Metadata
  * Authority: VMNL-AZP-VMN-BRD-PRD-001 — R1.2A §9 / VMNL-AZP-VMN-CCPP-001 §8
  *
- * Core Mandate:
- * Executive leadership, corporate governance, three enterprise pillars overview,
- * investor relations, RFP submissions, and 100/100 Lighthouse performance.
+ * Provides public company, service-concept, and directory profile content.
+ * Leadership and operational claims require approved source records before publication.
  */
+
+import { escapeHtml } from "../components/escape.js";
 
 export interface CorporatePillar {
   name: string;
@@ -17,18 +18,18 @@ export interface CorporatePillar {
 
 export const VMN_ENTERPRISE_PILLARS: CorporatePillar[] = [
   {
-    name: "Linear Television & Broadcast Operations",
-    tagline: "24/7 Premium DTT/DTH Channels Reaching Millions",
+    name: "Linear Television Channel Profiles",
+    tagline: "Channel profiles — carriage and live status unverified",
     description:
-      "Operator of Nigeria's flagship television networks on StarTimes: Nigezie Xtreme (Ch 428 DTT / 312 DTH), Orisun (Ch 430 DTT / 315 DTH), and Isi Mbido (Ch 432 DTT / 318 DTH).",
+      "Nigezie Xtreme, Orisun, and Isi Mbido channel profiles. Carriage and transmission details require independent verification.",
     keyAssets: ["Nigezie Xtreme (NXTR)", "Orisun (ORIS)", "Isi Mbido (IMBD)"],
     route: "/channels",
   },
   {
     name: "Creative Economy Hub",
-    tagline: "End-to-End Infrastructure for African Creators",
+    tagline: "Creative-Economy Programme Areas (Availability Unverified)",
     description:
-      "A comprehensive ecosystem integrating talent development, formal academy certification, professional studio facilities, slate financing, and international syndication.",
+      "The Creative Economy Hub describes proposed programme areas. Accreditation, facilities, funding, services, and distribution availability require current independent confirmation.",
     keyAssets: [
       "Talent Accelerator",
       "AFCA Academy",
@@ -42,12 +43,15 @@ export const VMN_ENTERPRISE_PILLARS: CorporatePillar[] = [
     route: "/hub",
   },
   {
-    name: "Azeebo+ Direct-to-Consumer Ecosystem",
-    tagline: "Federated Digital Entertainment Across 8 Universes",
+    name: "Azeebo+ Federated Service",
+    tagline: "Federated Digital Entertainment Service Information",
     description:
-      "External consumer streaming and social video platform spanning Vertical, Movies, Lifestyle, Comedy, Creator, Reality, Games, and Sports.",
-    keyAssets: ["Azeebo+ Streaming App", "Universe Gateways", "Broadcast QR Attribution"],
-    route: "https://azeebo.plus",
+      "Azeebo+ is a separate federated service. Its catalogue, features, availability, and audience attribution are not verified by this site.",
+    keyAssets: ["Azeebo+ service information (federated; availability unverified)"],
+    // TSK-35: this is a public page, not a federation endpoint. It points at the
+    // internal Azeebo+ information page, which itself prints an outbound link only
+    // when a deployment configures AZEEBO_PLUS_UNIVERSAL_URL.
+    route: "/azeebo",
   },
 ];
 
@@ -62,17 +66,17 @@ export const VMN_LEADERSHIP: LeadershipMember[] = [
   {
     name: "Femi Aderibigbe (Kwame)",
     title: "Chief Executive Officer & Founder",
-    bio: "Pioneer in Nigerian television and music entertainment, creator of Nigezie and architect of Virtual Media Network Limited.",
+    bio: "Public biography, appointment, and association with the company have not been independently verified for this directory.",
   },
   {
     name: "Chief Operating Officer",
     title: "Chief Operating Officer",
-    bio: "Directs broadcast engineering, StarTimes carriage relationships, and commercial operations across linear and digital units.",
+    bio: "Role profile only; identity, appointment, responsibilities, and external carriage relationships are not verified for publication.",
   },
   {
-    name: "Head of Academy & Talent",
-    title: "Director, AFCA & Talent Accelerator",
-    bio: "Oversees curriculum development, industry guild accreditations, and national partner hub operations.",
+    name: "Academy & Talent Leadership",
+    title: "Role profile — appointment unverified",
+    bio: "Appointment, accreditations, and partner hub operations are not verified for publication.",
   },
 ];
 
@@ -84,15 +88,15 @@ export class CorporatePortalService {
     openGraph: Record<string, string>;
   } {
     return {
-      title: "Virtual Media Network Limited (VMNL) | Africa's Premier Media & Creative Hub",
+      title: "Virtual Media Network Limited (VMNL) | Company Information",
       description:
-        "Virtual Media Network Limited (VMNL) orchestrates 24/7 linear broadcast television (Nigezie Xtreme, Orisun, Isi Mbido), the VMN Creative Economy Hub, and the federated Azeebo+ ecosystem.",
+        "Virtual Media Network Limited company information and preliminary service profiles. Broadcast, service availability, and federation status require independent confirmation.",
       canonicalUrl: "https://vmnl.ng",
       openGraph: {
         "og:type": "website",
         "og:title": "Virtual Media Network Limited (VMNL)",
-        "og:description": "Powering the African Creative Economy through Linear Broadcast, Hub Infrastructure, and Azeebo+.",
-        "og:image": "https://vmnl.ng/assets/og-vmnl-master.jpg",
+        "og:description": "Company information and preliminary service profiles. Broadcast, reach, service availability, and federation status require independent confirmation.",
+        "og:image": "https://vmnl.ng/assets/og-vmnl-master.png",
         "og:url": "https://vmnl.ng",
       },
     };
@@ -102,17 +106,17 @@ export class CorporatePortalService {
     const pillarsHtml = VMN_ENTERPRISE_PILLARS.map(
       (p) => `
       <article class="vmn-pillar-card">
-        <h3>${p.name}</h3>
-        <p class="vmn-pillar-tagline"><strong>${p.tagline}</strong></p>
-        <p>${p.description}</p>
-        <ul>${p.keyAssets.map((a) => `<li>${a}</li>`).join("")}</ul>
+        <h3>${escapeHtml(p.name)}</h3>
+        <p class="vmn-pillar-tagline"><strong>${escapeHtml(p.tagline)}</strong></p>
+        <p>${escapeHtml(p.description)}</p>
+        <ul>${p.keyAssets.map((a) => `<li>${escapeHtml(a)}</li>`).join("")}</ul>
       </article>`
     ).join("");
 
     return `
 <section class="vmn-corporate-overview" aria-labelledby="vmn-mission-heading">
   <h1 id="vmn-mission-heading">Virtual Media Network Limited</h1>
-  <p class="vmn-hero-lead">Unifying broadcast excellence, creative talent acceleration, and next-generation consumer distribution.</p>
+  <p class="vmn-hero-lead">Company information and preliminary service profiles. Operational reach, availability, and federation status require independent confirmation.</p>
   <div class="vmn-pillars-grid">${pillarsHtml}</div>
 </section>`.trim();
   }

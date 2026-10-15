@@ -169,83 +169,83 @@ function escrowStatusBadge(status: EscrowStatus): string {
   return `<span class="vmn-badge ${cls}">${escapeHtml(status.replace(/_/g, " "))}</span>`;
 }
 
-export function renderVtmPaymentVisibilityHtml(projection: VtmPaymentVisibilityProjection, user?: SessionUser): string {
+export function renderVtmPaymentVisibilityHtml(projection: VtmPaymentVisibilityProjection, _user?: SessionUser): string {
   const summaryCards = `
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-bottom: 24px;">
-      <div class="vmn-card" style="padding: 16px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md);">
-        <div style="font-size: 0.85rem; color: var(--vmn-color-secondary-text); font-weight: 600;">Contracts</div>
-        <div style="font-size: 1.5rem; font-weight: 800; margin-top: 4px;">${projection.summary.contracts}</div>
-        <div style="font-size: 0.75rem; color: var(--vmn-color-secondary-text);">${projection.summary.deployable} deployable · ${projection.summary.blocked} blocked · ${projection.summary.reviewRequired} review</div>
+ <div class="s-sRpO5MaMLv">
+ <div class="vmn-card s-Ur9k9UL2FN" >
+ <div class="s-cU3Cr5m8eq">Contracts</div>
+ <div class="s-vu7vwqr--r">${projection.summary.contracts}</div>
+ <div class="s-wUMD0XWoZI">${projection.summary.deployable} deployable · ${projection.summary.blocked} blocked · ${projection.summary.reviewRequired} review</div>
       </div>
-      <div class="vmn-card" style="padding: 16px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md);">
-        <div style="font-size: 0.85rem; color: var(--vmn-color-secondary-text); font-weight: 600;">Escrow Held (restricted)</div>
-        <div style="font-size: 1.5rem; font-weight: 800; margin-top: 4px;">${formatNgn(projection.summary.escrowHeldNgn)}</div>
+ <div class="vmn-card s-Ur9k9UL2FN" >
+ <div class="s-cU3Cr5m8eq">Escrow Held (restricted)</div>
+ <div class="s-vu7vwqr--r">${formatNgn(projection.summary.escrowHeldNgn)}</div>
       </div>
-      <div class="vmn-card" style="padding: 16px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md);">
-        <div style="font-size: 0.85rem; color: var(--vmn-color-secondary-text); font-weight: 600;">Talent Payable (disbursed)</div>
-        <div style="font-size: 1.5rem; font-weight: 800; color: var(--vmn-color-ready); margin-top: 4px;">${formatNgn(projection.summary.talentDisbursedNgn)}</div>
+ <div class="vmn-card s-Ur9k9UL2FN" >
+ <div class="s-cU3Cr5m8eq">Talent Payable (disbursed)</div>
+ <div class="s-Am3eRxce65">${formatNgn(projection.summary.talentDisbursedNgn)}</div>
       </div>
-      <div class="vmn-card" style="padding: 16px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md);">
-        <div style="font-size: 0.85rem; color: var(--vmn-color-secondary-text); font-weight: 600;">Platform Commission</div>
-        <div style="font-size: 1.5rem; font-weight: 800; margin-top: 4px;">${formatNgn(projection.summary.platformCommissionNgn)}</div>
+ <div class="vmn-card s-Ur9k9UL2FN" >
+ <div class="s-cU3Cr5m8eq">Platform Commission</div>
+ <div class="s-vu7vwqr--r">${formatNgn(projection.summary.platformCommissionNgn)}</div>
       </div>
     </div>`;
 
   const contractSections =
     projection.contracts.length === 0
-      ? `<div class="vmn-card" style="padding: 24px;"><p style="color: var(--vmn-color-secondary-text); margin: 0;">No VTM contracts exist yet. Payment visibility projects the canonical contract engine — create a contract through the VTM workbench.</p></div>`
+ ? `<div class="vmn-card s-Cs0JleIJbl" ><p class="s-74eGsJhV6B">No VTM contracts exist yet. Payment visibility projects the canonical contract engine — create a contract through the VTM workbench.</p></div>`
       : projection.contracts
           .map(
             (c) => `
-      <div class="vmn-card" style="padding: 24px; border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-lg); margin-bottom: 24px;">
-        <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; align-items: baseline;">
-          <h2 style="font-size: 1.05rem; font-weight: 800; margin: 0;">${escapeHtml(c.contractNumber)} — Talent ${escapeHtml(c.talentId)} / Client ${escapeHtml(c.clientId)}</h2>
+ <div class="vmn-card s-QTA1yfp9QZ" >
+ <div class="s-zw5ShTxO9V">
+ <h2 class="s-2to96tsOZe">${escapeHtml(c.contractNumber)} — Talent ${escapeHtml(c.talentId)} / Client ${escapeHtml(c.clientId)}</h2>
           <span class="vmn-badge ${c.readinessState === "DEPLOYABLE" ? "badge-ready" : c.readinessState === "BLOCKED" ? "badge-danger" : "badge-warning"}">READINESS: ${c.readinessState}</span>
         </div>
-        <div style="font-size: 0.85rem; color: var(--vmn-color-secondary-text); margin: 6px 0 14px 0;">
+ <div class="s-0B57PT0_Oz">
           Contract value ${formatNgn(c.totalValueNgn)} · Escrow held ${formatNgn(c.escrowHeldNgn)} · Talent payable ${formatNgn(c.talentDisbursedNgn)} · Platform commission ${formatNgn(c.platformCommissionNgn)} — measures are distinct per 7-way separation and never aggregate into a single "revenue" figure.
         </div>
 
-        <h3 style="font-size: 0.9rem; font-weight: 700; margin: 0 0 8px 0;">Deployment Readiness Gates</h3>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-bottom: 18px;">
+ <h3 class="s-X2NvgWZrxX">Deployment Readiness Gates</h3>
+ <div class="s-3qncqMwH8R">
           ${c.gates
             .map(
               (g) => `
-          <div style="border: 1px solid var(--vmn-color-border); border-radius: var(--vmn-radius-md); padding: 10px 12px;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-weight: 700; font-size: 0.8rem;">${escapeHtml(g.gate.replace(/_/g, " "))}</span>
+ <div class="s-_z5x8vd6M8">
+ <div class="s-wrzqCFgz1Y">
+ <span class="s-OAVpd553dT">${escapeHtml(g.gate.replace(/_/g, " "))}</span>
               <span class="vmn-badge ${g.status === "SATISFIED" ? "badge-ready" : g.status === "OPEN" ? "badge-danger" : "badge-warning"}">${g.status}</span>
             </div>
-            <div style="font-size: 0.72rem; color: var(--vmn-color-secondary-text); margin-top: 4px;">${escapeHtml(g.note)}</div>
+ <div class="s--pYpvxyCah">${escapeHtml(g.note)}</div>
           </div>`
             )
             .join("")}
         </div>
 
-        <h3 style="font-size: 0.9rem; font-weight: 700; margin: 0 0 8px 0;">Milestone Escrow & Payment Status</h3>
-        <div class="table-container" style="overflow-x: auto;">
-          <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem; text-align: left;">
+ <h3 class="s-X2NvgWZrxX">Milestone Escrow & Payment Status</h3>
+ <div class="table-container s-QtRFDAL0Yl" >
+ <table class="s-yaXxTqlt-j">
             <thead>
-              <tr style="border-bottom: 2px solid var(--vmn-color-border); color: var(--vmn-color-secondary-text);">
-                <th style="padding: 8px 10px;">Milestone</th>
-                <th style="padding: 8px 10px;">Value</th>
-                <th style="padding: 8px 10px;">Escrow Status</th>
-                <th style="padding: 8px 10px;">Talent Payable</th>
-                <th style="padding: 8px 10px;">Platform Commission</th>
-                <th style="padding: 8px 10px;">Escrowed Since</th>
+ <tr class="s-UnSdr9bWTK">
+ <th class="s-JKTsUAJmov">Milestone</th>
+ <th class="s-JKTsUAJmov">Value</th>
+ <th class="s-JKTsUAJmov">Escrow Status</th>
+ <th class="s-JKTsUAJmov">Talent Payable</th>
+ <th class="s-JKTsUAJmov">Platform Commission</th>
+ <th class="s-JKTsUAJmov">Escrowed Since</th>
               </tr>
             </thead>
             <tbody>
               ${c.milestones
                 .map(
                   (m) => `
-              <tr style="border-bottom: 1px solid var(--vmn-color-border);">
-                <td style="padding: 8px 10px; font-weight: 600;">${escapeHtml(m.title)}</td>
-                <td style="padding: 8px 10px;">${formatNgn(m.amountNgn)}</td>
-                <td style="padding: 8px 10px;">${escrowStatusBadge(m.escrowStatus)}</td>
-                <td style="padding: 8px 10px;">${m.talentDisbursedAmountNgn > 0 ? formatNgn(m.talentDisbursedAmountNgn) : "—"}</td>
-                <td style="padding: 8px 10px;">${m.platformCommissionNgn > 0 ? formatNgn(m.platformCommissionNgn) : "—"}</td>
-                <td style="padding: 8px 10px; font-family: monospace; font-size: 0.72rem;">${m.escrowDepositedAt ? escapeHtml(m.escrowDepositedAt.substring(0, 10)) : "—"}</td>
+ <tr class="s-EK6K8Vq5tY">
+ <td class="s-sXJ_a8BSrJ">${escapeHtml(m.title)}</td>
+ <td class="s-JKTsUAJmov">${formatNgn(m.amountNgn)}</td>
+ <td class="s-JKTsUAJmov">${escrowStatusBadge(m.escrowStatus)}</td>
+ <td class="s-JKTsUAJmov">${m.talentDisbursedAmountNgn > 0 ? formatNgn(m.talentDisbursedAmountNgn) : "—"}</td>
+ <td class="s-JKTsUAJmov">${m.platformCommissionNgn > 0 ? formatNgn(m.platformCommissionNgn) : "—"}</td>
+ <td class="s-vE8Thx0uW0">${m.escrowDepositedAt ? escapeHtml(m.escrowDepositedAt.substring(0, 10)) : "—"}</td>
               </tr>`
                 )
                 .join("")}
@@ -257,11 +257,11 @@ export function renderVtmPaymentVisibilityHtml(projection: VtmPaymentVisibilityP
           .join("");
 
   return `
-    <div style="max-width: 1200px; margin: 32px auto; padding: 0 16px;">
-      <div style="margin-bottom: 24px;">
-        <span class="vmn-badge badge-ready" style="margin-bottom: 8px; font-weight: 700;">VTM &bull; UX-VTM-010 / UX-VTM-011</span>
-        <h1 style="font-size: var(--vmn-font-size-2xl); font-weight: 800; color: var(--vmn-color-primary-text); margin: 8px 0 6px 0;">Deployment Readiness &amp; Payment Visibility</h1>
-        <p style="color: var(--vmn-color-secondary-text); margin: 0; font-size: 0.95rem;">
+ <div class="s-Llwj6EPzTQ">
+ <div class="s-jXAzROAz5F">
+ <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >VTM &bull; UX-VTM-010 / UX-VTM-011</span>
+ <h1 class="s-Eg3nXwYpcj">Deployment Readiness &amp; Payment Visibility</h1>
+ <p class="s-zrikAgYqXF">
           Projects the canonical VTM contract engine: readiness gates (execution, identity verification, escrow protection, rights clearance) and per-milestone escrow/payment state labelled per the 7-way financial separation. No amount on this page is consolidated revenue.
         </p>
       </div>
