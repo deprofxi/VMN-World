@@ -2,12 +2,16 @@
  * Final Remediation Unit Tests — TODO-FIN-03/04/07/08, TODO-SEC-04/10/11
  * remainder, TODO-SCR-13/15/20, TODO-BCST-03/06/08/09/10/12.
  *
- * Each describe maps to a todo.md register item and asserts domain behaviour
- * (not implementation details), so these tests represent the acceptance
- * criteria recorded in docs/audit/ac-traceability-index.md.
+ * Each describe maps to a register item of the retired `todo.md` register
+ * (VMNL-AZP-VMN-TODO-001) and asserts domain behaviour (not implementation
+ * details). The inherited IDs resolve through `tasks.md` §1.4 — the surviving
+ * register is `tasks.md` (VMNL-AZP-VMN-TODO-002), and acceptance criteria are
+ * recorded in docs/audit/ac-traceability-index.md.
  */
 
 import { describe, it, expect, beforeEach, beforeAll, afterAll } from "vitest";
+import { deleteFixtureRows, ensureFixtureChannels } from "../helpers/db-parents.js";
+import { deleteFixtureRights, fixtureRightsWrite, registerFixtureRights, approvePreAirChain } from "../helpers/rights-fixtures.js";
 import http from "node:http";
 
 // SEC-08 route-level harness
@@ -46,6 +50,7 @@ function makeHttpRequest(
 // FIN-03: ledger posting service
 import { LedgerPostingService } from "../../src/modules/finance/ledger/posting.js";
 import { SevenWayLedgerEngine } from "../../src/modules/finance/ledger/index.js";
+import type { SevenWayFinancialSnapshot } from "../../src/modules/finance/ledger/index.js";
 import type { SalesDeal } from "../../src/modules/finance/sales/index.js";
 
 // SEC-04 remainder: first-use profile persistence
@@ -58,7 +63,9 @@ import { MemoryKeyValueAdapter, RedisKeyValueAdapter, resolveKeyValueAdapter, _r
 import { issueCsrfToken, verifyCsrfToken, verifyFormCsrf, extractCsrfFromForm, csrfCookieHeader, CSRF_COOKIE_NAME, CSRF_FIELD_NAME, recordIdempotentOutcome, checkIdempotency, _resetIdempotencyForTesting } from "../../src/core/websecurity/index.js";
 
 // SCR-03: approved media registry + picker + CMS editor integration
-import { registerMediaAsset, listApprovedMediaAssets, _resetMediaAssetsForTesting } from "../../src/core/storage/index.js";
+import { registerMediaAsset, listApprovedMediaAssets, getMediaAsset, _resetMediaAssetsForTesting } from "../../src/core/storage/index.js";
+import { signSessionToken } from "../../src/core/auth/index.js";
+import { checkDatabaseConnection, getPrismaClient } from "../../src/core/database/index.js";
 import { projectMediaPicker, renderMediaPickerHtml } from "../../src/web/workspace/media-picker.js";
 import { createHash } from "node:crypto";
 import { goldenDamAssetRegistrations, registerGoldenDamAssets, episodeMasterAssetId, persistEpisodeMediaAssets } from "../../src/db/seeds/dam-backfill.js";
@@ -100,10 +107,16 @@ import { listSourceMappings, resolveSourceMapping, assertApprovedSource, compute
 import { projectVtmPaymentVisibility, renderVtmPaymentVisibilityHtml } from "../../src/web/portal/vtm-payment-visibility.js";
 import { VirtualTalentManagementEngine } from "../../src/modules/hub/vtm/index.js";
 
+// TSK-10: the gate's read index over the registered RightsRecords
+import { _resetRegisteredRightsIndexForTesting } from "../../src/modules/broadcast/rights/index.js";
+
 // BCST-03: schedule lifecycle; BCST-12: sponsorship bindings
 import {
   upsertDraftSchedule,
   submitScheduleForApproval,
+  passProgrammingReview,
+  passRightsCheck,
+  passTrafficCheck,
   approveSchedule,
   amendSchedule,
   lockScheduleIfPastLockout,
@@ -233,6 +246,126 @@ describe("FIN-03: LedgerPostingService posts balanced idempotent journals", () =
 });
 
 // ---------------------------------------------------------------------------
+// TSK-32 (law 7): internal unit allocations never inflate consolidated
+// external revenue — CLAUDE.md:24 / PRD §14 / tasks.md TSK-59
+// ---------------------------------------------------------------------------
+
+describe("TSK-32: inter-unit allocations are eliminated, never booked as external revenue", () => {
+  function externalDeal(): { ledger: SevenWayLedgerEngine; posting: LedgerPostingService; snapshot: SevenWayFinancialSnapshot } {
+    const ledger = new SevenWayLedgerEngine();
+    const posting = new LedgerPostingService(ledger);
+    posting.postDeal(
+      makeDeal({
+        invoicedAmountNgn: 600_000,
+        cashCollectedAmountNgn: 600_000,
+        recognizedRevenueNgn: 400_000,
+        proofOfPerformanceVerified: true,
+      })
+    );
+    return { ledger, posting, snapshot: ledger.getSnapshot() };
+  }
+
+  it("an inter-unit charge posts balanced and moves no external revenue pillar", () => {
+    const { ledger, posting, snapshot } = externalDeal();
+    const before = { ...snapshot };
+
+    const { entry } = posting.postInternalUnitAllocation({
+      allocationId: "ALLOC-ORIS-TO-VTM-1",
+      fromUnitCode: "ORIS",
+      toUnitCode: "VTM",
+      amountNgn: 250_000,
+    });
+
+    // Law 5 still holds: the elimination entry is a real balanced journal.
+    expect(entry.isBalanced).toBe(true);
+    expect(entry.totalDebitNgn).toBe(entry.totalCreditNgn);
+    expect(entry.lines.map((l) => l.accountCode)).toEqual([
+      "9100_INTERUNIT_ALLOCATION",
+      "9200_INTERUNIT_RECHARGE",
+    ]);
+
+    const after = ledger.getSnapshot();
+    expect(after.internalAllocationsNgn).toBe(250_000);
+    // Law 7: nothing on the external side moved.
+    expect(after.contractValueNgn).toBe(before.contractValueNgn);
+    expect(after.invoicedRevenueNgn).toBe(before.invoicedRevenueNgn);
+    expect(after.recognizedRevenueNgn).toBe(before.recognizedRevenueNgn);
+    expect(after.cashCollectionsNgn).toBe(before.cashCollectionsNgn);
+    expect(after.gmvNgn).toBe(before.gmvNgn);
+  });
+
+  it("no elimination entry touches a receivable or a revenue account", () => {
+    const { ledger, posting } = externalDeal();
+    posting.postInternalUnitAllocation({ allocationId: "A-1", fromUnitCode: "NXTR", toUnitCode: "ONE-STUDIOS", amountNgn: 90_000 });
+    posting.postInternalUnitAllocation({ allocationId: "A-2", fromUnitCode: "ONE-STUDIOS", toUnitCode: "NXTR", amountNgn: 90_000 });
+
+    const eliminated = ledger.getEntries().filter((e) => e.reference.startsWith("INTERUNIT:"));
+    expect(eliminated).toHaveLength(2);
+    const externalAccounts = ["1300_ACCOUNTS_RECEIVABLE", "4010_RECOGNIZED_REVENUE", "1200_CONTRACT_ASSET", "1010_BANK_CASH"];
+    for (const entry of eliminated) {
+      for (const line of entry.lines) {
+        expect(externalAccounts).not.toContain(line.accountCode);
+      }
+    }
+    // Mirror-booked between two VMN units: consolidated external revenue is
+    // unchanged, the elimination bucket carries both charges.
+    const snapshot = ledger.getSnapshot();
+    expect(snapshot.invoicedRevenueNgn).toBe(600_000);
+    expect(snapshot.recognizedRevenueNgn).toBe(400_000);
+    expect(snapshot.internalAllocationsNgn).toBe(180_000);
+  });
+
+  it("the engine refuses an internal amount routed at any external revenue pillar", () => {
+    const ledger = new SevenWayLedgerEngine();
+    expect(() =>
+      ledger.recordPillarAmounts({ internalAllocationsNgn: 100_000, recognizedRevenueNgn: 100_000 }, "INTERNAL_ALLOCATION")
+    ).toThrow(/LEDGER-03/);
+    expect(() =>
+      ledger.recordPillarAmounts({ internalAllocationsNgn: 50_000, cashCollectionsNgn: 50_000 }, "INTERNAL_ALLOCATION")
+    ).toThrow(/LEDGER-03/);
+    // Refused means refused: the rejected call must have advanced nothing.
+    const snapshot = ledger.getSnapshot();
+    expect(snapshot.recognizedRevenueNgn).toBe(0);
+    expect(snapshot.internalAllocationsNgn).toBe(0);
+  });
+
+  it("an external booking cannot hide in the elimination bucket, and an internal one must use it", () => {
+    const ledger = new SevenWayLedgerEngine();
+    expect(() => ledger.recordPillarAmounts({ internalAllocationsNgn: 25_000 })).toThrow(/LEDGER-03/);
+    expect(() => ledger.recordPillarAmounts({ invoicedRevenueNgn: 25_000 }, "INTERNAL_ALLOCATION")).toThrow(/LEDGER-03/);
+    expect(ledger.getSnapshot().invoicedRevenueNgn).toBe(0);
+  });
+
+  it("rejects a self-allocation, a non-positive charge, and a replayed allocation id", () => {
+    const { posting, ledger } = externalDeal();
+    expect(() =>
+      posting.postInternalUnitAllocation({ allocationId: "A-9", fromUnitCode: "ORIS", toUnitCode: "ORIS", amountNgn: 10_000 })
+    ).toThrow(/LEDGER-05/);
+    expect(() =>
+      posting.postInternalUnitAllocation({ allocationId: "A-10", fromUnitCode: "ORIS", toUnitCode: "VTM", amountNgn: 0 })
+    ).toThrow(/LEDGER-04/);
+
+    posting.postInternalUnitAllocation({ allocationId: "A-11", fromUnitCode: "ORIS", toUnitCode: "VTM", amountNgn: 75_000 });
+    expect(() =>
+      posting.postInternalUnitAllocation({ allocationId: "A-11", fromUnitCode: "ORIS", toUnitCode: "VTM", amountNgn: 75_000 })
+    ).toThrow(/LEDGER-06/);
+    // A rejected replay leaves the consolidated figures exactly as they were.
+    expect(ledger.getSnapshot().internalAllocationsNgn).toBe(75_000);
+    expect(ledger.getEntries().filter((e) => e.reference === "INTERUNIT:A-11")).toHaveLength(1);
+  });
+
+  it("keeps elimination amounts exact to the kobo across repeated charges", () => {
+    const ledger = new SevenWayLedgerEngine();
+    const posting = new LedgerPostingService(ledger);
+    for (let i = 0; i < 100; i++) {
+      posting.postInternalUnitAllocation({ allocationId: `F-${i}`, fromUnitCode: "ORIS", toUnitCode: "VTM", amountNgn: 0.1 });
+    }
+    expect(ledger.getSnapshot().internalAllocationsNgn).toBe(10.0);
+    expect(ledger.getSnapshot().recognizedRevenueNgn).toBe(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // TODO-SEC-04 remainder: first-use profile persistence
 // ---------------------------------------------------------------------------
 
@@ -268,14 +401,14 @@ describe("SEC-10: KeyValueAdapter backends honour the same contract", () => {
   });
 
   it("memory adapter: get/set/del, TTL expiry, setIfAbsent lock semantics, incrBy, keys", async () => {
-    await memory.set("k1", "v1", 50);
+    await memory.set("k1", "v1", 250);
     await expect(memory.get("k1")).resolves.toBe("v1");
     await expect(memory.setIfAbsent("k1", "other")).resolves.toBe(false);
     await expect(memory.setIfAbsent("k2", "v2")).resolves.toBe(true);
     await expect(memory.incrBy("counter", 3)).resolves.toBe(3);
     await expect(memory.incrBy("counter", 2)).resolves.toBe(5);
     await expect(memory.keys("k")).resolves.toEqual(["k1", "k2"]);
-    await new Promise((r) => setTimeout(r, 70));
+    await new Promise((r) => setTimeout(r, 300));
     await expect(memory.get("k1")).resolves.toBeNull();
     await memory.set("k2", "v2b");
     await memory.del("k2");
@@ -493,6 +626,18 @@ describe("SCR-20: VTM payment visibility projects 7-way-labelled escrow state", 
 // ---------------------------------------------------------------------------
 
 describe("BCST-03: schedule lifecycle enforces RFA, rights attestation, lock-out", () => {
+  // TSK-10: approval now runs the rights gate, so a lifecycle test needs a
+  // registered record covering the day. One wide fixture for the whole block.
+  const LIFECYCLE_RIGHTS_ID = "rr-tsk10-lifecycle";
+
+  beforeAll(async () => {
+    await registerFixtureRights(fixtureRightsWrite(LIFECYCLE_RIGHTS_ID));
+  });
+
+  afterAll(async () => {
+    await deleteFixtureRights([LIFECYCLE_RIGHTS_ID]);
+  });
+
   beforeEach(() => {
     _resetVersionsForTesting();
     _resetSchedulesForTesting();
@@ -505,9 +650,12 @@ describe("BCST-03: schedule lifecycle enforces RFA, rights attestation, lock-out
       scheduleId: "SCHED-LC-1",
       channelId: "NXTR",
       broadcastDate: "2026-10-05",
-      entries: [{ entryId: "E1", versionId: version.id, programmeTitle: "Lifecycle Show", startSecondsFromDayStart: 7200, durationSeconds: 1800, rightsClearedBy: "rights-officer-1" }],
+      entries: [{ entryId: "E1", versionId: version.id, programmeTitle: "Lifecycle Show", startSecondsFromDayStart: 7200, durationSeconds: 1800, rightsClearedBy: "rights-officer-1", rightsRecordId: LIFECYCLE_RIGHTS_ID }],
     });
-    submitScheduleForApproval("SCHED-LC-1");
+    submitScheduleForApproval("SCHED-LC-1", "scheduler-1");
+    passProgrammingReview({ scheduleId: "SCHED-LC-1", reviewedBy: "programming-1" });
+    passRightsCheck({ scheduleId: "SCHED-LC-1", checkedBy: "rights-officer-1" });
+    passTrafficCheck({ scheduleId: "SCHED-LC-1", attestedBy: "traffic-1" });
     approveSchedule({ scheduleId: "SCHED-LC-1", approvedBy: "broadcast-director-1" });
     return { scheduleId: "SCHED-LC-1", versionId: version.id };
   }
@@ -538,7 +686,7 @@ describe("BCST-03: schedule lifecycle enforces RFA, rights attestation, lock-out
     const approved = getSchedule("SCHED-LC-1")!;
     const badEntries = [
       ...approved.entries,
-      { entryId: "E2", versionId: "VER-NON-RFA", programmeTitle: "Ghost", startSecondsFromDayStart: 20000, durationSeconds: 600, rightsClearedBy: "rights-officer-1" },
+      { entryId: "E2", versionId: "VER-NON-RFA", programmeTitle: "Ghost", startSecondsFromDayStart: 20000, durationSeconds: 600, rightsClearedBy: "rights-officer-1", rightsRecordId: LIFECYCLE_RIGHTS_ID },
     ];
     expect(() =>
       amendSchedule({ scheduleId: "SCHED-LC-1", amendedBy: "scheduler-1", entries: badEntries as any, now: new Date(approved.lockoutAt!.getTime() - 60_000) })
@@ -645,6 +793,11 @@ function scheduleForPresentation(state: BroadcastScheduleRecord["state"]): Broad
     broadcastDate: "2026-10-05",
     state,
     amendmentCount: 0,
+    // Presentation reads `state` and `entries` only; revision identity is the
+    // lifecycle's business and is asserted in the TSK-12 transition suite.
+    revision: 0,
+    revisions: [],
+    stageTrail: [],
     entries: [
       { entryId: "E1", versionId: "v", programmeTitle: "Morning Show", startSecondsFromDayStart: 6 * 3600, durationSeconds: 2 * 3600, rightsClearedBy: "rights-1" },
       { entryId: "E2", versionId: "v", programmeTitle: "Midday Show", startSecondsFromDayStart: 12 * 3600, durationSeconds: 2 * 3600, rightsClearedBy: "rights-1" },
@@ -658,6 +811,18 @@ describe("BCST-08/09: now/next resolves from approved schedules with timezone pr
     const now = new Date("2026-10-05T12:30:00Z"); // 13:30 WAT — inside Midday Show
     const draft = resolveNowAndNext({ channelCode: "NXTR", schedules: [scheduleForPresentation("DRAFT")], now });
     expect(draft.available).toBe(false);
+
+    // PRD §15 pre-approval stages are planning data: they must not leak to the
+    // viewer either, even though RIGHTS_CHECK has already run the gate.
+    for (const state of ["PROGRAMMING_REVIEW", "RIGHTS_CHECK", "TRAFFIC_READY"] as const) {
+      const pending = resolveNowAndNext({ channelCode: "NXTR", schedules: [scheduleForPresentation(state)], now });
+      expect(pending.available, `${state} must not be served as an approved schedule`).toBe(false);
+    }
+    // Stages after approval are still the approved day, so they stay eligible.
+    for (const state of ["PLAYLIST_GENERATED", "ON_AIR", "AS_RUN_RECONCILED", "ARCHIVED"] as const) {
+      const aired = resolveNowAndNext({ channelCode: "NXTR", schedules: [scheduleForPresentation(state)], now });
+      expect(aired.available, `${state} is an approved day and must stay visible`).toBe(true);
+    }
 
     const view = resolveNowAndNext({ channelCode: "NXTR", schedules: [scheduleForPresentation("APPROVED")], now });
     expect(view.available).toBe(true);
@@ -842,6 +1007,34 @@ describe("FIN-07: billing schedule generated only from matched as-run records", 
     expect(matchedCount).toBe(0);
     expect(makeGoods[0].reason).toBe("SHORT_AIR");
   });
+
+  /**
+   * TSK-33: FIN-07 was reopened because a credit stopped at the billing record
+   * while the desk claimed a ledger entry. The posting half therefore has its own
+   * guards, independent of the exception register that calls it.
+   */
+  it("TSK-33: a make-good credit note posts a balanced contra journal, once", () => {
+    const posting = new LedgerPostingService(new SevenWayLedgerEngine());
+    const params = {
+      creditNoteId: "CN-C-Q4-S3",
+      campaignCode: "C-Q4",
+      spotId: "S3",
+      valueNgn: 1_250_000,
+      reason: "PREEMPTED",
+      issuedBy: "finance-controller-1",
+    };
+
+    const { entry } = posting.postMakeGoodCreditNote(params);
+    expect(entry.id).toBe("CREDIT:CN-C-Q4-S3");
+    expect(entry.totalDebitNgn).toBe(entry.totalCreditNgn);
+    expect(posting.getCreditedMakeGoodsNgn()).toBe(1_250_000);
+    expect(() => posting.postMakeGoodCreditNote(params)).toThrow("[LEDGER-08]");
+    expect(posting.getCreditedMakeGoodsNgn()).toBe(1_250_000);
+
+    // A zero-value contra entry would journal nothing while looking posted.
+    expect(() => posting.postMakeGoodCreditNote({ ...params, creditNoteId: "CN-ZERO", valueNgn: 0 })).toThrow("[LEDGER-07]");
+    expect(posting.getLedger().getEntries()).toHaveLength(1);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -901,9 +1094,8 @@ describe("FIN-08: royalty CSV parser ingests valid rows and rejects corrupt ones
 });
 
 // ---------------------------------------------------------------------------
-// TODO-SEC-08 (route-level): idempotency on the five named mutations.
-// AC-SEC-08-01: the same operation-identity key replays the recorded outcome
-// (same ticket / hash / revision) instead of minting a second effect.
+// TODO-SEC-08 (route-level): verify available mutation idempotency and fail closed
+// for contract signing until canonical authorization and evidence workflow exists.
 // ---------------------------------------------------------------------------
 describe("SEC-08: mutation idempotency (route level)", () => {
   let app: ApiServerInstance;
@@ -937,18 +1129,15 @@ describe("SEC-08: mutation idempotency (route level)", () => {
     expect(replayBody.revision ?? firstBody.revision).toBeDefined();
   });
 
-  it("signs a VTM contract once per operation key and replays the original signedHash", async () => {
+  it("refuses VTM signing until the canonical contract authorization and evidence workflow exists", async () => {
     const payload = { legalSignature: "A. Talent", termsAffirmation: true, idempotencyKey: "sign-key-1" };
-    const first = await post("/api/v1/vtm/contracts/VTM-CONTRACT-IDEM-1/sign", payload);
-    expect(first.statusCode).toBe(200);
-    const firstBody = JSON.parse(first.body);
-    expect(firstBody.signedHash).toBeDefined();
-
-    const replay = await post("/api/v1/vtm/contracts/VTM-CONTRACT-IDEM-1/sign", payload);
-    expect(replay.statusCode).toBe(200);
-    const replayBody = JSON.parse(replay.body);
-    expect(replayBody.replay).toBe(true);
-    expect(replayBody.signedHash).toBe(firstBody.signedHash);
+    const first = await makeHttpRequest(testPort, "/api/v1/vtm/contracts/VTM-CONTRACT-IDEM-1/sign", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: "" },
+      body: JSON.stringify(payload),
+    });
+    expect(first.statusCode).toBe(401);
+    expect(JSON.parse(first.body).code).not.toBe("SUCCESS");
   });
 
   it("dedupes a client question under one operation key", async () => {
@@ -964,14 +1153,25 @@ describe("SEC-08: mutation idempotency (route level)", () => {
   });
 
   it("dedupes an expedited rights review request under one operation key", async () => {
-    const payload = { slotId: "SLOT-IDEM-1", justification: "Test", idempotencyKey: "rw-key-1" };
+    const payload = {
+      slotId: "SLOT-IDEM-1",
+      justification: "Test",
+      rightsRecordId: "RGT-IDEM-1",
+      intendedUse: "Linear transmission on NXTR",
+      observedBlocker: "POST_EXPIRY_DATE",
+      receivingOwner: "Broadcast Rights Coordinator",
+      idempotencyKey: "rw-key-1",
+    };
     const first = await post("/api/v1/broadcast/rights/review-requests", payload);
     expect(first.statusCode).toBe(200);
-    const firstTicket = JSON.parse(first.body).ticketId;
-    expect(firstTicket).toBeDefined();
+    const body = JSON.parse(first.body);
+    expect(body.ticketId).toBeDefined();
+    // TSK-14: the replay returns the same workflow record, not just the same number.
+    expect(body.requestId).toMatch(/^rrr-/);
 
     const replay = await post("/api/v1/broadcast/rights/review-requests", payload);
-    expect(JSON.parse(replay.body).ticketId).toBe(firstTicket);
+    expect(JSON.parse(replay.body).ticketId).toBe(body.ticketId);
+    expect(JSON.parse(replay.body).requestId).toBe(body.requestId);
   });
 });
 
@@ -1033,14 +1233,21 @@ describe("SCR-03: approved media picker (UX-CMS-006)", () => {
     expect(projection.assets.find((a) => a.assetId === failed.assetId)?.accessNotes).toMatch(/MIME mismatch/);
   });
 
-  it("scopes the picker to the session tenant plus the shared library", () => {
-    registerMediaAsset({ ...baseRegistration, registeredBy: "a@vmnl.ng", tenantId: "tenant-a" });
-    registerMediaAsset({ ...baseRegistration, title: "Shared sting", assetKey: "shared/sting.mp4", checksumSha256: "c".repeat(64), registeredBy: "a@vmnl.ng" });
-    registerMediaAsset({ ...baseRegistration, title: "Tenant B master", assetKey: "tenants/t-2/master.mp4", checksumSha256: "d".repeat(64), registeredBy: "b@vmnl.ng", tenantId: "tenant-b" });
+  it("refuses a tenant the unowned (tenant-less) rows — fail-closed scoping (TSK-58)", () => {
+    registerMediaAsset({ ...baseRegistration, assetKey: "tenants/tenant-a/masters/lagos-noir-r1.mp4", registeredBy: "a@vmnl.ng", tenantId: "tenant-a" });
+    registerMediaAsset({ ...baseRegistration, title: "Unowned sting", assetKey: "shared/sting.mp4", checksumSha256: "c".repeat(64), registeredBy: "a@vmnl.ng" });
+    registerMediaAsset({ ...baseRegistration, title: "Tenant B master", assetKey: "tenants/tenant-b/master.mp4", checksumSha256: "d".repeat(64), registeredBy: "b@vmnl.ng", tenantId: "tenant-b" });
 
-    const seenByA = listApprovedMediaAssets({ tenantId: "tenant-a" });
-    expect(seenByA.map((a) => a.title).sort()).toEqual(["Lagos Noir — Master R1", "Shared sting"]);
-    expect(seenByA.some((a) => a.title === "Tenant B master")).toBe(false);
+    const titles = (assets: { title: string }[]) => assets.map((a) => a.title).sort();
+    // A tenant session sees its own rows and nothing else: not another
+    // tenant's master, and not the tenant-less rows the old
+    // `!a.tenantId ||` branch used to hand to everyone.
+    expect(titles(listApprovedMediaAssets({ tenantId: "tenant-a" }))).toEqual(["Lagos Noir — Master R1"]);
+    expect(titles(listApprovedMediaAssets({ tenantId: "tenant-b" }))).toEqual(["Tenant B master"]);
+    // Unscoped server-side calls (projections, EPG hydration) still read the
+    // whole registry — the unowned row is not hidden from the platform, only
+    // from tenants that do not own it.
+    expect(titles(listApprovedMediaAssets())).toEqual(["Lagos Noir — Master R1", "Tenant B master", "Unowned sting"]);
   });
 
   it("enforces the DAM MIME allowlist at registration", () => {
@@ -1107,6 +1314,104 @@ describe("SCR-03: media asset registration (route level)", () => {
       headers: { "x-test-role": "SuperAdmin" },
     });
     expect(JSON.parse(list.body).assets.some((a: { assetId: string }) => a.assetId === asset.assetId)).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// TSK-58 boxes 1–2: tenant isolation proved through an HTTP route rather than
+// only at the predicate, with the tenant-less ("unowned") branch fail-closed.
+// Real signed sessions are required: the `x-test-role` harness mints a user
+// with no `tenantId`, which is exactly the unscoped caller being tested
+// against, so it cannot stand in for a tenant subject.
+// ---------------------------------------------------------------------------
+describe("TSK-58: media-asset routes refuse cross-tenant and unowned rows", () => {
+  let app: ApiServerInstance;
+  const testPort = 4270;
+
+  const fixtureIds = ["MA-TSK58-A1", "MA-TSK58-A2", "MA-TSK58-B1", "MA-TSK58-UNOWNED"];
+
+  function tenantCookie(tenantId: string): string {
+    const token = signSessionToken({
+      userId: `usr-tsk58-${tenantId}`,
+      personId: `per-tsk58-${tenantId}`,
+      email: `director@${tenantId}.vmnl.ng`,
+      roles: ["BroadcastDirector"], // read:storage derives from read:broadcast
+      tenantId,
+    }).accessToken;
+    return `vmnl_session=${token}`;
+  }
+
+  async function listAs(tenantId: string): Promise<{ statusCode: number; ids: string[] }> {
+    const res = await makeHttpRequest(testPort, "/api/v1/cms/media-assets", {
+      headers: { Cookie: tenantCookie(tenantId) },
+    });
+    const parsed = JSON.parse(res.body) as { assets?: { assetId: string }[] };
+    return { statusCode: res.statusCode, ids: (parsed.assets || []).map((a) => a.assetId) };
+  }
+
+  beforeAll(async () => {
+    app = createApiServer(testPort, { NODE_ENV: "test", AUTH_BYPASS_ENABLED: "false" });
+    await app.start();
+    // Boot backfills the golden library (all of it unowned); the four fixtures
+    // below are the scoped set under test, so start from an empty index.
+    _resetMediaAssetsForTesting();
+    const fixture = (assetId: string, title: string, assetKey: string, tenantId?: string) =>
+      registerMediaAsset({
+        assetId,
+        title,
+        assetKey,
+        mimeType: "video/mp4",
+        sizeBytes: 4096,
+        checksumSha256: createHash("sha256").update(assetKey).digest("hex"),
+        provenance: "TSK-58 tenant-scoping fixture",
+        virusScanPassed: true,
+        registeredBy: `ingest@${tenantId || "platform"}.ng`,
+        ...(tenantId ? { tenantId } : {}),
+      });
+    fixture("MA-TSK58-A1", "Tenant A master", "tests/tsk58/a-master.mp4", "tenant-a");
+    fixture("MA-TSK58-A2", "Tenant A still", "tests/tsk58/a-still.jpg", "tenant-a");
+    fixture("MA-TSK58-B1", "Tenant B master", "tests/tsk58/b-master.mp4", "tenant-b");
+    fixture("MA-TSK58-UNOWNED", "Unowned platform sting", "tests/tsk58/unowned-sting.mp4");
+  });
+
+  afterAll(async () => {
+    await app.stop();
+    _resetMediaAssetsForTesting();
+    const db = await checkDatabaseConnection();
+    if (db.connected) {
+      await getPrismaClient().mediaAssetRecord.deleteMany({ where: { id: { in: fixtureIds } } });
+    }
+  });
+
+  it("serves a tenant only its own rows over HTTP", async () => {
+    const a = await listAs("tenant-a");
+    expect(a.statusCode).toBe(200);
+    expect(a.ids.sort()).toEqual(["MA-TSK58-A1", "MA-TSK58-A2"]);
+
+    const b = await listAs("tenant-b");
+    expect(b.statusCode).toBe(200);
+    expect(b.ids).toEqual(["MA-TSK58-B1"]);
+  });
+
+  it("keeps an unowned row out of every tenant session (fail-closed, not shared)", async () => {
+    for (const tenantId of ["tenant-a", "tenant-b", "tenant-c"]) {
+      const { ids } = await listAs(tenantId);
+      expect(ids).not.toContain("MA-TSK58-UNOWNED");
+    }
+    // The row is not deleted or hidden from the platform: unscoped server-side
+    // callers (projections, SuperAdmin sandbox) still resolve it by id.
+    expect(listApprovedMediaAssets().map((a) => a.assetId)).toContain("MA-TSK58-UNOWNED");
+    expect(getMediaAsset("MA-TSK58-UNOWNED")?.title).toBe("Unowned platform sting");
+  });
+
+  it("renders the tenant's media desk without another tenant's asset", async () => {
+    const html = await makeHttpRequest(testPort, "/workspace/content/media-picker", {
+      headers: { Cookie: tenantCookie("tenant-b") },
+    });
+    expect(html.statusCode).toBe(200);
+    expect(html.body).toContain("MA-TSK58-B1");
+    expect(html.body).not.toContain("MA-TSK58-A1");
+    expect(html.body).not.toContain("MA-TSK58-UNOWNED");
   });
 });
 
@@ -1471,6 +1776,17 @@ describe("SCR-03: golden DAM backfill", () => {
 });
 
 describe("EPG & channel schedule DAM master linkage (SCR-03 follow-on)", () => {
+  // TSK-05: Programme.channelCode is an enforced FK; seed the channel masters
+  // these fixtures hang programmes on. Rows are cleared before and after so the
+  // index-refresh counts below stay deterministic.
+  const FIXTURE_PROGRAMMES = ["PRG-LINK-1", "PRG-LINK-2"];
+  const resetFixtureScope = async () => {
+    await deleteFixtureRows({ programmeCodes: FIXTURE_PROGRAMMES });
+    await ensureFixtureChannels(["NXTR", "ORIS"]);
+  };
+  beforeAll(resetFixtureScope);
+  afterAll(() => deleteFixtureRows({ programmeCodes: FIXTURE_PROGRAMMES }));
+
   beforeEach(() => {
     _resetMediaAssetsForTesting();
     _resetEpisodeMasterIndexForTesting();
@@ -1658,6 +1974,21 @@ describe("EPG & channel schedule DAM master linkage (SCR-03 follow-on)", () => {
 });
 
 describe("ScheduleEntry episodeCode: validation, live master on now/next, demo seed", () => {
+  const FIXTURE_PROGRAMMES = ["PRG-LNK-A", "PRG-LNK-B", "PRG-LNK-O", "PRG-SD-A", "PRG-SD-B"];
+  // TSK-10: the golden seed can only approve a channel whose masters carry a
+  // registered RightsRecord, so these fixtures exist for the seed tests below.
+  const LINKAGE_RIGHTS_ID = "rr-tsk10-linkage";
+  const SEED_RIGHTS: { id: string; assetId: string }[] = [
+    { id: "rr-tsk10-sd-1", assetId: "MA-SD-1" },
+    { id: "rr-tsk10-sd-2", assetId: "MA-SD-2" },
+  ];
+  beforeAll(async () => {
+    await deleteFixtureRows({ programmeCodes: FIXTURE_PROGRAMMES });
+    await ensureFixtureChannels(["NXTR", "ORIS"]);
+    await deleteFixtureRights([LINKAGE_RIGHTS_ID, ...SEED_RIGHTS.map((r) => r.id)]);
+  });
+  afterAll(() => deleteFixtureRows({ programmeCodes: FIXTURE_PROGRAMMES }));
+
   const demoQc: VersionQcReport = {
     videoStandard: "1080i50",
     aspectRatio: "16:9",
@@ -1667,16 +1998,24 @@ describe("ScheduleEntry episodeCode: validation, live master on now/next, demo s
     hasClosedCaptionTrack: true,
   };
 
-  beforeEach(() => {
+  beforeEach(async () => {
     _resetVersionsForTesting(); // clears versions + schedules
     _resetEpisodeMasterIndexForTesting();
     _resetMediaAssetsForTesting();
+    // Determinism for the seed tests: the gate decides on registered records, so
+    // each test starts from an index holding only what it registers here.
+    _resetRegisteredRightsIndexForTesting();
+    await registerFixtureRights(fixtureRightsWrite(LINKAGE_RIGHTS_ID));
   });
 
   afterAll(() => {
     _resetVersionsForTesting();
     _resetEpisodeMasterIndexForTesting();
     _resetMediaAssetsForTesting();
+  });
+
+  afterAll(async () => {
+    await deleteFixtureRights([LINKAGE_RIGHTS_ID, ...SEED_RIGHTS.map((r) => r.id)]);
   });
 
   function airableVersion(id: string, episodeId: string): void {
@@ -1715,6 +2054,9 @@ describe("ScheduleEntry episodeCode: validation, live master on now/next, demo s
       broadcastDate: "2026-10-05",
       state: "APPROVED",
       amendmentCount: 0,
+      revision: 0,
+      revisions: [],
+      stageTrail: [],
       entries,
     };
   }
@@ -1726,8 +2068,10 @@ describe("ScheduleEntry episodeCode: validation, live master on now/next, demo s
   };
 
   it("[SCHED-VAL-06/07] rejects blank and contradictory episodeCode; accepts matching or absent", () => {
+    // TSK-10: the accepted path needs a registered record to approve against
+    // (LINKAGE_RIGHTS_IDS, registered in this block's beforeAll).
     airableVersion("v-ok", "EP-0001");
-    const entry = { versionId: "v-ok", programmeTitle: "Show", startSecondsFromDayStart: 0, durationSeconds: 7200, rightsClearedBy: "rights-1" };
+    const entry = { versionId: "v-ok", programmeTitle: "Show", startSecondsFromDayStart: 0, durationSeconds: 7200, rightsClearedBy: "rights-1", rightsRecordId: LINKAGE_RIGHTS_ID };
 
     upsertDraftSchedule({
       scheduleId: "S-BLANK",
@@ -1754,8 +2098,10 @@ describe("ScheduleEntry episodeCode: validation, live master on now/next, demo s
         { entryId: "e2", ...entry, startSecondsFromDayStart: 7200 },
       ],
     });
-    expect(submitScheduleForApproval("S-OK").state).toBe("PENDING_APPROVAL");
-    approveSchedule({ scheduleId: "S-OK", approvedBy: "test" });
+    // TSK-12: submitting now lands in PROGRAMMING_REVIEW — the PRD §15 stage where
+    // an entry is structurally accepted, not yet an approval queue.
+    expect(submitScheduleForApproval("S-OK").state).toBe("PROGRAMMING_REVIEW");
+    approvePreAirChain("S-OK", { approvedBy: "test" });
     const stored = getSchedule("S-OK")!;
     expect(stored.state).toBe("APPROVED");
     expect(stored.entries[0].episodeCode).toBe("EP-0001");
@@ -1837,8 +2183,16 @@ describe("ScheduleEntry episodeCode: validation, live master on now/next, demo s
   });
 
   it("demo seed builds an approved full-day episode-linked schedule from the index, idempotently", async () => {
+    // The seed indexes whatever the durable store holds for a channel, so this
+    // test owns a clean scope: sibling fixtures' programmes are removed before
+    // the refresh, otherwise their episodes are legitimately counted too.
+    await deleteFixtureRows({
+      programmeCodes: ["PRG-LINK-1", "PRG-LINK-2", "PRG-LNK-A", "PRG-LNK-B", "PRG-LNK-O"],
+    });
+    _resetEpisodeMasterIndexForTesting();
+
     // Empty index → seeds nothing (never fabricates entries).
-    expect(ensureScheduleDemoSeed()).toEqual({ channelsSeeded: 0, entries: 0, skipped: 3 });
+    expect(ensureScheduleDemoSeed()).toEqual({ channelsSeeded: 0, entries: 0, skipped: 3, unclearedChannels: 0 });
 
     const repo = new ScheduleRepository();
     await repo.createProgramme({ code: "PRG-SD-A", title: "Seed Show A", channelCode: "NXTR" });
@@ -1847,7 +2201,17 @@ describe("ScheduleEntry episodeCode: validation, live master on now/next, demo s
     await repo.createEpisode({ episodeCode: "EP-SD-2", programmeCode: "PRG-SD-B", episodeNumber: 1, title: "B1", durationSeconds: 1000, mediaAssetId: "MA-SD-2" });
     await refreshEpisodeMasterIndex({ repository: repo });
 
-    expect(ensureScheduleDemoSeed()).toEqual({ channelsSeeded: 1, entries: 2, skipped: 2 });
+    // TSK-10: masters are indexed but their assets carry no registered
+    // RightsRecord, so there is nothing to clear against and the seed refuses —
+    // it does not approve a day it cannot clear, and leaves no schedule behind.
+    expect(ensureScheduleDemoSeed()).toEqual({ channelsSeeded: 0, entries: 0, skipped: 2, unclearedChannels: 1 });
+    expect(listSchedules("NXTR").filter((s) => s.broadcastDate === governingDate())).toHaveLength(0);
+
+    for (const seed of SEED_RIGHTS) {
+      await registerFixtureRights(fixtureRightsWrite(seed.id, { assetId: seed.assetId }));
+    }
+
+    expect(ensureScheduleDemoSeed()).toEqual({ channelsSeeded: 1, entries: 2, skipped: 2, unclearedChannels: 0 });
 
     const schedule = listSchedules("NXTR").find((s) => s.broadcastDate === governingDate());
     expect(schedule).toBeDefined();
@@ -1858,6 +2222,8 @@ describe("ScheduleEntry episodeCode: validation, live master on now/next, demo s
     expect(schedule!.entries.reduce((sum, e) => sum + e.durationSeconds, 0)).toBe(86_400); // full-day, gap-free
     expect(schedule!.entries.map((e) => e.episodeCode).sort()).toEqual(["EP-SD-1", "EP-SD-2"]);
     expect(schedule!.entries.every((e) => e.rightsClearedBy.includes("sandbox demo"))).toBe(true);
+    // The approval cleared against the registered record, not the attestation text.
+    expect(schedule!.entries.every((e) => e.rightsRecordId?.startsWith("rr-tsk10-sd-"))).toBe(true);
 
     // Versions are PASSED + RFA masters bound to the registered DAM asset.
     const version = getVersion("ver-demo-EP-SD-1")!;
@@ -1876,11 +2242,11 @@ describe("ScheduleEntry episodeCode: validation, live master on now/next, demo s
     }
 
     // Second run: already covered → idempotent, no duplicate schedules.
-    expect(ensureScheduleDemoSeed()).toEqual({ channelsSeeded: 0, entries: 0, skipped: 3 });
+    expect(ensureScheduleDemoSeed()).toEqual({ channelsSeeded: 0, entries: 0, skipped: 3, unclearedChannels: 0 });
     expect(listSchedules("NXTR").filter((s) => s.broadcastDate === governingDate())).toHaveLength(1);
   });
 
-  it("channel page widget shows the live master after the demo seed", async () => {
+  it("channel page does not publish demo-seeded schedules as live status", async () => {
     const repo = new ScheduleRepository();
     await repo.createProgramme({ code: "PRG-SD-A", title: "Seed Show A", channelCode: "NXTR" });
     await repo.createProgramme({ code: "PRG-SD-B", title: "Seed Show B", channelCode: "NXTR" });
@@ -1893,8 +2259,9 @@ describe("ScheduleEntry episodeCode: validation, live master on now/next, demo s
     // "final published programme" state is honest but has no master line.
     const fixedNow = new Date(`${governingDate()}T05:00:00Z`);
     const html = renderChannelDetailPageHtml("NXTR", undefined, { now: fixedNow });
-    expect(html).toContain("ON AIR NOW");
-    expect(html).toContain("vmn-master-ref");
+    expect(html).not.toContain("ON AIR NOW");
+    expect(html).toContain("No approved, source-backed schedule is connected");
+    expect(html).toContain("UNREGISTERED");
     expect(html).toMatch(/MA-SD-[12]/);
   });
 
@@ -1907,6 +2274,13 @@ describe("ScheduleEntry episodeCode: validation, live master on now/next, demo s
 });
 
 describe("Schedule review desk: episode master linkage keyed by its channel parameter", () => {
+  const FIXTURE_PROGRAMMES = ["PRG-KEY-N", "PRG-KEY-O"];
+  beforeAll(async () => {
+    await deleteFixtureRows({ programmeCodes: FIXTURE_PROGRAMMES });
+    await ensureFixtureChannels(["NXTR", "ORIS"]);
+  });
+  afterAll(() => deleteFixtureRows({ programmeCodes: FIXTURE_PROGRAMMES }));
+
   beforeEach(() => {
     _resetMediaAssetsForTesting();
     _resetEpisodeMasterIndexForTesting();

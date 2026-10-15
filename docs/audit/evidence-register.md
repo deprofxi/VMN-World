@@ -228,7 +228,7 @@ reproducible verification baseline; this tree did not compile until 2026-10-07).
     §1 of this same document: TSK-17 added `tests/unit/durability-release-critical.test.ts`
     (`tests/unit/durability-drill-coverage.test.ts` also exists), and `privacySecurityCase`,
     `approvalItem` and `contentItem` are three of the **15** stores registered with the durable journal
-    (`src/core/approvals/index.ts:61`, `src/core/cases/index.ts:35`, `src/core/content/index.ts:104`).
+    (`src/core/approvals/index.ts:61`, `src/core/cases/index.ts:35`, `src/core/content/index.ts:107`).
     It is corrected, not re-asserted.
   - **Migrations deployable from clean** — `prisma migrate deploy` / `migrate diff` unverified;
     three migrations and `migration_lock.toml` are still uncommitted (`tasks.md` TSK-06).

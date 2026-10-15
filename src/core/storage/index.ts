@@ -10,6 +10,8 @@
 
 import crypto from "crypto";
 import { getConfig } from "../config/index.js";
+import { registerDurableStore, stageDurableWrite } from "../database/durable-journal.js";
+import { loadMediaAssetRecords, persistMediaAssetRecord } from "../database/repositories/release-critical.repository.js";
 
 export interface PresignedUploadRequest {
   fileName: string;
@@ -315,10 +317,54 @@ export interface RegisterMediaAssetParams {
 const mediaAssetRegistry = new Map<string, MediaAssetRecord>();
 
 /**
+ * TSK-17: the registry is the read index for the durable `MediaAssetRecord`
+ * rows. Registration is the one write path, and a row the database rejects is
+ * removed from the index again, so the DAM picker can never offer an asset no
+ * other process can see.
+ */
+registerDurableStore<MediaAssetRecord>("mediaAssetRecord", persistMediaAssetRecord);
+
+function stageMediaAsset(record: MediaAssetRecord): void {
+  stageDurableWrite<MediaAssetRecord>({
+    store: "mediaAssetRecord",
+    key: record.assetId,
+    payload: record,
+    rollback: () => {
+      mediaAssetRegistry.delete(record.assetId);
+    },
+  });
+}
+
+/** Boot hydration (TSK-17): rebuild the DAM registry from durable rows. */
+export async function refreshMediaAssetIndex(): Promise<{ assets: number }> {
+  const loaded = await loadMediaAssetRecords();
+  mediaAssetRegistry.clear();
+  for (const record of loaded) mediaAssetRegistry.set(record.assetId, record);
+  return { assets: mediaAssetRegistry.size };
+}
+
+/**
  * Registers a DAM asset in the approved-media registry. Access state is
  * derived from validation evidence: any validation error → FAILED,
  * clean virus scan → AVAILABLE, otherwise QUARANTINED.
  */
+/** The tenant namespace `generatePresignedUploadUrl` signs uploads into. */
+const TENANT_KEY_NS = /^tenants\/([^/]+)\//;
+
+/**
+ * TSK-58 box 1: a tenant-scoped registration may neither adopt a row that is
+ * not its own nor re-key another tenant's namespace. Without this the
+ * idempotent lookups below *return the foreign record* to the caller, which
+ * makes the write route a read path for another tenant's title, checksum and
+ * provenance.
+ */
+function assertTenantOwnership(params: RegisterMediaAssetParams, candidate: MediaAssetRecord): void {
+  if (!params.tenantId || candidate.tenantId === params.tenantId) return;
+  throw new Error(
+    `[MEDIA-ASSET-07] '${candidate.assetId}' is not this tenant's asset; a tenant session cannot register into or adopt another tenant's row.`
+  );
+}
+
 export function registerMediaAsset(params: RegisterMediaAssetParams): MediaAssetRecord {
   if (!params.title?.trim()) throw new Error("[MEDIA-ASSET-01] Title is required.");
   if (!params.assetKey?.trim()) throw new Error("[MEDIA-ASSET-02] Asset key is required.");
@@ -328,14 +374,27 @@ export function registerMediaAsset(params: RegisterMediaAssetParams): MediaAsset
   if (!params.checksumSha256?.trim()) {
     throw new Error("[MEDIA-ASSET-04] Checksum is required (computeSha256 of the validated buffer).");
   }
+  const key = params.assetKey.trim();
+  const ns = TENANT_KEY_NS.exec(key);
+  if (params.tenantId && ns && ns[1] !== params.tenantId) {
+    throw new Error(
+      `[MEDIA-ASSET-07] '${params.assetId || key}' targets the '${ns[1]}' tenant namespace; a tenant session cannot register into another tenant's namespace.`
+    );
+  }
   // Idempotent backfill semantics (SCR-03 seed): the same explicit assetId or
   // the same assetKey returns the existing record instead of minting a twin.
   if (params.assetId?.trim()) {
     const existing = mediaAssetRegistry.get(params.assetId.trim());
-    if (existing) return existing;
+    if (existing) {
+      assertTenantOwnership(params, existing);
+      return existing;
+    }
   }
   for (const candidate of mediaAssetRegistry.values()) {
-    if (candidate.assetKey === params.assetKey.trim()) return candidate;
+    if (candidate.assetKey === key) {
+      assertTenantOwnership(params, candidate);
+      return candidate;
+    }
   }
 
   const id = params.assetId?.trim() || `MA-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random() * 9000 + 1000)}`;
@@ -361,6 +420,7 @@ export function registerMediaAsset(params: RegisterMediaAssetParams): MediaAsset
     registeredAt: params.registeredAt ?? new Date(),
   };
   mediaAssetRegistry.set(id, record);
+  stageMediaAsset(record);
   return record;
 }
 
@@ -369,16 +429,16 @@ export function getMediaAsset(assetId: string): MediaAssetRecord | undefined {
 }
 
 /**
- * Lists registry assets. Tenant sessions see their tenant's assets plus the
- * shared (tenant-less) library; unscoped calls (server-side projections)
- * see everything. Only AVAILABLE assets are approved for use as evidence
- * attachments / media references; callers may request the others explicitly
- * for review purposes.
+ * Lists registry assets. A tenant session sees only rows carrying its own
+ * `tenantId`: a tenant-less row is *unowned*, not shared, and the old
+ * `!a.tenantId ||` branch handed every one of them to every tenant. Callers
+ * that pass no scope (server-side projections, the dev/test bypass) still read
+ * the whole registry; non-AVAILABLE assets need an explicit reviewer request.
  */
 export function listApprovedMediaAssets(params?: { tenantId?: string; includeNonAvailable?: boolean }): MediaAssetRecord[] {
   let all = [...mediaAssetRegistry.values()];
   if (params?.tenantId) {
-    all = all.filter((a) => !a.tenantId || a.tenantId === params.tenantId);
+    all = all.filter((a) => a.tenantId === params.tenantId);
   }
   if (!params?.includeNonAvailable) {
     all = all.filter((a) => a.accessState === "AVAILABLE");

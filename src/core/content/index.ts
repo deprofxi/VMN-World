@@ -15,6 +15,8 @@
  */
 
 import type { MediaAssetRecord } from "../storage/index.js";
+import { registerDurableStore, stageDurableWrite } from "../database/durable-journal.js";
+import { loadContentItems, persistContentItem } from "../database/repositories/release-critical.repository.js";
 
 /**
  * Seam for validating mediaAssetIds against the canonical DAM registry.
@@ -28,14 +30,17 @@ export function wireMediaAssetLookup(lookup: (assetId: string) => MediaAssetReco
   mediaAssetLookup = lookup;
 }
 
-function requireRegisteredMediaAssets(assetIds: string[] | undefined): void {
+function requireRegisteredMediaAssets(assetIds: string[] | undefined, tenantId?: string): void {
   if (!assetIds || assetIds.length === 0) return;
   if (!mediaAssetLookup) {
     throw new Error("[CMS-11] Media asset registry is not wired; mediaAssetIds cannot be validated.");
   }
   for (const id of assetIds) {
     const asset = mediaAssetLookup(id);
-    if (!asset) {
+    // A foreign tenant's id and a nonexistent one get the *same* message: an
+    // editor must not be able to use this route to discover which asset ids
+    // belong to another tenant.
+    if (!asset || (tenantId && asset.tenantId && asset.tenantId !== tenantId)) {
       throw new Error(`[CMS-11] mediaAssetId '${id}' is not a registered DAM asset; use the approved media picker references only.`);
     }
     if (asset.accessState !== "AVAILABLE") {
@@ -93,6 +98,36 @@ export interface ContentItem {
 
 const contentItems = new Map<string, ContentItem>();
 
+/**
+ * TSK-17: the revision chain is the CMS audit record — an approved revision
+ * must not be rewritable, and a publication decision must outlive the process
+ * that made it. The Map below is the read index for `ContentItemRecord` plus
+ * `ContentRevisionRecord`, rebuilt from those rows at boot.
+ */
+registerDurableStore<ContentItem>("contentItem", persistContentItem);
+
+function stageContent(item: ContentItem): void {
+  stageDurableWrite<ContentItem>({
+    store: "contentItem",
+    key: item.id,
+    payload: item,
+    rollback: () => {
+      contentItems.delete(item.id);
+    },
+  });
+}
+
+/** Boot hydration (TSK-17): rebuild the CMS masters and their revision chains. */
+export async function refreshContentIndex(): Promise<{ items: number; revisions: number }> {
+  const loaded = await loadContentItems();
+  contentItems.clear();
+  for (const item of loaded) contentItems.set(item.id, item);
+  return {
+    items: contentItems.size,
+    revisions: [...contentItems.values()].reduce((total, item) => total + item.revisions.size, 0),
+  };
+}
+
 export function createContent(params: {
   id: string;
   title: string;
@@ -104,6 +139,8 @@ export function createContent(params: {
   claimSources?: string[];
   alternativeText?: string;
   authorId: string;
+  /** Session tenant; when present, only this tenant's (or unowned) assets bind. */
+  tenantId?: string;
 }): ContentItem {
   if (contentItems.has(params.id)) {
     throw new Error(`[CMS-01] Content '${params.id}' already exists.`);
@@ -112,7 +149,7 @@ export function createContent(params: {
     throw new Error("[CMS-02] Canonical slug must be lower-kebab-case.");
   }
   // SCR-03: canonical media references — validated against the DAM registry.
-  requireRegisteredMediaAssets(params.mediaAssetIds);
+  requireRegisteredMediaAssets(params.mediaAssetIds, params.tenantId);
   const revision: ContentRevision = {
     revision: 1,
     title: params.title,
@@ -133,6 +170,7 @@ export function createContent(params: {
     revisions: new Map([[1, revision]]),
   };
   contentItems.set(params.id, item);
+  stageContent(item);
   return item;
 }
 
@@ -147,6 +185,7 @@ export function getContent(id: string): ContentItem | undefined {
 export function editContent(params: {
   id: string;
   editorId: string;
+  tenantId?: string;
   changes: Partial<Pick<ContentRevision, "title" | "summary" | "body" | "mediaAssetIds" | "claimSources" | "alternativeText">>;
 }): ContentItem {
   const item = contentItems.get(params.id);
@@ -154,7 +193,7 @@ export function editContent(params: {
 
   // SCR-03: canonical media references — validated against the DAM registry
   // for every NEW revision that carries mediaAssetIds.
-  requireRegisteredMediaAssets(params.changes.mediaAssetIds);
+  requireRegisteredMediaAssets(params.changes.mediaAssetIds, params.tenantId);
 
   const current = item.revisions.get(item.currentRevision)!;
   const nextRevisionNumber = item.currentRevision + 1;
@@ -178,6 +217,7 @@ export function editContent(params: {
   } else if (item.status === "IN_REVIEW" || item.status === "CHANGES_REQUESTED") {
     item.status = "DRAFT";
   }
+  stageContent(item);
   return item;
 }
 
@@ -188,6 +228,7 @@ export function submitForReview(id: string): ContentItem {
   }
   item.status = "IN_REVIEW";
   item.revisions.get(item.currentRevision)!.submittedForReviewAt = new Date();
+  stageContent(item);
   return item;
 }
 
@@ -198,6 +239,7 @@ export function requestChanges(id: string, reviewerId: string, notes: string): C
   const rev = item.revisions.get(item.currentRevision)!;
   rev.reviewNotes = notes;
   rev.approvedBy = reviewerId;
+  stageContent(item);
   return item;
 }
 
@@ -211,6 +253,7 @@ export function approveRevision(id: string, approverId: string): ContentItem {
   const rev = item.revisions.get(item.currentRevision)!;
   rev.approvedAt = new Date();
   rev.approvedBy = approverId;
+  stageContent(item);
   return item;
 }
 
@@ -245,6 +288,7 @@ export function publishContent(params: {
   };
   item.publication = publication;
   item.status = "PUBLISHED";
+  stageContent(item);
   return { item, publication };
 }
 
@@ -273,6 +317,7 @@ export function withdrawContent(params: {
   };
   item.withdrawal = withdrawal;
   item.status = "WITHDRAWN";
+  stageContent(item);
   return { item, withdrawal };
 }
 

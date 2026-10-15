@@ -1,0 +1,5 @@
+CI=1 pnpm lint            → exit 0
+CI=1 pnpm typecheck      → exit 0
+CI=1 pnpm build          → exit 0
+CI=1 … pnpm test (full)  → Test Files 77 passed (77) · Tests 865 passed (865) · exit 0
+(first run of this increment was red on two guards → full-suite-first-run-red.txt; see measurements.txt §6)

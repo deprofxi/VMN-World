@@ -113,7 +113,7 @@ Severity is the exposure **after** the current control, not before it. `Owner` u
 - **Attacker:** authenticated user of a different tenant.
 - **Attack path:** enumerate identifiers on a reading or mutating route.
 - **Impact:** multi-tenant isolation claim (`docs/domain/master-data-model.md` §1) is false in practice.
-- **Current control:** the only central tenant predicate is `src/core/rbac/index.ts:531-535`; the storage read path fails closed on unowned assets (`src/core/storage/index.ts:408-412`, closed by TSK-58 box 2).
+- **Current control:** the only central tenant predicate is `src/core/rbac/index.ts:531-535`; the storage read path fails closed on unowned assets (`src/core/storage/index.ts:438-442`, closed by TSK-58 box 2).
 - **Control gap:** `tenantId` exists on **3 of 43** Prisma models, and every external `canPerform` call omits the fourth `context` argument that carries it (`src/api/router.ts:769`, `src/api/routes/enquiry.routes.ts:25`), so the central predicate is unreachable from HTTP — **TSK-58 box 1 open**: no mutating-route cross-tenant refusal test exists.
 - **Severity:** High.
 - **Mitigation:** either give the guard table an expressible tenant dimension or reconcile the documents that claim the scope (TSK-58 box 3, owner decision).
@@ -222,7 +222,7 @@ Severity is the exposure **after** the current control, not before it. `Owner` u
 - **Attacker:** unauthenticated party with a guessed asset identifier.
 - **Attack path:** request a presigned URL or media asset without a tenant scope.
 - **Impact:** leak of unreleased programming.
-- **Current control:** asset listing fails closed on unowned rows (`src/core/storage/index.ts:408-412`); presigned issuance allow-lists MIME and bounds size (`:126`); provenance banners badge engine vs. demo data (`tests/unit/broadcast-provenance-coverage.test.ts`).
+- **Current control:** asset listing fails closed on unowned rows (`src/core/storage/index.ts:438-442`); presigned issuance allow-lists MIME and bounds size (`:126`); provenance banners badge engine vs. demo data (`tests/unit/broadcast-provenance-coverage.test.ts`).
 - **Control gap:** `generatePresignedUploadUrl` binds a key, not a viewer; object-level read authorisation is delegated to the storage driver, and the driver's ACL is not asserted by any test in this repository. Also: the golden backfill leaves 1427 of 1585 `MediaAssetRecord` rows unowned (TSK-58 box 2 consequence), so they are invisible to every tenant session — a fail-closed outcome that is correct but unreviewed by the owner.
 - **Severity:** High.
 - **Mitigation:** assert the driver ACL in an integration test once credentials exist; get the owner's ruling on re-homing the seeded library.

@@ -4701,7 +4701,7 @@ ${publicRoutes
           mediaAssetIds: Array.isArray(body.mediaAssetIds) ? body.mediaAssetIds.map(String) : undefined,
           claimSources: Array.isArray(body.claimSources) ? body.claimSources.map(String) : undefined,
           alternativeText: body.alternativeText ? String(body.alternativeText) : undefined,
-          authorId: user.userId,
+          authorId: user.userId, tenantId: user.tenantId,
         });
         recordAuditLog({
           userId: user.userId,
@@ -4740,7 +4740,7 @@ ${publicRoutes
           relatedUnit: params.get("relatedUnit") || "VMNL",
           mediaAssetIds: mediaIds,
           alternativeText: params.get("alternativeText") || undefined,
-          authorId: user.userId,
+          authorId: user.userId, tenantId: user.tenantId,
         });
         await recordAuditLog({
           userId: user.userId,
@@ -4771,7 +4771,7 @@ ${publicRoutes
       try {
         const item = editContent({
           id: contentId,
-          editorId: user.userId,
+          editorId: user.userId, tenantId: user.tenantId,
           changes: {
             ...(params.get("title") ? { title: params.get("title")! } : {}),
             ...(params.get("summary") ? { summary: params.get("summary")! } : {}),
@@ -4810,7 +4810,7 @@ ${publicRoutes
       try {
         const item = editContent({
           id: String(body.id),
-          editorId: user.userId,
+          editorId: user.userId, tenantId: user.tenantId,
           changes: {
             ...(body.title ? { title: String(body.title) } : {}),
             ...(body.summary ? { summary: String(body.summary) } : {}),
@@ -8131,7 +8131,7 @@ ${publicRoutes
         sendJson(res, 201, { status: "SUCCESS", asset });
       } catch (err: any) {
         const code = (err?.message?.match(/\[MEDIA-ASSET-(\d+)\]/)?.[1] || "ERROR") as string;
-        sendJson(res, 422, { status: "REJECTED", code: `MEDIA-ASSET-${code}`, message: err?.message || "Registration rejected." });
+        sendJson(res, code === "07" ? 403 : 422, { status: code === "07" ? "CROSS_TENANT" : "REJECTED", code: `MEDIA-ASSET-${code}`, message: err?.message || "Registration rejected." });
       }
       return;
     }

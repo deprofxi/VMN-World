@@ -1,0 +1,141 @@
+TSK-58 box 1 — measurements (2026-10-15)
+
+Every number below is printed by a command on this tree, not transcribed from
+the register prose. Rule 0.2: the pins cited in the closure prose were re-opened
+after the code changed, and the shift they caused is recorded here too.
+
+## 1. Scope of the change
+
+| File | Lines added/removed | Nature |
+| --- | --- | --- |
+| `src/core/storage/index.ts` | +30 net inside `registerMediaAsset` and above it | `[MEDIA-ASSET-07]` tenant guard |
+| `src/api/router.ts` | 5 insertions / 5 deletions — **line-count neutral**, file still 8245 lines | 403 mapping + four routes pass `user.tenantId` |
+| `src/core/content/index.ts` | tenant parameter threaded into `[CMS-11]` | refusal with the unknown-id message |
+| `tests/unit/tenant-scoping-routes.test.ts` | new, 8 tests | route-level assertions |
+| `tests/unit/todo-final-remediation.test.ts` | 3 lines replaced in place | fixture namespaces corrected |
+
+## 2. Pins this change moved (re-pinned, not left to rot)
+
+`src/core/storage/index.ts` — the guard inserted 30 lines above the read path:
+
+| Cited as | Now | Symbol verified on that line |
+| --- | --- | --- |
+| `:397` | `:427` | `export function getMediaAsset` |
+| `:408-412` | `:438-442` | `:438` `export function listApprovedMediaAssets`, `:441` the fail-closed filter |
+| `:381` | `:411` | `tenantId: params.tenantId,` (record builder) |
+| `:317`, `:328`, `:339` | unchanged | `mediaAssetRegistry` Map / `stageDurableWrite` / `refreshMediaAssetIndex` — all above the insertion point |
+
+Documents re-pinned: `tasks.md:1095`, `tasks.md:1097`, `docs/domain/canonical-model.md`
+§4 row 1.2, `docs/security/threat-model.md:116` and `:225`.
+
+New pins published by this change and opened before publishing:
+`src/core/storage/index.ts:142` (`const prefix = req.tenantId ? \`tenants/…`),
+`:352` (`TENANT_KEY_NS`), `:361-366` (`assertTenantOwnership`), `:379-383`
+(namespace refusal), `:389` / `:395` (the two idempotency branches),
+`src/api/router.ts:8134` (403 mapping), `src/api/router.ts:4704` / `:4743` /
+`:4774` / `:4813` (session tenant passed), `src/core/content/index.ts:33` /
+`:152` / `:196`, `src/web/workspace/media-picker.ts:85`, `src/api/router.ts:733`
+(`x-test-role` mints no `tenantId`).
+
+## 3. Commands run
+
+```
+grep -rn "userRole\." src/api/router.ts src/core/rbac/index.ts | wc -l   → 0
+psql vmnl_enterprise -c 'select count(*), count(*) filter (where "tenantId" is null) from "MediaAssetRecord";'
+                                                                          → 392 | 376
+wc -l src/api/router.ts                                                   → 8245
+wc -l tasks.md                                                            → 1733 (unchanged)
+grep -c "^- \[ \]" tasks.md                                               → 48 (was 49)
+grep -c "^- \[x\]" tasks.md                                               → 140 (was 139)
+```
+
+Box 2's prose still cites **1427 unowned of 1585** rows for the local database;
+that was its own measurement on 2026-10-12. The database on this machine today
+holds 392 rows / 376 unowned, which is why the box 1 closure sentence quotes no
+row count — the number that would have made the point is not reproducible on
+this tree, and the claim does not depend on it.
+
+## 4. Why the earlier draft of the test file was wrong (recorded because it is the instructive part)
+
+Its first run showed 403s on the two adoption cases and looked like a pass. The
+403 was `CSRF_CHECK_FAILED` (`src/api/router.ts:1188-1196`): cookie-authenticated
+JSON writes need the CSRF cookie + header pair, and the test had sent only the
+session cookie. With the pair sent, the same requests returned **201** — i.e.
+before the fix the route really did hand tenant A's record to tenant B. A second
+"pass" came from the route ignoring `body.assetId` entirely
+(`src/api/router.ts:8103-8114` never reads it), so the assetId vector is not an
+HTTP vector today; that case is now a domain-level assertion and says so, and
+the HTTP assertions use the reachable key vector instead.
+
+## 5. Test evidence
+
+`tests/unit/tenant-scoping-routes.test.ts` — 8 passed, booted server on port
+4281, real HTTP, signed tenant sessions, CSRF pairs, Postgres
+`vmnl_enterprise_gates`, fixtures deleted in `afterAll`.
+
+## 6. The two instrument reactions (why this increment touched four more files)
+
+The first full-suite run of this change was red on two guards, both of which are
+working as designed. Neither was relaxed; each was answered with a measurement.
+
+1. `tests/unit/canonical-model.test.ts:384` — `expected 184 to be 183`. The
+   `[MEDIA-ASSET-07]` tag this change introduced is a **new distinct
+   traceability tag**, so §7 of `data-dictionary.md` was no longer the measured
+   figure. Re-measured with the document's own published command (§8):
+
+   ```
+   grep -rhoE '\[[A-Z]{2,12}-[A-Z0-9]{2,12}-[0-9]{2,4}\]' --include='*.ts' src/ \
+     | tr -d '[]' | sort -u | wc -l                       → 184  (was 183)
+   … same command without `sort -u` | wc -l               → 194  (was 192)
+   … | sed 's/-.*//' | sort -u | wc -l                    → 24   (unchanged)
+   distinct per family                                    → MEDIA 5 (was 4), all 23 others unchanged
+   ```
+
+   Published figures updated in `data-dictionary.md:30`, `:191`, the family
+   table row `MEDIA` `:202`, and the §8 command comment `:234`. The §1 row also
+   corrected: it had printed **189 occurrences** where §7 printed **192** — an
+   internal disagreement that predates this change and is now resolved to the
+   measured 194. Test expectations re-pinned to 184 / 194.
+2. `tests/unit/systems-of-record.test.ts:196` — `src/core/content/index.ts:96
+   does not contain 'contentItems'`. The tenant parameter and comment inserted
+   into `requireRegisteredMediaAssets` pushed the CMS file down, and this is the
+   only guard in the repository that checks a **symbol against the line a
+   document prints beside it**, so it caught a Rule 9 violation the in-range
+   citation checks cannot. Re-pinned `docs/domain/systems-of-record.md:124`
+   (`:96` → `:99`).
+
+Re-opening that file to re-pin it surfaced three more live documents pinning
+`src/core/content/index.ts` lines that this change and TSK-17's uncommitted
+durability insertions had shifted. They were not guarded, so they were not red;
+they were nevertheless false on this tree and are corrected here rather than
+left for a future reader:
+
+| Document | Was | Now (verified by `grep -n`) |
+| --- | --- | --- |
+| `docs/domain/state-machines.md` §4 | `ContentStatus` `:47` | `:52` |
+| | `[CMS-04]`–`[CMS-11]` `:187/:196/:206/:208/:231/:235/:260` | `:227/:237/:248/:250/:274/:278/:304` |
+| | `editContent` `:147`, reset `:176-180`, `ContentRevision.revision` `:49-50`, "In-memory `Map` `:94`, no DB model" | `:185`, `:214-219`, `:55`, `Map` `:99` + `ContentItemRecord`/`ContentRevisionRecord` (TSK-17) |
+| `docs/audit/journey-readiness-matrix.md:50` | `content/index.ts:96` | `:99` |
+| `docs/audit/evidence-register.md:231` | `content/index.ts:104` | `:107` (`registerDurableStore<ContentItem>`) |
+
+The state-machines sentence "In-memory `Map` …, **no DB model**" was a false
+claim about persistence, not merely a stale number; its replacement states the
+durable models. `docs/audit/evidence/tsk*/` logs are point-in-time artifacts and
+were not edited.
+
+## 7. Gate log (same tree, same run order)
+
+```
+CI=1 pnpm lint          → exit 0
+CI=1 pnpm typecheck     → exit 0
+CI=1 pnpm build         → exit 0
+CI=1 DATABASE_URL=postgresql://root@localhost:5432/vmnl_enterprise_gates?schema=public \
+  NODE_ENV=test pnpm test
+                        → Test Files 77 passed (77) · Tests 865 passed (865) · exit 0
+```
+
+`wc -l src/api/router.ts` → 8245 and `wc -l tasks.md` → 1733 both unchanged
+after this section's edits. Both files are edited line-count-neutrally because
+they publish `router.ts:NNNN` pins: outside the point-in-time evidence logs,
+`grep -roE "src/api/router\.ts:[0-9]+" tasks.md docs --include='*.md'` counts
+**90 occurrences / 73 distinct**.
