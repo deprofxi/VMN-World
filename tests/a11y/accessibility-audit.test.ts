@@ -104,4 +104,20 @@ describe("T-22 (B-21): Automated Accessibility (WCAG 2.2 AA) Verification", () =
       }
     }
   });
+
+  it("verifies CSP compliance: no inline executable <script> or on* handler attributes in rendered pages (AUD-04)", () => {
+    for (const page of renderedPages) {
+      // Allow only non-executable data script tags (e.g. type="application/ld+json") or external scripts (<script src=...>)
+      const scripts = page.html.match(/<script\b[^>]*>([\s\S]*?)<\/script>/gi) || [];
+      for (const script of scripts) {
+        const isJsonLd = /type=["']application\/ld\+json["']/i.test(script);
+        const isExternal = /src=["'][^"']+["']/i.test(script);
+        expect(isJsonLd || isExternal, `Found non-compliant inline script in ${page.name}: ${script}`).toBe(true);
+      }
+
+      // Ensure no inline event handlers (onclick, onsubmit, onchange, etc.)
+      const inlineHandlerMatch = page.html.match(/\s+on[a-z]+=["'][^"']*["']/gi);
+      expect(inlineHandlerMatch, `Found inline event handlers in ${page.name}: ${inlineHandlerMatch?.join(", ")}`).toBeNull();
+    }
+  });
 });

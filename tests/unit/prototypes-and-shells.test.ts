@@ -33,6 +33,9 @@ describe("R1.1 Representative Prototypes & Presentation Shells Suite", () => {
         expect(html).toContain("UX-PUB-001");
         expect(html).toContain("Linear Television Channels");
         expect(html).toContain("Nigezie Xtreme");
+        expect(html).toContain("Carriage details unverified");
+        expect(html).not.toMatch(/Ch 42[0-9] DTT/);
+        expect(html).not.toContain("3.2M+ Households");
       }
       if (screen === "channel") {
         expect(html).toContain("UX-PUB-004");
@@ -47,7 +50,8 @@ describe("R1.1 Representative Prototypes & Presentation Shells Suite", () => {
       if (screen === "client") {
         expect(html).toContain("UX-PRJ-002");
         expect(html).toContain("Counterparty Sponsor Portal");
-        expect(html).toContain("Audited Release");
+        expect(html).toContain("Illustrative prototype data only");
+        expect(html).toContain("not a client commitment");
       }
       if (screen === "application") {
         expect(html).toContain("UX-APP-002");
@@ -60,18 +64,19 @@ describe("R1.1 Representative Prototypes & Presentation Shells Suite", () => {
         expect(html).toContain("Financial Remuneration &amp; Deductions");
         // Verify economics precedes acceptance (§14.1)
         const economicsIdx = html.indexOf("Financial Remuneration");
-        const acceptanceIdx = html.indexOf("Record Formal Acceptance");
-        expect(economicsIdx).toBeLessThan(acceptanceIdx);
+        const acceptanceIdx = html.indexOf("Prototype only — acceptance unavailable");
+        expect(economicsIdx).toBeGreaterThan(-1);
+        expect(acceptanceIdx).toBeGreaterThan(economicsIdx);
       }
       if (screen === "schedule") {
         expect(html).toContain("UX-BR-012");
         expect(html).toContain("Broadcast Schedule Review");
-        expect(html).toContain("Master Control Room");
+        expect(html).toContain("No operational export attached");
       }
       if (screen === "proof") {
         expect(html).toContain("UX-BR-030");
         expect(html).toContain("Proof-of-Air Delivery Reconciliation");
-        expect(html).toContain("Pre-emption &amp; Exception Decisions");
+        expect(html).toContain("Illustrative Pre-emption Scenario");
       }
     }
   });
@@ -83,13 +88,14 @@ describe("R1.1 Representative Prototypes & Presentation Shells Suite", () => {
 
     // Blocked mode
     const blockedHtml = renderPrototypesViewerHtml({ screen: "schedule", scenario: "blocked" });
-    expect(blockedHtml).toContain("RIGHTS BLOCKED");
-    expect(blockedHtml).toContain("Transmission Rights Blocker");
+    expect(blockedHtml).toContain("Illustrative rights block");
+    expect(blockedHtml).toContain("This simulated scenario does not represent a production transmission or rights decision.");
 
     // Recovery mode
     const recoveryHtml = renderPrototypesViewerHtml({ screen: "application", scenario: "recovery" });
-    expect(recoveryHtml).toContain("Application Submission Recovered Successfully");
-    expect(recoveryHtml).toContain("Duplicate creation was prevented");
+    expect(recoveryHtml).toContain("Illustrative recovery scenario");
+    expect(recoveryHtml).toContain("no durable acceptance or canonical application record");
+    expect(recoveryHtml).not.toContain("Application Submission Recovered Successfully");
   });
 
   it("verifies the Three Presentation Shells (S-PUBLIC, S-WORK, S-PORTAL)", () => {

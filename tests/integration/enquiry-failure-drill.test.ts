@@ -58,7 +58,7 @@ describe("Commercial Enquiry Vertical Slice (VS-RL1-01 / J-RL1-03 / HX-01)", () 
       })
     ).rejects.toThrowError(/valid email address is required/);
 
-    // Missing NDPR consent
+    // Missing submission acknowledgement
     await expect(
       submitCommercialEnquiry({
         fullName: "Test User",
@@ -66,7 +66,7 @@ describe("Commercial Enquiry Vertical Slice (VS-RL1-01 / J-RL1-03 / HX-01)", () 
         message: "Hello world inquiry",
         ndprConsent: false,
       })
-    ).rejects.toThrowError(/NDPR data-processing consent is required/);
+    ).rejects.toThrowError(/Submission acknowledgement is required/);
 
     expect(listEnquiries().length).toBe(0);
   });

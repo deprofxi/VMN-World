@@ -5,7 +5,7 @@
  * SCR-06 (approvals), SCR-08 (cases), SCR-09/11 (search, my-work),
  * BCST-04/05 (versions/RFA), BCST-02 (EPG honesty gate), FIN-01 (recognition).
  */
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterAll } from "vitest";
 import {
   generateTotpSecret,
   computeTotp,
@@ -68,6 +68,7 @@ import {
 } from "../../src/core/work/index.js";
 import {
   registerDestination,
+  verifyDestination,
   revokeDestination,
   isVerifiedDestination,
   resolveNavigationUrl,
@@ -83,9 +84,11 @@ import {
   _resetVersionsForTesting,
 } from "../../src/modules/broadcast/versions/index.js";
 import { exportXmltv, pushToStarTimes, sandboxScheduleSource } from "../../src/modules/broadcast/export/epg.js";
+import { deleteFixtureRights, registerFixtureRights } from "../helpers/rights-fixtures.js";
 import { getScreenData } from "../../src/modules/broadcast/screens/data.js";
 import { QuoteToCashSalesEngine } from "../../src/modules/finance/sales/index.js";
 import { screenRegister, computeScreenRegisterCounts } from "../../src/core/config/screen-register.js";
+import { _resetConfigForTesting } from "../../src/core/config/index.js";
 
 const FUTURE = new Date(Date.now() + 24 * 3600 * 1000);
 
@@ -529,20 +532,38 @@ describe("TODO-SCR-09/11: authorised search & My Work aggregation", () => {
 });
 
 describe("TODO-SCR-04/05: destination registry & routing config", () => {
+  // TSK-35: the approved HX-13 fallback is a deployment fact, never a guessed
+  // partner domain — pin it so this file resolves identically in CI.
+  const ORIGINAL_ORIGIN = process.env.AZEEBO_PLUS_UNIVERSAL_URL;
+  const TEST_ORIGIN = "https://partner.example.test";
+
   beforeEach(() => {
     _resetDestinationsForTesting();
     _resetRoutingForTesting();
+    process.env.AZEEBO_PLUS_UNIVERSAL_URL = TEST_ORIGIN;
+    _resetConfigForTesting();
+  });
+
+  afterAll(() => {
+    if (ORIGINAL_ORIGIN === undefined) delete process.env.AZEEBO_PLUS_UNIVERSAL_URL;
+    else process.env.AZEEBO_PLUS_UNIVERSAL_URL = ORIGINAL_ORIGIN;
+    _resetConfigForTesting();
   });
 
   it("registers https-only destinations and falls back on HX-13", () => {
-    registerDestination({ id: "dest-1", universe: "azeebo-plus", universalUrl: "https://azeebo.plus/u/vmn", verifiedBy: "admin" });
+    registerDestination({ id: "dest-1", universe: "azeebo-plus", universalUrl: `${TEST_ORIGIN}/u/vmn`, registeredBy: "admin" });
+    // Registration is an assertion, not a verification (PRD §41).
+    expect(isVerifiedDestination("dest-1")).toBe(false);
+    expect(() => registerDestination({ id: "dest-2", universe: "u", universalUrl: "http://insecure.example", registeredBy: "admin" })).toThrow(/DEST-02/);
+
+    expect(verifyDestination("dest-1", "admin").status).toBe("VERIFIED");
     expect(isVerifiedDestination("dest-1")).toBe(true);
-    expect(() => registerDestination({ id: "dest-2", universe: "u", universalUrl: "http://insecure.example", verifiedBy: "admin" })).toThrow(/DEST-02/);
+    expect(resolveNavigationUrl("dest-1").url).toContain(`${TEST_ORIGIN}/u/vmn`);
 
     revokeDestination("dest-1", "admin");
     const fallback = resolveNavigationUrl("dest-1");
     expect(fallback.fallbackUsed).toBe(true);
-    expect(fallback.url.startsWith("https://")).toBe(true);
+    expect(fallback.url).toBe(TEST_ORIGIN);
   });
 
   it("manages routing rules with deactivation", () => {
@@ -591,6 +612,12 @@ describe("TODO-BCST-04/05: broadcast version & RFA workflow", () => {
 });
 
 describe("TODO-BCST-02: EPG export honesty gate", () => {
+  const FIXTURE_RIGHTS_IDS = ["rr-bcst02-export"];
+
+  afterAll(async () => {
+    await deleteFixtureRights(FIXTURE_RIGHTS_IDS);
+  });
+
   it("refuses to publish sample scheduler data as an operational feed", () => {
     const result = exportXmltv("NXTR", "2026-09-30", sandboxScheduleSource);
     expect(result.status).toBe("APPROVED_SCHEDULE_UNAVAILABLE");
@@ -606,27 +633,87 @@ describe("TODO-BCST-02: EPG export honesty gate", () => {
     expect(["CARRIAGE_INTERFACE_NOT_CONNECTED", "APPROVED_SCHEDULE_UNAVAILABLE"]).toContain(push.code);
   });
 
-  it("exports real XMLTV when an approved schedule source is connected", () => {
+  it("exports real XMLTV when an approved, rights-cleared schedule source is connected", async () => {
+    // TSK-10: an approved day is not enough — every slot is re-checked against its
+    // registered RightsRecord at export time. So the connected source has to carry
+    // a record that actually covers the slot.
+    const record = await registerFixtureRights({
+      id: "rr-bcst02-export",
+      assetId: "ast-sunrise-ep1",
+      title: "Sunrise Afro-Beats Top 20 #1",
+      rightsType: "BROADCAST_LINEAR",
+      territory: "NG",
+      mediaType: "LINEAR_TV",
+      channelCode: null,
+      exclusivity: false,
+      startDate: new Date(Date.UTC(2026, 8, 1)),
+      expiryDate: new Date(Date.UTC(2026, 11, 31)),
+      subLicensable: false,
+    });
+    const slot = {
+      id: "SLOT-1",
+      channelId: "NXTR",
+      startTime: new Date("2026-09-30T06:00:00Z"),
+      durationSeconds: 3600,
+      episodeId: "EP-1",
+      title: "Sunrise Afro-Beats Top 20",
+      isLocked: true,
+      rightsRecordId: record.id,
+    };
     const connectedSource = {
-      getApprovedSlots: (channelCode: string) =>
-        channelCode === "NXTR"
-          ? [
-              {
-                id: "SLOT-1",
-                channelId: "NXTR",
-                startTime: new Date("2026-09-30T06:00:00Z"),
-                durationSeconds: 3600,
-                episodeId: "EP-1",
-                title: "Sunrise Afro-Beats Top 20",
-                isLocked: true,
-              },
-            ]
-          : null,
+      getApprovedSchedule: (channelCode: string) =>
+        channelCode === "NXTR" ? { broadcastDate: "2026-09-30", revisionId: "SCHED-BCST02#R1", slots: [slot] } : null,
     };
     const result = exportXmltv("NXTR", "2026-09-30", connectedSource);
     expect(result.status).toBe("EXPORTED");
     expect(result.xmltv).toContain("<tv");
     expect(result.xmltv).toContain("Sunrise Afro-Beats Top 20");
+    // PRD §15: an exportable EPG export identifies the source schedule revision.
+    expect(result.revisionId).toBe("SCHED-BCST02#R1");
+    expect(result.xmltv).toContain("<source-revision>SCHED-BCST02#R1</source-revision>");
+
+    // Same approved slots, rights gone (record not registered): the approval
+    // timestamp alone buys the feed nothing.
+    const unclearedSource = {
+      getApprovedSchedule: (channelCode: string) =>
+        channelCode === "NXTR"
+          ? { broadcastDate: "2026-09-30", revisionId: "SCHED-BCST02#R1", slots: [{ ...slot, rightsRecordId: "rr-bcst02-unregistered" }] }
+          : null,
+    };
+    const blocked = exportXmltv("NXTR", "2026-09-30", unclearedSource);
+    expect(blocked.status).toBe("RIGHTS_NOT_CLEARED");
+    expect(blocked.code).toBe("RIGHTS_NOT_CLEARED_AT_EXPORT");
+    expect(blocked.xmltv).toBeUndefined();
+    expect(pushToStarTimes("NXTR", "2026-09-30", unclearedSource).code).toBe("RIGHTS_NOT_CLEARED_AT_EXPORT");
+  });
+
+  it("refuses an approved day with no revision identity instead of publishing an unattributed feed", () => {
+    // PRD §15 requires the export to name the source schedule revision, so a source
+    // that bypassed the lifecycle (no `SCHEDULE#Rn`) is refused rather than exported.
+    const unattributed = {
+      getApprovedSchedule: () => ({
+        broadcastDate: "2026-09-30",
+        revisionId: "",
+        slots: [
+          {
+            id: "SLOT-NO-REV",
+            channelId: "NXTR",
+            startTime: new Date("2026-09-30T06:00:00Z"),
+            durationSeconds: 3600,
+            episodeId: "EP-1",
+            title: "Unattributed Feed",
+            isLocked: false,
+            rightsRecordId: "rr-bcst02-export",
+          },
+        ],
+      }),
+    };
+    const result = exportXmltv("NXTR", "2026-09-30", unattributed);
+    expect(result.status).toBe("APPROVED_SCHEDULE_UNAVAILABLE");
+    expect(result.code).toBe("SCHEDULE_REVISION_IDENTITY_MISSING");
+    expect(result.xmltv).toBeUndefined();
+    // The refusal also closes the syndication path: nothing unattributed is dispatched.
+    expect(pushToStarTimes("NXTR", "2026-09-30", unattributed).code).toBe("SCHEDULE_REVISION_IDENTITY_MISSING");
   });
 });
 

@@ -6,6 +6,7 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { OPENAPI_SPEC } from "../../src/api/docs.js";
 import { createApiServer, ApiServerInstance } from "../../src/api/server.js";
+import { ROUTE_GUARDS } from "../../src/api/router.js";
 
 describe("T-20 (B-17): OpenAPI Contract Verification", () => {
   let serverInstance: ApiServerInstance;
@@ -82,6 +83,10 @@ describe("T-20 (B-17): OpenAPI Contract Verification", () => {
     expect(channelCodes).toContain("NXTR");
     expect(channelCodes).toContain("ORIS");
     expect(channelCodes).toContain("IMBD");
+    for (const channel of data.channels) {
+      expect(channel.carriageStatus).toBe("UNVERIFIED");
+      expect(channel.starTimesCarriage).toBeUndefined();
+    }
   });
 
   it("validates /api/v1/broadcast/screens response returns all 33 screen descriptors", async () => {
@@ -108,6 +113,18 @@ describe("T-20 (B-17): OpenAPI Contract Verification", () => {
     expect(spec.info.title).toBe(OPENAPI_SPEC.info.title);
   });
 
+  it("documents only the validated incoming-charge webhook contract", () => {
+    const paths = OPENAPI_SPEC.paths as any;
+    const paystack = paths["/api/v1/webhooks/paystack"].post;
+    const flutterwave = paths["/api/v1/webhooks/flutterwave"].post;
+    expect(paystack.responses["400"]).toBeDefined();
+    expect(paystack.responses["501"].description).toContain("transfer.success");
+    expect(paystack.description).toContain("deduplication is not durable");
+    expect(flutterwave.responses["400"]).toBeDefined();
+    expect(flutterwave.responses["501"].description).toContain("transfer.completed");
+    expect(flutterwave.description).toContain("deduplication is not durable");
+  });
+
   it("verifies security schemes and webhook signatures are defined in components", () => {
     const components = (OPENAPI_SPEC as any).components;
     expect(components).toBeDefined();
@@ -122,6 +139,7 @@ describe("T-20 (B-17): OpenAPI Contract Verification", () => {
 
   it("verifies bidirectional reachability: every documented OpenAPI route exists and does not 404", async () => {
     const paths = Object.keys(OPENAPI_SPEC.paths);
+    const probes: Array<Promise<void>> = [];
 
     for (const rawPath of paths) {
       // Resolve path parameters for reachability probe
@@ -132,29 +150,44 @@ describe("T-20 (B-17): OpenAPI Contract Verification", () => {
 
       const methods = Object.keys((OPENAPI_SPEC.paths as any)[rawPath]);
       for (const method of methods) {
-        const url = `${baseUrl}${resolvedPath}`;
-        const options: RequestInit = {
-          method: method.toUpperCase(),
-          headers: {
-            "Content-Type": "application/json",
-            "x-test-role": "ExecutiveLeader",
-          },
-        };
+        probes.push((async () => {
+          const url = `${baseUrl}${resolvedPath}`;
+          const options: RequestInit = {
+            method: method.toUpperCase(),
+            headers: {
+              "Content-Type": "application/json",
+              "x-test-role": "ExecutiveLeader",
+            },
+          };
 
-        if (["POST", "PUT", "PATCH"].includes(options.method!)) {
-          options.body = JSON.stringify({});
-        }
+          if (["POST", "PUT", "PATCH"].includes(options.method!)) {
+            options.body = JSON.stringify({});
+          }
 
-        const res = await fetch(url, options);
-        const data: any = await res.json().catch(() => ({}));
+          const res = await fetch(url, options);
+          const data: any = await res.json().catch(() => ({}));
 
-        if (res.status === 404) {
-          expect(
-            data?.message || "",
-            `Documented route '${method.toUpperCase()} ${rawPath}' is unmapped in router.ts (returned 404): ${data?.message}`
-          ).not.toContain("does not exist on VMNL Enterprise Platform");
-        }
+          if (res.status === 404) {
+            expect(
+              data?.message || "",
+              `Documented route '${method.toUpperCase()} ${rawPath}' is unmapped in router.ts (returned 404): ${data?.message}`
+            ).not.toContain("does not exist on VMNL Enterprise Platform");
+          }
+        })());
       }
+    }
+
+    await Promise.all(probes);
+  }, 15000);
+
+  it("verifies contract completeness: all mutating enterprise route guards are tracked in the API registry or OpenAPI spec (AUD-12)", () => {
+    const specPaths = new Set(Object.keys(OPENAPI_SPEC.paths));
+    expect(specPaths.size).toBeGreaterThanOrEqual(28);
+    for (const guard of ROUTE_GUARDS) {
+      expect(guard.pathname.startsWith("/api/v1/")).toBe(true);
+      expect(["GET", "POST", "PUT", "DELETE", "PATCH"]).toContain(guard.method);
+      expect(guard.action).toBeDefined();
+      expect(guard.resource).toBeDefined();
     }
   });
 });

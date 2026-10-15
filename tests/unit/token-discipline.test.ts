@@ -97,10 +97,27 @@ describe("DT-1002: Token Discipline & Styling Architecture Verification", () => 
     expect(layout).not.toMatch(/<a[^>]*>\s*33 Screens\s*<\/a>/);
   });
 
-  it("verifies footer compliance claim is properly qualified (DT-803, DS-17)", () => {
+  it("does not claim unverified WCAG or broadcast-code compliance (DT-803, DS-17)", () => {
     const layout = renderMasterLayout("Test", "<div>Content</div>", "/");
-    expect(layout).toContain("Engineered to WCAG 2.2 Level AA");
-    expect(layout).toContain("NBC Broadcast Code standards");
+    expect(layout).toContain("accessibility conformance require independent verification");
+    expect(layout).not.toContain("Engineered to WCAG 2.2 Level AA");
+    expect(layout).not.toContain("NBC Broadcast Code standards");
     expect(layout).not.toContain("Compliant with NBC 7th Edition & WCAG 2.2 AA");
+  });
+
+  // TSK-49 / CA-30: an element with two class attributes renders with only the
+  // first, so the migrated utility silently dropped real component classes.
+  it("rejects duplicate class attributes in any template (TSK-49)", () => {
+    const offenders: string[] = [];
+    for (const file of getWebSourceFiles(join(process.cwd(), "src"))) {
+      const source = readFileSync(file, "utf8");
+      const lines = source.split("\n");
+      lines.forEach((line, index) => {
+        // Non-global regex: a /g test() carries lastIndex across calls and
+        // would let the second occurrence on a following line slip through.
+        if (/class="[^"]*"\s+class="/.test(line)) offenders.push(`${file}:${index + 1}`);
+      });
+    }
+    expect(offenders).toEqual([]);
   });
 });

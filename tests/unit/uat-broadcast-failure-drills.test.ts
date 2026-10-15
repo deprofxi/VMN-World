@@ -204,17 +204,38 @@ describe("Phase 9: The 20 Mandatory Broadcast UAT Failure Drill Scenarios (R1.2A
   // Drill 12: Missed commercial spot -> Automatically scheduled for approved make-good slot or credit note issued.
   it("Drill 12: missed spot is auto-scheduled for approved make-good slot", () => {
     const traffic = new BroadcastTrafficEngine();
+    traffic.createBreak({ id: "BRK-NIGHT-01", channelId: "CHN-ORIS", daypart: "NIGHT", maxDurationSeconds: 120 });
     traffic.addToMakeGoodQueue({
       spotId: "SPT-MISSED-01",
       campaignId: "CMP-COCA-COLA",
       durationSeconds: 30,
       clientOrgId: "ORG-COKE",
+      brandCategory: "BEVERAGE_NON_ALCOHOLIC",
+      brandName: "Coca-Cola",
+      qcStatus: "APPROVED",
       reason: "Live football match overrun preempted commercial break",
     });
 
     const mg = traffic.resolveMakeGood("SPT-MISSED-01", "SCHEDULE_INTO_NEXT_DAYPART", "BRK-NIGHT-01");
     expect(mg.resolved).toBe(true);
     expect(mg.allocatedBreakId).toBe("BRK-NIGHT-01");
+    // TSK-16: the resolution means the inventory was actually taken, not that the
+    // queue entry was forgotten.
+    expect(mg.inventoryRebooked).toBe(true);
+    expect(mg.durationSeconds).toBe(30);
+    expect(mg.remainingDurationSeconds).toBe(90);
+    expect(traffic.getMakeGoodQueue()).toHaveLength(0);
+    expect(() =>
+      traffic.scheduleSpot({
+        breakId: "BRK-NIGHT-01",
+        spotId: "SPT-MISSED-01",
+        campaignId: "CMP-COCA-COLA",
+        brandCategory: "BEVERAGE_NON_ALCOHOLIC",
+        brandName: "Coca-Cola",
+        durationSeconds: 30,
+        qcStatus: "APPROVED",
+      })
+    ).toThrow("[TRAFFIC-DUP-01]");
   });
 
   // Drill 13: StarTimes carriage feed outage -> Auto-generates carriage incident ticket and SLA penalty calculation.
@@ -319,5 +340,150 @@ describe("Phase 9: The 20 Mandatory Broadcast UAT Failure Drill Scenarios (R1.2A
     const activePlaylist = playout.getActivePlaylistWithFallback("CHN-NXTR", "2026-05-15", isDbOnline);
     expect(activePlaylist.source).toBe("LOCAL_PLAYOUT_CACHE");
     expect(activePlaylist.items.length).toBe(2);
+  });
+});
+
+/**
+ * TSK-16 (report.md CA-16): `resolveMakeGood` used to remove the queue entry and
+ * report `resolved: true` without booking anything. These tests pin the opposite
+ * property — a make-good is only resolved when inventory was actually taken, and
+ * every path that fails to take inventory leaves the obligation visible.
+ */
+describe("TSK-16: make-good rebooking takes inventory or leaves the obligation queued", () => {
+  const baseQueueItem = {
+    spotId: "SPT-MG-01",
+    campaignId: "CMP-DSTV",
+    durationSeconds: 30,
+    brandCategory: "TELECOMMUNICATIONS",
+    brandName: "DSTV",
+    qcStatus: "APPROVED",
+    reason: "Break preempted by live programming",
+  };
+
+  function queueItem(overrides: Partial<typeof baseQueueItem> = {}) {
+    return { ...baseQueueItem, ...overrides };
+  }
+
+  function engineWithBreak(id = "BRK-MAKEGOOD", maxDurationSeconds = 90) {
+    const traffic = new BroadcastTrafficEngine();
+    traffic.createBreak({ id, channelId: "CHN-ORIS", daypart: "PRIME_TIME", maxDurationSeconds });
+    return traffic;
+  }
+
+  it("[MG-01] refuses an obligation with no spot, campaign or duration", () => {
+    const traffic = engineWithBreak();
+    expect(() => traffic.addToMakeGoodQueue({ spotId: "", campaignId: "CMP-X", durationSeconds: 30, reason: "r" })).toThrow("[MG-01]");
+    expect(() => traffic.addToMakeGoodQueue({ spotId: "SPT-X", campaignId: "", durationSeconds: 30, reason: "r" })).toThrow("[MG-01]");
+    expect(() => traffic.addToMakeGoodQueue({ spotId: "SPT-X", campaignId: "CMP-X", durationSeconds: 0, reason: "r" })).toThrow("[MG-01]");
+    expect(traffic.getMakeGoodQueue()).toHaveLength(0);
+  });
+
+  it("[MG-02] refuses to resolve a spot that is not an open obligation", () => {
+    const traffic = engineWithBreak();
+    expect(() => traffic.resolveMakeGood("SPT-NOT-QUEUED", "SCHEDULE_INTO_NEXT_DAYPART", "BRK-MAKEGOOD")).toThrow("[MG-02]");
+  });
+
+  it("[MG-03] a spot with no approved creative identity is not invented into inventory", () => {
+    const traffic = engineWithBreak();
+    traffic.addToMakeGoodQueue(queueItem({ qcStatus: undefined, brandCategory: undefined, brandName: undefined }));
+
+    expect(() => traffic.resolveMakeGood("SPT-MG-01", "SCHEDULE_INTO_NEXT_DAYPART", "BRK-MAKEGOOD")).toThrow("[MG-03]");
+    expect(traffic.getMakeGoodQueue()).toHaveLength(1);
+  });
+
+  it("[MG-04] a missing target break leaves the obligation queued", () => {
+    const traffic = engineWithBreak();
+    traffic.addToMakeGoodQueue(queueItem());
+
+    expect(() => traffic.resolveMakeGood("SPT-MG-01", "SCHEDULE_INTO_NEXT_DAYPART", "BRK-NOPE")).toThrow("[MG-04]");
+    expect(traffic.getMakeGoodQueue()).toHaveLength(1);
+  });
+
+  it("[MG-05] a target break with insufficient room refuses and keeps the obligation", () => {
+    const traffic = engineWithBreak("BRK-TIGHT", 60);
+    traffic.scheduleSpot({
+      breakId: "BRK-TIGHT",
+      spotId: "SPT-EXISTING",
+      campaignId: "CMP-OTHER",
+      brandCategory: "FMCG_FOOD",
+      brandName: "Indomie",
+      durationSeconds: 45,
+      qcStatus: "APPROVED",
+    });
+    traffic.addToMakeGoodQueue(queueItem());
+
+    expect(() => traffic.resolveMakeGood("SPT-MG-01", "SCHEDULE_INTO_NEXT_DAYPART", "BRK-TIGHT")).toThrow("[MG-05]");
+    expect(traffic.getMakeGoodQueue()).toHaveLength(1);
+  });
+
+  it("the make-good obeys the same category-clash authority as a first booking", () => {
+    const traffic = engineWithBreak("BRK-CLASH", 90);
+    traffic.scheduleSpot({
+      breakId: "BRK-CLASH",
+      spotId: "SPT-GO",
+      campaignId: "CMP-Airtel",
+      brandCategory: "TELECOMMUNICATIONS",
+      brandName: "Airtel",
+      durationSeconds: 30,
+      qcStatus: "APPROVED",
+    });
+    traffic.addToMakeGoodQueue(queueItem());
+
+    expect(() => traffic.resolveMakeGood("SPT-MG-01", "SCHEDULE_INTO_NEXT_DAYPART", "BRK-CLASH")).toThrow("[TRAFFIC-CLASH-01]");
+    expect(traffic.getMakeGoodQueue()).toHaveLength(1);
+  });
+
+  it("a spot diverted by an overbooked break carries its identity and rebooks cleanly", () => {
+    const traffic = new BroadcastTrafficEngine();
+    traffic.createBreak({ id: "BRK-FULL", channelId: "CHN-ORIS", daypart: "DAYTIME", maxDurationSeconds: 60 });
+    traffic.createBreak({ id: "BRK-ROOM", channelId: "CHN-ORIS", daypart: "EVENING", maxDurationSeconds: 90 });
+
+    traffic.scheduleSpot({
+      breakId: "BRK-FULL",
+      spotId: "SPT-A",
+      campaignId: "CMP-A",
+      brandCategory: "FMCG_FOOD",
+      brandName: "Golden Morn",
+      durationSeconds: 45,
+      qcStatus: "APPROVED",
+    });
+    const diverted = traffic.tryBookOrDivertToMakeGood({
+      breakId: "BRK-FULL",
+      spotId: "SPT-B",
+      campaignId: "CMP-B",
+      brandCategory: "BANKING_FINTECH",
+      brandName: "GTBank",
+      durationSeconds: 30,
+      qcStatus: "APPROVED",
+    });
+    expect(diverted).toEqual({ booked: false, divertedToMakeGood: true });
+    expect(traffic.getMakeGoodQueue()[0].originBreakId).toBe("BRK-FULL");
+
+    const mg = traffic.resolveMakeGood("SPT-B", "SCHEDULE_INTO_NEXT_DAYPART", "BRK-ROOM");
+    expect(mg.inventoryRebooked).toBe(true);
+    expect(mg.allocatedBreakId).toBe("BRK-ROOM");
+    expect(traffic.getMakeGoodQueue()).toHaveLength(0);
+  });
+
+  it("ISSUE_CREDIT_NOTE books no inventory and keeps the obligation open for Finance", () => {
+    const traffic = engineWithBreak();
+    traffic.addToMakeGoodQueue(queueItem());
+
+    const mg = traffic.resolveMakeGood("SPT-MG-01", "ISSUE_CREDIT_NOTE", "BRK-MAKEGOOD");
+    expect(mg.resolved).toBe(false);
+    expect(mg.action).toBe("ISSUE_CREDIT_NOTE");
+    expect(mg.creditNoteRequired).toBe(true);
+    expect(mg.inventoryRebooked).toBe(false);
+    expect(traffic.getMakeGoodQueue()).toHaveLength(1);
+  });
+
+  it("an unknown action is treated as the inventory action, never as a silent dismissal", () => {
+    const traffic = engineWithBreak();
+    traffic.addToMakeGoodQueue(queueItem());
+
+    const mg = traffic.resolveMakeGood("SPT-MG-01", "MARK_AS_DONE", "BRK-MAKEGOOD");
+    expect(mg.action).toBe("SCHEDULE_INTO_NEXT_DAYPART");
+    expect(mg.inventoryRebooked).toBe(true);
+    expect(traffic.getMakeGoodQueue()).toHaveLength(0);
   });
 });

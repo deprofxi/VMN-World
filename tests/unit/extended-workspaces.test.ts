@@ -29,6 +29,7 @@ import {
 } from "../../src/web/index.js";
 import { setFeatureFlagOverride, resetAllFeatureFlagOverrides } from "../../src/core/feature-flags/index.js";
 import { QuoteToCashSalesEngine } from "../../src/modules/finance/sales/index.js";
+import { checkDatabaseConnection, getPrismaClient } from "../../src/core/database/index.js";
 
 function makeRequest(
   port: number,
@@ -48,6 +49,9 @@ function makeRequest(
         path,
         method: options.method || "GET",
         headers: {
+          ...(path.startsWith("/workspace") && (options.method || "GET") === "GET" && !options.headers?.["x-test-role"] && !options.headers?.Authorization
+            ? { "x-test-role": "SuperAdmin" }
+            : {}),
           ...(payload ? { "Content-Length": Buffer.byteLength(payload) } : {}),
           ...options.headers,
         },
@@ -81,7 +85,21 @@ describe("Extended Workspaces & Counterparty Portals Unit Tests", () => {
   };
   let authToken: string;
 
+  /**
+   * SCR-19 mints its risk and issue through the durable route (TSK-17), so the
+   * rows outlive this process and boot hydration would load them back as
+   * already-existing fixtures ([RISK-01]) on the next run. The file owns its
+   * rows: drop them before the server hydrates, and again on the way out.
+   */
+  async function dropScr19Fixtures(): Promise<void> {
+    const db = await checkDatabaseConnection();
+    if (!db.connected) return;
+    await getPrismaClient().issueRecord.deleteMany({ where: { id: "ISSUE-SCR19-1" } });
+    await getPrismaClient().riskRecord.deleteMany({ where: { id: "RSK-SCR19-1" } });
+  }
+
   beforeAll(async () => {
+    await dropScr19Fixtures();
     authToken = signSessionToken(adminUser).accessToken;
     app = createApiServer(testPort, {
       NODE_ENV: "test",
@@ -94,6 +112,7 @@ describe("Extended Workspaces & Counterparty Portals Unit Tests", () => {
   afterAll(async () => {
     resetAllFeatureFlagOverrides();
     await app.stop();
+    await dropScr19Fixtures();
   });
 
   describe("HTML Component Renderers (SCR-17/18/19 engine projections)", () => {
@@ -351,25 +370,39 @@ describe("Extended Workspaces & Counterparty Portals Unit Tests", () => {
       expect(res.body).toContain("bot-001");
     });
 
-    it("GET /portal/partner/ORG-PART-01 responds with 200 (staff sees scoped deals)", async () => {
-      const res = await makeRequest(testPort, "/portal/partner/ORG-PART-01", {
-        headers: { "x-test-role": "SuperAdmin" },
+    it("blocks partner portfolio data until canonical organisation membership is connected", async () => {
+      const anonymous = await makeRequest(testPort, "/portal/partner/ORG-PART-01");
+      expect(anonymous.statusCode).toBe(401);
+      const staff = await makeRequest(testPort, "/portal/partner/ORG-PART-01", {
+        headers: { Authorization: `Bearer ${authToken}` },
       });
-      expect(res.statusCode).toBe(200);
-      expect(res.body).toContain("Strategic Partner &amp; Broadcaster");
+      expect(staff.statusCode).toBe(503);
+      expect(staff.body).toContain("ORGANISATION_RELATIONSHIP_UNAVAILABLE");
+      expect(staff.body).not.toContain("totalContractValue");
     });
 
-    it("GET /portal/creator/CRT-2026-09 responds with 200", async () => {
-      const res = await makeRequest(testPort, "/portal/creator/CRT-2026-09");
-      expect(res.statusCode).toBe(200);
-      expect(res.body).toContain("Creator Earnings &amp; 7-Way Royalty");
+    it("blocks creator settlements until canonical beneficiary ownership is connected", async () => {
+      const anonymous = await makeRequest(testPort, "/portal/creator/CRT-2026-09");
+      expect(anonymous.statusCode).toBe(401);
+
+      const staff = await makeRequest(testPort, "/portal/creator/CRT-2026-09", {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      expect(staff.statusCode).toBe(503);
+      expect(staff.body).toContain("BENEFICIARY_RELATIONSHIP_UNAVAILABLE");
+      expect(staff.body).not.toContain("Creator Earnings");
     });
 
-    it("GET /portal/vendor/VND-2026-04 responds with 200 with honest empty PO state", async () => {
-      const res = await makeRequest(testPort, "/portal/vendor/VND-2026-04");
-      expect(res.statusCode).toBe(200);
-      expect(res.body).toContain("Vendor Procurement &amp; Invoice");
-      expect(res.body).toContain("does not fabricate POs");
+    it("blocks vendor procurement until canonical counterparty ownership is connected", async () => {
+      const anonymous = await makeRequest(testPort, "/portal/vendor/VND-2026-04");
+      expect(anonymous.statusCode).toBe(401);
+
+      const staff = await makeRequest(testPort, "/portal/vendor/VND-2026-04", {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      expect(staff.statusCode).toBe(503);
+      expect(staff.body).toContain("COUNTERPARTY_RELATIONSHIP_UNAVAILABLE");
+      expect(staff.body).not.toContain("Vendor Procurement");
     });
 
     it("GET /workspace/management/overview responds with 200 with computed figures", async () => {

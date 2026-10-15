@@ -13,7 +13,7 @@
  * 3. Responsive container constraints and layout shift guards.
  */
 
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach, afterAll } from "vitest";
 import {
   renderMasterLayout,
   renderHomePageHtml,
@@ -27,6 +27,21 @@ import {
   renderStyleguideHtml,
 } from "../../src/web/index.js";
 import { renderBroadcastScreenHtml } from "../../src/web/broadcast/index.js";
+import { _resetConfigForTesting } from "../../src/core/config/index.js";
+
+// TSK-35: the Azeebo+ origin is deployment configuration. Pin it so these
+// structural baselines resolve identically with or without a local .env.
+const ORIGINAL_ORIGIN = process.env.AZEEBO_PLUS_UNIVERSAL_URL;
+const TEST_ORIGIN = "https://partner.example.test";
+beforeEach(() => {
+  process.env.AZEEBO_PLUS_UNIVERSAL_URL = TEST_ORIGIN;
+  _resetConfigForTesting();
+});
+afterAll(() => {
+  if (ORIGINAL_ORIGIN === undefined) delete process.env.AZEEBO_PLUS_UNIVERSAL_URL;
+  else process.env.AZEEBO_PLUS_UNIVERSAL_URL = ORIGINAL_ORIGIN;
+  _resetConfigForTesting();
+});
 import { BROADCAST_SCREEN_INVENTORY } from "../../src/modules/broadcast/screens/index.js";
 
 describe("DT-1001: Visual Regression Baseline & Contract Snapshots", () => {
@@ -50,9 +65,12 @@ describe("DT-1001: Visual Regression Baseline & Contract Snapshots", () => {
 
   it("maintains structural baseline for Surface D: Hub Verticals", () => {
     const hubHtml = renderMasterLayout("Hub", renderHubPageHtml(), "/hub");
-    expect(hubHtml).toContain("Ten integrated verticals");
+    expect(hubHtml).toContain("Preliminary profiles describe potential programme areas");
+    expect(hubHtml).toContain("service availability, training, financing, rights, and monetization are not verified");
     expect(hubHtml).toContain("Talent Accelerator Network");
-    expect(hubHtml).toContain("African Film & Creative Arts Academy");
+    // Hub showcase titles render through shared escapeHtml (src/web/components/escape.ts),
+    // so "&" in the AFCA title is correctly escaped to "&amp;" in markup (AUD-01).
+    expect(hubHtml).toContain("African Film &amp; Creative Arts Academy");
     expect(hubHtml).toContain("Virtual Talent Management (VTM)");
     expect(hubHtml).toContain("Virtual Content Fund (VCF)");
     expect(hubHtml).toContain("ONE Studios");
@@ -66,6 +84,9 @@ describe("DT-1001: Visual Regression Baseline & Contract Snapshots", () => {
     expect(gatewayHtml).toContain("Cinemaxis Universe");
     expect(gatewayHtml).toContain("target=\"_blank\"");
     expect(gatewayHtml).toContain("rel=\"noopener noreferrer\"");
+    // The outbound action points at the configured origin — never a value the
+    // product guessed for the partner (CLAUDE.md <azeebo>).
+    expect(gatewayHtml).toContain(`href="${TEST_ORIGIN}"`);
 
     const attributionHtml = renderMasterLayout("Attribution", renderAttributionConsoleHtml(), "/azeebo/attribution");
     expect(attributionHtml).toContain("Linear-to-Digital Attribution Tracker");
@@ -80,7 +101,7 @@ describe("DT-1001: Visual Regression Baseline & Contract Snapshots", () => {
   it("maintains structural baseline for Surface B & C: Operator Workspace Desks", () => {
     const directoryHtml = renderMasterLayout("Workspace", renderWorkspaceDirectoryHtml(), "/workspace");
     expect(directoryHtml).toContain("Enterprise Operating Hub &amp; Specialist Desks");
-    expect(directoryHtml).toContain("Enterprise Operating Desks");
+    expect(directoryHtml).toContain("Registered Desk Routes");
     expect(directoryHtml).not.toContain("§46"); // DT-408: zero §46 citations on desks
 
     const deskHtml = renderMasterLayout("MCR", renderWorkspaceDeskHtml("mcr"), "/workspace/desks/mcr");
@@ -92,14 +113,16 @@ describe("DT-1001: Visual Regression Baseline & Contract Snapshots", () => {
   it("maintains structural baseline for 33 Broadcast Consoles with Operator Shell (DT-401, DT-402)", () => {
     const catalogHtml = renderMasterLayout("Screens", renderScreensCatalogHtml(), "/broadcast/screens");
     expect(catalogHtml).toContain("Broadcast Operational Screen Inventory");
-    expect(catalogHtml).toContain("33 of 33 Screens Ready");
+    expect(catalogHtml).toContain("0 fully engine-sourced");
+    expect(catalogHtml).not.toContain("33 of 33 Screens Ready");
 
     for (const screen of BROADCAST_SCREEN_INVENTORY) {
       const screenHtml = renderBroadcastScreenHtml(screen, {}, "ExecutiveLeader");
       expect(screenHtml).toContain(screen.screenId);
       expect(screenHtml).toContain(screen.name);
       expect(screenHtml).toContain("Duty Stations (§4.2)");
-      expect(screenHtml).toContain("Live Channel & Stream Telemetry");
+      expect(screenHtml).toContain("Registered Channels &amp; Carriage State");
+      expect(screenHtml).toContain("vmn-kpi-strip");
       expect(screenHtml).toContain("Primary Operational Decision");
     }
   });

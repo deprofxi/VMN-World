@@ -9,7 +9,6 @@ import {
   TrafficSpotBooking,
   CarrierTelemetryRecord,
 } from "../../src/modules/broadcast/asrun/index.js";
-import { getConfig } from "../../src/core/config/index.js";
 
 describe("Broadcast Advanced Operations (B-10, B-11, B-12, B-13, B-14)", () => {
   it("should calculate spot price and generate commercial billing schedules (B-11)", () => {
@@ -147,7 +146,8 @@ SPT-001,NXTR,"Nestle Milo Morning Energy",COMMERCIAL_SPOT,30,06:15:00:00,MILO-30
       {
         carrierId: "STARTIMES_DTT",
         rfFrequencyMhz: 522.0,
-        servicePid: getConfig().NXTR_SERVICE_PID,
+        // Fixture PID literal: config no longer defaults carriage numbers (AUD-09).
+        servicePid: 1042,
         timestamp: new Date("2026-10-01T06:15:10.000Z"),
         signalStrengthDbm: -55,
         carrierLock: true,
@@ -156,19 +156,21 @@ SPT-001,NXTR,"Nestle Milo Morning Energy",COMMERCIAL_SPOT,30,06:15:00:00,MILO-30
     ];
 
     const threeWay = performThreeWayMatch("NXTR", bookings, parsedItems, carrierEvidence);
-    expect(threeWay.reconciliationStatus).toBe("VERIFIED_ALL_MATCHED");
+    expect(threeWay.reconciliationStatus).toBe("ALL_SUPPLIED_INPUTS_MATCHED");
     expect(threeWay.fullyReconciledSpots).toBe(1);
     expect(threeWay.certificates.length).toBe(1);
 
     const cert = threeWay.certificates[0];
-    expect(cert.isVerified).toBe(true);
+    // The in-process match uses supplied telemetry; it is not independent carrier validation.
+    expect(cert.isVerified).toBe(false);
     expect(cert.carrierLockVerified).toBe(true);
     expect(cert.documentBase64).toBeDefined();
 
     // Verify generated document
     const decoded = Buffer.from(cert.documentBase64!, "base64").toString("utf-8");
-    expect(decoded).toContain("CERTIFICATE OF BROADCAST PERFORMANCE & PROOF-OF-AIR");
+    expect(decoded).toContain("PROOF-OF-AIR RECONCILIATION RECORD - NOT TRANSMISSION VERIFICATION");
     expect(decoded).toContain(cert.certificateId);
     expect(decoded).toContain("Nestle Nigeria");
+    expect(decoded).toContain("NOT INDEPENDENTLY VALIDATED");
   });
 });

@@ -96,4 +96,49 @@ describe("Canonical Domain Invariants & Rules (TASK-P1-01)", () => {
     expect(result.valid).toBe(false);
     expect(result.errors).toContain("Cash collected cannot exceed invoiced amount");
   });
+
+  // TSK-59: the rule this function carried until 2026-10-09 was
+  // `talent + partner > gmv && gmv > 0`, so a settlement that recorded no gross value at all waived
+  // the sum rule silently and every such row passed. Zero GMV is a value, not an exemption.
+  it("refuses a zero-GMV settlement that still owes talent or a rightsholder", () => {
+    const zeroGmv: SettlementEntity = {
+      id: "stl-zero-gmv",
+      settlementNumber: "VMNL-STL-2026-0003",
+      status: "PENDING",
+      contractValue: 0,
+      gmvAmount: 0,
+      invoicedAmount: 0,
+      recognizedAmount: 0,
+      cashCollectedAmount: 0,
+      talentPayableAmount: 250000,
+      partnerShareAmount: 0,
+      currency: "NGN",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const result = validateSettlementInvariants(zeroGmv);
+    expect(result.valid).toBe(false);
+    expect(result.errors).toContain("Talent payables and partner share cannot exceed GMV");
+  });
+
+  it("still accepts a zero-GMV settlement that owes nothing", () => {
+    const nothingOwed: SettlementEntity = {
+      id: "stl-zero-everything",
+      settlementNumber: "VMNL-STL-2026-0004",
+      status: "PENDING",
+      contractValue: 0,
+      gmvAmount: 0,
+      invoicedAmount: 0,
+      recognizedAmount: 0,
+      cashCollectedAmount: 0,
+      talentPayableAmount: 0,
+      partnerShareAmount: 0,
+      currency: "NGN",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    expect(validateSettlementInvariants(nothingOwed).valid).toBe(true);
+  });
 });

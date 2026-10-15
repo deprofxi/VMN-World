@@ -15,8 +15,16 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import http from "node:http";
 import crypto from "node:crypto";
 import { createApiServer, ApiServerInstance } from "../../src/api/server.js";
+import { deleteFixtureRows, ensureFixturePerson } from "../helpers/db-parents.js";
+import { signSessionToken } from "../../src/core/auth/index.js";
 
 let sharedAuthToken: string | undefined;
+
+const TEST_FEDERATION_ORIGIN = "https://federation-partner.example.test";
+
+// TSK-19: run-unique provider event ids — see tests/unit/security-auth-rbac.test.ts.
+const PSK_EVENT_ID = Number(`9${Date.now()}`.slice(0, 14));
+const FLW_EVENT_ID = Number(`5${Date.now()}`.slice(0, 14));
 
 function makeRequest(
   port: number,
@@ -26,9 +34,10 @@ function makeRequest(
     headers?: Record<string, string>;
     body?: any;
   } = {}
-): Promise<{ statusCode: number; headers: http.IncomingHttpHeaders; body: any; rawText: string }> {
+): Promise<{ statusCode: number; headers: http.IncomingHttpHeaders; body: any; rawText: string; rawBuffer: Buffer }> {
   return new Promise((resolve, reject) => {
     const payload = options.body ? JSON.stringify(options.body) : undefined;
+    const chunks: Buffer[] = [];
     const req = http.request(
       {
         hostname: "127.0.0.1",
@@ -43,9 +52,10 @@ function makeRequest(
         },
       },
       (res) => {
-        let data = "";
-        res.on("data", (chunk) => (data += chunk));
+        res.on("data", (chunk: Buffer) => chunks.push(Buffer.from(chunk)));
         res.on("end", () => {
+          const rawBuffer = Buffer.concat(chunks);
+          const data = rawBuffer.toString("utf8");
           let parsedBody;
           try {
             parsedBody = JSON.parse(data);
@@ -57,6 +67,7 @@ function makeRequest(
             headers: res.headers,
             body: parsedBody,
             rawText: data,
+            rawBuffer,
           });
         });
       }
@@ -72,10 +83,22 @@ function makeRequest(
 describe("VMNL Enterprise End-to-End Platform Integration", () => {
   let app: ApiServerInstance;
   const testPort = 49152 + Math.floor(Math.random() * 1000);
+  /** TSK-60 box 3: this suite's deal is now a durable row, so it is reset on both sides. */
+  const DEAL_FIXTURE_IDS = ["deal-mtn-01"];
 
   beforeAll(async () => {
-    app = createApiServer(testPort);
+    await deleteFixtureRows({ dealIds: DEAL_FIXTURE_IDS });
+    // TSK-35: the Azeebo+ origin is deployment configuration. The suite boots
+    // with a test origin so the assertions below prove the link comes from
+    // config — no partner domain may be hard-coded in the product.
+    app = createApiServer(testPort, { AZEEBO_PLUS_UNIVERSAL_URL: TEST_FEDERATION_ORIGIN });
     await app.start();
+
+    // TSK-05: talent onboarding writes a TalentProfile whose personId is an
+    // enforced FK to Person. The route registers against an existing canonical
+    // identity, so the fixture creates that identity first.
+    await ensureFixturePerson("per-tiwa-01", { firstName: "Tiwa", lastName: "Adeyemi" });
+    await ensureFixturePerson("per-vtm-denied", { firstName: "Denied", lastName: "Applicant" });
 
     process.env.PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY || "test_paystack_secret_key_32_characters_long";
     process.env.FLUTTERWAVE_SECRET_HASH = process.env.FLUTTERWAVE_SECRET_HASH || "test_flw_secret_hash_value_32_chars";
@@ -93,15 +116,20 @@ describe("VMNL Enterprise End-to-End Platform Integration", () => {
   });
 
   afterAll(async () => {
+    await deleteFixtureRows({ personIds: ["per-tiwa-01", "per-vtm-denied"] });
+    // `app.stop()` drains the write-behind journal, so the deal rows are removed
+    // after it — deleting first would let the drain re-write them.
     await app.stop();
+    await deleteFixtureRows({ dealIds: DEAL_FIXTURE_IDS });
   });
 
   describe("0. Public Web Pages & Operator Dashboard", () => {
     it("should serve the corporate overview HTML on GET /", async () => {
       const res = await makeRequest(testPort, "/");
       expect(res.statusCode).toBe(200);
-      expect(res.rawText).toContain("Powering the African Creative Economy");
+      expect(res.rawText).toContain("Company information and preliminary channel and service profiles");
       expect(res.rawText).toContain("Virtual Media Network Limited");
+      expect(res.rawText).toContain("Operational reach and availability require independent confirmation");
     });
 
     it("should serve the channels showcase HTML on GET /channels", async () => {
@@ -116,7 +144,8 @@ describe("VMNL Enterprise End-to-End Platform Integration", () => {
       const res = await makeRequest(testPort, "/hub");
       expect(res.statusCode).toBe(200);
       expect(res.rawText).toContain("Creative Economy Hub");
-      expect(res.rawText).toContain("African Film & Creative Arts Academy");
+      // Renderer escapes "&" to "&amp;" via shared escapeHtml (AUD-01).
+      expect(res.rawText).toContain("African Film &amp; Creative Arts Academy");
     });
 
     it("should serve the Broadcast Executive Dashboard on GET /broadcast/dashboard", async () => {
@@ -124,7 +153,9 @@ describe("VMNL Enterprise End-to-End Platform Integration", () => {
       expect(res.statusCode).toBe(200);
       expect(res.rawText).toContain("Broadcast Executive Dashboard");
       expect(res.rawText).toContain("SCR-BCST-01");
-      expect(res.rawText).toContain("StarTimes Carriage");
+      expect(res.rawText).toContain("Transmission &amp; Carriage Status");
+      expect(res.rawText).toContain("not connected to a verified source");
+      expect(res.rawText).not.toContain("Ch. 428 DTT");
     });
 
     it("should serve the 33 Broadcast Screen Surfaces Catalog on GET /broadcast/screens", async () => {
@@ -133,7 +164,8 @@ describe("VMNL Enterprise End-to-End Platform Integration", () => {
       expect(res.rawText).toContain("Broadcast Operational Screen Inventory");
       expect(res.rawText).toContain("SCR-BCST-01");
       expect(res.rawText).toContain("SCR-BCST-33");
-      expect(res.rawText).toContain("33 of 33 Screens Ready");
+      expect(res.rawText).toContain("0 fully engine-sourced");
+      expect(res.rawText).not.toContain("33 of 33 Screens Ready");
     });
 
     it("should filter the 33 Screens Catalog by role on GET /broadcast/screens?role=PlayoutOperator", async () => {
@@ -179,20 +211,26 @@ describe("VMNL Enterprise End-to-End Platform Integration", () => {
     it("should serve linear channel pages (NXTR, ORIS, IMBD) and public programme detail", async () => {
       const nxtrRes = await makeRequest(testPort, "/channels/nxtr");
       expect(nxtrRes.statusCode).toBe(200);
+      expect(nxtrRes.rawText).toContain('<link rel="canonical" href="https://vmnl.ng/channels/nxtr"');
       expect(nxtrRes.rawText).toContain("Nigezie Xtreme");
-      expect(nxtrRes.rawText).toContain("ON AIR LIVE");
+      expect(nxtrRes.rawText).toContain("No approved, source-backed schedule is connected");
+      expect(nxtrRes.rawText).not.toContain("ON AIR NOW");
 
       const orisRes = await makeRequest(testPort, "/channels/orisun");
       expect(orisRes.statusCode).toBe(200);
+      expect(orisRes.rawText).toContain('<link rel="canonical" href="https://vmnl.ng/channels/orisun"');
       expect(orisRes.rawText).toContain("Orisun");
 
       const imbdRes = await makeRequest(testPort, "/channels/isimbido");
       expect(imbdRes.statusCode).toBe(200);
+      expect(imbdRes.rawText).toContain('<link rel="canonical" href="https://vmnl.ng/channels/isimbido"');
       expect(imbdRes.rawText).toContain("Isi Mbido");
 
       const prgRes = await makeRequest(testPort, "/programmes/PRG-001");
       expect(prgRes.statusCode).toBe(200);
-      expect(prgRes.rawText).toContain("Urban Beats Live Prime");
+      expect(prgRes.rawText).toContain('<link rel="canonical" href="https://vmnl.ng/programmes/PRG-001"');
+      expect(prgRes.rawText).toContain("Programme details are unavailable until an approved catalogue record is connected");
+      expect(prgRes.rawText).not.toContain("Urban Beats Live Prime");
     });
 
     it("should serve all Surface A Creative Hub verticals and public pages", async () => {
@@ -228,9 +266,17 @@ describe("VMNL Enterprise End-to-End Platform Integration", () => {
       expect(faviconRes.statusCode).toBe(200);
       expect(faviconRes.headers["content-type"]).toContain("image/svg+xml");
 
-      const ogRes = await makeRequest(testPort, "/assets/og-vmnl-master.jpg");
-      expect(ogRes.statusCode).toBe(200);
-      expect(ogRes.rawText).toContain("<svg");
+      const ogSvgRes = await makeRequest(testPort, "/assets/og-vmnl-master.svg");
+      expect(ogSvgRes.statusCode).toBe(200);
+      expect(ogSvgRes.rawText).toContain("<svg");
+
+      const ogPngRes = await makeRequest(testPort, "/assets/og-vmnl-master.png");
+      expect(ogPngRes.statusCode).toBe(200);
+      expect(ogPngRes.headers["content-type"]).toContain("image/png");
+      expect(ogPngRes.rawBuffer.subarray(0, 8)).toEqual(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
+      expect(ogPngRes.rawBuffer.readUInt32BE(16)).toBe(1200);
+      expect(ogPngRes.rawBuffer.readUInt32BE(20)).toBe(630);
+      expect(Number(ogPngRes.headers["content-length"])).toBe(ogPngRes.rawBuffer.length);
     });
 
     // Surface B & C Tests
@@ -238,7 +284,9 @@ describe("VMNL Enterprise End-to-End Platform Integration", () => {
       const dirRes = await makeRequest(testPort, "/workspace");
       expect(dirRes.statusCode).toBe(200);
       expect(dirRes.rawText).toContain("Enterprise Operating Hub");
-      expect(dirRes.rawText).toContain("48 of 48 Desks Operational");
+      // TSK-23: the served directory must advertise the measured wiring, not "all operational".
+      expect(dirRes.rawText).toContain("1 of 48 desks bound to engine state");
+      expect(dirRes.rawText).not.toContain("48 of 48 Desks Operational");
 
       const execRes = await makeRequest(testPort, "/workspace/executive");
       expect(execRes.statusCode).toBe(200);
@@ -287,6 +335,36 @@ describe("VMNL Enterprise End-to-End Platform Integration", () => {
       expect(cnmRes.statusCode).toBe(200);
       expect(cnmRes.rawText).toContain("Cinemaxis Universe");
       expect(cnmRes.rawText).toContain("cnm-789");
+    });
+
+    it("should handle HEAD requests centrally with 200 OK and no body (AUD-13)", async () => {
+      const headRes = await makeRequest(testPort, "/", { method: "HEAD" });
+      expect(headRes.statusCode).toBe(200);
+      expect(headRes.headers["content-type"]).toContain("text/html");
+      expect(headRes.headers["content-length"]).toBeDefined();
+      expect(headRes.rawText).toBe("");
+    });
+
+    it("should compress responses with gzip and apply Vary: Accept-Encoding (AUD-18)", async () => {
+      const compRes = await makeRequest(testPort, "/assets/styles.css", {
+        headers: { "Accept-Encoding": "gzip" },
+      });
+      expect(compRes.statusCode).toBe(200);
+      expect(compRes.headers["content-encoding"]).toBe("gzip");
+      expect(compRes.headers["vary"]).toContain("Accept-Encoding");
+    });
+
+    it("should mark authenticated HTML as private, no-store and public pages as must-revalidate (AUD-19)", async () => {
+      const pubRes = await makeRequest(testPort, "/", { headers: { Authorization: "" } });
+      expect(pubRes.headers["cache-control"]).toBe("public, max-age=0, must-revalidate");
+
+      const personalizedHome = await makeRequest(testPort, "/", { headers: { Authorization: `Bearer ${sharedAuthToken}` } });
+      expect(personalizedHome.headers["cache-control"]).toBe("private, no-store");
+      expect(personalizedHome.rawText).toContain("admin");
+
+      const authRes = await makeRequest(testPort, "/workspace");
+      expect(authRes.headers["cache-control"]).toContain("private");
+      expect(authRes.headers["cache-control"]).toContain("no-store");
     });
   });
 
@@ -371,17 +449,17 @@ describe("VMNL Enterprise End-to-End Platform Integration", () => {
       expect(cert.cryptographicSignature).toBeDefined();
       expect(cert.cryptographicSignature.length).toBe(64);
 
-      // Public Verification Route: Proof-of-Air
+      // An as-run reconciliation creates a record, not independently verified transmission evidence.
+      expect(cert.isVerified).toBe(false);
       const poaHtmlRes = await makeRequest(testPort, `/verify/poa/${cert.certificateId}`);
-      expect(poaHtmlRes.statusCode).toBe(200);
-      expect(poaHtmlRes.rawText).toContain("Certificate of Commercial Performance (Proof-of-Air)");
-      expect(poaHtmlRes.rawText).toContain("Zenith Bank Plc");
-      expect(poaHtmlRes.rawText).toContain("Download PDF Certificate");
+      expect(poaHtmlRes.statusCode).toBe(404);
+      expect(poaHtmlRes.rawText).toContain("No source-verified Proof-of-Air record is available");
+      expect(poaHtmlRes.rawText).not.toContain("Download PDF Certificate");
 
       const poaJsonRes = await makeRequest(testPort, `/verify/poa/${cert.certificateId}?format=json`);
-      expect(poaJsonRes.statusCode).toBe(200);
-      expect(poaJsonRes.body.valid).toBe(true);
-      expect(poaJsonRes.body.certificate.certificateId).toBe(cert.certificateId);
+      expect(poaJsonRes.statusCode).toBe(404);
+      expect(poaJsonRes.body.valid).toBe(false);
+      expect(poaJsonRes.body.certificate).toBeUndefined();
 
       const invalidPoaRes = await makeRequest(testPort, "/verify/poa/non-existent-poa-id");
       expect(invalidPoaRes.statusCode).toBe(404);
@@ -600,7 +678,7 @@ describe("VMNL Enterprise End-to-End Platform Integration", () => {
         },
       });
       expect(res.statusCode).toBe(201);
-      expect(res.body.link.universalUrl).toContain("https://azeebo.plus/u/movies/mov-jagun-01");
+      expect(res.body.link.universalUrl).toContain(`${TEST_FEDERATION_ORIGIN}/u/movies/mov-jagun-01`);
       expect(res.body.link.qrPayload).toBeDefined();
     });
 
@@ -739,13 +817,14 @@ describe("VMNL Enterprise End-to-End Platform Integration", () => {
       const paystackPayload = {
         event: "charge.success",
         data: {
-          id: 99887766,
+          id: PSK_EVENT_ID,
           reference: "PSK-E2E-REF-001",
           amount: 25000000, // 250,000 NGN in kobo
           currency: "NGN",
           paid_at: new Date().toISOString(),
           customer: { email: "agency@brandmedia.ng" },
           gateway_response: "Successful",
+          status: "success",
         },
       };
       const rawPaystack = JSON.stringify(paystackPayload);
@@ -764,7 +843,7 @@ describe("VMNL Enterprise End-to-End Platform Integration", () => {
       const flwPayload = {
         event: "charge.completed",
         data: {
-          id: 55443322,
+          id: FLW_EVENT_ID,
           tx_ref: "FLW-E2E-REF-002",
           amount: 500000,
           currency: "NGN",
@@ -812,7 +891,6 @@ describe("VMNL Enterprise End-to-End Platform Integration", () => {
         "/privacy",
         "/accessibility",
         "/apply",
-        "/vtm/terms",
         "/vtm/marketplace",
       ];
 
@@ -824,7 +902,39 @@ describe("VMNL Enterprise End-to-End Platform Integration", () => {
       }
     });
 
-    it("should process commercial enquiry intake, status lookup, and routing recovery", async () => {
+    it("requires an authorized session for VTM terms and never accepts a fabricated contract signature", async () => {
+      const termsAnonymous = await makeRequest(testPort, "/vtm/terms", { headers: { Authorization: "" } });
+      expect(termsAnonymous.statusCode).toBe(401);
+      const termsForbiddenToken = signSessionToken({ userId: "usr-vtm-denied", personId: "per-vtm-denied", email: "learner@example.ng", roles: ["AcademyLearner"] }).accessToken;
+      const termsForbidden = await makeRequest(testPort, "/vtm/terms", { headers: { Authorization: `Bearer ${termsForbiddenToken}` } });
+      expect(termsForbidden.statusCode).toBe(403);
+      const termsAuthorized = await makeRequest(testPort, "/vtm/terms", { headers: { Authorization: `Bearer ${sharedAuthToken}` } });
+      expect(termsAuthorized.statusCode).toBe(200);
+      // /vtm/terms is auth-gated and deliberately excluded from
+      // PUBLIC_INDEXABLE_ROUTES, so the layout renders noindex and omits a
+      // canonical link (AUD-02). Indexing an auth-gated page is a policy
+      // decision that must be made in the registry, not assumed here.
+      expect(termsAuthorized.rawText).toContain('<meta name="robots" content="noindex, nofollow">');
+      expect(termsAuthorized.rawText).not.toContain('<link rel="canonical" href="https://vmnl.ng/vtm/terms"');
+      expect(termsAuthorized.rawText).toContain("DEMO ONLY");
+      expect(termsAuthorized.headers["cache-control"]).toBe("private, no-store");
+
+      const signAnonymous = await makeRequest(testPort, "/api/v1/vtm/contracts/CTR-UNKNOWN/sign", {
+        method: "POST",
+        headers: { Authorization: "" },
+        body: { signature: "arbitrary" },
+      });
+      expect(signAnonymous.statusCode).toBe(401);
+      const signAuthorized = await makeRequest(testPort, "/api/v1/vtm/contracts/CTR-UNKNOWN/sign", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${sharedAuthToken}` },
+        body: { signature: "arbitrary" },
+      });
+      expect(signAuthorized.statusCode).toBe(503);
+      expect(signAuthorized.body.code).toBe("CANONICAL_CONTRACT_WORKFLOW_UNAVAILABLE");
+    });
+
+    it("should process commercial enquiry intake and refuse idempotency-key PII recovery", async () => {
       const enquiryPayload = {
         fullName: "Dr. Adebayo Adeleke",
         email: "adebayo@nigerianbrands.ng",
@@ -842,18 +952,17 @@ describe("VMNL Enterprise End-to-End Platform Integration", () => {
       });
       expect(submitRes.statusCode).toBe(201);
       expect(submitRes.body.status).toBe("SUCCESS");
-      expect(submitRes.body.enquiry.reference).toMatch(/^ENQ-\d{8}-[A-Z0-9]{4}$/);
+      expect(submitRes.body.reference).toMatch(/^ENQ-\d{8}-[A-Z0-9]{4}$/);
 
-      const ref = submitRes.body.enquiry.reference;
-
-      // 2. Recover outcome via recovery endpoint
+      // An idempotency key is not an authorization capability and cannot be
+      // used to retrieve applicant PII.
       const recoveryRes = await makeRequest(
         testPort,
         `/api/v1/enquiries/recovery?idempotencyKey=${enquiryPayload.idempotencyKey}`
       );
-      expect(recoveryRes.statusCode).toBe(200);
-      expect(recoveryRes.body.status).toBe("SUCCESS");
-      expect(recoveryRes.body.enquiry.reference).toBe(ref);
+      expect(recoveryRes.statusCode).toBe(410);
+      expect(recoveryRes.body.code).toBe("ENQUIRY_RECOVERY_CAPABILITY_REQUIRED");
+      expect(recoveryRes.body).not.toHaveProperty("enquiry");
     });
 
     it("should execute complete AFCA admissions lifecycle (submit, queue, evaluate)", async () => {
@@ -886,15 +995,16 @@ describe("VMNL Enterprise End-to-End Platform Integration", () => {
       expect(getRes.body.application.fullName).toBe("Fatima Al-Hassan");
 
       // 3. List in admissions staff queue
-      const queueRes = await makeRequest(testPort, "/api/v1/admissions/queue");
+      const queueRes = await makeRequest(testPort, "/api/v1/admissions/queue", { headers: { Authorization: `Bearer ${sharedAuthToken}` } });
       expect(queueRes.statusCode).toBe(200);
       expect(queueRes.body.count).toBeGreaterThanOrEqual(1);
 
       // 4. Record admissions decision
       const decisionRes = await makeRequest(testPort, `/api/v1/admissions/${appRef}/decision`, {
         method: "POST",
+        headers: { Authorization: `Bearer ${sharedAuthToken}` },
         body: {
-          reviewerId: "USR-FACULTY-01",
+          reviewerId: "forged-client-actor",
           decision: "ACCEPTED",
           notes: "Approved for Directing 2026 Cohort with 50% merit scholarship.",
           scores: { portfolioScore: 95, statementScore: 90, overallRating: 93 },
@@ -902,9 +1012,10 @@ describe("VMNL Enterprise End-to-End Platform Integration", () => {
       });
       expect(decisionRes.statusCode).toBe(200);
       expect(decisionRes.body.application.status).toBe("ACCEPTED");
+      expect(decisionRes.body.application.reviewedBy).toBe("usr-61646d696e40");
     });
 
-    it("should execute digital contract signing with SHA-256 cryptographic seal", async () => {
+    it("keeps digital contract signing disabled pending a canonical workflow", async () => {
       const contractId = "ctr-e2e-vtm-99";
       const signRes = await makeRequest(testPort, `/api/v1/vtm/contracts/${contractId}/sign`, {
         method: "POST",
@@ -914,10 +1025,9 @@ describe("VMNL Enterprise End-to-End Platform Integration", () => {
         },
       });
 
-      expect(signRes.statusCode).toBe(200);
-      expect(signRes.body.status).toBe("SUCCESS");
-      expect(signRes.body.isSigned).toBe(true);
-      expect(signRes.body.signedHash).toHaveLength(64);
+      expect(signRes.statusCode).toBe(503);
+      expect(signRes.body.code).toBe("CANONICAL_CONTRACT_WORKFLOW_UNAVAILABLE");
+      expect(signRes.body).not.toHaveProperty("signedHash");
     });
   });
 });

@@ -210,6 +210,38 @@ describe("Phase 5: AFCA Admissions Service & Learner Workspaces", () => {
       expect(html).toContain("Test Candidate");
     });
 
+    it("escapes untrusted application values in status and staff queue HTML", () => {
+      const unsafe = {
+        id: "app-xss",
+        reference: `APP-<img src=x onerror=alert(1)>`,
+        fullName: `<script>alert("name")</script>`,
+        email: `person@example.ng"><img src=x>`,
+        phone: "",
+        creativeTrack: "DIRECTING" as const,
+        experienceLevel: "BEGINNER" as const,
+        statementOfIntent: "private text",
+        financialAidRequested: false,
+        status: "CHANGES_REQUESTED" as const,
+        reviewerNotes: `<svg onload=alert(1)>review notes`,
+        stepCompleted: 5,
+        submittedAt: new Date(),
+      };
+
+      const statusHtml = renderApplicationStatusHtml(unsafe);
+      expect(statusHtml).toContain("&lt;script&gt;");
+      expect(statusHtml).toContain("&lt;svg onload=alert(1)&gt;");
+      expect(statusHtml).not.toContain("<script>");
+      expect(statusHtml).not.toContain("<svg onload=");
+
+      const notFoundHtml = renderApplicationStatusHtml(null, `<img src=x onerror=alert(1)>`);
+      expect(notFoundHtml).toContain("&lt;img src=x onerror=alert(1)&gt;");
+      expect(notFoundHtml).not.toContain("<img src=x");
+
+      const queueHtml = renderAdmissionsQueueHtml([unsafe]);
+      expect(queueHtml).toContain("APP-&lt;img src=x onerror=alert(1)&gt;");
+      expect(queueHtml).not.toContain("href=\"/admissions/review/APP-<img");
+    });
+
     it("renders admissions queue table (UX-APP-007)", () => {
       const mockList = [
         {

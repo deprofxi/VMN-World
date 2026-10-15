@@ -20,32 +20,31 @@ import {
   PROVISIONAL_RATE_CARDS,
 } from "../../src/modules/broadcast/index.js";
 import { RightsRecordEntity } from "../../src/core/domain/types.js";
-import { getConfig } from "../../src/core/config/index.js";
 
 describe("Phase 2: Broadcast & Linear Television Operations", () => {
   describe("Channel Registry (TASK-P2-01)", () => {
-    it("should retrieve all 3 active linear channels with StarTimes metadata (provisional)", () => {
-      const config = getConfig();
+    it("should retrieve all 3 active linear channels with no fabricated StarTimes carriage data (AUD-09)", () => {
       const channels = getAllActiveChannels();
       expect(channels.length).toBe(3);
 
+      // AUD-09: carriage numbers/PIDs are never hard-coded. They stay unset
+      // until a verified StarTimes/NBC carriage record exists (CLAUDE.md
+      // broadcast law); `isProvisional` keeps renderings in unverified mode.
+      for (const code of ["NXTR", "ORIS", "IMBD"]) {
+        const channel = getChannelByCode(code);
+        expect(channel).toBeDefined();
+        expect(channel?.starTimesCarriage.isProvisional).toBe(true);
+        expect(channel?.starTimesCarriage.dttChannelNumber).toBeUndefined();
+        expect(channel?.starTimesCarriage.dthChannelNumber).toBeUndefined();
+        expect(channel?.starTimesCarriage.servicePid).toBeUndefined();
+      }
+
       const nigezie = getChannelByCode("NXTR");
-      expect(nigezie).toBeDefined();
       expect(nigezie?.name).toBe("Nigezie Xtreme");
-      expect(nigezie?.starTimesCarriage.isProvisional).toBe(true);
-      expect(nigezie?.starTimesCarriage.dttChannelNumber).toBe(config.NXTR_DTT_CHANNEL);
-
       const orisun = getChannelByCode("ORIS");
-      expect(orisun).toBeDefined();
       expect(orisun?.name).toBe("Orisun — The Source");
-      expect(orisun?.starTimesCarriage.isProvisional).toBe(true);
-      expect(orisun?.starTimesCarriage.dttChannelNumber).toBe(config.ORIS_DTT_CHANNEL);
-
       const isiMbido = getChannelByCode("IMBD");
-      expect(isiMbido).toBeDefined();
       expect(isiMbido?.name).toBe("Isi Mbido — The Beginning");
-      expect(isiMbido?.starTimesCarriage.isProvisional).toBe(true);
-      expect(isiMbido?.starTimesCarriage.dttChannelNumber).toBe(config.IMBD_DTT_CHANNEL);
     });
   });
 
@@ -375,7 +374,8 @@ describe("Phase 2: Broadcast & Linear Television Operations", () => {
       expect(cert.clientName).toBe("MTN Nigeria");
       expect(cert.cryptographicSignature).toBeDefined();
       expect(cert.cryptographicSignature.length).toBe(64); // SHA-256 hex
-      expect(cert.isVerified).toBe(true);
+      expect(cert.isVerified).toBe(false); // As-run data alone does not prove carrier transmission.
+      expect(cert.carrierLockVerified).toBeUndefined();
       expect(report.makeGoodCreditsRequired).toBe(1);
     });
   });

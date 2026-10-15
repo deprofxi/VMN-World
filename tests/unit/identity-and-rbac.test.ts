@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import http from "node:http";
 import { createApiServer, ApiServerInstance } from "../../src/api/server.js";
-import { signSessionToken } from "../../src/core/auth/index.js";
+import { signSessionToken, registerUser, updateUserMfaEnrollment } from "../../src/core/auth/index.js";
+import { enrollMfaSecret, computeTotp, _resetMfaSecretsForTesting } from "../../src/core/auth/totp.js";
 
 function makeRequest(
   port: number,
@@ -57,6 +58,7 @@ describe("S-IDENTITY Presentation Shell & RBAC Suite (UX-SYS-001 to 014 / Journe
 
   afterAll(async () => {
     await app.stop();
+    _resetMfaSecretsForTesting();
   });
 
   it("renders UX-SYS-001 Sign In screen with one-click sandbox personas and WCAG form controls", async () => {
@@ -95,6 +97,24 @@ describe("S-IDENTITY Presentation Shell & RBAC Suite (UX-SYS-001 to 014 / Journe
     expect(cookieStr).toContain("HttpOnly");
   });
 
+  it("rejects sandbox persona authentication when runtime environment is unset", async () => {
+    const previousNodeEnv = process.env.NODE_ENV;
+    delete process.env.NODE_ENV;
+    try {
+      const body = new URLSearchParams({ email: "admin@vmnl.ng", quickPersona: "true" }).toString();
+      const result = await makeRequest(testPort, "/sign-in", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body,
+      });
+      expect(result.statusCode).toBe(404);
+      expect(result.headers["set-cookie"]).toBeUndefined();
+    } finally {
+      if (previousNodeEnv === undefined) delete process.env.NODE_ENV;
+      else process.env.NODE_ENV = previousNodeEnv;
+    }
+  });
+
   it("authenticates via valid email and password credentials", async () => {
     const devPass = process.env.DEV_SEED_PASSWORD || "vmnl-dev-seed-pass-2026#secure";
     const body = new URLSearchParams({
@@ -114,6 +134,59 @@ describe("S-IDENTITY Presentation Shell & RBAC Suite (UX-SYS-001 to 014 / Journe
     const setCookie = res.headers["set-cookie"];
     const cookieStr = Array.isArray(setCookie) ? setCookie.join(";") : setCookie || "";
     expect(cookieStr).toContain("vmnl_session=");
+  });
+
+  it("requires MFA after password auth and upgrades only a valid login challenge", async () => {
+    const email = `mfa-fixture-${Date.now()}@vmnl.ng`;
+    const password = "Mfa-fixture-password-2026!";
+    await registerUser({ email, password, roles: ["Operator"] });
+    const secret = enrollMfaSecret(email);
+    await updateUserMfaEnrollment(email, secret);
+    const loginBody = new URLSearchParams({ email, password }).toString();
+    const login = await makeRequest(testPort, "/sign-in", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: loginBody,
+    });
+    expect(login.statusCode).toBe(302);
+    expect(login.headers["location"]).toContain("/auth/mfa");
+    const loginCookies = login.headers["set-cookie"]?.map((cookie) => cookie.split(";")[0]) || [];
+    const challengeCookie = loginCookies.find((cookie) => cookie.startsWith("vmnl_mfa_challenge="));
+    expect(challengeCookie).toBeDefined();
+
+    const mfaPage = await makeRequest(testPort, "/auth/mfa", { headers: { Cookie: challengeCookie! } });
+    expect(mfaPage.statusCode).toBe(200);
+    expect(mfaPage.body).toContain('name="csrfToken"');
+    const csrfCookie = mfaPage.headers["set-cookie"]?.find((cookie) => cookie.startsWith("vmnl_csrf="));
+    expect(csrfCookie).toBeDefined();
+    const csrfToken = csrfCookie!.split(";")[0].slice("vmnl_csrf=".length);
+    const now = Date.now();
+    const code = computeTotp(secret, Math.floor(now / 1000 / 30));
+    const rejectedBody = new URLSearchParams({ mfaCode: code, returnUrl: "/workspace" }).toString();
+    const csrfRejected = await makeRequest(testPort, "/auth/mfa", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded", Cookie: challengeCookie!, "Content-Length": String(Buffer.byteLength(rejectedBody)) },
+      body: rejectedBody,
+    });
+    expect(csrfRejected.statusCode).toBe(403);
+
+    const mfaFormBody = new URLSearchParams({ mfaCode: code, returnUrl: "/workspace", csrfToken }).toString();
+    const mfaCookies = `${challengeCookie}; ${csrfCookie!.split(";")[0]}`;
+    const upgrade = await makeRequest(testPort, "/auth/mfa", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded", Cookie: mfaCookies, Origin: "http://localhost:3000", "Content-Length": String(Buffer.byteLength(mfaFormBody)) },
+      body: mfaFormBody,
+    });
+    expect(upgrade.statusCode).toBe(302);
+    expect(upgrade.headers["set-cookie"]?.toString()).toContain("vmnl_session=");
+    expect(upgrade.headers["set-cookie"]?.toString()).toContain("vmnl_csrf=");
+
+    const replay = await makeRequest(testPort, "/auth/mfa", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded", Cookie: mfaCookies, Origin: "http://localhost:3000", "Content-Length": String(Buffer.byteLength(mfaFormBody)) },
+      body: mfaFormBody,
+    });
+    expect([401, 403]).toContain(replay.statusCode);
   });
 
   it("rejects invalid password with 401 and error notice", async () => {
@@ -156,16 +229,45 @@ describe("S-IDENTITY Presentation Shell & RBAC Suite (UX-SYS-001 to 014 / Journe
     expect(authRes.body).toContain("mcr@vmnl.ng");
   });
 
-  it("logs out via /sign-out, clears session cookie, and revokes session", async () => {
+  it("requires a CSRF-protected POST to revoke a session during sign-out", async () => {
     const token = signSessionToken({
       userId: "usr-mcr",
       personId: "per-mcr",
       email: "mcr@vmnl.ng",
       roles: ["MCRSupervisor"],
     }).accessToken;
+    const sessionCookie = `vmnl_session=${token}`;
 
+    const confirmation = await makeRequest(testPort, "/sign-out", {
+      headers: { Cookie: sessionCookie },
+    });
+    expect(confirmation.statusCode).toBe(200);
+    expect(confirmation.body).toContain('method="POST" action="/sign-out"');
+    expect(confirmation.body).toContain('name="csrfToken"');
+    expect(confirmation.headers["set-cookie"]).toBeTruthy();
+
+    const csrfToken = confirmation.body.match(/name="csrfToken" value="([^"]+)"/)?.[1];
+    const rawSetCookie = confirmation.headers["set-cookie"] as string[] | string;
+    const csrfCookie = (Array.isArray(rawSetCookie) ? rawSetCookie : [rawSetCookie])
+      .find((cookie) => cookie.startsWith("vmnl_csrf="))?.split(";")[0];
+    expect(csrfToken).toBeTruthy();
+    expect(csrfCookie).toBeTruthy();
+
+    const rejected = await makeRequest(testPort, "/sign-out", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded", Cookie: sessionCookie },
+      body: "",
+    });
+    expect(rejected.statusCode).toBe(403);
+
+    const body = new URLSearchParams({ csrfToken: csrfToken! }).toString();
     const res = await makeRequest(testPort, "/sign-out", {
-      headers: { Cookie: `vmnl_session=${token}` },
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Cookie: `${sessionCookie}; ${csrfCookie}`,
+      },
+      body,
     });
 
     expect(res.statusCode).toBe(302);
@@ -199,17 +301,27 @@ describe("S-IDENTITY Presentation Shell & RBAC Suite (UX-SYS-001 to 014 / Journe
     expect(getRes.body).toContain("Operational Access Elevation");
     expect(getRes.body).toContain("MCR Supervisor");
 
+    const csrfMatch = getRes.body.match(/name="csrfToken"\s+value="([^"]+)"/);
+    const csrfToken = csrfMatch ? csrfMatch[1] : "";
+    const rawSetCookie = getRes.headers["set-cookie"] as string[] | string | undefined;
+    const csrfCookie = Array.isArray(rawSetCookie)
+      ? rawSetCookie.find((c) => c.startsWith("vmnl_csrf="))?.split(";")[0]
+      : typeof rawSetCookie === "string" && rawSetCookie.startsWith("vmnl_csrf=")
+        ? rawSetCookie.split(";")[0]
+        : "";
+
     const body = new URLSearchParams({
       role: "MCRSupervisor",
       duration: "SHIFT_8H",
       justification: "Covering MCR supervisor shift during transmission outage",
+      csrfToken,
     }).toString();
 
     const postRes = await makeRequest(testPort, "/access-request", {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
-        Cookie: `vmnl_session=${token}`,
+        Cookie: [`vmnl_session=${token}`, csrfCookie].filter(Boolean).join("; "),
       },
       body,
     });

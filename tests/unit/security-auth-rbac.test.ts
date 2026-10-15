@@ -6,6 +6,27 @@ import { scanBufferForThreats, generatePresignedUploadUrl } from "../../src/core
 import { signSessionToken, revokeToken, isTokenRevoked, checkRateLimit } from "../../src/core/auth/index.js";
 import { canPerform, assertSeedRolesConformToRbac } from "../../src/core/rbac/index.js";
 import { BankReconciliationEngine } from "../../src/modules/finance/reconciliation/index.js";
+import {
+  encryptSensitiveField,
+  decryptSensitiveField,
+  maskSensitiveLast4,
+  maskPhoneNumber,
+} from "../../src/core/websecurity/index.js";
+import {
+  registerSession,
+  revokeSessionById,
+  useKeyValueAdapterForSessions,
+  _resetSessionsForTesting,
+} from "../../src/core/auth/sessions.js";
+import { MemoryKeyValueAdapter } from "../../src/core/cache/index.js";
+
+/**
+ * TSK-19: the provider-event claim is a durable unique row, so a webhook event id
+ * may be delivered exactly once *ever*, not once per run. These fixtures own a
+ * fresh id per run — otherwise the second run of this suite would be measuring
+ * the duplicate path while believing it measured the accepted path.
+ */
+const RUN_TOKEN = Date.now().toString(36);
 
 function makeRequest(
   port: number,
@@ -335,7 +356,7 @@ describe("Security, RBAC Enforcement & Authentication Suite (B-6, B-7, B-8)", ()
       expect(tamperedRes.body.message).toContain("Invalid Paystack signature");
 
       // 3. Valid signature -> 200
-      const validPayload = { event: "charge.success", data: { id: "psk-unit-test-1", amount: 100000 } };
+      const validPayload = { event: "charge.success", data: { id: `psk-unit-test-${RUN_TOKEN}`, reference: "PSK-UNIT-REF-1", amount: 100000, currency: "NGN", status: "success" } };
       const rawPayload = JSON.stringify(validPayload);
       const validSig = crypto
         .createHmac("sha512", process.env.PAYSTACK_SECRET_KEY)
@@ -371,7 +392,7 @@ describe("Security, RBAC Enforcement & Authentication Suite (B-6, B-7, B-8)", ()
       const validFlwRes = await makeRequest(testPort, "/api/v1/webhooks/flutterwave", {
         method: "POST",
         headers: { "verif-hash": process.env.FLUTTERWAVE_SECRET_HASH },
-        body: { event: "charge.completed", data: { id: "flw-unit-test-1", amount: 50000 } },
+        body: { event: "charge.completed", data: { id: `flw-unit-test-${RUN_TOKEN}`, tx_ref: "FLW-UNIT-REF-1", amount: 50000, currency: "NGN", status: "successful" } },
       });
       expect(validFlwRes.statusCode).toBe(200);
       expect(validFlwRes.body.status).toBe("success");
@@ -410,4 +431,60 @@ describe("Security, RBAC Enforcement & Authentication Suite (B-6, B-7, B-8)", ()
     expect(replayLogs[0].transactionId).toBe("PAYSTACK-12345");
     expect(replayLogs[0].reason).toContain("replay");
   });
+
+  it("should encrypt, decrypt and mask sensitive identity fields with AES-256-GCM (AUD-30)", () => {
+    const rawNationalId = "NIN-29384756102";
+    const rawPhone = "+2348012345678";
+
+    // Encryption & decryption roundtrip
+    const encryptedNIN = encryptSensitiveField(rawNationalId);
+    expect(encryptedNIN.ciphertext).toBeDefined();
+    expect(encryptedNIN.iv).toHaveLength(24); // 12 bytes = 24 hex chars
+    expect(encryptedNIN.authTag).toHaveLength(32); // 16 bytes = 32 hex chars
+
+    const decryptedNIN = decryptSensitiveField(encryptedNIN);
+    expect(decryptedNIN).toBe(rawNationalId);
+
+    // Decryption fails with wrong key
+    expect(() => decryptSensitiveField(encryptedNIN, "wrong-key-value-must-be-min-32-chars-long")).toThrow();
+
+    // Masking helpers
+    expect(maskSensitiveLast4(rawNationalId)).toBe("•••••••••••6102");
+    expect(maskSensitiveLast4("1234")).toBe("••••");
+    expect(maskSensitiveLast4(undefined)).toBe("••••");
+
+    expect(maskPhoneNumber(rawPhone)).toBe("•••• ••• 5678");
+    expect(maskPhoneNumber("")).toBe("••• ••• ••••");
+  });
+
+  it("synchronizes session registration and revocation to KeyValueAdapter (Phase 4 / Distributed Sessions)", async () => {
+    _resetSessionsForTesting();
+    const adapter = new MemoryKeyValueAdapter();
+    useKeyValueAdapterForSessions(adapter);
+
+    const session = registerSession({
+      token: "test-jwt-token-for-adapter-sync",
+      userId: "usr-sync-001",
+      email: "operator@vmnl.ng",
+      deviceLabel: "Chrome Mac",
+      ipAddress: "10.0.0.1",
+    });
+
+    // Check adapter has the session key
+    const rawStored = await adapter.get(`session:${session.tokenId}`);
+    expect(rawStored).not.toBeNull();
+    const parsed = JSON.parse(rawStored!);
+    expect(parsed.userId).toBe("usr-sync-001");
+    expect(parsed.email).toBe("operator@vmnl.ng");
+
+    // Revoking session updates the adapter
+    revokeSessionById("usr-sync-001", session.tokenId);
+    const afterRevoke = await adapter.get(`session:${session.tokenId}`);
+    expect(afterRevoke).toBeNull();
+    const isRevoked = await adapter.get(`revoked:${session.tokenId}`);
+    expect(isRevoked).toBe("1");
+
+    _resetSessionsForTesting();
+  });
 });
+

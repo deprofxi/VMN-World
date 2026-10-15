@@ -9,7 +9,9 @@ import {
 describe("Phase 6: Azeebo+ Direct-to-Consumer Federation", () => {
   describe("TASK-P6-01: Level 1 Federation — Universal Deep Links & QR Gateway", () => {
     it("generates structured universal links across 8 universes and records scan telemetry", () => {
-      const gateway = new AzeeboLinkGateway();
+      // TSK-35: the partner origin is deployment configuration, never a code
+      // default, so the gateway is constructed with it explicitly.
+      const gateway = new AzeeboLinkGateway({ universalBaseUrl: "https://azeebo.plus" });
 
       // 1. Generate Link into VERTICAL universe for Nigezie Xtreme broadcast
       const link = gateway.createUniversalLink({

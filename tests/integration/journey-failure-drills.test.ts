@@ -10,7 +10,7 @@
  * blocked states must fail safely with honest errors and no partial writes.
  */
 
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 import { AfcaAdmissionsService } from "../../src/modules/hub/afca/admissions.js";
 import { BroadcastTrafficEngine } from "../../src/modules/broadcast/traffic/index.js";
 import { BroadcastBillingEngine } from "../../src/modules/broadcast/billing/index.js";
@@ -25,13 +25,21 @@ import {
   isVersionAirable,
   upsertDraftSchedule,
   submitScheduleForApproval,
-  approveSchedule,
   amendSchedule,
   getSchedule,
   _resetVersionsForTesting,
   _resetSchedulesForTesting,
 } from "../../src/modules/broadcast/versions/index.js";
 import type { VersionQcReport } from "../../src/modules/broadcast/versions/index.js";
+import { approvePreAirChain, deleteFixtureRights, fixtureRightsWrite, registerFixtureRights } from "../helpers/rights-fixtures.js";
+
+/**
+ * TSK-10: the rights gate decides on **registered** RightsRecords, so a drill that
+ * needs an APPROVED schedule must also have a registered RightsRecord to clear
+ * against. This one stands for the drills below; the entry ids it clears are the
+ * drill fixtures, not production rights.
+ */
+const DRILL_RIGHTS_IDS = ["rr-drill-sched-1"];
 
 function compliantQc(): VersionQcReport {
   return {
@@ -45,8 +53,17 @@ function compliantQc(): VersionQcReport {
   };
 }
 
-describe("Failure drills — J-RL1-04 AFCA application journey (CCPP §5.7)", () => {
-  it("DRILL-APP-01: lookup of an unknown reference returns an honest null (no soft-404 phantom)", async () => {
+beforeAll(async () => {
+  for (const id of DRILL_RIGHTS_IDS) {
+    await registerFixtureRights(fixtureRightsWrite(id));
+  }
+});
+
+afterAll(async () => {
+  await deleteFixtureRights(DRILL_RIGHTS_IDS);
+});
+
+describe("Failure drills — J-RL1-04 AFCA application journey (CCPP §5.7)", () => {  it("DRILL-APP-01: lookup of an unknown reference returns an honest null (no soft-404 phantom)", async () => {
     const existing = await AfcaAdmissionsService.getByReference("APP-DOES-NOT-EXIST");
     expect(existing).toBeNull();
   });
@@ -79,10 +96,9 @@ describe("Failure drills — J-RL1-08 schedule review & mid-day amendment", () =
       scheduleId: "SCHED-DRILL-1",
       channelId: "NXTR",
       broadcastDate: "2026-09-30",
-      entries: [{ entryId: "E1", versionId: version.id, programmeTitle: "Prime Show", startSecondsFromDayStart: 3600, durationSeconds: 1800, rightsClearedBy: "rights-officer-1" }],
+      entries: [{ entryId: "E1", versionId: version.id, programmeTitle: "Prime Show", startSecondsFromDayStart: 3600, durationSeconds: 1800, rightsClearedBy: "rights-officer-1", rightsRecordId: "rr-drill-sched-1" }],
     });
-    submitScheduleForApproval("SCHED-DRILL-1");
-    const approved = approveSchedule({ scheduleId: "SCHED-DRILL-1", approvedBy: "broadcast-director-1" });
+    const approved = approvePreAirChain("SCHED-DRILL-1", { approvedBy: "broadcast-director-1" });
 
     // 1 minute before lock-out: amendment succeeds and flips state to AMENDED.
     const justBefore = new Date(approved.lockoutAt!.getTime() - 60_000);
@@ -205,16 +221,18 @@ describe("Failure drills — J-RL1-11 content publication gates", () => {
       scheduleId: "SCHED-DRILL-3",
       channelId: "IMBD",
       broadcastDate: "2026-10-02",
-      entries: [{ entryId: "E1", versionId: failed.id, programmeTitle: "Unverified Master", startSecondsFromDayStart: 0, durationSeconds: 900, rightsClearedBy: "rights-officer-1" }],
+      entries: [{ entryId: "E1", versionId: failed.id, programmeTitle: "Unverified Master", startSecondsFromDayStart: 0, durationSeconds: 900, rightsClearedBy: "rights-officer-1", rightsRecordId: "rr-drill-sched-1" }],
     });
-    // Draft staging may happen, but approval validation is the hard gate.
+    // Draft staging may happen, but the programming handoff is the hard gate.
     expect(() => submitScheduleForApproval("SCHED-DRILL-3")).toThrow(/SCHED-VAL-02/);
     expect(getSchedule("SCHED-DRILL-3")!.state).toBe("DRAFT");
 
     // With an explicit override, RFA is possible and the schedule becomes approvable.
     markReadyForAir({ versionId: failed.id, rfaBy: "broadcast-director-1", overrideReason: "Master control technical review approved deviation (drill evidence)" });
     expect(isVersionAirable(failed.id)).toBe(true);
-    expect(() => submitScheduleForApproval("SCHED-DRILL-3")).not.toThrow();
+    expect(submitScheduleForApproval("SCHED-DRILL-3").state).toBe("PROGRAMMING_REVIEW");
+    // and it walks the rest of the PRD §15 pre-air chain to an approved day
+    expect(approvePreAirChain("SCHED-DRILL-3", { approvedBy: "broadcast-director-1" }).state).toBe("APPROVED");
   });
 });
 

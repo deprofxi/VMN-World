@@ -4,6 +4,7 @@
  */
 
 import { describe, it, expect } from "vitest";
+import { effectiveTouchTargetPx } from "../helpers/stylesheet.js";
 import {
   ComponentRenderer,
   renderStyleguideHtml,
@@ -24,6 +25,19 @@ describe("DT-202 / DT-206: Component State Matrix & Living Styleguide", () => {
     expect(html).toContain("Design Foundations");
     expect(html).toContain("AA · 44 px");
     expect(html).toContain("vmn-foundation-grid");
+  });
+
+  it("escapes icon attributes and rejects unsafe class and size values", () => {
+    const icon = renderIcon("alert", {
+      accessibleLabel: '" onload="alert(1)',
+      className: 'safe-token extra-class "><script>alert(1)</script>',
+      size: Number.POSITIVE_INFINITY,
+    });
+    expect(icon).toContain('aria-label="&quot; onload=&quot;alert(1)"');
+    expect(icon).toContain('class="vmn-icon vmn-icon-alert safe-token extra-class"');
+    expect(icon).toContain('width="24" height="24"');
+    expect(icon).not.toContain("<script>");
+    expect(renderIcon("alert", { size: 0 })).toContain('width="24" height="24"');
   });
 
   it("provides mature responsive foundations and accessible interaction styling", () => {
@@ -91,7 +105,10 @@ describe("DT-202 / DT-206: Component State Matrix & Living Styleguide", () => {
       });
 
       expect(btn).toContain(`vmn-btn-state-${state}`);
-      expect(btn).toContain("min-height: 44px");
+      // DT-202 / TSK-04: assert the shipped stylesheet delivers the 44px floor
+      // for this element, rather than asserting an inline style attribute the
+      // AUD-20 token migration retired.
+      expect(effectiveTouchTargetPx(btn).minHeight).toBeGreaterThanOrEqual(44);
 
       if (state === "disabled") {
         expect(btn).toContain('aria-disabled="true"');
