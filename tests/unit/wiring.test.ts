@@ -1,6 +1,6 @@
 /**
  * Import-Graph & Domain Module Wiring Integrity Test Suite
- * Authority: tasks-9.md T9-05 / report-9.md F-9-05
+ * Authority: docs/architecture/descoped-modules.json + the reachability census this suite performs
  */
 
 import { describe, it, expect } from "vitest";

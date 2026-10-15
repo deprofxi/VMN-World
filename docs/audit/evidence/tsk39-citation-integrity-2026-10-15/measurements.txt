@@ -1,0 +1,140 @@
+# TSK-39 box 3 / TSK-41 box 1 — measurements (2026-10-15)
+
+Every number below is the output of the command printed above it, run in the
+repository root on 2026-10-15 on the working tree this artifact documents.
+
+## 1. The citation sweep's own scope
+
+```
+node -e 'walk src tests docs scripts + tasks.md, exclude docs/audit/evidence/**,
+         exclude the guard file itself'   →  files scanned: 282
+```
+
+Reproduce by running the guard: it prints the census on every run.
+
+```
+CI=1 NODE_ENV=test pnpm vitest run tests/unit/citation-integrity.test.ts
+```
+
+```
+[citation-integrity] 1823 path citations resolved or annotated
+[citation-integrity] CCPP decimal locators: 29 sites (ceiling 29)
+[citation-integrity] missing authorities 28/28, AGENTS.md 10/10, todo.md (the retired register, superseded by this one) 45/45
+```
+
+## 2. The phantoms the sweep found, and how each was resolved
+
+`grep -rn "citation:absent" tasks.md docs src tests scripts --include='*.md' --include='*.ts' | grep -v citation-integrity.test.ts | wc -l` → **9**
+
+| Site | Phantom | Resolution |
+|:---|:---|:---|
+| `tasks.md:438` | `src/core/rights/index.ts` | annotated `citation:absent — deleted by TSK-14; audit-time state`, tense corrected to "were separate" |
+| `tasks.md:686` | `src/core/rights/index.ts` | same annotation |
+| `tasks.md:758` | `src/core/rights/index.ts` | same annotation (caught on the **re-run**, after the first pass fixed only two of the three sites) |
+| `tasks.md:905` | `docs/audit/state-transitions.md`, `docs/audit/pending-questions.md` | annotated `citation:absent` |
+| `tasks.md:1416` | `docs/audit/forensic-report-va-mnl-csrm-cloud.md:79` | the already-withdrawn citation marked `citation:absent` |
+| `tasks.md:1499` | `tests/security/route-guard-parition.test.ts` | annotated: a typo for the real `route-guard-parity.test.ts` |
+| `tasks.md:1649` | `docs/audit/screen-provenance.md` | table row replaced by the instrument that actually measures it (`tests/unit/broadcast-provenance-coverage.test.ts`), the absent doc marked |
+| `tasks.md:1695` | `tests/unit/p1-router-suites.test.ts:167` | annotated with the measured fact: `git log --all -- tests/unit/p1-router-suites.test.ts` returns nothing |
+| `docs/runbooks/disaster-recovery.md:37-38` | `src/core/domain/integrity-check.ts` | the runbook's command replaced with `psql "$DATABASE_URL" -c "SELECT count(*) AS invalid_constraints FROM pg_constraint WHERE contype = 'f' AND NOT convalidated"`; the absent script marked |
+
+The `*`-pattern and `{a,b}` token forms are handled by the guard (brace expansion,
+pattern skip); the first measurement attempt produced **23** bogus misses from
+those forms plus regex truncation (`docs/domain/canonical-model.md` cut to
+`model.md`). After the matcher was corrected the real figure was **9**, all of
+them in the table above.
+
+## 3. The first thing the guard caught was a live claim in my own work
+
+`grep -rn "§374" src tests docs tasks.md | wc -l` → **0**
+
+Before this change set the count was 2: `tests/unit/todo-final-remediation.test.ts:250`
+and `tests/a11y/responsive.test.ts:3` both cited `CCPP §374`. The CCPP has 39
+top-level sections (`^N. TITLE`, 0–38) and **no decimal subsections**, so §374
+resolves nowhere. Repointed: the first to `tasks.md TSK-59`, the second to
+`CLAUDE.md canonical laws 17/19 / AGENTS.md UI/UX Rules`. Four `Authority:`
+headers citing registers that do not exist (`tasks-9.md`, `report-9.md`) were
+repointed the same way in `src/core/domain/types.ts:240`,
+`tests/unit/finance-minor-units.test.ts:3`, `tests/unit/wiring.test.ts:3`.
+
+## 4. Threat-model census
+
+```
+node -e 'count pins in docs/security/threat-model.md, line-scoped, bare `:NN` attributed to the explicit path before it'
+```
+
+```
+{"explicitPins":80,"barePins":86,"totalPins":166,"symbolAnchored":67,
+ "threatBlocks":24,"controls":19,"docLines":410}
+```
+
+Parsed **from the authority** by `tests/unit/threat-model.test.ts` (not restated):
+
+```
+CCPP §16 scope areas            → 19
+CCPP §16 fields per threat      → 10
+CCPP §16 explicit test vectors  → 21
+```
+
+Both lists end their final item with a full stop (`third-party vendors.`,
+`Broadcast schedule-rights bypass.`); a `;$`-only parser returned 18 and 19.
+The guard's `LIST_ITEM` accepts `[.;]` as the terminator, which is what makes the
+19/21 assertions mean the authority's real lists.
+
+## 5. Gates on this tree
+
+```
+CI=1 pnpm lint                       exit 0   (after one no-useless-escape fix in the guard)
+CI=1 pnpm typecheck                  exit 0
+CI=1 pnpm build                      exit 0
+CI=1 NODE_ENV=test pnpm vitest run tests/unit/threat-model.test.ts tests/unit/citation-integrity.test.ts
+                                     → Test Files 2 passed, Tests 11 passed
+```
+
+Full suite, `CI=1 DATABASE_URL="postgresql://root@localhost:5432/vmnl_enterprise_gates?schema=public" NODE_ENV=test pnpm test`:
+
+* **first run — red, and the red was mine**: `Test Files 1 failed | 75 passed (76)`,
+  `Tests 1 failed | 856 passed (857)`, 232.88 s. The failure was
+  `tests/unit/register-inheritance.test.ts:249` "keeps every mention of the retired
+  registers historical": my census `console.log` printed the string `todo.md` on a
+  line carrying no historical marker, so TSK-07's guard read the new file as a live
+  dependency on the deleted register. Nothing was weakened to pass it — the line now
+  names the retirement in place (`todo.md (the retired register, superseded by this one)`),
+  which is what `HISTORICAL_RE` asks a mention to say about itself.
+  Re-checked with `pnpm vitest run tests/unit/citation-integrity.test.ts tests/unit/register-inheritance.test.ts`
+  → 2 files passed.
+* **final run — green on the tree this commit contains**: `Test Files 76 passed (76)`,
+  `Tests 857 passed (857)`, `Duration 184.09 s`, exit **0** (`exits.txt`). 76 files is
+  74 + the two guards added here; 857 tests is 846 + 11.
+  Command:
+  `CI=1 DATABASE_URL="postgresql://root@localhost:5432/vmnl_enterprise_gates?schema=public" NODE_ENV=test pnpm test`
+  (gates database, unseeded; `dist/` rebuilt immediately before it, so the suites that
+  spawn a second OS process against `dist/src` read this tree).
+
+## 6. Census after the register closures were written into `tasks.md`
+
+```
+[citation-integrity] 1840 path citations resolved or annotated   (was 1823 before the closure prose)
+[citation-integrity] CCPP decimal locators: 29 sites (ceiling 29)
+[citation-integrity] missing authorities 28/28, AGENTS.md 10/10, todo.md (the retired register, superseded by this one) 45/45
+```
+
+The closure sentence that names those two ceilings first pushed them to **11/10** and
+**46/45** — the guard counts lines containing the tokens, and the register's own prose is
+one of the files it scans. The ceilings were **not** moved; the sentence was rephrased to
+describe the counts without re-citing the file names. `tasks.md` stayed
+**1733 lines** (both closures are single-line in-place replacements), so the register's own
+cross-pins still resolve: `tasks.md:510` → `:1567` ("the rights gate demonstrably blocks
+approval and export"), `tasks.md:586` → `:156` (`TODO-BCST-03` census row). `tasks.md:510`
+had itself been found stale at `:1548` (a `parseJsonBody` line) and re-pinned to `:1567` in
+this change set — Rule 9, caught by re-opening rather than by arithmetic.
+
+## 7. Not in this commit
+
+`src/core/domain/types.ts` carries the same class of header fix (`tasks-9.md T9-10 /
+report-9.md F-9-08` → `report.md §3`), but that file also holds TSK-59's functional change
+(the `&& settlement.gmvAmount > 0` conjunct removed from `validateSettlementInvariants`),
+so it stays with the TSK-59 batch rather than riding here. `tests/unit/wiring.test.ts` and
+`tests/unit/finance-minor-units.test.ts` (single-line headers) and
+`tests/a11y/responsive.test.ts` (the second `§374` site, which the 29 ceiling depends on)
+are in this commit.

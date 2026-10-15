@@ -1,6 +1,6 @@
 /**
  * Financial Minor Units (Kobo) & Zero-Residue Integrity Test Suite
- * Authority: tasks-9.md T9-10 / report-9.md F-9-08
+ * Authority: report.md §3 "Financial integrity model" (measured kobo-exact arithmetic)
  */
 
 import { describe, it, expect } from "vitest";

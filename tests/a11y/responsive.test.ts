@@ -1,6 +1,6 @@
 /**
  * Responsive & Mobile-First Layout Audit Test Suite
- * Authority: tasks-9.md T9-17 / report-9.md F-9-15 / AGENTS.md UI/UX Rules
+ * Authority: CLAUDE.md canonical laws 17 (mobile-first) and 19 (WCAG 2.2 AA target) / AGENTS.md UI/UX Rules
  *
  * Verifies WCAG 2.2 AA Reflow (1.4.10) criterion:
  * Content reflows without loss of information or functionality across viewports
