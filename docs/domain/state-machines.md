@@ -2,7 +2,8 @@
 
 **Register:** `tasks.md` TSK-12 box 3 (and TSK-52 box 2) · **Authority for §1:**
 `docs/authorities/VMNL-AZP-VMN-BRD-PRD-001-R1.2A.md` §15 (`:711-719`)
-**Measured:** 2026-10-08, commit `ce098f8` + the uncommitted TSK-12 working tree
+**Measured:** 2026-10-08 (`ce098f8` + the TSK-12 tree); re-measured and re-pinned 2026-10-15, and
+`tests/unit/state-machine-doc-pins.test.ts` now re-opens every pin here on each `pnpm test` run
 **Rule applied:** 0.2 *evidence before claims*, 0.4 *honest statuses*.
 
 This document describes the machine **in the code**, not the machine the PRD
@@ -149,7 +150,8 @@ Guarded, and unusual in this repo in that it **returns a result object instead o
 throwing**: `if (item.status !== "PENDING")` → `APR_ALREADY_DECIDED` (`:126-128`).
 Separation-of-duties and authority checks follow (`[APR_FORBIDDEN]`,
 `APR_STALE_REVISION`, `APR_SOD_SELF`, `APR_FOUR_EYES`, `APR_LIMIT`, `:131-164`).
-State is an in-memory `Map` (`:50`); no Prisma model, no boot hydration.
+State is an in-memory `Map` (`:53`); TSK-17 made it a read index over the durable
+`approvalItem` store (`:61`), hydrated at boot by `refreshApprovalIndex` (`src/api/server.ts:330`).
 
 `CommercialProposal.ProposalStatus` (`src/web/workspace/commercial-proposal.ts:28`)
 declares more members than it can reach: only `CLIENT_REVIEW` (`:112`) and
@@ -180,7 +182,7 @@ and rights type by `validateScheduleRights`
 `RightsBlockingReason` (`:12-21`). Writes are plain upserts
 (`:58`, `applyReviewWindow` `:157`) with no state to guard. The registry is the
 one part of this domain that is durable **and** rehydrated at boot
-(`rights/registry.ts:44`, called from `src/api/server.ts:374`).
+(`src/modules/broadcast/rights/registry.ts:44`, called from `src/api/server.ts:374`).
 
 ---
 
@@ -200,21 +202,23 @@ is the read index; TSK-17 made it durable (`ContentItemRecord`+`ContentRevisionR
 
 **Broadcast versions are not a state machine.** `qcStatus`
 (`src/modules/broadcast/versions/index.ts:37`) is `PENDING | PASSED | FAILED |
-OVERRIDDEN`, and `PENDING` has no producer — `registerVersion` `:73` writes
-`PASSED` or `FAILED` from the QC report. Airing eligibility is a **boolean**
+OVERRIDDEN`, and `PENDING` has no producer — `registerVersion` `:59` writes
+`PASSED` or `FAILED` from the QC report at `:73`. Airing eligibility is a **boolean**
 (`readyForAir`) plus an override reason, moved by the guarded `markReadyForAir`
-`:94` (`[VER-03]` `:104`, `[VER-04]` `:111`). `quality/gates.ts:34,41` is a pure
+`:94` (`[VER-03]` `:104`, `[VER-04]` `:111`). `src/modules/quality/gates.ts:34,41` is a pure
 evaluator over a caller-supplied manifest — no store, no transitions.
 
 ---
 
 ## 5. Case / privacy-security intake
 
-**Code:** `src/core/cases/index.ts` — `CaseStatus` `:9`: `RECEIVED, TRIAGED,
-IN_PROGRESS, RESOLVED, CLOSED`. `TRANSITIONS` `:74-80`, `transitionCase` `:89`
-throws `[CASE-03] Invalid transition …` at `:92-93`; `CLOSED` is terminal
-(`RESOLVED: ["CLOSED"]`, `CLOSED: []`). `assignCase` `:82` changes ownership and
-deliberately does not touch status. In-memory `Map` `:25`.
+**Code:** `src/core/cases/index.ts` — `CaseStatus` `:12`: `RECEIVED, TRIAGED,
+IN_PROGRESS, RESOLVED, CLOSED`. `TRANSITIONS` `:104-110`, `transitionCase` `:120`
+throws `[CASE-03]` at `:124`; `CLOSED` is terminal
+(`RESOLVED: ["CLOSED"]`, `CLOSED: []`). `assignCase` `:112` changes ownership and
+deliberately does not touch status. The `Map` at `:28` is the read index for the durable
+`privacySecurityCase` store (`:35`), hydrated at boot by `refreshCaseIndex`
+(`src/api/server.ts:331`).
 
 Related intake labels that are **not** machines, so nobody reads more into them
 than the code holds: `MembershipStatus` (`src/modules/hub/community/index.ts:11`)
@@ -260,7 +264,7 @@ and `paymentStatus:40` is hardcoded `"PENDING"` (`:173`) with no mutator.
 `PENDING_DEPOSIT, FUNDS_ESCROWED, MILESTONE_SUBMITTED, APPROVED_RELEASED,
 DISPUTED, REFUNDED`. Partially guarded: `submitMilestoneDeliverable` `:289`
 requires `FUNDS_ESCROWED` (`[VTM-ESC-04]` `:299-300`) and release is guarded
-(`[VTM-ESC-06]` `:325-328`), **but `depositMilestoneEscrow` `:273` checks only
+(`[VTM-ESC-06]` `:326-328`), **but `depositMilestoneEscrow` `:273` checks only
 that the contract is fully signed** (`[VTM-ESC-01]` `:276`) and then assigns
 `FUNDS_ESCROWED` at `:284` — so re-depositing an already `APPROVED_RELEASED`
 milestone succeeds. `DISPUTED`/`REFUNDED` have no producer. State is per-engine
@@ -279,7 +283,7 @@ at boot. The durable column exists; the lifecycle does not.
 (`src/modules/broadcast/billing/index.ts:25`) has no producers for `INVOICED`/
 `PAID`, and `linkAiredSpotToContract` `:122` rewrites it at `:134-138` with no
 source guard (it is *derived*, not transitioned). `MakeGood`
-`OPEN | CREDITED` `:37` is the one guarded transition here (`[BIL-MG-02]` `:249`).
+`OPEN | CREDITED` `:37` is the one guarded transition here (`[BIL-MG-02]` `:258`).
 `PayoutBatch.status` (`src/modules/finance/payouts/index.ts:38`) guards its check
 run (`[PAY-CHK-01]` `:175`) and never produces `PROCESSED`/`REJECTED`; Prisma
 `TalentPayoutBatch.status:495` defaults `"DRAFT"` and is a **different, unwired
@@ -292,7 +296,9 @@ shares.
 members) is **mixed**: `signContract:93` and `recordDeposit:113`
 (`[QTC-DEP-01]`) are guarded, while `advanceStage:82` is a plain setter
 (`deal.stage = nextStage` `:84`), and `PROPOSAL`, `NEGOTIATION`,
-`OPERATIONAL_DELIVERY` are reachable only through it. In-memory `Map` `:49`.
+`OPERATIONAL_DELIVERY` are reachable only through it. The engine's `deals` `Map` (`:64`) is the read
+index for the durable `salesDeal` store (`:28`), hydrated at boot by `hydrateSalesEngine` (`:304`,
+called from `src/api/server.ts:339`).
 
 ---
 
@@ -301,16 +307,16 @@ members) is **mixed**: `signContract:93` and `recordDeposit:113`
 | Lifecycle | Guarded? | Producer-complete? | Durable? |
 |:---|:---|:---|:---|
 | Broadcast schedule day | yes, all 11 transitions, 49 refusal codes | yes | **no** — sandbox Map |
-| Generic approval workflow | yes (result object, not throw) | yes | no |
+| Generic approval workflow | yes (result object, not throw) | yes | **yes** — `approvalItem`, hydrated |
 | Rights review request | yes | no — `PREPARED` unproduced | no |
 | Rights clearance record | n/a — no lifecycle | n/a | **yes** + boot hydration |
-| Content revision | yes, one deliberate downgrade path | yes | no |
+| Content revision | yes, one deliberate downgrade path | yes | **yes** — `contentItem`, hydrated |
 | Broadcast version / RFA | yes for RFA; `qcStatus` 3 of 4 produced | no | no |
-| Case | yes | yes | no |
+| Case | yes | yes | **yes** — `privacySecurityCase`, hydrated |
 | Admission application | **no** | yes | no |
 | VTM escrow | **partly** (deposit unguarded) | no | no |
 | Settlement | **no**, and no caller | — | yes (write path unwired) |
-| Sales deal | **partly** (`advanceStage` plain setter) | yes | no |
+| Sales deal | **partly** (`advanceStage` plain setter) | yes | **yes** — `salesDeal`, hydrated |
 
 Re-measure the three claims most likely to drift:
 
