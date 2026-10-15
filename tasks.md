@@ -226,7 +226,7 @@ Every `Transform failed with 1 error: … screens-view.ts:36:73` failure is TSK-
 
 - [x] Re-run `pnpm test` after TSK-01 — **do not triage these 17 files individually** — 2026-10-07: `pnpm test` = 56 files / 624 tests, 0 failed, 0 skipped. The 17 cascade files (3 × `tests/a11y`, `tests/contract/openapi-contract.test.ts`, 2 × `tests/security`, `tests/integration/enterprise-end-to-end.test.ts`, 11 unit files) all load and pass on the restored syntax alone
 - [x] File count failing reduced from 20 to ≤3 (the genuine failures: TSK-04, TSK-05, plus any that surface) — measured **0** failing files. TSK-04's re-anchored assertion and TSK-05's FK-ordering fixtures both closed, so no genuine failure remained
-- [x] Record the post-fix counts verbatim for TSK-08's re-pin — see §"Recorded (TSK-01)" above and the re-pinned `docs/handoffs/LATEST.md` / `docs/audit/evidence-register.md` baselines
+- [x] Record the post-fix counts verbatim for TSK-08's re-pin — see §"Recorded (TSK-01)" above and the re-pinned `docs/handoffs/LATEST.md` / `docs/audit/evidence-register.md` baselines, re-pinned again 2026-10-15 against the committed tree (`docs/audit/evidence/handoff-repin-2026-10-15/`)
 
 **Evidence:** `pnpm test` output captured at the commit; failure count delta.
 **Recorded (TSK-02, 2026-10-07):** 20 failing files / 4 skips → **0 failing / 0 skipped, 56 files, 624 tests**; `pnpm build` and `npx tsc --noEmit` exit 0. Reproduce with `pnpm build && pnpm lint && pnpm test`.
@@ -362,7 +362,7 @@ Replace every stated figure with one reproducible from a command in this repo, a
 | `docs/audit/evidence-register.md:31` | "225 system screens" | **DONE (TSK-24, 2026-10-07)** — replaced by measured figures: 60 register entries = 226 documented IDs, 40 reachable HTML surfaces on register-declared routes, 111 literal HTML-serving routes repository-wide. The "≈166" estimate in the previous column was itself unmeasured and is withdrawn |
 | `audit.md:454-456` (§5, dated 2026-10-06) | "typecheck exit 0, lint exit 0 … 47 files / 556 tests, all passing" | **DONE (2026-10-07, pointer corrected 2026-10-08)** — annotated SUPERSEDED, regressed 2026-10-06/07, and now points at the live pin heading and its measured 61/671 rather than a stale 50/588 |
 | `docs/handoffs/LATEST.md:26,31` | "every `MOCK_*` dataset on these surfaces is deleted" | **DONE (2026-10-07, re-measured 2026-10-09)** — corrected in place when it was false: `MOCK_CLIENT_PROJECTS` was live (`src/web/portal/client-portal.ts:55`, read at `src/api/router.ts:2496`), tracked as TSK-13. **TSK-13 closed it the same day:** `grep -rnE "^(export )?const MOCK_" src --include="*.ts"` → **0 matches** (three doc comments still *name* the deleted datasets, which is provenance, not data), and `tests/unit/client-portal-and-operations.test.ts` keeps the portal's fixture deleted. The original sentence is now true; the correction stays as the record of when it was not |
-| `docs/handoffs/LATEST.md:137` | "Zero raw OS emoji across 100% of `src/web/`" | **DONE (2026-10-07)** — the downgrade is no longer needed: `tests/unit/token-discipline.test.ts` loads and passes, so the claim is now verified by an executable guard, and LATEST says so |
+| `docs/handoffs/LATEST.md:341` (`:137` at the 2026-10-08 pin, re-pinned 2026-10-15) | "Zero raw OS emoji across 100% of `src/web/`" | **DONE (2026-10-07)** — the downgrade is no longer needed: `tests/unit/token-discipline.test.ts` loads and passes, so the claim is now verified by an executable guard, and LATEST says so |
 | `release-manifest.json:4` | `gitCommitSha: ca303f0` | **STILL BLOCKED, and the reason changed (re-checked 2026-10-15)** — "there is no authorized commit" no longer holds: the TSK-09 series is on `main` locally. What blocks the re-pin now is that this field is covered by a *human* release decision — `release-manifest.json:6-12` carries the Chairman's `GO_WITH_CONDITIONS` signature dated 2026-09-28, and moving the SHA to a tree that post-dates that signature would assert an approval nobody gave. So the field still reads `ca303f0`; every evidence pin states `ce098f8`/the series plus the dirty set by command, and the SHA update is the release owner's action (`TSK-57`'s CI evidence is the other precondition) |
 
 - [x] Each row above updated — rows 1–6 replaced by measured figures; row 7 cannot be re-pinned
@@ -379,8 +379,8 @@ carries the four verbatim gate logs plus a README with the commands and the base
 not exist before 2026-10-08 (`docs/audit/evidence/` held only `migrations-2026-10-07/`), so the row is
 recorded as newly satisfied rather than as having been satisfied when TSK-02 first closed.
 
-**Closure evidence (measured 2026-10-08, working tree — TSK-09 commit series still awaits owner
-authorization):**
+**Closure evidence (measured 2026-10-08, working tree — the TSK-09 commit series landed
+2026-10-15):**
 
 - *Pin block* — `docs/audit/evidence-register.md` Tier S2 and `docs/handoffs/LATEST.md` "Verification
   pin" both carry: baseline `ce098f8`, date, dirty set (**114 modified / 51 untracked / 2 deleted =
@@ -394,7 +394,7 @@ authorization):**
   `rights gate path under test: Postgres (fail_closed)`; FK-ordered parents in
   `tests/helpers/db-parents.ts` are used by 4 suites), while what genuinely remains unverified —
   per-entity durability coverage (`tests/unit/durability-*.test.ts` **does not exist**, TSK-17) and
-  migrations-from-clean (TSK-06 `[B]`) — is now stated as such.
+  migrations-from-clean (TSK-06, `[B]` then and closed 2026-10-15 below) — is now stated as such.
   *Follow-up (2026-10-08, TSK-17 closure):* the first of those two is no longer true —
   `tests/unit/durability-release-critical.test.ts` exists with **16 tests**, one durable loop per
   release-critical entity, each measured through a **second OS process**;
@@ -446,7 +446,7 @@ Four independent defects compose this finding:
 
 **Evidence:** `tests/unit/broadcast-rights-gate.test.ts` (new) + AC IDs `AC-UI-RL1-R07-13…18`; `docs/domain/state-machines.md` entry (TSK-52).
 
-**Closure evidence (measured 2026-10-07, working tree — commit series awaits TSK-09 owner authorization):**
+**Closure evidence (measured 2026-10-07, working tree — commit series landed 2026-10-15 as TSK-09):**
 
 - *The gate is reachable from the lifecycle.* `approveSchedule` and `amendSchedule`
   (`src/modules/broadcast/versions/index.ts:323,:377`) call `clearScheduleEntries()` →
@@ -510,8 +510,8 @@ Four independent defects compose this finding:
 - *§3 exit-gate line for this task is deliberately not ticked.* `tasks.md:1567` ("the rights gate
   demonstrably blocks approval and export — TSK-10 negative tests green") is now locally true, but the
   §3 preamble requires every condition to hold **simultaneously on one commit** with all four CI steps
-  on the same SHA. This work is uncommitted (TSK-09 pending owner authorization) and CI has not run
-  (TSK-06 `[B]`), so the condition is recorded here, not checked there.
+  on the same SHA. This work landed in the TSK-09 series on 2026-10-15; what still fails the gate is
+  that CI has never run here (`TSK-57`, no Docker binary), so it is recorded here, not checked there.
 - *Gate for this task:* `pnpm build` exit **0** · `pnpm lint` exit **0** ·
   `pnpm test` exit **0** — **59 files / 650 tests passed, 0 failed, 0 skipped**
   (from 58/639 before this task: +1 file, +11 tests). Reproduce with
@@ -550,7 +550,7 @@ As raised (measured 2026-10-07): `src/web/broadcast/index.ts` carried `SCREEN_DE
 
 **Evidence:** state machine doc + transition tests for every edge.
 
-**Closure evidence (measured 2026-10-08, working tree — commit series awaits TSK-09 owner authorization):**
+**Closure evidence (measured 2026-10-08, working tree — commit series landed 2026-10-15 as TSK-09):**
 
 - *The branch chosen is "extend the machine".* The alternative required a named owner signature
   stating RL1 ships the reduced lifecycle; that signature does not exist and this register does not
@@ -599,7 +599,7 @@ As raised (measured 2026-10-07): `src/web/broadcast/index.ts` carried `SCREEN_DE
   0 unhandled errors** (from 59/650 before: +1 file, +15 tests). Reproduce with
   `npx vitest run tests/unit/broadcast-schedule-lifecycle.test.ts`.
 - *§3 exit-gate lines are deliberately not ticked,* for the same recorded reason as TSK-10: this work
-  is uncommitted (TSK-09 pending owner authorization) and CI has not run (TSK-06 `[B]`).
+  landed in the TSK-09 series on 2026-10-15 and CI has still never run on it (`TSK-57`).
 
 #### TSK-13 · P1 · Rewire the client counterparty portal to canonical deals *(reopens part of `TODO-SCR-19`)*
 **Source:** `report.md CA-09` · **Depends:** TSK-01, TSK-17
@@ -612,7 +612,7 @@ As raised (measured 2026-10-07): `src/web/broadcast/index.ts` carried `SCREEN_DE
 
 **Evidence:** `tests/unit/client-portal-and-operations.test.ts` (24 tests) — the rewire, the deletion guard and the cross-org/leak regressions; `docs/audit/evidence/tsk13-canonical-client-portal-2026-10-09/`.
 
-**Closure evidence (measured 2026-10-09, working tree — commit series awaits TSK-09 owner authorization):**
+**Closure evidence (measured 2026-10-09, working tree — commit series landed 2026-10-15 as TSK-09):**
 
 - *The fixture was worse than empty, and that is why it is gone.* `MOCK_CLIENT_PROJECTS` rendered
   per-airing "certificates" with invented `certificateNumber`, `carrier`, `asRunTimestamp` and a
@@ -678,8 +678,8 @@ As raised (measured 2026-10-07): `src/web/broadcast/index.ts` carried `SCREEN_DE
   branches / 82.19 functions / 79.74 lines** against the pinned floors 73/62/77/72. Log files and the
   reproduction commands are in `docs/audit/evidence/tsk13-canonical-client-portal-2026-10-09/`. Focused
   reproduction: `npx vitest run tests/unit/client-portal-and-operations.test.ts` (24 tests).
-- *§3 exit-gate lines are deliberately not ticked,* for the same recorded reason as TSK-12: this work is
-  uncommitted (TSK-09 pending owner authorization) and CI has not run (TSK-06 `[B]`).
+- *§3 exit-gate lines are deliberately not ticked,* for the same recorded reason as TSK-12: this work
+  landed in the TSK-09 series on 2026-10-15 and CI has never run on it (`TSK-57`).
 
 #### TSK-14 · P1 · Consolidate the two parallel rights implementations
 **Source:** `report.md CA-32` · **Depends:** none · **Blocks:** TSK-10's durability
@@ -692,7 +692,7 @@ As raised (measured 2026-10-07): `src/web/broadcast/index.ts` carried `SCREEN_DE
 
 **Evidence:** module consolidation diff + the E2E clearance test.
 
-**Closure evidence (measured 2026-10-07, working tree — commit series awaits TSK-09 owner authorization):**
+**Closure evidence (measured 2026-10-07, working tree — commit series landed 2026-10-15 as TSK-09):**
 
 - *One context.* `src/modules/broadcast/rights/` is now `clearance.ts` (the gate, moved verbatim
   out of `rights/index.ts`), `review-request.ts` (the workflow, moved out of the deleted
@@ -842,7 +842,7 @@ Confirmed absent from the schema (verified by direct grep; `prisma_model=0` in e
 
 **Evidence:** migrations + durability tests + `docs/domain/systems-of-record.md` (TSK-52).
 
-**Closure evidence (measured 2026-10-08, working tree — commit series awaits TSK-09 owner authorization):**
+**Closure evidence (measured 2026-10-08, working tree — commit series landed 2026-10-15 as TSK-09):**
 
 - *Mechanism.* The domain mutators stayed synchronous: each one calls `stageDurableWrite` (`src/core/database/durable-journal.ts:62`) against a store registered at module load (`:54`), coalescing repeats by `store:key`, with an explicit rollback closure for the optimistic index entry. The journal is drained at the single async choke point every response passes — `sendJson` (`src/api/router.ts:573`) — and again on `server.stop()` (`src/api/server.ts:422`). Rewriting ~50 synchronous call sites to `async` to thread a transaction through them would have been a larger behavioural change than durability required, so the invariant bought here is "a 2xx response means the row is in Postgres", asserted directly.
 - *Boot hydration is dependency-ordered and fails soft.* `src/api/server.ts:326-339` hydrates media assets first (the golden-DAM backfill and the CMS picker read them), then sessions, idempotency, enquiry, approvals, cases, risks/issues, destinations, the CMS revision chain, the sponsorship engine and the deal portfolio; `:374-375` hydrates rights and episode masters before the demo schedule seed. The deterministic seeds then re-run against the hydrated registry (`:344-345`), idempotent by id, so durable rows win and only genuinely missing demo data is added. An unreachable database leaves the stores empty and the surfaces show the honest empty state — never a fabricated record, never a boot that blocks.
@@ -861,7 +861,7 @@ Verified good, do not rebuild: SHA-256 chain, chain tail persisted/restored thro
 
 **Evidence:** `tests/unit/audit.test.ts` extended with a crash-between-writes scenario.
 
-**Closure evidence (measured 2026-10-12, working tree — commit series awaits TSK-09 owner authorization):**
+**Closure evidence (measured 2026-10-12, working tree — commit series landed 2026-10-15 as TSK-09):**
 
 - *Mechanism: a journal **group** per request, and one transaction per group.* TSK-17's write-behind journal drained *whatever was staged when a response happened to be written*, which is not the same thing as "the same transaction". The unit of durability is now the request: `createServer` (`src/api/server.ts:303-306`) runs every request inside `withJournalGroup(nextJournalGroup(), …)`, `stageDurableWrite` stamps each write with the group current in `AsyncLocalStorage` (`src/core/database/durable-journal.ts:113-121`), and `flushDurableJournal()` partitions the batch by group and drains each partition inside **one** `prisma.$transaction` (`:162-196`). Inside that transaction `getPrismaClient()` returns the scoped transaction client (`src/core/database/index.ts:26`, `:36-38`), so all **14** existing persisters plus the new `auditLog` store join it with no call-site changes — which is why ~50 synchronous mutators did not have to become `async`. A request's `sendJson`/`sendText`/`sendHtml` each still perform the drain (`src/api/router.ts:579`, `:638`, `:700`); `sendText`/`sendHtml` are now choke points too, because a group that nothing drains would be stranded by the next request, whose flush only takes its own group plus the server-side backlog. The `finally` backstop at `src/api/server.ts:586-603` drains the group for paths that answer without passing a choke point (the 303 desk redirects) or throw mid-handler, so no group can leak staged rows.
 - *Why the foreign key had to go first, measured rather than argued.* Putting the ledger row in the business transaction makes an audit insert **gating**. `AuditLog_userId_fkey` refused any write whose actor had no `User` row — and the dev database said the constraint was already doing damage: **1783 of 1783** durable rows carried `userId = NULL`, because `onDelete: SetNull` erased the actor from rows whose user was later deleted. A column that is NULL for every row is not verifying anything; it was destroying the evidence it claimed to protect, and with the ledger write now gating it would have 503'd every synthetic- or system-actor request (the `x-test-role` identity `test-user-id`, `src/api/router.ts:733`, and actors like `SYSTEM_RELEASE_GATE`). Migration `prisma/migrations/20261012120000_relax_audit_ledger_actor_identity` drops the constraint and adds `tenantId String?` + `@@index([tenantId, createdAt])`; purely additive on the data (no row touched, no column dropped). The cost is stated: actor attribution is now an application-side id reference with **no referential guarantee a `User` row exists**, and `docs/security/route-authorization-coverage.md` §6 records the trade.
@@ -883,7 +883,7 @@ KV `setIfAbsent` claims are done at the single production ingestion path (7-day 
 
 **Evidence:** `prisma/migrations/20261009133000_add_durable_provider_event_claims/` + `20261009153000_add_provider_claim_ingest_phase/`, `tests/unit/durability-release-critical.test.ts`, `tests/unit/audit-remediation-regressions.test.ts`.
 
-**Closure evidence (measured 2026-10-09, working tree — commit series awaits TSK-09 owner authorization):**
+**Closure evidence (measured 2026-10-09, working tree — commit series landed 2026-10-15 as TSK-09):**
 
 - *What the constraint replaces.* Dedup used to live only in the KV `setIfAbsent` mirror, whose authority is a Redis that can be flushed; a Redis loss plus a restart turned a re-delivered webhook into a first sighting, i.e. a double credit. `ProviderEventClaim` (`prisma/schema.prisma:862`) puts the decision in the database under `@@unique([provider, eventId])`, and the two production handlers (`src/api/router.ts:7876` Paystack, `:7968` Flutterwave) now claim there before touching the engine.
 - *Two-phase, because a one-phase claim would have been a new bug.* Phase one is the single INSERT, which is the whole race resolution — two instances, or one instance either side of a restart, get exactly one winner with no read-then-write window (`claimProviderEvent` `src/core/database/repositories/release-critical.repository.ts:908`, create at `:912`). A loser's retry is then one conditional UPDATE restricted to `ingestedAt: null` (`:917`), which is what makes the refusal safe: an attempt that claimed the event and died **before** reaching the engine is taken over and re-delivered (ingestion is idempotent per transaction id), while an attempt that stamped its ingestion (`markProviderEventIngested` `:931`, called from `src/core/websecurity/index.ts:207` by `confirmProviderEventIngested` at `router.ts:7900` and `:7992`) is a true replay and is refused. `releaseProviderEventClaim` (`:945`, `deleteMany` restricted to `ingestedAt: null`) rolls back a failed attempt so the provider's retry is not refused as a duplicate — it can never "un-ingest" a completed one. The orchestration wrapper is `src/core/websecurity/index.ts` (`claimProviderEventOnce` :157 → durable call :169; `releaseProviderEventClaim` :226 → :232).
@@ -915,7 +915,7 @@ KV `setIfAbsent` claims are done at the single production ingestion path (7-day 
 **Evidence:** `docs/events/catalogue.md` + `tests/unit/event-catalogue.test.ts`; reproduction `CI=1 NODE_ENV=test pnpm vitest run tests/unit/event-catalogue.test.ts`. **One new defect recorded, not fixed:** `src/modules/federation/azeebo/bridge.ts:134` — `const success = mockTransport ? mockTransport(webhook) : true;` means a caller that injects no transport gets `200 {status: "DELIVERED"}` for an event that never left the process. No endpoint was invented and no delivery was claimed; the row is quoted verbatim in §3 and pinned by the fifth test. Owner task: the federation/production-wiring track (TSK-35's registry, TSK-36, TSK-57). **Decision recorded 2026-10-15, and deliberately no new register item** (Rule 2: it already has both a source — ADR-008's Level 4 decision record and `docs/security/threat-model.md:260` `TM-FED-02` — and an owner track, and `tests/unit/event-catalogue.test.ts:139` keeps the defect visible in the document while it is present in the code). The fail-closed variant was assessed and **not taken unilaterally**: refusing at `src/modules/federation/azeebo/bridge.ts:134` when no transport is injected is a few lines, but no transport is configurable anywhere in production today (`src/api/server.ts:147` constructs the bridge with the secret only; the transport is a per-call parameter the route never passes), so `src/api/router.ts:6958` would answer **503 on every request in this deployment** and `tests/integration/enterprise-end-to-end.test.ts:711`, which today certifies 200 + `DELIVERED`, would have to be rewritten to certify the opposite. Whether the demo path keeps reporting success or the route goes honestly dark is the owner's call, and it is the same call as supplying the endpoint — inventing one is refused. The defect stays recorded at `docs/events/catalogue.md:56` and in `TM-FED-02` until that call is made.
 
 #### TSK-22 · P2 · Keyset/N+1 verification at volume
-**Source:** `report.md §6`, `audit.md` AUD-15 · **Depends:** TSK-06 ([B])
+**Source:** `report.md §6`, `audit.md` AUD-15 · **Depends:** TSK-06 (closed 2026-10-15)
 Bounded-concurrency fan-out (8 in flight) is done. Composite indexes eliminate per-page Sort on episodes, reducing refresh from 74–107 s to 7.2–9.0 s at scale 100 (15k programmes). Batching deferred as beyond scope per Rule 0.5.
 
 - [x] `refreshEpisodeMasterIndex` (`src/modules/broadcast/episode-masters.ts:165-206`) EXPLAINed with representative data — composite `@@index([programmeCode, episodeCode])` enables Index Only Scan with no Sort and zero heap fetches; `Programme_channelCode_code_idx` added but Postgres prefers `Programme_code_key` for empty-cursor queries due to ORDER BY mismatch. Evidence: `docs/audit/evidence/tsk22-keyset-volume-2026-10-13/stdout-after-scale100.txt`, `README.md`.
@@ -1512,8 +1512,8 @@ rows / 72 IDs. Track F's "verified good" preamble was corrected in place.
 ticked):** `npx tsc --noEmit` 0 · `pnpm build` 0 · `pnpm lint` 0 · `pnpm test` exit **0** —
 **63 files / 689 tests / 0 failed / 0 skipped / 0 unhandled errors** (from 61/671: +2 files, +18 tests —
 `canonical-model.test.ts` +13 and `hygiene-guards.test.ts` +5, the latter being TSK-53's instrument).
-TSK-52's three boxes are now all ticked, so this task is **DONE** under Rule 0.1 on the working tree;
-what remains outside it is the commit series (TSK-09) and CI execution (TSK-06 `[B]`), which no
+TSK-52's three boxes are now all ticked, so this task is **DONE** under Rule 0.1; its work landed in
+the TSK-09 series on 2026-10-15. What remains outside it is CI execution (`TSK-57`), which no
 document in this repository may claim as done.
 
 ---
@@ -1534,8 +1534,8 @@ that stops emitting each fails the suite. The two boot refusals were already gua
 (`audit-remediation-regressions.test.ts:314`, `audit-implementation-hardening.test.ts:70`) and are
 left exactly where they were rather than duplicated.
 
-**Not claimed:** that gitleaks actually ran on a commit — CI has never executed on this branch (TSK-06
-`[B]`, TSK-09 uncommitted), so what is verified here is the *workflow file's* pinned, non-floating
+**Not claimed:** that gitleaks actually ran on a commit — CI has never executed on this branch (no Docker
+binary here, `TSK-57`; TSK-09 landed 2026-10-15, unpushed) — what is verified is the *workflow file's* pinned, non-floating
 scanner step and the local invariants it exists to protect. `.env` remains untracked and no secret was
 committed in this pass.
 

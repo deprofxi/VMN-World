@@ -1,0 +1,64 @@
+=== doc guards (final tree)
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.11 [39m[90m/Users/deprof/www/vmng[39m
+
+[90mstdout[2m | tests/unit/register-inheritance.test.ts[2m > [22m[2mTSK-07 (CA-06): the surviving register resolves every inherited identifier[2m > [22m[2mcarries a census row for every inherited identifier cited anywhere in the repository
+[22m[39m
+[TSK-07] inherited-identifier census — rows: 71 · IDs covered: 72 · cited in tree: 72 · uncited rows: 0 (none)
+[TSK-07] dispositions: {"CLOSED":61,"HUMAN":5,"CLOSED_WITH_HUMAN":4,"REOPENED":1}
+
+ [32m✓[39m tests/unit/register-inheritance.test.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 503[2mms[22m[39m
+     [33m[2m✓[22m[39m keeps the retired register recoverable by a command in this repository [33m 378[2mms[22m[39m
+[90mstdout[2m | tests/unit/citation-integrity.test.ts[2m > [22m[2mTSK-39 box 3: citation integrity[2m > [22m[2mcites no repository path that does not exist, unless annotated
+[22m[39m[citation-integrity] 1922 path citations resolved or annotated
+
+[90mstdout[2m | tests/unit/citation-integrity.test.ts[2m > [22m[2mTSK-39 box 3: citation integrity[2m > [22m[2mholds the decimal CCPP locator census at its measured ceiling
+[22m[39m[citation-integrity] CCPP decimal locators: 29 sites (ceiling 29)
+
+[90mstdout[2m | tests/unit/citation-integrity.test.ts[2m > [22m[2mTSK-39 box 3: citation integrity[2m > [22m[2mholds the missing-authority and renamed-authority censuses at their ceilings
+[22m[39m[citation-integrity] missing authorities 28/28, AGENTS.md 10/10, todo.md (the retired register, superseded by this one) 44/45
+
+ [32m✓[39m tests/unit/citation-integrity.test.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 326[2mms[22m[39m
+ [32m✓[39m tests/unit/systems-of-record.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 256[2mms[22m[39m
+ [32m✓[39m tests/unit/canonical-model.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 296[2mms[22m[39m
+[90mstdout[2m | tests/unit/state-machine-doc-pins.test.ts[2m > [22m[2mstate-machines.md is written from the real code[2m > [22m[2mpublishes enough pins for the claim to be checkable
+[22m[39m[state-machine-doc-pins] 30 path:line citations · 54 [TAG] pins · 12 symbol pins · 11 §8 rows · 49 refusal codes · 15 durable stores
+
+ [32m✓[39m tests/unit/state-machine-doc-pins.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 182[2mms[22m[39m
+ [32m✓[39m tests/unit/threat-model.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 137[2mms[22m[39m
+ [32m✓[39m tests/unit/a11y-claim-hygiene.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 57[2mms[22m[39m
+[90mstdout[2m | tests/unit/dt-decitation-keys.test.ts[2m > [22m[2mTSK-40: DT-* keys are re-keyed, not left pointing at a document that does not exist[2m > [22m[2mre-keys every cited key, and prints the census so the number is measured, not remembered
+[22m[39m[TSK-40] DT census: 42 distinct keys across 21 live files (docs/design-debt-register.md:8, docs/design-review-gate.md:8, docs/ui-copy-standards.md:3, src/api/router.ts:4, src/web/assets/index.ts:2, src/web/broadcast/index.ts:8, src/web/components/icons.ts:1, src/web/components/index.ts:5, src/web/components/tokens.ts:2, src/web/federation/surface-e.ts:4, src/web/public/hub.ts:7, src/web/styles/index.ts:9, src/web/workspace/surface-bc.ts:2, tests/a11y/visual-regression-baseline.test.ts:5, tests/helpers/stylesheet.ts:1, tests/unit/broadcast-screens.test.ts:7, tests/unit/public-surfaces.test.ts:2, tests/unit/styleguide.test.ts:2, tests/unit/stylesheet-resolution.test.ts:1, tests/unit/token-discipline.test.ts:3, tests/unit/tokens-contrast.test.ts:2)
+
+ [32m✓[39m tests/unit/dt-decitation-keys.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+[90mstdout[2m | tests/unit/durability-drill-coverage.test.ts[2m > [22m[2mTSK-47: every durable domain has a restart/failure drill[2m > [22m[2mprints the coverage census the register quotes
+[22m[39m
+[TSK-47] durable domains: 16 · registered stores in src/: 15 · reader branches: 16 · restart reads in the suite: 18
+  enquiry             2 restart drill(s)  TSK-17  src/modules/hub/enquiry/index.ts:69
+  approval            1 restart drill(s)  TSK-17  src/core/approvals/index.ts:61
+  case                1 restart drill(s)  TSK-17  src/core/cases/index.ts:35
+  risk                1 restart drill(s)  TSK-17  src/core/work/index.ts:174
+  issue               1 restart drill(s)  TSK-17  src/core/work/index.ts:175
+  destination         1 restart drill(s)  TSK-17  src/core/federation/destinations.ts:41
+  mediaAsset          1 restart drill(s)  TSK-17  src/core/storage/index.ts:325
+  session             1 restart drill(s)  TSK-17  src/core/auth/sessions.ts:53
+  idempotency         1 restart drill(s)  TSK-17  src/core/websecurity/index.ts:264
+  content             1 restart drill(s)  TSK-17  src/core/content/index.ts:107
+  journal             1 restart drill(s)  TSK-32  src/modules/finance/ledger/index.ts:83
+  sponsorBinding      1 restart drill(s)  TSK-16  src/modules/broadcast/sponsorship/index.ts:26
+  sponsorFulfillment  1 restart drill(s)  TSK-16  src/modules/broadcast/sponsorship/index.ts:27
+  salesDeal           2 restart drill(s)  TSK-60  src/modules/finance/sales/index.ts:28
+  auditLedger         1 restart drill(s)  TSK-18  src/core/audit/index.ts:177
+  providerClaim       1 restart drill(s)  TSK-19  claim row (not journal-staged)
+
+[90mstdout[2m | tests/unit/durability-drill-coverage.test.ts[2m > [22m[2mTSK-47: the journey-drill census the register prints is the file's[2m > [22m[2mnames the drill ids so a silent deletion shows up as a change, not a pass
+[22m[39m[TSK-47] journey failure drills (13): DRILL-APP-01, DRILL-APP-02, DRILL-SCHED-01, DRILL-RIGHTS-01, DRILL-RECON-01, DRILL-RECON-02, DRILL-PUB-01, DRILL-NAV-01, DRILL-FIN-01, DRILL-FIN-02, DRILL-FIN-03, DRILL-GATE-01, DRILL-TRAFFIC-01
+
+ [32m✓[39m tests/unit/durability-drill-coverage.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m9 passed[39m[22m[90m (9)[39m
+[2m      Tests [22m [1m[32m64 passed[39m[22m[90m (64)[39m
+[2m   Start at [22m 22:45:06
+[2m   Duration [22m 4.99s[2m (transform 230ms, setup 0ms, import 1.17s, tests 1.79s, environment 1ms)[22m
+
+exit=0

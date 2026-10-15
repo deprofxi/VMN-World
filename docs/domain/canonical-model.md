@@ -1,6 +1,6 @@
 # Canonical model as implemented
 
-**Measure date:** 2026-10-11 (`ce098f8` + dirty set; no authorized commit exists yet — TSK-09).
+**Measure date:** 2026-10-11 (`ce098f8` + dirty set; committed by the TSK-09 series on 2026-10-15).
 **Reconciles:** `docs/domain/master-data-model.md` (`VMNL-AZP-VMN-CDDS-001 — R1.0`, the *intended*
 model, which remains authoritative for intent and is not edited here) against
 `prisma/schema.prisma` (43 models, 10 enums), `src/**/*.ts`, and `tests/`.

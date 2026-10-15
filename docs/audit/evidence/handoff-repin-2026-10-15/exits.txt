@@ -1,0 +1,31 @@
+=== fast gates
+
+> vmng@1.0.0 lint /Users/deprof/www/vmng
+> eslint . --max-warnings 0
+
+lint exit=0
+
+> vmng@1.0.0 typecheck /Users/deprof/www/vmng
+> tsc --noEmit
+
+typecheck exit=0
+
+> vmng@1.0.0 build /Users/deprof/www/vmng
+> tsc
+
+build exit=0
+[AUDIT] Running pnpm audit against dependency vulnerability database...
+[AUDIT] Zero vulnerabilities found; 6 historical advisory records remain in the triage register. Approval and applicability are not checked.
+audit-check exit=0
+Dependency advisories — critical: 0, high: 0, moderate: 0, low: 0
+audit-threshold: OK — within vulnerability policy
+audit-threshold exit=0
+[any-budget] explicit-any occurrences in src: 137 (budget 138)
+[any-budget] OK.
+explicit-any-budget exit=0
+       8
+       0
+    1733 tasks.md
+     456 docs/handoffs/LATEST.md
+    2189 total
+19	19	docs/handoffs/LATEST.md

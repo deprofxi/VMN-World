@@ -1,6 +1,6 @@
 # Data dictionary as implemented
 
-**Measure date:** 2026-10-08 (`ce098f8` + dirty set; no authorized commit exists yet — TSK-09).
+**Measure date:** 2026-10-08 (`ce098f8` + dirty set, committed 2026-10-15 by TSK-09).
 **Scope:** the *vocabulary* the repository actually uses — enumerations, money, time, identifiers and
 machine-readable codes — measured from `prisma/schema.prisma` and `src/**/*.ts`.
 

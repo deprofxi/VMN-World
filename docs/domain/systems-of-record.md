@@ -1,7 +1,7 @@
 # Systems of record
 
-**Measure date:** 2026-10-08, working tree at baseline `ce098f8` + dirty set (TSK-09's commit series
-is not yet authorized, so no commit SHA can carry this state).
+**Measure date:** 2026-10-08, working tree at baseline `ce098f8` + dirty set; that set landed as the
+TSK-09 commit series on 2026-10-15 (`be8dff9`…`88b6cb1`), so the state below is carried by commits.
 **Written from code, not from a plan:** every file:line below was opened on the measure date, and
 §6 reproduces each count with a command. Related documents: `docs/domain/master-data-model.md`
 (the intended model), `prisma/schema.prisma` (the declared model),
@@ -336,7 +336,7 @@ find tests -name 'durability*' | wc -l
 #        from a second OS process: node tests/helpers/durable-restart-reader.mjs <entity> <key>)
 ```
 
-**Not verified by this document:** whether the migrations apply cleanly to an empty database
-(TSK-06, `[B]`), anything about a production instance, and any figure that depends on an authorized
-commit (TSK-09). Where this file says "durable" it means *the code writes to a table when the
-database is reachable* — which is a statement about `src/`, not about an environment.
+**Not verified by this document:** anything about a production instance, and any figure that depends on
+CI having run (`TSK-57`). Migrations-from-empty is verified — TSK-06 closed 2026-10-15 (`prisma migrate
+deploy` from empty, exit 0, **44** tables). Where this file says "durable" it means *the code writes to a
+table when the database is reachable* — which is a statement about `src/`, not about an environment.

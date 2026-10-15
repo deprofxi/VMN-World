@@ -23,8 +23,9 @@ Virtual Media Network Limited enforces continuous evidence progression from conc
 [Tier S2: Internal Sandbox]
    └── Verification pin VMNL-EV-PIN-2026-10-08 (TSK-08, re-pinned from 2026-10-07 after TSK-12).
    Measured on this working tree
-   (baseline commit `ce098f8` + 114 modified / 51 untracked entries / 2 deleted paths, not yet
-   committed — see `tasks.md` TSK-09; the four outputs below are archived verbatim in
+   (baseline commit `ce098f8` + 114 modified / 51 untracked entries / 2 deleted paths, which the
+   TSK-09 series committed on 2026-10-15 — see the VMNL-EV-PIN-2026-10-15 block below and `tasks.md`
+   TSK-09; the four outputs below are archived verbatim in
    `docs/audit/evidence/baseline-2026-10-08/`):
      `npx tsc --noEmit`  -> exit 0, 0 errors        (2026-10-07 morning: 152 errors, 3 files)
      `pnpm build`        -> exit 0
@@ -98,7 +99,8 @@ Virtual Media Network Limited enforces continuous evidence progression from conc
    Measured on `ce098f8` + a dirty working set (**201** entries under `git status --porcelain`, **364**
    files under `--untracked-files=all`; the TSK-20 `gate-summary.txt` recorded 362 for the run that
    produced its own gate logs, before the last two artifacts in that directory were written).
-   Nothing committed, nothing pushed. Database: migrated, **unseeded** `vmnl_enterprise_gates` on
+   Nothing was committed at that pin and nothing has been pushed (the tree landed as the TSK-09 series on
+   2026-10-15 — see the next pin). Database: migrated, **unseeded** `vmnl_enterprise_gates` on
    `localhost:5432`; `.env` never sourced. Logs in
    `docs/audit/evidence/tsk18-durable-audit-transaction-2026-10-12/` and
    `docs/audit/evidence/tsk20-sandbox-state-labelling-2026-10-13/`:
@@ -128,6 +130,35 @@ Virtual Media Network Limited enforces continuous evidence progression from conc
    `tests/unit/systems-of-record.test.ts` fails if the document, the register and the matrix diverge. What
    this pin does **not** claim: it makes the documents say *less* about persistence, not more — no
    readiness-matrix gate moved, and labelling sandbox state is not the same as persisting it.
+
+   [Pin VMNL-EV-PIN-2026-10-15 — TSK-09 commit series + TSK-41 doc-pin guard; supersedes the gate
+   figures of the 2026-10-13 pin, which is retained because its logs are archived verbatim]
+   Measured on the **committed** tree at `88b6cb1` (the residual dirty set there is **1** entry under
+   `git status --porcelain`: `?? pages.pdf`, untracked by decision; the artifacts of this pin add only
+   `docs/audit/evidence/handoff-repin-2026-10-15/` and the documents it re-pins). Database: migrated,
+   **unseeded** `vmnl_enterprise_gates` on `localhost:5432`; `.env` never sourced. Nothing pushed —
+   `git remote -v` prints nothing. Logs in `docs/audit/evidence/handoff-repin-2026-10-15/`:
+     `pnpm typecheck`    -> exit 0
+     `pnpm lint`         -> exit 0 (eslint --max-warnings 0)
+     `pnpm build`        -> exit 0
+     `pnpm test`         -> exit 0, **78 test files / 872 tests passed, 0 failed, 0 skipped**
+       (68/822 at the TSK-20 pin → 78/872 after the verification pyramid landed in `2ce8fab` and the
+       doc-pin guard in `fd0d91b`. The delta is **not** itemised per file: the 822 pin was taken on a
+       dirty tree, so per-file arithmetic would be folklore (rule 0.2). No floor, census or assertion
+       was relaxed for it (rule 0.3).)
+     `pnpm test:coverage`-> exit 0, **79.07 statements / 70.4 branches / 82.92 functions / 80.41 lines**
+       against the same floors 73 / 62 / 77 / 72 — the floors did not move. An earlier run of the same
+       committed source read 79.09 / 70.43 / 82.92 / 80.43; hundredths of run-to-run variation on the
+       shared database are recorded rather than smoothed over, and both numbers clear the floors.
+     `node scripts/audit-check.js`, `node scripts/audit-threshold.js`, `node scripts/explicit-any-budget.js`
+       -> each exit 0
+     `prisma migrate deploy` from an empty database -> exit 0, **13** migrations, **44** public tables
+       (`docs/audit/evidence/tsk09-commit-series-2026-10-15/migrate-deploy-from-empty.txt`), over **14**
+       tracked paths under `prisma/migrations` against **2** before the series.
+   What this pin does **not** claim: that CI has executed any step — `docker info` exits 127 on this host,
+   so `TSK-57`'s boxes stay open and the release posture stays BLOCKED (tasks.md §2); that the push
+   happened, which remains the owner's decision; that the 872 include a browser run — no browser has run,
+   so `HD-10` and manual §7.5 coverage remain NOT_RUN.
 
 [Tier S3: Operational Staging] 
    └── Live staging deployment with Postgres container, playout integration,
