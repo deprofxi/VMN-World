@@ -13,14 +13,15 @@ services:
     container_name: vmnl-enterprise-app
     restart: unless-stopped
     ports:
-      - "5500:5500"
+      - "127.0.0.1:5500:5500"
     environment:
       - NODE_ENV=${NODE_ENV:-development}
       - PORT=5500
       - APP_NAME=VMNL Enterprise Orchestrator
       - APP_URL=${APP_URL:-http://localhost:5500}
-      # Required: no default. The app fails fast if unset (CR-6 / AUD-14).
-      - DATABASE_URL=${DATABASE_URL:?DATABASE_URL is required (see .env.example)}
+      # Compose container DNS must target postgres; host-run dev uses localhost.
+      # Password is the explicitly sandbox-only value configured on the postgres service.
+      - DATABASE_URL=postgresql://vmn_user:${POSTGRES_PASSWORD:-vmn_sandbox_only_password}@postgres:5432/vmn_enterprise?schema=public
       # Required in all environments: no default JWT secret (AUD-14).
       - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required, min 32 chars (see .env.example)}
       - JWT_EXPIRATION_SECONDS=86400
@@ -31,8 +32,9 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       # TODO-SEC-10: the distributed KV adapter (cache/session/rate-limit
-      # stores) prefers REDIS_URL; set to the compose redis service.
-      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      # stores) prefers REDIS_URL; authenticated with the compose Redis
+      # password (AUD-22) so a Redis on the shared network is never open.
+      - REDIS_URL=${REDIS_URL:-redis://:${REDIS_PASSWORD:?REDIS_PASSWORD is required (see .env.example)}@redis:6379}
       # Storage credentials for the local sandbox MinIO (non-production only).
       - STORAGE_DRIVER=minio
       - STORAGE_ENDPOINT=${STORAGE_ENDPOINT:-http://minio:9000}
@@ -60,7 +62,7 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-vmn_sandbox_only_password}
       - POSTGRES_DB=vmn_enterprise
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -74,17 +76,23 @@ services:
   # AUD-08: Redis service added. REDIS_* configuration and the BullMQ message
   # bus contract are first-class in src/core/config; the compose stack must
   # provide the dependency for parity between sandbox and deployment topology.
+  # AUD-22: Redis requires an authenticated password — compose refuses to boot
+  # without REDIS_PASSWORD (sandbox default ships in .env.example), and the
+  # healthcheck authenticates. Loopback-bound, but defence-in-depth against
+  # any future port exposure or shared-network join.
   redis:
     image: redis:7-alpine
     container_name: vmnl-redis
     restart: unless-stopped
-    command: ["redis-server", "--appendonly", "yes"]
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD:?REDIS_PASSWORD is required (see .env.example)}"]
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:?REDIS_PASSWORD is required (see .env.example)}
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     volumes:
       - redisdata:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" ping | grep -q PONG"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -92,7 +100,7 @@ services:
       - vmnl-network
 
   minio:
-    image: minio/minio:latest
+    image: minio/minio:RELEASE.2025-09-07T16-19-51Z
     container_name: vmnl-minio
     restart: unless-stopped
     command: server /data --console-address ":9001"
@@ -100,8 +108,8 @@ services:
       - MINIO_ROOT_USER=minioadmin
       - MINIO_ROOT_PASSWORD=minioadmin_secure_key
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
     volumes:
       - miniodata:/data
     healthcheck:
@@ -120,6 +128,11 @@ services:
     image: postgres:18-alpine
     container_name: vmnl-postgres-backup
     restart: unless-stopped
+    # AUD-22: run the backup job as the image's non-root postgres user (uid 70).
+    # The backup volume mounts at /var/lib/postgresql/backups — a directory that
+    # exists in the image owned by uid 70 — so the named volume initialises
+    # with writable non-root ownership.
+    user: "70:70"
     depends_on:
       postgres:
         condition: service_healthy
@@ -129,37 +142,35 @@ services:
       - PGUSER=vmn_user
       - PGPASSWORD=${POSTGRES_PASSWORD:-vmn_sandbox_only_password}
       - PGDATABASE=vmn_enterprise
-      - VMNL_BACKUP_DIR=/backups
+      - VMNL_BACKUP_DIR=/var/lib/postgresql/backups
       - VMNL_BACKUP_RETENTION_DAYS=${VMNL_BACKUP_RETENTION_DAYS:-14}
+      - TZ=Africa/Lagos
     volumes:
       - ./docker/backups/backup.sh:/usr/local/bin/backup.sh:ro
-      - pgbackups:/backups
+      - pgbackups:/var/lib/postgresql/backups
     entrypoint: ["/bin/sh", "-c"]
-    # Sleep-loop scheduler standing in for cron: first backup runs ~2 minutes
-    # after boot (sandbox convenience), then every 24h aligned to 02:00 WAT.
+    # AUD-20: crond-based scheduler (replaces drift-prone sleep loop).
+    # Runs at 02:00 WAT daily. TZ=Africa/Lagos is set in environment.
+    # AUD-22: non-root — the crontab lives in a writable dir passed via
+    # `crond -c`; busybox crond setuids to the file's owner (already uid 70).
     command:
-      ["
-        while true; do
-          sleep 120;
-          if [ \"$$(date -u +%H)\" = \"01\" ] || [ ! -f /backups/.last_run ]; then
-            /bin/sh /usr/local/bin/backup.sh && touch /backups/.last_run;
-            sleep 3600;
-          fi;
-          sleep 1800;
-        done
-      "]
+      - |
+        mkdir -p /tmp/vmnl-cron
+        echo '0 2 * * * /bin/sh /usr/local/bin/backup.sh && touch /var/lib/postgresql/backups/.last_run' > /tmp/vmnl-cron/postgres
+        [ ! -f /var/lib/postgresql/backups/.last_run ] && /bin/sh /usr/local/bin/backup.sh && touch /var/lib/postgresql/backups/.last_run
+        exec crond -f -l 2 -c /tmp/vmnl-cron
     networks:
       - vmnl-network
 
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v2.53.0
     container_name: vmnl-prometheus
     restart: unless-stopped
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - promdata:/prometheus
     ports:
-      - "9090:9090"
+      - "127.0.0.1:9090:9090"
     depends_on:
       - app
     networks:

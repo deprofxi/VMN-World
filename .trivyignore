@@ -1,0 +1,9 @@
+# .trivyignore — accepted/suppressed Trivy findings
+# Format: CVE-ID or GHSA-ID (one per line), with mandatory justification comment.
+#
+# Rules:
+# 1. Only suppress findings with documented justification.
+# 2. Review quarterly and remove resolved suppressions.
+# 3. Each suppression must reference the AUD/TODO tracking item.
+#
+# No suppressions active — all container CVEs must be resolved before deployment.
