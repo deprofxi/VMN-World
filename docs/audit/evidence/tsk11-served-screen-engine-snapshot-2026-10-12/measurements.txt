@@ -1,0 +1,113 @@
+TSK-11 box 6 follow-up — served broadcast screens take engine snapshots: measurements
+All figures re-measured 2026-10-12 on the tree whose gate outputs sit in this directory.
+Each line shows the figure and, in brackets, the command that produces it.
+
+== Tree state ==
+  HEAD                                   : ce098f8 feat(broadcast): link schedule entries to episode masters — episodeCode, live now/next master, demo schedule seed, desk keying
+  git status --porcelain                 : 198 entries (no remote configured; nothing committed or pushed by this change)
+  machine load                           : 4.74 4.32 5.16
+
+== The defect this closes ==
+  The renderer has accepted an engine snapshot since TSK-11 (`renderBroadcastScreenHtml`
+  4th parameter, src/web/broadcast/index.ts:800-805) but the router called it with three
+  arguments, so every served desk printed NOT_CONNECTED whatever the process held.
+  call site before : renderBroadcastScreenHtml(match.screen, match.params, userRole)
+  call site now    : src/api/router.ts:3553 — 4 args, the 4th is buildScreenEngineSnapshot(context)
+  production callers of renderBroadcastScreenHtml in src/ : 1 (only the route; `grep -rn "renderBroadcastScreenHtml(" src`)
+
+== Snapshot builder (src/api/router.ts) ==
+  export function buildScreenEngineSnapshot       : :406
+  param type                                      : Pick<RequestHandlerContext, "billingEngine" | "sponsorshipEngine">
+  return type                                     : NonNullable<ScreenDataContext["engines"]>
+  type import                                     : :32 (`import type { ScreenDataContext } from "../modules/broadcast/screens/data.js"`)
+  projected                                       : 2 (billingTotals :411-417, sponsorshipAudit :419-425)
+  deliberately NOT projected                      : 2 (asRunSummary, playoutStatus — named in the doc comment :394-405)
+
+== Why those two stay unsupplied (verified by reading the sources) ==
+  playoutStatus : src/modules/broadcast/playout/index.ts:71 PlayoutAutomationEngine composes playlists;
+                  it holds no on-air flag and no playlist-lock flag, and there is no machine adapter in src/.
+                  Serving `{onAir, lockedPlaylist}` would be an invented operational state on the live monitor.
+  asRunSummary  : the durable shape exists — prisma `model AsRunLogRecord` (prisma/schema.prisma:409) with exactly
+                  totalPlannedSpots / totalAiredSpots / matchedSpots / discrepancyCount, written by
+                  ScheduleRepository.recordAsRun (src/core/database/repositories/schedule.repository.ts:328) and read by
+                  listAsRunRecords (:395). NEITHER has a caller in src/:
+                    `grep -rn "recordAsRun\|listAsRunRecords" src | grep -v schedule.repository.ts` -> 0 hits
+                    the only test that writes and reads the pair is tests/unit/production-core-and-infrastructure.test.ts:200,:212.
+                  The rows that DO exist were inserted by the demo seed (src/db/migrate-and-seed.ts:189 upsert).
+                  So the process can read seeded fixtures but has no ingestion path: reconciliation itself is
+                  request-scoped (reconcileAsRunLogs, src/modules/broadcast/asrun/index.ts:345) and the engine is
+                  stateless (:405). Presenting seeded rows as "as-run ingested for the selected date" is the exact
+                  invention TSK-11 deleted from this panel ("264 Total Spots Ingested"), so the panel stays
+                  NOT_CONNECTED until a route ingests operator-posted logs into that table.
+
+== New read accessor (src/modules/broadcast/billing/index.ts) ==
+  public listBillingSchedules() : :155   (returns [...this.billingSchedules.values()])
+  why it was needed             : the engine only exposed getBillingSchedule(campaignCode) (:146); the yield desk
+                                  needs every schedule, and a per-campaign lookup cannot answer "what is booked".
+  field mapping                 : CommercialBillingSchedule.totalContractValueNgn -> snapshot totalValueNgn
+                                  (src/api/router.ts:415), so the screen reads the engine's own money field.
+
+== Sponsorship projection ==
+  source                          : context.sponsorshipEngine.getFulfillmentReport() (src/modules/broadcast/sponsorship/index.ts:265)
+  mapping                         : entitlementId from r.binding.entitlementId, percent from r.fulfillmentPercent
+  instance identity               : constructed src/api/server.ts:261, hydrated from durable bindings src/api/server.ts:334,
+                                    passed to routes on the same context object — the desk reads the instance the writes land in.
+  bindings in the developer DB at measurement time : 2 (`hydrated at boot` log line, `"bindings":2`)
+  entitlement notes               : SponsorEntitlement is process-side, so the served strip labels entitlements by id
+                                    (`Entitlement ENT-…`), not by sponsor name — src/modules/broadcast/screens/data.ts:96
+
+== Served census (this directory: served-census.txt; produced by measure-served-census.mjs) ==
+  screens served                   : 33 (all with 200, one per BROADCAST_SCREEN_INVENTORY route, role = screen.primaryRole)
+  still showing a NOT_CONNECTED / PROVISIONAL badge : 31   (was 33 renderer-level)
+  serving at least one DOMAIN_ENGINE `SOURCE:` badge: 2    -> SCR-BCST-02 (channel registry, pre-existing) and SCR-BCST-20 (sponsorship audit, new)
+  SCR-BCST-20                      : 200, DOMAIN_ENGINE, and NO unsourced badge — it is the first served desk whose
+                                     whole KPI strip reads a hydrated durable source
+  SCR-BCST-21 / SCR-BCST-31         : still NOT_CONNECTED for "Booked Revenue" in this measurement — a freshly booted
+                                     instance holds no billing schedule, because CommercialBillingSchedule is not a
+                                     durable store (TSK-17 did not register `billingSchedule`). The HTTP test proves the
+                                     projection works when a schedule exists in the process.
+  command                          : node docs/audit/evidence/tsk11-served-screen-engine-snapshot-2026-10-12/measure-served-census.mjs
+                                     (NODE_ENV=test so the router honours x-test-role at src/api/router.ts:730; DATABASE_URL
+                                     read from the untracked .env, never printed; keep-alive handles closed with process.exit)
+  re-run on the final tree         : same 31 / 2 figures after the doc-comment edit and `pnpm build` (served-census.txt header
+                                     records the run); the script imports `Buffer` from node:buffer because `eslint . --max-warnings 0`
+                                     covers docs/**.mjs too — the lint gate was satisfied by importing, not by an ignore rule.
+
+== Found while measuring, not fixed (recorded, see the register residual) ==
+  /broadcast/dashboard is answered at src/api/router.ts:2973 by renderMasterLayout(...renderDashboardHtml())
+  BEFORE the screen matcher at :3512, so SCR-BCST-01's provenance-badged strip is never served on its own route.
+  That page is honest (`src/web/public/dashboard.ts:611-623`: "Telemetry unavailable … illustrative metrics are
+  intentionally withheld") and anonymous access to it is rejected (tests/security/route-authorization.test.ts:189),
+  but its wording does not contain the exact `NOT CONNECTED` / `SOURCE:` markers the census regex looks for,
+  which is why SCR-BCST-01 reads "no badge" above. Deleting the legacy handler is a surface change, not a data fix.
+
+== Instruments ==
+  tests/unit/broadcast-screens.test.ts : 509 lines, 20 tests (was 16) — 4 added:
+    :296  "projects only the engines the process holds into the served screen snapshot (TSK-11 box 6)"  (builder: empty ctx -> {}, billing+sponsorship projection, asRunSummary/playoutStatus absent)
+    :344  "renders a projected entitlement on the sponsorship desk and nothing invented on playout"      (renderer, snapshot supplied vs not)
+    :429  describe "TSK-11 box 6: served desks project the engines of their own process"
+    :444  it  "shows a booked billing schedule on the revenue yield desk instead of an empty panel"       (POST /api/v1/broadcast/billing/calculate -> GET /broadcast/finance/yield, same instance)
+    :489  it  "leaves the as-run and playout desks NOT_CONNECTED over HTTP, with nothing invented"        (GET /broadcast/asrun/reconciliation, /broadcast/playout/live)
+  tests/unit/broadcast-provenance-coverage.test.ts : 263 lines, 31 tests, unchanged assertions —
+    the 33/33 unsourced-badge figure is RENDERER-level (this file never injects a snapshot); its header and the
+    two inline comments were re-worded to say so, because leaving them reading "no engine snapshot injected at the
+    route" would have made the file's prose false while its numbers stayed right. No threshold was moved.
+  Test-side fixture note: the sponsorship binding is adopted with engine.hydrate([binding], []) rather than
+  createBinding(), so the projection test stages no durable write and leaves no rows in the developer database.
+
+== Gates, serial, on this tree, output to files in this directory (never piped through tail) ==
+  pnpm typecheck          exit 0   typecheck.txt      (tsc --noEmit, 0 errors)
+  pnpm lint               exit 0   lint.txt           (eslint . --max-warnings 0)
+  pnpm build              exit 0   build.txt          (tsc)
+  npx vitest run <5 focused files>  exit 0  focused-run.txt  5 files / 76 tests passed, 3.86 s
+  pnpm test               exit 0   full-suite.txt     68 files / 813 tests passed, 27.39 s
+  pnpm test:coverage      exit 0   coverage.txt       68 files / 813 tests passed, 32.04 s
+                                    All files: 79.04 stmts / 70.50 branches / 82.94 funcs / 80.33 lines
+                                    floors (vitest.config.ts): 73 / 62 / 77 / 72 — every floor met, none moved
+  This is the clean exit-0 coverage run TSK-11's closure evidence said it had not yet had
+  (two attempts on 2026-10-11 exited 1 on a vitest worker teardown under load, unrelated to behaviour).
+
+== Test-count trail on this tree ==
+  before this change : 67 files / 800 tests (TSK-60 box 3 closure)
+  + TSK-47 guard     : 68 files / 809 tests (durability-drill-coverage.test.ts, 9 tests)
+  + this change      : 68 files / 813 tests (4 tests added, none removed or skipped)

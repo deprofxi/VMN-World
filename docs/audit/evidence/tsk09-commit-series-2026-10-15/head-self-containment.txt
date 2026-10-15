@@ -1,0 +1,16 @@
+# before — the register commit immediately preceding this series
+rev 61355c6: tracked src/tests files importing something absent at that rev: 10
+src/api/routes/index.js
+src/api/schemas/index.js
+src/core/database/durable-journal.js
+src/core/database/repositories/release-critical.repository.js
+src/modules/broadcast/asrun/exceptions.js
+src/modules/broadcast/export/approved-schedules.js
+src/web/public/public-route-registry.js
+src/web/styles/generated-utilities.js
+tests/helpers/db-parents.js
+tests/helpers/rights-fixtures.js
+
+# after — tip of this series
+rev 85aad76: tracked src/tests files importing something absent at that rev: 0
+

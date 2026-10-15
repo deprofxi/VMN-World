@@ -1,0 +1,537 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.11 [39m[90m/Users/deprof/www/vmng[39m
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization
+[22m[39m{"timestamp":"2026-10-12T05:40:15.397Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"58a7e024-9c66-4316-9d66-e8476ae54bd2","spanId":"84fba874-a54b-47","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization
+[22m[39m{"timestamp":"2026-10-12T05:40:15.543Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"5df3b985-420a-407b-9329-f52a8723c88e","spanId":"e2eaa4e1-cabc-4e","component":"server_bootstrap","assets":1483,"items":77,"revisions":150,"bindings":2,"fulfillments":4,"deals":17}
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization
+[22m[39m{"timestamp":"2026-10-12T05:40:15.560Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"60ee7c8e-da7d-4703-908f-901c9d4d8d67","spanId":"154460a7-fcc4-4a","component":"server_bootstrap","port":0,"env":"test"}
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39mprisma:error 
+Invalid `client.talentProfile.upsert()` invocation in
+/Users/deprof/www/vmng/src/core/database/repositories/talent.repository.ts:63:52
+
+  60 if (db.connected) {
+  61   try {
+  62     const client = getPrismaClient();
+→ 63     const created = await client.talentProfile.upsert(
+Foreign key constraint violated on the constraint: `TalentProfile_personId_fkey`
+
+[90mstderr[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m{"timestamp":"2026-10-12T05:40:15.850Z","level":"ERROR","message":"[VMNL-REPO-ERROR] talentProfile write failed and the repository is operating fail-closed (no in-memory fallback configured).","traceId":"8c287ae9-6a3c-40d7-8c40-6eb83527a040","spanId":"3e9c8faf-9103-48","component":"api_router","stack":"RepositoryUnavailableError: [VMNL-REPO-ERROR] talentProfile write failed and the repository is operating fail-closed (no in-memory fallback configured).\n    at handleRepoError (/Users/deprof/www/vmng/src/core/database/repository-mode.ts:50:11)\n    at TalentRepository.createTalent (/Users/deprof/www/vmng/src/core/database/repositories/talent.repository.ts:103:15)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:6422:28)","duration":19}
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m{"timestamp":"2026-10-12T05:40:15.853Z","level":"ERROR","message":"[AFCA-ERR-404] Cohort '' not found.","traceId":"651c6499-d6a3-4129-bf6f-55ecf33b52de","spanId":"e2f14240-3364-49","component":"api_router","stack":"Error: [AFCA-ERR-404] Cohort '' not found.\n    at AfcaAcademyService.getCohortOrThrow (/Users/deprof/www/vmng/src/modules/hub/afca/index.ts:382:13)\n    at AfcaAcademyService.issueCertificate (/Users/deprof/www/vmng/src/modules/hub/afca/index.ts:285:25)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:6474:40)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)","duration":1}
+
+[90mstderr[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m{"timestamp":"2026-10-12T05:40:15.857Z","level":"ERROR","message":"[VTM-BRF-01] Brief '' not found.","traceId":"c47aca93-1589-4d8e-9fda-dc45a23b0ca0","spanId":"162c000e-7671-4b","component":"api_router","stack":"Error: [VTM-BRF-01] Brief '' not found.\n    at VirtualTalentManagementEngine.matchTalent (/Users/deprof/www/vmng/src/modules/hub/vtm/index.ts:157:13)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:6531:41)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)","duration":1}
+
+[90mstderr[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m{"timestamp":"2026-10-12T05:40:15.861Z","level":"ERROR","message":"[TEND-AVL-02] Title 'TIT-001' not found in catalogue.","traceId":"5adec2f4-b0f2-4c04-b518-8d02391ad3cb","spanId":"9fd77a03-24de-4c","component":"api_router","stack":"Error: [TEND-AVL-02] Title 'TIT-001' not found in catalogue.\n    at TendDistributionEngine.checkAvails (/Users/deprof/www/vmng/src/modules/hub/tend/index.ts:95:13)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:6672:44)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)","duration":0}
+
+[90mstderr[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m{"timestamp":"2026-10-12T05:40:15.862Z","level":"ERROR","message":"[TEND-AVL-02] Title 'TIT-001' not found in catalogue.","traceId":"e1a6bab9-fd29-430c-9772-01c898f9a545","spanId":"16351b2f-5f7e-4a","component":"api_router","stack":"Error: [TEND-AVL-02] Title 'TIT-001' not found in catalogue.\n    at TendDistributionEngine.checkAvails (/Users/deprof/www/vmng/src/modules/hub/tend/index.ts:95:13)\n    at TendDistributionEngine.createLicense (/Users/deprof/www/vmng/src/modules/hub/tend/index.ts:153:25)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:6689:44)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)","duration":1}
+
+[90mstderr[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m{"timestamp":"2026-10-12T05:40:15.864Z","level":"ERROR","message":"[COMM-BKG-01] Resource '' is not available.","traceId":"16b6fc1f-dbee-4dab-91d6-8c5a440d370b","spanId":"34f22330-62c9-48","component":"api_router","stack":"Error: [COMM-BKG-01] Resource '' is not available.\n    at AfroFusionCommunityHub.bookResource (/Users/deprof/www/vmng/src/modules/hub/community/index.ts:142:13)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:6745:46)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)","duration":1}
+
+[90mstderr[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+[90mstderr[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m{"timestamp":"2026-10-12T05:40:15.872Z","level":"ERROR","message":"[QTC-DEAL-02] Contract value must be greater than zero.","traceId":"984efec6-7d92-4238-a350-f504cd1e7ca6","spanId":"ecd2bd41-e6e9-40","component":"api_router","stack":"Error: [QTC-DEAL-02] Contract value must be greater than zero.\n    at QuoteToCashSalesEngine.createDeal (/Users/deprof/www/vmng/src/modules/finance/sales/index.ts:78:13)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:7497:40)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)","duration":1}
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39mprisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m{"timestamp":"2026-10-12T05:40:15.873Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m{"timestamp":"2026-10-12T05:40:15.874Z","level":"ERROR","message":"[QTC-DEAL-02] Contract value must be greater than zero.","traceId":"703919f4-4c1c-4548-bda0-c016846718a2","spanId":"c16c42dc-e78a-44","component":"api_router","stack":"Error: [QTC-DEAL-02] Contract value must be greater than zero.\n    at QuoteToCashSalesEngine.createDeal (/Users/deprof/www/vmng/src/modules/finance/sales/index.ts:78:13)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:7497:40)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)","duration":1}
+
+[90mstderr[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m{"timestamp":"2026-10-12T05:40:15.876Z","level":"ERROR","message":"[PAY-BAT-01] Payout batch must contain at least one item.","traceId":"863fb6e3-279a-45eb-8a31-776216e156e5","spanId":"79ad1eb6-d395-4a","component":"api_router","stack":"Error: [PAY-BAT-01] Payout batch must contain at least one item.\n    at TalentPayoutEngine.createPayoutBatch (/Users/deprof/www/vmng/src/modules/finance/payouts/index.ts:114:13)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:7524:42)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)","duration":1}
+
+[90mstderr[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39mprisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m{"timestamp":"2026-10-12T05:40:15.881Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39mprisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m{"timestamp":"2026-10-12T05:40:15.889Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39mprisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m{"timestamp":"2026-10-12T05:40:15.890Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39mprisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m{"timestamp":"2026-10-12T05:40:15.912Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39mprisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m{"timestamp":"2026-10-12T05:40:15.914Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39mprisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m{"timestamp":"2026-10-12T05:40:15.920Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39mprisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m{"timestamp":"2026-10-12T05:40:15.926Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39mprisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m{"timestamp":"2026-10-12T05:40:15.930Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39mprisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m{"timestamp":"2026-10-12T05:40:15.934Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39mprisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m{"timestamp":"2026-10-12T05:40:15.934Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39mprisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m{"timestamp":"2026-10-12T05:40:15.938Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39mprisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m{"timestamp":"2026-10-12T05:40:15.939Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2menforces each WORKSPACE_HTML_GUARDS prefix: 302 to sign-in anonymously, 403 for a role outside the guard, admitted inside it
+[22m[39mprisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2menforces each WORKSPACE_HTML_GUARDS prefix: 302 to sign-in anonymously, 403 for a role outside the guard, admitted inside it
+[22m[39m{"timestamp":"2026-10-12T05:40:15.944Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2menforces each WORKSPACE_HTML_GUARDS prefix: 302 to sign-in anonymously, 403 for a role outside the guard, admitted inside it
+[22m[39mprisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2menforces each WORKSPACE_HTML_GUARDS prefix: 302 to sign-in anonymously, 403 for a role outside the guard, admitted inside it
+[22m[39m{"timestamp":"2026-10-12T05:40:15.944Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2mallows authenticated self-service privacy requests without audit-role escalation
+[22m[39mprisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2mallows authenticated self-service privacy requests without audit-role escalation
+[22m[39m{"timestamp":"2026-10-12T05:40:15.960Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2mallows authenticated self-service privacy requests without audit-role escalation
+[22m[39mprisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2mallows authenticated self-service privacy requests without audit-role escalation
+[22m[39m{"timestamp":"2026-10-12T05:40:15.965Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2mguards enquiry retry-routing by authorization before dispatch
+[22m[39mprisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2mguards enquiry retry-routing by authorization before dispatch
+[22m[39m{"timestamp":"2026-10-12T05:40:15.972Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2mguards enquiry retry-routing by authorization before dispatch
+[22m[39mprisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2mguards enquiry retry-routing by authorization before dispatch
+[22m[39m{"timestamp":"2026-10-12T05:40:15.974Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2mrevalidates stable asset URLs rather than caching mutable bytes as immutable
+[22m[39mprisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2mrevalidates stable asset URLs rather than caching mutable bytes as immutable
+[22m[39m{"timestamp":"2026-10-12T05:40:15.976Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+ [32m✓[39m tests/security/route-authorization.test.ts [2m([22m[2m13 tests[22m[2m)[22m[33m 586[2mms[22m[39m
+[90mstdout[2m | tests/unit/screen-register-verification.test.ts[2m > [22m[2mTSK-24 (CA-11): the screen register verifies what it claims
+[22m[39m{"timestamp":"2026-10-12T05:40:16.239Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"ded4f8ac-07a0-4ae6-9ff8-8d9a41d1f6e4","spanId":"feac969e-5ea4-45","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+[90mstdout[2m | tests/unit/screen-register-verification.test.ts[2m > [22m[2mTSK-24 (CA-11): the screen register verifies what it claims
+[22m[39m{"timestamp":"2026-10-12T05:40:16.376Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"fbc4cff7-caf6-4770-8248-37681af7cebf","spanId":"e67cceec-2ca6-49","component":"server_bootstrap","assets":1483,"items":77,"revisions":150,"bindings":2,"fulfillments":4,"deals":17}
+
+[90mstdout[2m | tests/unit/screen-register-verification.test.ts[2m > [22m[2mTSK-24 (CA-11): the screen register verifies what it claims
+[22m[39m{"timestamp":"2026-10-12T05:40:16.386Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"b11c3a47-b697-4e02-9426-4751c20c225b","spanId":"daebcf74-cb6e-4a","component":"server_bootstrap","port":0,"env":"test"}
+
+[90mstdout[2m | tests/unit/screen-register-verification.test.ts[2m > [22m[2mTSK-24 (CA-11): the screen register verifies what it claims
+[22m[39m
+[TSK-24] register verification — entries: 60 · documented IDs: 226 · router dispatch surface: 229 literals + 54 prefixes
+[TSK-24] provenance by documented ID: {"NOT_VERIFIED":147,"DOMAIN_ENGINE":75,"NOT_CONNECTED":4}
+[TSK-24] reachable HTML surfaces (distinct register-declared paths answered 200 text/html): 40
+[TSK-24] application-wide literal-path HTML surfaces: 111 — /,/about,/access-request,/accessibility,/account/notifications,/account/profile,/account/sessions,/admin/feature-flags,/admissions/queue,/advertising,/api/docs,/apply,/auth/invitation,/auth/mfa,/auth/profile-setup,/auth/recovery,/auth/session-expired,/auth/switch-role,/azeebo,/azeebo/attribution,/azeebo/gateway,/broadcast/asrun/exceptions,/broadcast/dashboard,/broadcast/poa/exceptions,/broadcast/rights/review-request,/broadcast/schedule/review,/broadcast/screens,/careers,/channels,/channels/isimbido,/channels/nxtr,/channels/orisun,/contact,/docs,/enquiry,/help,/help/operator,/hub,/hub/afca,/hub/community,/hub/creators,/hub/distribution,/hub/events,/hub/onestudios,/hub/production,/hub/talent,/hub/technology,/hub/vcf,/hub/vtm,/insights,/learn,/login,/partners,/portal/vtm/marketplace,/portal/vtm/payment-visibility,/portal/vtm/terms,/privacy,/prototypes,/schedule,/select-workspace,/sign-in,/sign-out,/styleguide,/vtm/marketplace,/vtm/terms,/workspace,/workspace/accelerator,/workspace/accelerator/desk,/workspace/admin/access,/workspace/admin/feature-flags,/workspace/admin/source-mappings,/workspace/admissions,/workspace/afca,/workspace/afca/assignments/submit,/workspace/afca/gradebook,/workspace/afca/grading/rubric,/workspace/afca/learning-plan,/workspace/afca/lms,/workspace/agentic-os,/workspace/aos/console,/workspace/approvals,/workspace/commercial/proposals/builder,/workspace/community/guilds,/workspace/content/editor,/workspace/content/media-picker,/workspace/content/review,/workspace/cr8tech/operations,/workspace/devops/console,/workspace/events/desk,/workspace/foundry/missions,/workspace/fusion-events,/workspace/governance/issues,/workspace/governance/records,/workspace/governance/risks,/workspace/guilds,/workspace/headspace/intelligence,/workspace/hub/overview,/workspace/issues/tracker,/workspace/management/overview,/workspace/market-intelligence,/workspace/my-work,/workspace/notifications,/workspace/onestudios/desk,/workspace/production/desk,/workspace/risk/register,/workspace/search,/workspace/syndication/catalogue,/workspace/tend/catalogue,/workspace/vcf/missions,/workspace/vtm/match,/workspace/vtm/matching
+[TSK-24] entries with an unmounted declared route: 0 · entries claiming IMPLEMENTED with no mounted route: 0 · entries whose evidence names no checkable file: 1 · entries with a broken evidence citation: 0
+[TSK-24] per-entry table (entry | ids | mounted/declared | provenance | basis | first probe):
+[TSK-24] | UX-PUB-001..028 | 28 | 8/8 | NOT_VERIFIED | handler source | / 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-SYS-001 | 1 | 1/1 | NOT_VERIFIED | handler source | /sign-in 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-SYS-002 | 1 | 1/1 | NOT_VERIFIED | handler source | /auth/mfa 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-SYS-003 | 1 | 1/1 | NOT_VERIFIED | handler source | /auth/recovery 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-SYS-004 | 1 | 1/1 | NOT_VERIFIED | handler source | /auth/invitation 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-SYS-005 | 1 | 1/1 | NOT_VERIFIED | handler source | /auth/profile-setup 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-SYS-006..011 | 6 | 6/6 | NOT_VERIFIED | handler source | /select-workspace 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-SYS-012 | 1 | 1/1 | NOT_VERIFIED | handler source | /account/notifications 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-SYS-013 | 1 | 1/1 | NOT_VERIFIED | handler source | /account/sessions 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-SYS-014 | 1 | 1/1 | NOT_VERIFIED | handler source | /help/operator 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-HUB-001 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/my-work 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-HUB-002 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/search 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-HUB-003 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/notifications 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-HUB-004 | 1 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/management/overview 200 page declares no provenance | evidence 4/4
+[TSK-24] | UX-HUB-005 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-COM-001..003 | 3 | 0/0 | NOT_CONNECTED | route not mounted | — 0 no mounted route declared | evidence 1/1
+[TSK-24] | UX-COM-004 | 1 | 1/1 | NOT_VERIFIED | handler source | /enquiry 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-COM-005..009 | 5 | 1/1 | NOT_VERIFIED | handler source | /workspace/commercial/proposals/builder 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-COM-010 | 1 | 1/1 | NOT_VERIFIED | handler source | /portal/client/ORG-1/projects/PRJ-1 404 page declares no provenance | evidence 1/1
+[TSK-24] | UX-PRJ-001 | 1 | 0/0 | NOT_CONNECTED | route not mounted | — 0 no mounted route declared | evidence 1/1
+[TSK-24] | UX-PRJ-002 | 1 | 1/1 | NOT_VERIFIED | handler source | /portal/client/ORG-1/projects/PRJ-1 404 page declares no provenance | evidence 1/1
+[TSK-24] | UX-BR-001..033 | 33 | 1/1 | NOT_VERIFIED | handler source | /broadcast/screens/SCR-BCST-01 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-BR-012 | 1 | 1/1 | NOT_VERIFIED | handler source | /broadcast/screens/SCR-BCST-01 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-BR-030 | 1 | 1/1 | NOT_VERIFIED | handler source | /broadcast/screens/SCR-BCST-01 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-GOV-001..002 | 2 | 1/1 | NOT_VERIFIED | handler source | /workspace/approvals 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-GOV-003 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/governance/records 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-GOV-004 | 1 | 1/1 | NOT_VERIFIED | handler source | /broadcast/screens/SCR-BCST-01 200 page declares no provenance | evidence 4/4
+[TSK-24] | UX-GOV-005 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/governance/records 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-GOV-006 | 1 | 1/1 | NOT_VERIFIED | handler source | /broadcast/screens/SCR-BCST-01 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-GOV-007 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/governance/records 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-GOV-008 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/governance/records 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-GOV-009 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/cases/privacy 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-GOV-010 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/cases/security 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-CMS-001..006 | 6 | 1/1 | NOT_VERIFIED | handler source | /workspace/content/review 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-CMS-007 | 1 | 1/1 | NOT_VERIFIED | handler source | /api/v1/federation/destinations 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-CMS-008 | 1 | 1/1 | NOT_VERIFIED | handler source | /api/v1/enquiries/routing-config 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-ADM-001 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/admin/access 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-ADM-002 | 1 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/cr8tech/operations 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-ADM-003 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/admin/source-mappings 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-ADM-004 | 1 | 1/1 | DOMAIN_ENGINE | live probe | /admin/feature-flags 200 engine provenance badge | evidence 1/1
+[TSK-24] | UX-REC-001..006 | 6 | 1/1 | NOT_VERIFIED | handler source | /workspace/governance/records 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-AFCA-001..008 | 8 | 1/1 | NOT_VERIFIED | handler source | /workspace/afca 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-APP-001..008 | 8 | 1/1 | NOT_VERIFIED | handler source | /apply 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-ACC-001..008 | 8 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/accelerator 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-AFC-001..006 | 6 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/community/guilds 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-VTM-001..009 | 9 | 1/1 | NOT_VERIFIED | handler source | /vtm/marketplace 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-VTM-010 | 1 | 1/1 | NOT_VERIFIED | handler source | /vtm/terms 200 page declares no provenance | evidence 0/0
+[TSK-24] | UX-VTM-011 | 1 | 1/1 | NOT_VERIFIED | handler source | /portal/vtm/payment-visibility 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-VCF-001..008 | 8 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/vcf/missions 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-ONE-001..009 | 9 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/production/desk 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-EVT-001..008 | 8 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/events/desk 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-TEND-001..008 | 8 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/tend/catalogue 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-HSP-001..008 | 8 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/headspace/intelligence 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-CR8-001..008 | 8 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/cr8tech/operations 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-AGT-001..009 | 9 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/aos/console 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-POR-001 | 1 | 1/1 | NOT_VERIFIED | handler source | /portal/client/ORG-1/projects 404 page declares no provenance | evidence 1/1
+[TSK-24] | UX-POR-002 | 1 | 1/1 | NOT_VERIFIED | cited module | — 0 route not probeable; cited module declares no provenance | evidence 3/3
+[TSK-24] | UX-POR-003 | 1 | 1/1 | NOT_VERIFIED | handler source | /portal/partner/ORG-1 503 page declares no provenance | evidence 1/1
+[TSK-24] | UX-POR-004 | 1 | 1/1 | NOT_VERIFIED | handler source | /portal/creator/X-1 503 page declares no provenance | evidence 1/1
+[TSK-24] | UX-POR-005 | 1 | 1/1 | NOT_VERIFIED | handler source | /portal/vendor/X-1 503 page declares no provenance | evidence 1/1
+
+[90mstdout[2m | tests/unit/screen-register-verification.test.ts[2m > [22m[2mTSK-24 (CA-11): the screen register verifies what it claims[2m > [22m[2mcounts reachable HTML surfaces instead of quoting an unmeasured screen total
+[22m[39m[TSK-24] reachable HTML surfaces: /, /account/notifications, /account/sessions, /admin/feature-flags, /apply, /auth/invitation, /auth/mfa, /auth/profile-setup, /auth/recovery, /broadcast/screens/SCR-BCST-01, /enquiry, /help/operator, /portal/vtm/payment-visibility, /select-workspace, /sign-in, /vtm/marketplace, /vtm/terms, /workspace, /workspace/accelerator, /workspace/admin/access, /workspace/admin/source-mappings, /workspace/afca, /workspace/aos/console, /workspace/approvals, /workspace/cases/privacy, /workspace/cases/security, /workspace/commercial/proposals/builder, /workspace/community/guilds, /workspace/content/review, /workspace/cr8tech/operations, /workspace/events/desk, /workspace/governance/records, /workspace/headspace/intelligence, /workspace/management/overview, /workspace/my-work, /workspace/notifications, /workspace/production/desk, /workspace/search, /workspace/tend/catalogue, /workspace/vcf/missions
+[TSK-24] application-wide HTML surfaces (literal router paths answering 200 text/html to SuperAdmin): 111 of 229 literals probed
+
+ [32m✓[39m tests/unit/screen-register-verification.test.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 477[2mms[22m[39m
+[90mstdout[2m | tests/unit/broadcast-screens.test.ts[2m > [22m[2mT-19 (B-15): 33 Operational Broadcast Screen Surfaces[2m > [22m[2mT9-01 (F-9-01): Screen Route Authentication & Bypass Prevention
+[22m[39m{"timestamp":"2026-10-12T05:40:17.086Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"daeff44a-b535-49d4-b183-4236ed2c4e9a","spanId":"45828937-3585-46","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+[90mstdout[2m | tests/unit/broadcast-screens.test.ts[2m > [22m[2mT-19 (B-15): 33 Operational Broadcast Screen Surfaces[2m > [22m[2mT9-01 (F-9-01): Screen Route Authentication & Bypass Prevention
+[22m[39m{"timestamp":"2026-10-12T05:40:17.142Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"b6cba223-22c6-4e44-8e86-077201bad51b","spanId":"e42f5a1d-d322-49","component":"server_bootstrap","assets":1483,"items":77,"revisions":150,"bindings":2,"fulfillments":4,"deals":17}
+
+[90mstdout[2m | tests/unit/broadcast-screens.test.ts[2m > [22m[2mT-19 (B-15): 33 Operational Broadcast Screen Surfaces[2m > [22m[2mT9-01 (F-9-01): Screen Route Authentication & Bypass Prevention
+[22m[39m{"timestamp":"2026-10-12T05:40:17.153Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"c170acc3-66d9-49ef-bee5-fc49cff30345","spanId":"875d6884-20fe-49","component":"server_bootstrap","port":0,"env":"test"}
+
+[90mstdout[2m | tests/unit/broadcast-screens.test.ts[2m > [22m[2mT-19 (B-15): 33 Operational Broadcast Screen Surfaces[2m > [22m[2mTSK-11 box 6: served desks project the engines of their own process
+[22m[39m{"timestamp":"2026-10-12T05:40:17.389Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"346ce2d1-2cc1-4a4c-b4d5-203775b965e9","spanId":"763e6da5-d4da-44","component":"server_bootstrap","assets":1483,"items":77,"revisions":150,"bindings":2,"fulfillments":4,"deals":17}
+
+[90mstdout[2m | tests/unit/broadcast-screens.test.ts[2m > [22m[2mT-19 (B-15): 33 Operational Broadcast Screen Surfaces[2m > [22m[2mTSK-11 box 6: served desks project the engines of their own process
+[22m[39m{"timestamp":"2026-10-12T05:40:17.390Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"e2fbbaad-c0f1-402b-bed4-4b0d9709c76f","spanId":"baba70e0-c742-4f","component":"server_bootstrap","port":0,"env":"test"}
+
+ [32m✓[39m tests/unit/broadcast-screens.test.ts [2m([22m[2m20 tests[22m[2m)[22m[33m 457[2mms[22m[39m
+[90mstdout[2m | tests/unit/desk-census.test.ts[2m > [22m[2mTSK-23 (CA-10): authoritative desk census measured through the router
+[22m[39m{"timestamp":"2026-10-12T05:40:17.657Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"f5fed67e-93dd-4773-beb3-3708bdb1f7d4","spanId":"fa9f7c7d-7aed-46","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+[90mstdout[2m | tests/unit/desk-census.test.ts[2m > [22m[2mTSK-23 (CA-10): authoritative desk census measured through the router
+[22m[39m{"timestamp":"2026-10-12T05:40:17.793Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"10e8590d-480f-4601-b3ef-ac9d8ca7b3ab","spanId":"709de62e-c83c-47","component":"server_bootstrap","assets":1483,"items":77,"revisions":150,"bindings":2,"fulfillments":4,"deals":17}
+
+[90mstdout[2m | tests/unit/desk-census.test.ts[2m > [22m[2mTSK-23 (CA-10): authoritative desk census measured through the router
+[22m[39m{"timestamp":"2026-10-12T05:40:17.804Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"e711fe58-8887-41a1-a674-7c67f405a1b5","spanId":"db68bbfe-0846-4f","component":"server_bootstrap","port":0,"env":"test"}
+
+[90mstdout[2m | tests/unit/desk-census.test.ts[2m > [22m[2mTSK-23 (CA-10): authoritative desk census measured through the router
+[22m[39m
+[TSK-23] desk census — registered: 48 · presentation shell: 47 · dedicated handler answered: 1
+[TSK-23] dedicated desks: afca (200)
+[TSK-23] anonymous access to a desk page: 200=0 302=48 403=0 other=0
+[TSK-23] a PlayoutOperator can open 47 of 48 desk pages; 1 are role-scoped by WORKSPACE_HTML_GUARDS (executive)
+[TSK-23] per-desk rows — reproduce: pnpm vitest run tests/unit/desk-census.test.ts
+[TSK-23] | executive | Executive & Core | ExecutiveLeader | shell | 302 | 403 | SuperAdmin/ExecutiveLeader |
+[TSK-23] | iam | Executive & Core | SuperAdmin | shell | 302 | 200 | — |
+[TSK-23] | organisations | Executive & Core | LegalCounsel | shell | 302 | 200 | — |
+[TSK-23] | projects | Executive & Core | ProductionDirector | shell | 302 | 200 | — |
+[TSK-23] | risk | Executive & Core | RiskManager | shell | 302 | 200 | — |
+[TSK-23] | board | Executive & Core | ExecutiveLeader | shell | 302 | 200 | — |
+[TSK-23] | procurement | Executive & Core | ProcurementManager | shell | 302 | 200 | — |
+[TSK-23] | audit | Executive & Core | InternalAuditor | shell | 302 | 200 | — |
+[TSK-23] | esg | Executive & Core | SustainabilityOfficer | shell | 302 | 200 | — |
+[TSK-23] | comms | Executive & Core | CommunicationsDirector | shell | 302 | 200 | — |
+[TSK-23] | hr | Executive & Core | HRDirector | shell | 302 | 200 | — |
+[TSK-23] | legal | Executive & Core | GeneralCounsel | shell | 302 | 200 | — |
+[TSK-23] | mcr | Broadcast Operations | MCRSupervisor | shell | 302 | 200 | — |
+[TSK-23] | traffic | Broadcast Operations | TrafficManager | shell | 302 | 200 | — |
+[TSK-23] | epg | Broadcast Operations | TrafficScheduler | shell | 302 | 200 | — |
+[TSK-23] | asrun | Broadcast Operations | BroadcastReconciliationLead | shell | 302 | 200 | — |
+[TSK-23] | uplink | Broadcast Operations | BroadcastTransmissionEngineer | shell | 302 | 200 | — |
+[TSK-23] | ingest | Broadcast Operations | IngestOperator | shell | 302 | 200 | — |
+[TSK-23] | graphics | Broadcast Operations | GraphicsCoordinator | shell | 302 | 200 | — |
+[TSK-23] | scte | Broadcast Operations | AutomationEngineer | shell | 302 | 200 | — |
+[TSK-23] | disaster | Broadcast Operations | SiteReliabilityEngineer | shell | 302 | 200 | — |
+[TSK-23] | audio | Broadcast Operations | AudioComplianceOfficer | shell | 302 | 200 | — |
+[TSK-23] | interstitial | Broadcast Operations | InterstitialProducer | shell | 302 | 200 | — |
+[TSK-23] | transmission | Broadcast Operations | TransmissionLead | shell | 302 | 200 | — |
+[TSK-23] | talent | Hub Specialist | HubCoordinator | shell | 302 | 200 | — |
+[TSK-23] | afca | Hub Specialist | AcademyDean | dedicated handler | 302 | 200 | — |
+[TSK-23] | community | Hub Specialist | CommunityManager | shell | 302 | 200 | — |
+[TSK-23] | vtm | Hub Specialist | TalentAgent | shell | 302 | 200 | — |
+[TSK-23] | vcf | Hub Specialist | InvestmentLead | shell | 302 | 200 | — |
+[TSK-23] | onestudios | Hub Specialist | ProductionDirector | shell | 302 | 200 | — |
+[TSK-23] | events | Hub Specialist | EventsProducer | shell | 302 | 200 | — |
+[TSK-23] | tend | Hub Specialist | RightsManager | shell | 302 | 200 | — |
+[TSK-23] | soundstage | Hub Specialist | StudioManager | shell | 302 | 200 | — |
+[TSK-23] | gear | Hub Specialist | EquipmentCoordinator | shell | 302 | 200 | — |
+[TSK-23] | postproduction | Hub Specialist | PostProductionSupervisor | shell | 302 | 200 | — |
+[TSK-23] | alumni | Hub Specialist | AlumniRelationsLead | shell | 302 | 200 | — |
+[TSK-23] | crm | Commercial & Finance | CommercialLead | shell | 302 | 200 | — |
+[TSK-23] | quotes | Commercial & Finance | CommercialLead | shell | 302 | 200 | — |
+[TSK-23] | contracts | Commercial & Finance | LegalCounsel | shell | 302 | 200 | — |
+[TSK-23] | finance | Commercial & Finance | FinanceController | shell | 302 | 200 | — |
+[TSK-23] | payouts | Commercial & Finance | DisbursementOfficer | shell | 302 | 200 | — |
+[TSK-23] | bankrecon | Commercial & Finance | TreasuryManager | shell | 302 | 200 | — |
+[TSK-23] | headspace | Tech & Governance | ChiefIntelligenceOfficer | shell | 302 | 200 | — |
+[TSK-23] | cr8tech | Tech & Governance | TechnologyLead | shell | 302 | 200 | — |
+[TSK-23] | rights | Tech & Governance | RightsManager | shell | 302 | 200 | — |
+[TSK-23] | privacy | Tech & Governance | DataProtectionOfficer | shell | 302 | 200 | — |
+[TSK-23] | security | Tech & Governance | SecOpsLead | shell | 302 | 200 | — |
+[TSK-23] | aos | Tech & Governance | AgenticOpsEngineer | shell | 302 | 200 | — |
+
+ [32m✓[39m tests/unit/desk-census.test.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 430[2mms[22m[39m
+[90mstdout[2m | tests/unit/broadcast-provenance-coverage.test.ts
+[22m[39m[TSK-25] screens 33 · banner 33 · without 0 · bespoke panels 6 (SCR-BCST-12 via renderScheduleGridTimelineHtml, SCR-BCST-23 via renderLivePlayoutMonitorHtml, SCR-BCST-22 via renderPlaylistLockViewHtml, SCR-BCST-24 via renderAsRunReconciliationDiffHtml, SCR-BCST-14 via renderEpgInspectorDiffHtml, SCR-BCST-31 via renderBroadcastYieldAnalyticsHtml) · KPI strips 33 · fabricated kpis left in the label table 0
+
+[90mstdout[2m | tests/unit/broadcast-provenance-coverage.test.ts[2m > [22m[2mTSK-25: provenance-banner coverage, measured by rendering[2m > [22m[2mmeasures the census the "3/33" claim was standing in for, after the TSK-11 rewiring
+[22m[39m[TSK-25] screens still showing an unsourced badge: 33/33
+[TSK-25] screens serving a DOMAIN_ENGINE SOURCE: badge: 1/33 (SCR-BCST-02)
+
+ [32m✓[39m tests/unit/broadcast-provenance-coverage.test.ts [2m([22m[2m31 tests[22m[2m)[22m[32m 22[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m5 passed[39m[22m[90m (5)[39m
+[2m      Tests [22m [1m[32m76 passed[39m[22m[90m (76)[39m
+[2m   Start at [22m 06:40:14
+[2m   Duration [22m 3.86s[2m (transform 762ms, setup 0ms, import 1.49s, tests 1.97s, environment 0ms)[22m
+

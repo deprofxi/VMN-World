@@ -1,11 +1,12 @@
 {
   "document": "VMNL-REG-SCREENS-001",
   "documentId": "VMNL-AZP-VMN-UIUX-REG-001",
-  "version": "R1.1",
+  "version": "R1.2",
   "generatedAt": "2026-09-30",
+  "verifiedAt": "2026-10-07",
   "authority": "VMNL-AZP-VMN-UIUX-CCPP-001 R1.1 §2.1 (source-register reconciliation entry gate) / TODO-GVR-02, TODO-GVR-03",
-  "reconciliationStatus": "RECONCILED_AGAINST_REPOSITORY_2026-09-30",
-  "note": "Every evidence path was verified to exist in the repository at reconciliation time. Counts are computed at run time by tests/unit/screen-register.test.ts and the loader in src/core/config/screen-register.ts; the summary block is validated against them.",
+  "reconciliationStatus": "VERIFIED_BY_TEST_2026-10-07 (tests/unit/screen-register-verification.test.ts)",
+  "note": "R1.2: the register is now a verification instrument, not a hand-tally. tests/unit/screen-register-verification.test.ts expands every collapsed ID range, resolves every evidence citation against the repository, checks each declared route against the router's own dispatch surface, and classifies provenance from the served page or the handler that serves it. Every evidence citation names a file that exists; entries that named none were given their handler/engine path.",
   "statusValues": {
     "IMPLEMENTED": "Screen wired to a real domain service or persistence",
     "MOCK": "Screen rendered but data is hardcoded/mock; mutations audit-only or labelled demo seed",
@@ -45,13 +46,13 @@
       "group": "Identity & system (UX-SYS)",
       "docSource": "UIUX-001 §8.4",
       "entries": [
-        { "id": "UX-SYS-001", "name": "Sign In", "status": "IMPLEMENTED", "route": "/sign-in", "evidence": "src/web/public/auth-screens.ts; bcrypt auth in src/core/auth/index.ts" },
-        { "id": "UX-SYS-002", "name": "MFA / Step-Up", "status": "IMPLEMENTED", "route": "/auth/mfa", "evidence": "src/core/auth/totp.ts + router POST /auth/mfa (2026-09-30)" },
-        { "id": "UX-SYS-003", "name": "Account Recovery", "status": "IMPLEMENTED", "route": "/auth/recovery", "evidence": "src/core/auth/mfa.ts requestAccountRecovery; anti-enumeration; NotificationService dispatch" },
-        { "id": "UX-SYS-004", "name": "Invitation Acceptance", "status": "IMPLEMENTED", "route": "/auth/invitation", "evidence": "src/core/auth/invitations.ts full validation chain wired in router" },
-        { "id": "UX-SYS-005", "name": "First-Use Profile", "status": "IMPLEMENTED", "route": "/auth/profile-setup", "evidence": "SEC-04 remainder (2026-10-01): saveFirstUseProfile persists validated displayName/phone/timezone (src/core/auth/sessions.ts); router POST /auth/profile-setup audits and redirects on success/error (tests/unit/todo-final-remediation.test.ts)" },
+        { "id": "UX-SYS-001", "name": "Sign In", "status": "IMPLEMENTED", "route": "/sign-in", "evidence": "src/web/public/auth-screens.ts; bcrypt auth in src/core/auth/index.ts", "dataState": "sandbox-state", "sandboxFamilies": ["auth-process-copies"] },
+        { "id": "UX-SYS-002", "name": "MFA / Step-Up", "status": "IMPLEMENTED", "route": "/auth/mfa", "evidence": "src/core/auth/totp.ts + router POST /auth/mfa (2026-09-30)", "dataState": "sandbox-state", "sandboxFamilies": ["mfa-secrets"] },
+        { "id": "UX-SYS-003", "name": "Account Recovery", "status": "IMPLEMENTED", "route": "/auth/recovery", "evidence": "src/core/auth/mfa.ts requestAccountRecovery; anti-enumeration; NotificationService dispatch", "dataState": "sandbox-state", "sandboxFamilies": ["mfa-secrets"] },
+        { "id": "UX-SYS-004", "name": "Invitation Acceptance", "status": "IMPLEMENTED", "route": "/auth/invitation", "evidence": "src/core/auth/invitations.ts full validation chain wired in router", "dataState": "sandbox-state", "sandboxFamilies": ["invitations"] },
+        { "id": "UX-SYS-005", "name": "First-Use Profile", "status": "IMPLEMENTED", "route": "/auth/profile-setup", "evidence": "SEC-04 remainder (2026-10-01): saveFirstUseProfile persists validated displayName/phone/timezone (src/core/auth/sessions.ts); router POST /auth/profile-setup audits and redirects on success/error (tests/unit/todo-final-remediation.test.ts)", "dataState": "sandbox-state", "sandboxFamilies": ["session-side-stores"] },
         { "id": "UX-SYS-006..011", "name": "Workspace selection, session expired, access denied/request, sign-out, settings", "status": "IMPLEMENTED", "route": "/select-workspace, /auth/session-expired, /access-denied, /access-request, /sign-out, /account/profile", "evidence": "src/web/public/auth-screens.ts + router; sign-out revokes real tokens" },
-        { "id": "UX-SYS-012", "name": "Notification Preferences", "status": "IMPLEMENTED", "route": "/account/notifications", "evidence": "src/core/auth/sessions.ts saveNotificationPreferences wired to form POST" },
+        { "id": "UX-SYS-012", "name": "Notification Preferences", "status": "IMPLEMENTED", "route": "/account/notifications", "evidence": "src/core/auth/sessions.ts saveNotificationPreferences wired to form POST", "dataState": "sandbox-state", "sandboxFamilies": ["session-side-stores"] },
         { "id": "UX-SYS-013", "name": "Active Sessions", "status": "IMPLEMENTED", "route": "/account/sessions", "evidence": "src/core/auth/sessions.ts registry; revoke endpoints revoke real tokens" },
         { "id": "UX-SYS-014", "name": "Contextual Help", "status": "IMPLEMENTED", "route": "/help/operator", "evidence": "src/web/public/auth-screens.ts renderContextualHelpHtml" }
       ]
@@ -62,9 +63,9 @@
       "entries": [
         { "id": "UX-HUB-001", "name": "My Work", "status": "IMPLEMENTED", "route": "/workspace/my-work", "evidence": "src/web/workspace/work-hub.ts over src/core/work/index.ts task graph (2026-09-30)" },
         { "id": "UX-HUB-002", "name": "Authorised Search", "status": "IMPLEMENTED", "route": "/workspace/search + GET /api/v1/search", "evidence": "authorisedSearch in src/core/work/index.ts; role+tenant scoped" },
-        { "id": "UX-HUB-003", "name": "Notifications", "status": "IMPLEMENTED", "route": "/workspace/notifications", "evidence": "deliverInAppNotification + listInAppNotifications in src/core/auth/sessions.ts; preference-aware" },
-        { "id": "UX-HUB-004", "name": "Management Overview", "status": "IMPLEMENTED", "route": "/workspace/management/overview", "evidence": "SCR-19 (2026-09-30): computed live from canonical engines (channels, carriage, Quote-to-Cash pipeline, talent registry); recognised revenue kept distinct from cash (FIN-01). Executive metric dictionary breadth remains pending DEC D-10" },
-        { "id": "UX-HUB-005", "name": "Workspace Directory", "status": "IMPLEMENTED", "route": "/workspace", "evidence": "ENTERPRISE_WORKSPACES directory rendered by router" }
+        { "id": "UX-HUB-003", "name": "Notifications", "status": "IMPLEMENTED", "route": "/workspace/notifications", "evidence": "deliverInAppNotification + listInAppNotifications in src/core/auth/sessions.ts; preference-aware", "dataState": "sandbox-state", "sandboxFamilies": ["session-side-stores"] },
+        { "id": "UX-HUB-004", "name": "Management Overview", "status": "IMPLEMENTED", "route": "/workspace/management/overview", "evidence": "SCR-19 (2026-09-30): computed live from canonical engines (channels, carriage, Quote-to-Cash pipeline, talent registry); recognised revenue kept distinct from cash (FIN-01). Executive metric dictionary breadth remains pending DEC D-10. Handler src/api/router.ts; engines src/modules/broadcast/channels/index.ts, src/modules/finance/sales/index.ts, src/modules/hub/talent/index.ts", "dataState": "sandbox-state", "sandboxFamilies": ["talent-registry"] },
+        { "id": "UX-HUB-005", "name": "Workspace Directory", "status": "IMPLEMENTED", "route": "/workspace", "evidence": "ENTERPRISE_WORKSPACES directory rendered by router — src/web/workspace/surface-bc.ts, handler src/api/router.ts" }
       ]
     },
     {
@@ -74,18 +75,18 @@
         { "id": "UX-COM-001..003", "name": "Commercial overview / org directory / org detail", "status": "MOCK", "route": "surface-bc desk", "evidence": "src/web/workspace/surface-bc.ts presentation shell; CRM projection pending" },
         { "id": "UX-COM-004", "name": "Lead Intake", "status": "IMPLEMENTED", "route": "/enquiry + GET /api/v1/enquiries", "evidence": "src/modules/hub/enquiry/index.ts durable store with idempotency" },
         { "id": "UX-COM-005..009", "name": "Opportunity / proposal / quote / contract / campaign", "status": "MOCK", "route": "/workspace/commercial/*", "evidence": "SCR-17 closed for UX-COM-006/007 (2026-09-30): canonical CommercialProposalStore + QuoteToCashSalesEngine handoff with dual-authorisation acceptance (tests/unit/scr-desk-rewiring.test.ts). COM-005/008/009 remain presentation shell" },
-        { "id": "UX-COM-010", "name": "Delivery Overview", "status": "IMPLEMENTED", "route": "/portal/client/:orgId/projects/:projectId", "evidence": "src/web/portal/client-portal.ts commitments table; org isolation via getClientOrgRelationship (2026-09-30)" },
+        { "id": "UX-COM-010", "name": "Delivery Overview", "status": "IMPLEMENTED", "route": "/portal/client/:orgId/projects/:projectId", "evidence": "TSK-13 (2026-10-09): src/web/portal/client-portal.ts projects canonical QuoteToCashSalesEngine deals scoped by clientOrgId — the deleted MOCK_CLIENT_PROJECTS delivery rows are gone. The money/identity half is bound; the per-deliverable channel/daypart/run table renders an explicit NOT CONNECTED notice because no canonical record joins a booked deliverable to a deal. Registered residual: TSK-60" },
         { "id": "UX-PRJ-001", "name": "Project Portfolio", "status": "MOCK", "route": "surface-bc desk", "evidence": "src/web/workspace/surface-bc.ts presentation shell" },
-        { "id": "UX-PRJ-002", "name": "Project Workspace", "status": "IMPLEMENTED", "route": "/portal/client/:orgId/projects/:projectId", "evidence": "src/web/portal/client-portal.ts; TODO-SEC-07 isolation enforced" }
+        { "id": "UX-PRJ-002", "name": "Project Workspace", "status": "IMPLEMENTED", "route": "/portal/client/:orgId/projects/:projectId", "evidence": "TSK-13 (2026-10-09): src/web/portal/client-portal.ts toClientProject — identity, approved scope value, invoiced/collected/recognised position read from the canonical deal; TODO-SEC-07 isolation enforced before any record reaches the page" }
       ]
     },
     {
       "group": "Broadcast operations (UX-BR / SCR-BCST)",
       "docSource": "UIUX-001 §4.3; R1.2A §46",
       "entries": [
-        { "id": "UX-BR-001..033", "name": "Broadcast 33 operational screens", "status": "MOCK", "route": "/broadcast/*", "evidence": "src/web/broadcast/index.ts sample decision/KPI constants retained as labelled demonstration data behind provenance banner (DEC C-4); RBAC 401/403 enforced; TODO-BCST-01 engine wiring remains open" },
+        { "id": "UX-BR-001..033", "name": "Broadcast 33 operational screens", "status": "MOCK", "route": "/broadcast/*", "evidence": "src/web/broadcast/index.ts:839 sources every screen's KPI strip from src/modules/broadcast/screens/data.ts getScreenData (fabricated per-screen kpis literals deleted, TSK-11 2026-10-11); status stays MOCK because 33/33 screens still render NOT_CONNECTED / PROVISIONAL badges, RBAC 401/403 enforced, DG-RL1-06 OPEN. The schedule and version panels read listSchedules()/getApprovedRevision() over the schedule-day Map at src/modules/broadcast/versions/index.ts:318 and the version Map at src/modules/broadcast/versions/index.ts:46 (imported at src/web/broadcast/index.ts:29). The billing panels project BroadcastBillingEngine schedules through buildScreenEngineSnapshot (src/api/router.ts:411), which holds only what this process booked.", "dataState": "sandbox-state", "sandboxFamilies": ["schedule-day", "broadcast-versions", "broadcast-billing"] },
         { "id": "UX-BR-012", "name": "Schedule Review", "status": "IMPLEMENTED", "route": "/broadcast/schedule/review", "evidence": "src/web/workspace/governance-and-operations.ts read-only review with blocker explanations" },
-        { "id": "UX-BR-030", "name": "POA Exceptions Workbench", "status": "IMPLEMENTED", "route": "/broadcast/asrun/exceptions", "evidence": "src/web/workspace/governance-and-operations.ts + asrun reconcile engine" }
+        { "id": "UX-BR-030", "name": "POA Exceptions Workbench", "status": "IMPLEMENTED", "route": "/broadcast/asrun/exceptions", "evidence": "src/web/workspace/governance-and-operations.ts + asrun reconcile engine. The exception desk rows are listPoaExceptions() over src/modules/broadcast/asrun/exceptions.ts (imported at src/web/workspace/governance-and-operations.ts:21).", "dataState": "sandbox-state", "sandboxFamilies": ["poa-delivery-exceptions"] }
       ]
     },
     {
@@ -94,9 +95,9 @@
       "entries": [
         { "id": "UX-GOV-001..002", "name": "Approval Queue / Decision Review", "status": "IMPLEMENTED", "route": "/workspace/approvals", "evidence": "src/core/approvals/index.ts four-eyes domain; decide endpoint enforces authority/SOD/stale-revision (2026-09-30)" },
         { "id": "UX-GOV-003", "name": "Rights Source Record", "status": "IMPLEMENTED", "route": "/workspace/governance/records", "evidence": "src/web/workspace/governance-registers.ts projection over RightsRecordEntity (read-only)" },
-        { "id": "UX-GOV-004", "name": "Rights Review Request", "status": "IMPLEMENTED", "route": "/broadcast/rights/review-request", "evidence": "src/web/workspace/governance-and-operations.ts + src/core/rights/index.ts lifecycle; request never clears rights" },
+        { "id": "UX-GOV-004", "name": "Rights Review Request", "status": "IMPLEMENTED", "route": "/broadcast/rights/review-request", "evidence": "src/web/workspace/governance-and-operations.ts + src/modules/broadcast/rights/review-request.ts workflow; opening a request never clears rights — only an evidence-backed resolution writes the durable RightsRecord that src/modules/broadcast/rights/clearance.ts gates on (tests/integration/rights-clearance-e2e.test.ts)", "dataState": "sandbox-state", "sandboxFamilies": ["rights-review-requests"] },
         { "id": "UX-GOV-005", "name": "Financial Reference", "status": "IMPLEMENTED", "route": "/workspace/governance/records", "evidence": "governance-registers.ts projectFinancialReference (7-way separated)" },
-        { "id": "UX-GOV-006", "name": "Delivery Exception", "status": "IMPLEMENTED", "route": "/broadcast/asrun/exceptions", "evidence": "governance-and-operations.ts workbench + asrun exceptions resolve" },
+        { "id": "UX-GOV-006", "name": "Delivery Exception", "status": "IMPLEMENTED", "route": "/broadcast/asrun/exceptions", "evidence": "governance-and-operations.ts workbench + asrun exceptions resolve. Workbench rows are listPoaExceptions() over src/modules/broadcast/asrun/exceptions.ts; resolvePoaException closes them in the same process.", "dataState": "sandbox-state", "sandboxFamilies": ["poa-delivery-exceptions"] },
         { "id": "UX-GOV-007", "name": "Evidence Viewer", "status": "IMPLEMENTED", "route": "/workspace/governance/records", "evidence": "governance-registers.ts projectEvidence over EvidenceEntity" },
         { "id": "UX-GOV-008", "name": "Authorised Activity / Audit View", "status": "IMPLEMENTED", "route": "/workspace/governance/records", "evidence": "governance-registers.ts audit view; read:audit role-gated server-side" },
         { "id": "UX-GOV-009", "name": "Privacy Request Case", "status": "IMPLEMENTED", "route": "/workspace/cases/privacy", "evidence": "src/core/cases/index.ts restricted queue; owner-only reads; router page (2026-09-30)" },
@@ -109,7 +110,7 @@
       "entries": [
         { "id": "UX-CMS-001..006", "name": "Content queue/editor/preview/publication", "status": "IMPLEMENTED", "route": "/workspace/content/review + /workspace/content/media-picker + /api/v1/workspace/content*", "evidence": "src/core/content/index.ts revision engine wired into router (2026-09-30); SCR-03 (2026-10-01) added the approved media picker (UX-CMS-006) over the canonical MediaAssetRecord registry with provenance + access state per UIUX-001 §7.3, plus the editor form embedding the picker as checkbox mediaAssetIds with server-side [CMS-11] registry validation (tests/unit/todo-final-remediation.test.ts SCR-03 describes)" },
         { "id": "UX-CMS-007", "name": "Azeebo+ Destination Registry", "status": "IMPLEMENTED", "route": "/api/v1/federation/destinations", "evidence": "src/core/federation/destinations.ts verified allowlist + HX-13 fallback" },
-        { "id": "UX-CMS-008", "name": "Enquiry Routing Config", "status": "IMPLEMENTED", "route": "/api/v1/enquiries/routing-config", "evidence": "destinations.ts routing rules; audit-logged updates" }
+        { "id": "UX-CMS-008", "name": "Enquiry Routing Config", "status": "IMPLEMENTED", "route": "/api/v1/enquiries/routing-config", "evidence": "destinations.ts routing rules; audit-logged updates. Rules are listRoutingRules/setRoutingRule over the routingRules map (src/core/federation/destinations.ts:209).", "dataState": "sandbox-state", "sandboxFamilies": ["routing-rules"] }
       ]
     },
     {
@@ -117,9 +118,9 @@
       "docSource": "UIUX-001 §5.7, §5.8",
       "entries": [
         { "id": "UX-ADM-001", "name": "Access & Membership Admin", "status": "IMPLEMENTED", "route": "/workspace/admin/access", "evidence": "SCR-13 (2026-10-01): read-only session/membership console over listAllSessions + ROLE_PERMISSIONS (src/web/workspace/admin-consoles.ts); no mutation path — identity-provider delegation for writes remains the §5.7 disposition (DEC-RL1-SCOPE-001); SuperAdmin-only via WORKSPACE_HTML_GUARDS" },
-        { "id": "UX-ADM-002", "name": "Integration Health", "status": "IMPLEMENTED", "route": "/workspace/cr8tech/operations", "evidence": "SCR-14/SCR-18 (2026-09-30): health from authoritative runtime state (Azeebo circuit, queue worker); unconfigured SaaS integrations render explicit NOT_CONFIGURED with owner/deferral; invented endpoints removed (tests/unit/extended-workspaces.test.ts)" },
-        { "id": "UX-ADM-003", "name": "Approved Routing & Source Mappings", "status": "IMPLEMENTED", "route": "/workspace/admin/source-mappings", "evidence": "SCR-15 (2026-10-01): HX-01..14 approved-source registry (src/core/config/source-mappings.ts) rendered read-only by src/web/workspace/admin-consoles.ts; SuperAdmin-only via WORKSPACE_HTML_GUARDS" },
-        { "id": "UX-ADM-004", "name": "Release Availability Config", "status": "IMPLEMENTED", "route": "/admin/feature-flags", "evidence": "src/web/public/admin-feature-flags.ts + flag API" }
+        { "id": "UX-ADM-002", "name": "Integration Health", "status": "IMPLEMENTED", "route": "/workspace/cr8tech/operations", "evidence": "SCR-14/SCR-18 (2026-09-30): health from authoritative runtime state (Azeebo circuit, queue worker); unconfigured SaaS integrations render explicit NOT_CONFIGURED with owner/deferral; invented endpoints removed (tests/unit/extended-workspaces.test.ts). Queue liveness is context.queueWorker.getIsRunning() at src/api/router.ts:3335 — an EnterpriseQueueWorker (core/queue/index.ts), in-process, no broker.", "dataState": "sandbox-state", "sandboxFamilies": ["queue-jobs"] },
+        { "id": "UX-ADM-003", "name": "Approved Routing & Source Mappings", "status": "IMPLEMENTED", "route": "/workspace/admin/source-mappings", "evidence": "SCR-15 (2026-10-01): HX-01..14 approved-source registry (src/core/config/source-mappings.ts) rendered read-only by src/web/workspace/admin-consoles.ts; SuperAdmin-only via WORKSPACE_HTML_GUARDS", "dataState": "sandbox-state", "sandboxFamilies": ["source-mappings"] },
+        { "id": "UX-ADM-004", "name": "Release Availability Config", "status": "IMPLEMENTED", "route": "/admin/feature-flags", "evidence": "src/web/public/admin-feature-flags.ts + flag API. Overrides are written by setFeatureFlagOverride into memoryOverrides (src/core/feature-flags/index.ts); the flag definitions themselves are source code.", "dataState": "sandbox-state", "sandboxFamilies": ["feature-flag-overrides"] }
       ]
     },
     {
@@ -133,47 +134,404 @@
       "group": "AFCA academy (UX-AFCA/UX-APP)",
       "docSource": "UIUX-001 §7",
       "entries": [
-        { "id": "UX-AFCA-001..008", "name": "AFCA LMS surfaces", "status": "IMPLEMENTED", "route": "/workspace/afca*", "evidence": "src/web/workspace/afca-lms.ts + afca-extended-lms.ts + AfcaAcademyService" },
-        { "id": "UX-APP-001..008", "name": "Application journey", "status": "IMPLEMENTED", "route": "/apply*", "evidence": "src/modules/hub/afca/admissions.ts + renderers" }
+        { "id": "UX-AFCA-001..008", "name": "AFCA LMS surfaces", "status": "IMPLEMENTED", "route": "/workspace/afca*", "evidence": "src/web/workspace/afca-lms.ts + afca-extended-lms.ts + AfcaAcademyService", "dataState": "sandbox-state", "sandboxFamilies": ["afca-catalogue"] },
+        { "id": "UX-APP-001..008", "name": "Application journey", "status": "IMPLEMENTED", "route": "/apply*", "evidence": "src/modules/hub/afca/admissions.ts + renderers", "dataState": "sandbox-state", "sandboxFamilies": ["admissions-applications"] }
       ]
     },
     {
       "group": "Extended creative workspaces",
       "docSource": "UIUX-001 §6; DEC-RL1-SCOPE-001 D-items",
       "entries": [
-        { "id": "UX-ACC-001..008", "name": "Accelerator desk", "status": "IMPLEMENTED", "route": "/workspace/accelerator", "evidence": "SCR-18 (2026-09-30): desk + intake are projections over TalentAcceleratorRegistry (listHubs/filterTalent/registerHub); tests/unit/extended-workspaces.test.ts" },
-        { "id": "UX-AFC-001..006", "name": "Afro-Fusion desk", "status": "IMPLEMENTED", "route": "/workspace/community/guilds", "evidence": "SCR-18 (2026-09-30): locations/resources/members/bookings read AfroFusionCommunityHub; member registration writes canonical records" },
-        { "id": "UX-VTM-001..009", "name": "VTM portal & matching", "status": "IMPLEMENTED", "route": "/vtm/*", "evidence": "src/web/portal/vtm-portal.ts + VirtualTalentManagementEngine contracts/milestones" },
+        { "id": "UX-ACC-001..008", "name": "Accelerator desk", "status": "IMPLEMENTED", "route": "/workspace/accelerator", "evidence": "SCR-18 (2026-09-30): desk + intake are projections over TalentAcceleratorRegistry (listHubs/filterTalent/registerHub); tests/unit/extended-workspaces.test.ts", "dataState": "sandbox-state", "sandboxFamilies": ["talent-registry"] },
+        { "id": "UX-AFC-001..006", "name": "Afro-Fusion desk", "status": "IMPLEMENTED", "route": "/workspace/community/guilds", "evidence": "SCR-18 (2026-09-30): locations/resources/members/bookings read AfroFusionCommunityHub; member registration writes canonical records — engine src/modules/hub/community/index.ts", "dataState": "sandbox-state", "sandboxFamilies": ["community-hub"] },
+        { "id": "UX-VTM-001..009", "name": "VTM portal & matching", "status": "IMPLEMENTED", "route": "/vtm/*", "evidence": "src/web/portal/vtm-portal.ts + VirtualTalentManagementEngine contracts/milestones", "dataState": "sandbox-state", "sandboxFamilies": ["vtm-book"] },
         { "id": "UX-VTM-010", "name": "Deployment Readiness (alias: signature form)", "status": "ALIAS", "route": "/vtm/terms", "evidence": "See knownConflicts[0]" },
-        { "id": "UX-VTM-011", "name": "Payment Visibility", "status": "IMPLEMENTED", "route": "/portal/vtm/payment-visibility", "evidence": "SCR-20 (2026-10-01): escrow/milestone readiness + 7-way payment split projected from VirtualTalentManagementEngine.listContracts and TalentPayoutEngine batches (src/web/portal/vtm-payment-visibility.ts; tests/unit/todo-final-remediation.test.ts)" },
-        { "id": "UX-VCF-001..008", "name": "VCF missions", "status": "IMPLEMENTED", "route": "/workspace/vcf/missions", "evidence": "SCR-18 (2026-09-30): pitch pipeline + active slate from VirtualContentFundEngine; submission writes canonical pitches" },
-        { "id": "UX-ONE-001..009", "name": "ONE Studios desk", "status": "IMPLEMENTED", "route": "/workspace/production/desk", "evidence": "SCR-18 (2026-09-30): gear locker from OneStudiosEngine assets; call sheet publish persists via publishCallSheet" },
-        { "id": "UX-EVT-001..008", "name": "Fusion Events desk", "status": "IMPLEMENTED", "route": "/workspace/events/desk", "evidence": "SCR-18 (2026-09-30): live gate statistics + real HMAC single-use scanGateTicket validation (tests/unit/scr-desk-rewiring.test.ts)" },
-        { "id": "UX-TEND-001..008", "name": "TEND catalogue", "status": "IMPLEMENTED", "route": "/workspace/tend/catalogue", "evidence": "SCR-18 (2026-09-30): catalogue + licence avails matrix from TendDistributionEngine; title registration writes canonical records" },
-        { "id": "UX-HSP-001..008", "name": "Headspace desk", "status": "IMPLEMENTED", "route": "/workspace/headspace/intelligence", "evidence": "SCR-18 tail (2026-09-30): canonical HeadspaceKnowledgeEngine catalogue with confidentiality enforced at access; document registration writes canonical docs" },
-        { "id": "UX-CR8-001..008", "name": "Cr8Tech desk", "status": "IMPLEMENTED", "route": "/workspace/cr8tech/operations", "evidence": "SCR-18 tail (2026-09-30): runtime adapter state only; NOT_CONFIGURED states for unwired SaaS integrations; fabricated health ping route retired with 410" },
-        { "id": "UX-AGT-001..009", "name": "Agentic OS console", "status": "IMPLEMENTED", "route": "/workspace/aos/console", "evidence": "intelligence-and-tech.ts + AgenticOperatingSystem HITL/killswitch" }
+        { "id": "UX-VTM-011", "name": "Payment Visibility", "status": "IMPLEMENTED", "route": "/portal/vtm/payment-visibility", "evidence": "SCR-20 (2026-10-01): escrow/milestone readiness + 7-way payment split projected from VirtualTalentManagementEngine.listContracts and TalentPayoutEngine batches (src/web/portal/vtm-payment-visibility.ts; tests/unit/todo-final-remediation.test.ts)", "dataState": "sandbox-state", "sandboxFamilies": ["payout-batches", "vtm-book"] },
+        { "id": "UX-VCF-001..008", "name": "VCF missions", "status": "IMPLEMENTED", "route": "/workspace/vcf/missions", "evidence": "SCR-18 (2026-09-30): pitch pipeline + active slate from VirtualContentFundEngine; submission writes canonical pitches — engine src/modules/hub/vcf/index.ts", "dataState": "sandbox-state", "sandboxFamilies": ["vcf-pipeline"] },
+        { "id": "UX-ONE-001..009", "name": "ONE Studios desk", "status": "IMPLEMENTED", "route": "/workspace/production/desk", "evidence": "SCR-18 (2026-09-30): gear locker from OneStudiosEngine assets; call sheet publish persists via publishCallSheet — engine src/modules/hub/onestudios/index.ts", "dataState": "sandbox-state", "sandboxFamilies": ["onestudios-gear"] },
+        { "id": "UX-EVT-001..008", "name": "Fusion Events desk", "status": "IMPLEMENTED", "route": "/workspace/events/desk", "evidence": "SCR-18 (2026-09-30): live gate statistics + real HMAC single-use scanGateTicket validation (tests/unit/scr-desk-rewiring.test.ts). Engine src/modules/hub/events/index.ts (FusionEventsEngine), constructed per process at src/api/server.ts:164.", "dataState": "sandbox-state", "sandboxFamilies": ["events-fusion"] },
+        { "id": "UX-TEND-001..008", "name": "TEND catalogue", "status": "IMPLEMENTED", "route": "/workspace/tend/catalogue", "evidence": "SCR-18 (2026-09-30): catalogue + licence avails matrix from TendDistributionEngine; title registration writes canonical records — engine src/modules/hub/tend/index.ts", "dataState": "sandbox-state", "sandboxFamilies": ["tend-catalogue"] },
+        { "id": "UX-HSP-001..008", "name": "Headspace desk", "status": "IMPLEMENTED", "route": "/workspace/headspace/intelligence", "evidence": "SCR-18 tail (2026-09-30): canonical HeadspaceKnowledgeEngine catalogue with confidentiality enforced at access; document registration writes canonical docs — engine src/modules/intelligence/headspace/index.ts", "dataState": "sandbox-state", "sandboxFamilies": ["headspace-library"] },
+        { "id": "UX-CR8-001..008", "name": "Cr8Tech desk", "status": "IMPLEMENTED", "route": "/workspace/cr8tech/operations", "evidence": "SCR-18 tail (2026-09-30): runtime adapter state only; NOT_CONFIGURED states for unwired SaaS integrations; fabricated health ping route retired with 410 — runtime adapter src/modules/intelligence/cr8tech/index.ts", "dataState": "sandbox-state", "sandboxFamilies": ["cr8tech-jobs"] },
+        { "id": "UX-AGT-001..009", "name": "Agentic OS console", "status": "IMPLEMENTED", "route": "/workspace/aos/console", "evidence": "intelligence-and-tech.ts + AgenticOperatingSystem HITL/killswitch", "dataState": "sandbox-state", "sandboxFamilies": ["aos-agent-runs"] }
       ]
     },
     {
       "group": "Counterparty portals (UX-POR)",
       "docSource": "UIUX-001 §5.6",
       "entries": [
-        { "id": "UX-POR-001", "name": "Relationship Portal Home", "status": "IMPLEMENTED", "route": "/portal/client/:orgId/projects", "evidence": "src/web/portal/client-portal.ts; SEC-07 relationship check" },
-        { "id": "UX-POR-002", "name": "Client Delivery Question", "status": "IMPLEMENTED", "route": "POST /api/v1/client/projects/:id/questions", "evidence": "router audit + ticket response" },
-        { "id": "UX-POR-003", "name": "Partner Portal", "status": "IMPLEMENTED", "route": "/portal/partner/:orgId", "evidence": "SCR-19 (2026-09-30): canonical Quote-to-Cash deals scoped via getClientOrgRelationship; cross-org requests 403" },
-        { "id": "UX-POR-004", "name": "Creator Portal", "status": "IMPLEMENTED", "route": "/portal/creator/:id", "evidence": "SCR-19 (2026-09-30): settlement lines projected from TalentPayoutEngine batches where the creator is a line item; 7-way measures kept distinct" },
-        { "id": "UX-POR-005", "name": "Vendor Portal", "status": "IMPLEMENTED", "route": "/portal/vendor/:id", "evidence": "SCR-19 (2026-09-30): renders canonical PO records only; PO domain is a recorded deferral (DEC-RL1-SCOPE-001) so the empty state is explicit, never fabricated" }
+        { "id": "UX-POR-001", "name": "Relationship Portal Home", "status": "IMPLEMENTED", "route": "/portal/client/:orgId/projects", "evidence": "TSK-13 (2026-10-09): src/web/portal/client-portal.ts projectClientPortfolio over context.salesEngine.listDeals() filtered by clientOrgId; empty portfolio renders an honest empty state, never another organisation's records; SEC-07 relationship check gates the route" },
+        { "id": "UX-POR-002", "name": "Client Delivery Question", "status": "IMPLEMENTED", "route": "POST /api/v1/client/projects/:id/questions", "evidence": "router audit + ticket response — src/api/router.ts, src/web/workspace/counterparty-portals.ts. TSK-13 (2026-10-09): the certificate viewer on src/web/portal/client-portal.ts now shows only the deal's own proof-of-performance document, and states NOT CONNECTED for per-airing certificates — ProofOfAirCertificate identifies its client by free-text clientName with no organisation reference, so joining one to a counterparty would be guessing" },
+        { "id": "UX-POR-003", "name": "Partner Portal", "status": "IMPLEMENTED", "route": "/portal/partner/:orgId", "evidence": "SCR-19 (2026-09-30): canonical Quote-to-Cash deals scoped via getClientOrgRelationship; cross-org requests 403 — src/web/workspace/counterparty-portals.ts" },
+        { "id": "UX-POR-004", "name": "Creator Portal", "status": "IMPLEMENTED", "route": "/portal/creator/:id", "evidence": "SCR-19 (2026-09-30): settlement lines projected from TalentPayoutEngine batches where the creator is a line item; 7-way measures kept distinct — src/web/workspace/counterparty-portals.ts", "dataState": "sandbox-state", "sandboxFamilies": ["payout-batches"] },
+        { "id": "UX-POR-005", "name": "Vendor Portal", "status": "IMPLEMENTED", "route": "/portal/vendor/:id", "evidence": "SCR-19 (2026-09-30): renders canonical PO records only; PO domain is a recorded deferral (DEC-RL1-SCOPE-001) so the empty state is explicit, never fabricated — src/web/workspace/counterparty-portals.ts" }
       ]
     }
   ],
+"sandboxState": {
+    "authority": "docs/domain/systems-of-record.md §3.3. The row list, entity strings and store citations here are recomputed from that table by tests/unit/systems-of-record.test.ts — this block cannot claim a family the document does not, or drop one it does.",
+    "measuredAt": "2026-10-13",
+    "meaning": "sandbox-state: at least one store the served screen reads is process memory (systems-of-record.md §3.3), so what the operator creates here is lost when the process exits. It is not a claim that the screen is fake or its logic untested — it is the Rule 0.4a label that says persistence must not be inferred from a screen working.",
+    "derivation": "An entry carries dataState=sandbox-state if and only if its own `evidence` names one of a family's anchors (a store file path, a `file.ts:NN` citation, or the engine/symbol that owns the store). tests/unit/systems-of-record.test.ts recomputes that set from this file, compares both directions, and resolves every anchor against the repository — an unlabelled screen that cites a sandbox store fails the suite exactly like a labelled screen whose anchor has stopped existing.",
+    "families": [
+      {
+        "id": "schedule-day",
+        "entity": "Schedule day (entries, state, revision identity)",
+        "stores": [
+          "modules/broadcast/versions/index.ts:318"
+        ],
+        "anchors": [
+          "modules/broadcast/versions/index.ts:318"
+        ]
+      },
+      {
+        "id": "broadcast-versions",
+        "entity": "Broadcast versions",
+        "stores": [
+          "modules/broadcast/versions/index.ts:46"
+        ],
+        "anchors": [
+          "modules/broadcast/versions/index.ts:46",
+          "getApprovedRevision"
+        ]
+      },
+      {
+        "id": "rights-review-requests",
+        "entity": "Rights review requests",
+        "stores": [
+          "modules/broadcast/rights/review-request.ts:63"
+        ],
+        "anchors": [
+          "modules/broadcast/rights/review-request.ts"
+        ]
+      },
+      {
+        "id": "proof-of-air-registry",
+        "entity": "Proof-of-air registry",
+        "stores": [
+          "modules/broadcast/asrun/index.ts:115"
+        ],
+        "anchors": [
+          "modules/broadcast/asrun/index.ts",
+          "proofOfAirRegistry"
+        ]
+      },
+      {
+        "id": "poa-delivery-exceptions",
+        "entity": "POA delivery exceptions (shortfall desk)",
+        "stores": [
+          "modules/broadcast/asrun/exceptions.ts:83"
+        ],
+        "anchors": [
+          "modules/broadcast/asrun/exceptions.ts"
+        ]
+      },
+      {
+        "id": "auth-process-copies",
+        "entity": "Users, credentials, lockout, rate limit",
+        "stores": [
+          "core/auth/index.ts:456",
+          "core/auth/index.ts:666",
+          "core/auth/index.ts:223",
+          "core/auth/index.ts:32"
+        ],
+        "anchors": [
+          "core/auth/index.ts"
+        ]
+      },
+      {
+        "id": "mfa-secrets",
+        "entity": "MFA secrets / recovery codes",
+        "stores": [
+          "core/auth/totp.ts:127",
+          "core/auth/mfa.ts:20"
+        ],
+        "anchors": [
+          "core/auth/totp.ts",
+          "core/auth/mfa.ts"
+        ]
+      },
+      {
+        "id": "invitations",
+        "entity": "Invitations",
+        "stores": [
+          "core/auth/invitations.ts:32"
+        ],
+        "anchors": [
+          "core/auth/invitations.ts"
+        ]
+      },
+      {
+        "id": "admissions-applications",
+        "entity": "Admissions applications",
+        "stores": [
+          "modules/hub/afca/admissions.ts:71",
+          "modules/hub/afca/admissions.ts:72"
+        ],
+        "anchors": [
+          "modules/hub/afca/admissions.ts"
+        ]
+      },
+      {
+        "id": "afca-catalogue",
+        "entity": "AFCA course/cohort/enrollment catalogue",
+        "stores": [
+          "modules/hub/afca/index.ts:114"
+        ],
+        "anchors": [
+          "AfcaAcademyService"
+        ]
+      },
+      {
+        "id": "events-fusion",
+        "entity": "Events: `FusionEvent`, tickets, offline scans",
+        "stores": [
+          "modules/hub/events/index.ts:79",
+          "modules/hub/events/index.ts:80",
+          "modules/hub/events/index.ts:83"
+        ],
+        "anchors": [
+          "FusionEventsEngine",
+          "modules/hub/events/index.ts"
+        ]
+      },
+      {
+        "id": "payout-batches",
+        "entity": "Payout batches",
+        "stores": [
+          "modules/finance/payouts/index.ts:65"
+        ],
+        "anchors": [
+          "TalentPayoutEngine",
+          "modules/finance/payouts/index.ts"
+        ]
+      },
+      {
+        "id": "bank-reconciliation",
+        "entity": "Bank statements / reconciliation",
+        "stores": [
+          "modules/finance/reconciliation/index.ts:39",
+          "modules/finance/reconciliation/index.ts:40"
+        ],
+        "anchors": [
+          "BankReconciliationEngine",
+          "modules/finance/reconciliation/index.ts"
+        ]
+      },
+      {
+        "id": "talent-registry",
+        "entity": "Talent accelerator profiles, partner hubs",
+        "stores": [
+          "modules/hub/talent/index.ts:175",
+          "modules/hub/talent/index.ts:176"
+        ],
+        "anchors": [
+          "TalentAcceleratorRegistry",
+          "modules/hub/talent/index.ts"
+        ]
+      },
+      {
+        "id": "routing-rules",
+        "entity": "Enquiry routing rules",
+        "stores": [
+          "core/federation/destinations.ts:209"
+        ],
+        "anchors": [
+          "routingRules",
+          "setRoutingRule",
+          "listRoutingRules"
+        ]
+      },
+      {
+        "id": "queue-jobs",
+        "entity": "Queue jobs and handlers",
+        "stores": [
+          "core/queue/index.ts:63",
+          "core/queue/index.ts:64"
+        ],
+        "anchors": [
+          "EnterpriseQueueWorker",
+          "core/queue/index.ts"
+        ]
+      },
+      {
+        "id": "aos-agent-runs",
+        "entity": "AOS agent runs",
+        "stores": [
+          "modules/intelligence/aos/index.ts:67"
+        ],
+        "anchors": [
+          "AgenticOperatingSystem"
+        ]
+      },
+      {
+        "id": "source-mappings",
+        "entity": "Source mappings",
+        "stores": [
+          "core/config/source-mappings.ts"
+        ],
+        "anchors": [
+          "core/config/source-mappings.ts"
+        ]
+      },
+      {
+        "id": "vcf-pipeline",
+        "entity": "VCF pitch pipeline and slate",
+        "stores": [
+          "modules/hub/vcf/index.ts:81",
+          "modules/hub/vcf/index.ts:82"
+        ],
+        "anchors": [
+          "VirtualContentFundEngine"
+        ]
+      },
+      {
+        "id": "vtm-book",
+        "entity": "VTM rate cards, briefs, contracts, milestone escrow",
+        "stores": [
+          "modules/hub/vtm/index.ts:101",
+          "modules/hub/vtm/index.ts:102",
+          "modules/hub/vtm/index.ts:103"
+        ],
+        "anchors": [
+          "VirtualTalentManagementEngine"
+        ]
+      },
+      {
+        "id": "tend-catalogue",
+        "entity": "TEND catalogue, distribution licences, royalty statements",
+        "stores": [
+          "modules/hub/tend/index.ts:66",
+          "modules/hub/tend/index.ts:67",
+          "modules/hub/tend/index.ts:68"
+        ],
+        "anchors": [
+          "TendDistributionEngine"
+        ]
+      },
+      {
+        "id": "community-hub",
+        "entity": "Community hub locations, resources, members, bookings",
+        "stores": [
+          "modules/hub/community/index.ts:75",
+          "modules/hub/community/index.ts:76",
+          "modules/hub/community/index.ts:77",
+          "modules/hub/community/index.ts:78"
+        ],
+        "anchors": [
+          "AfroFusionCommunityHub"
+        ]
+      },
+      {
+        "id": "onestudios-gear",
+        "entity": "OneStudios gear locker, bookings, call sheets",
+        "stores": [
+          "modules/hub/onestudios/index.ts:67",
+          "modules/hub/onestudios/index.ts:68",
+          "modules/hub/onestudios/index.ts:69"
+        ],
+        "anchors": [
+          "OneStudiosEngine"
+        ]
+      },
+      {
+        "id": "headspace-library",
+        "entity": "HeadSpace knowledge library",
+        "stores": [
+          "modules/intelligence/headspace/index.ts:40"
+        ],
+        "anchors": [
+          "HeadspaceKnowledgeEngine"
+        ]
+      },
+      {
+        "id": "cr8tech-jobs",
+        "entity": "Cr8Tech subtitle tracks and clip jobs",
+        "stores": [
+          "modules/intelligence/cr8tech/index.ts:8",
+          "modules/intelligence/cr8tech/index.ts:46",
+          "modules/intelligence/cr8tech/index.ts:47"
+        ],
+        "anchors": [
+          "Cr8TechCreativeEngine",
+          "modules/intelligence/cr8tech/index.ts"
+        ]
+      },
+      {
+        "id": "broadcast-billing",
+        "entity": "Broadcast billing rate cards, schedules, make-goods, credit notes",
+        "stores": [
+          "modules/broadcast/billing/index.ts:56",
+          "modules/broadcast/billing/index.ts:57",
+          "modules/broadcast/billing/index.ts:58",
+          "modules/broadcast/billing/index.ts:59"
+        ],
+        "anchors": [
+          "BroadcastBillingEngine"
+        ]
+      },
+      {
+        "id": "broadcast-traffic",
+        "entity": "Traffic breaks and the make-good queue",
+        "stores": [
+          "modules/broadcast/traffic/index.ts:123"
+        ],
+        "anchors": [
+          "BroadcastTrafficEngine"
+        ]
+      },
+      {
+        "id": "playout-cache",
+        "entity": "Playout local playlist cache",
+        "stores": [
+          "modules/broadcast/playout/index.ts:72"
+        ],
+        "anchors": [
+          "PlayoutAutomationEngine"
+        ]
+      },
+      {
+        "id": "session-side-stores",
+        "entity": "Notification preferences, first-use profile, in-app inbox",
+        "stores": [
+          "core/auth/sessions.ts:245",
+          "core/auth/sessions.ts:295",
+          "core/auth/sessions.ts:347"
+        ],
+        "anchors": [
+          "saveNotificationPreferences",
+          "saveFirstUseProfile",
+          "deliverInAppNotification",
+          "listInAppNotifications"
+        ]
+      },
+      {
+        "id": "feature-flag-overrides",
+        "entity": "Runtime feature-flag overrides",
+        "stores": [
+          "core/feature-flags/index.ts:380"
+        ],
+        "anchors": [
+          "core/feature-flags/index.ts",
+          "setFeatureFlagOverride"
+        ]
+      }
+    ],
+    "coverage": {
+      "note": "Counts are recomputed by computeSandboxCoverage() in src/core/config/screen-register.ts, never tallied here."
+    },
+    "limits": "The label set is anchored to evidence text, so a screen whose evidence names only a renderer cannot be labelled by this rule; its data state must be traced by hand. Traced by hand on 2026-10-13 and deliberately NOT labelled: UX-BR-012 renders channel/episode-master state plus fixed blocker copy and reads none of these stores; UX-SYS-013 keeps its session registry in Postgres (TSK-17 §3.1), where only the preferences/first-use/inbox side stores are sandbox-state. Families with no labelled screen as at 2026-10-13: proof-of-air-registry, bank-reconciliation, broadcast-traffic, playout-cache. That is a labelling residual, not a clean bill of health: each of these still holds the only copy of its entities exactly as §3.3 says, and the register simply has no screen whose evidence names it — the proof-of-air registry and the traffic make-good queue are reached through engines and fixtures, the reconciliation engine has no register screen at all, and the playout cache backs panels the served census already records as NOT_CONNECTED (TSK-25). Served-level honesty stays on the provenance banner, which is a different instrument."
+  },
   "summary": {
     "totalScreens": 60,
+    "totalScreensSemantics": "ENTRY tally (60 register objects), not a screen count. 23 entries collapse an ID range, so the documented-screen figure is documentedIds below.",
+    "documentedIds": 226,
+    "documentedIdsNote": "225 real screens + 1 ALIAS cross-reference. This — not 60, and not an unmeasured 'system screens' figure — is what the register documents.",
     "implemented": 55,
     "mock": 4,
     "missing": 0,
     "deferred": 0,
     "alias": 1,
-    "note": "Counts are recomputed from the groups above by computeScreenRegisterCounts and verified in tests/unit/todo-remediation.test.ts. SCR-17/18/19 rewiring (2026-09-30) moved 13 surfaces MOCK→IMPLEMENTED; final remediation round (2026-10-01) closed UX-SYS-005, UX-ADM-001, UX-ADM-003 (SCR-13/15) and UX-VTM-011 (SCR-20)."
+    "note": "Entry counts are recomputed from the groups above by computeScreenRegisterCounts; documentedIds by computeDocumentedIdCounts. Both are asserted in tests/unit/screen-register-verification.test.ts. SCR-17/18/19 rewiring (2026-09-30) moved 13 surfaces MOCK→IMPLEMENTED; final remediation round (2026-10-01) closed UX-SYS-005, UX-ADM-001, UX-ADM-003 (SCR-13/15) and UX-VTM-011 (SCR-20)."
   }
 }

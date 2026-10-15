@@ -1,0 +1,6 @@
+## lint — 2026-10-11T18:56:02Z
+exit=0
+
+> vmng@1.0.0 lint /Users/deprof/www/vmng
+> eslint . --max-warnings 0
+

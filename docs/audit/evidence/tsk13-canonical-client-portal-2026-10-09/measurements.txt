@@ -1,0 +1,40 @@
+# Measurements behind the TSK-13 closure (2026-10-09, working tree, baseline commit ce098f8)
+
+$ grep -rnE "^(export )?const MOCK_" src --include="*.ts" | wc -l
+       0
+
+$ grep -rn "MOCK_" src --include="*.ts"   # only doc comments name the deleted datasets
+src/web/portal/client-portal.ts:7: * `MOCK_CLIENT_PROJECTS` registry — with its invented as-run timestamps,
+src/web/workspace/creative-hub-extended.ts:6: * the MOCK_* datasets are deleted. Each renderer receives an engine snapshot
+src/web/workspace/counterparty-portals.ts:7: * BEFORE records reach these renderers. The MOCK_* constants are deleted — an
+
+$ grep -n "projectClientPortfolio\|toClientProject," src/api/router.ts | head
+131:  projectClientPortfolio,
+132:  toClientProject,
+2496:      const projects = projectClientPortfolio(context.salesEngine.listDeals(), orgId);
+
+$ grep -n "registerDurableStore<" src/ -r | wc -l   # 14 lines = 1 definition + 13 stores
+      14
+
+$ grep -n "private deals = new Map" src/modules/finance/sales/index.ts
+49:  private deals = new Map<string, SalesDeal>();
+
+$ grep -n "clientName" src/modules/broadcast/traffic/index.ts src/modules/broadcast/asrun/index.ts prisma/schema.prisma | head
+src/modules/broadcast/traffic/index.ts:19:  clientName: string;
+src/modules/broadcast/traffic/index.ts:58:      if (existingSpot.clientName !== spot.clientName) {
+src/modules/broadcast/traffic/index.ts:60:          `Category clash: '${spot.clientName}' and '${existingSpot.clientName}' both booked under category '${spot.category}' in break '${brk.id}'`
+src/modules/broadcast/asrun/index.ts:19:  clientName: string;
+src/modules/broadcast/asrun/index.ts:30:  clientName: string;
+src/modules/broadcast/asrun/index.ts:50:  clientName: string;
+src/modules/broadcast/asrun/index.ts:95:      const [spotId, , clientName, , durStr, , , timeStr] = parts;
+src/modules/broadcast/asrun/index.ts:101:        clientName: clientName || "Commercial Client",
+
+$ grep -nE "^[[:space:]]+it\(" tests/unit/client-portal-and-operations.test.ts | wc -l
+24
+
+$ git show HEAD:tests/unit/client-portal-and-operations.test.ts | grep -cE "^[[:space:]]+it\("
+19
+
+$ grep -c "^model " prisma/schema.prisma
+42
+

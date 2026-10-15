@@ -1,0 +1,1009 @@
+
+> vmng@1.0.0 test /Users/deprof/www/vmng
+> vitest run
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.11 [39m[90m/Users/deprof/www/vmng[39m
+
+[90mstdout[2m | tests/unit/screen-register-verification.test.ts[2m > [22m[2mTSK-24 (CA-11): the screen register verifies what it claims
+[22m[39m{"timestamp":"2026-10-12T23:12:53.679Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"32230a96-1eb6-41e1-abf5-c6e24cc60e63","spanId":"96d372a2-a108-48","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+[90mstdout[2m | tests/unit/screen-register-verification.test.ts[2m > [22m[2mTSK-24 (CA-11): the screen register verifies what it claims
+[22m[39mprisma:error 
+Invalid `getPrismaClient().mediaAssetRecord.findMany()` invocation in
+/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:481:57
+
+  478 }
+  479 
+  480 export async function loadMediaAssetRecords(): Promise<MediaAssetRecord[]> {
+→ 481   const rows = await getPrismaClient().mediaAssetRecord.findMany(
+User was denied access on the database `(not available)`
+
+[90mstdout[2m | tests/unit/screen-register-verification.test.ts[2m > [22m[2mTSK-24 (CA-11): the screen register verifies what it claims
+[22m[39m{"timestamp":"2026-10-12T23:12:53.842Z","level":"WARN","message":"Durable store hydration failed — release-critical surfaces start empty","traceId":"f78fe6fb-d2a7-4e59-ae93-2b45cd792e05","spanId":"722de960-9c1e-4f","component":"server_bootstrap","error":"PrismaClientKnownRequestError: \nInvalid `getPrismaClient().mediaAssetRecord.findMany()` invocation in\n/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:481:57\n\n  478 }\n  479 \n  480 export async function loadMediaAssetRecords(): Promise<MediaAssetRecord[]> {\n→ 481   const rows = await getPrismaClient().mediaAssetRecord.findMany(\nUser was denied access on the database `(not available)`"}
+
+[90mstdout[2m | tests/unit/screen-register-verification.test.ts[2m > [22m[2mTSK-24 (CA-11): the screen register verifies what it claims
+[22m[39mprisma:error 
+Invalid `prisma.$queryRawUnsafe()` invocation:
+
+
+Raw query failed. Code: `28000`. Message: `role "root" does not exist`
+
+[90mstdout[2m | tests/unit/screen-register-verification.test.ts[2m > [22m[2mTSK-24 (CA-11): the screen register verifies what it claims
+[22m[39m{"timestamp":"2026-10-12T23:12:53.863Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"0b52fe0b-49c1-4a3f-956f-85d9d597ad99","spanId":"d8ba58cc-5272-46","component":"server_bootstrap","port":0,"env":"test"}
+
+[90mstdout[2m | tests/unit/screen-register-verification.test.ts[2m > [22m[2mTSK-24 (CA-11): the screen register verifies what it claims
+[22m[39m
+[TSK-24] register verification — entries: 60 · documented IDs: 226 · router dispatch surface: 229 literals + 54 prefixes
+[TSK-24] provenance by documented ID: {"NOT_VERIFIED":147,"DOMAIN_ENGINE":75,"NOT_CONNECTED":4}
+[TSK-24] reachable HTML surfaces (distinct register-declared paths answered 200 text/html): 40
+[TSK-24] application-wide literal-path HTML surfaces: 111 — /,/about,/access-request,/accessibility,/account/notifications,/account/profile,/account/sessions,/admin/feature-flags,/admissions/queue,/advertising,/api/docs,/apply,/auth/invitation,/auth/mfa,/auth/profile-setup,/auth/recovery,/auth/session-expired,/auth/switch-role,/azeebo,/azeebo/attribution,/azeebo/gateway,/broadcast/asrun/exceptions,/broadcast/dashboard,/broadcast/poa/exceptions,/broadcast/rights/review-request,/broadcast/schedule/review,/broadcast/screens,/careers,/channels,/channels/isimbido,/channels/nxtr,/channels/orisun,/contact,/docs,/enquiry,/help,/help/operator,/hub,/hub/afca,/hub/community,/hub/creators,/hub/distribution,/hub/events,/hub/onestudios,/hub/production,/hub/talent,/hub/technology,/hub/vcf,/hub/vtm,/insights,/learn,/login,/partners,/portal/vtm/marketplace,/portal/vtm/payment-visibility,/portal/vtm/terms,/privacy,/prototypes,/schedule,/select-workspace,/sign-in,/sign-out,/styleguide,/vtm/marketplace,/vtm/terms,/workspace,/workspace/accelerator,/workspace/accelerator/desk,/workspace/admin/access,/workspace/admin/feature-flags,/workspace/admin/source-mappings,/workspace/admissions,/workspace/afca,/workspace/afca/assignments/submit,/workspace/afca/gradebook,/workspace/afca/grading/rubric,/workspace/afca/learning-plan,/workspace/afca/lms,/workspace/agentic-os,/workspace/aos/console,/workspace/approvals,/workspace/commercial/proposals/builder,/workspace/community/guilds,/workspace/content/editor,/workspace/content/media-picker,/workspace/content/review,/workspace/cr8tech/operations,/workspace/devops/console,/workspace/events/desk,/workspace/foundry/missions,/workspace/fusion-events,/workspace/governance/issues,/workspace/governance/records,/workspace/governance/risks,/workspace/guilds,/workspace/headspace/intelligence,/workspace/hub/overview,/workspace/issues/tracker,/workspace/management/overview,/workspace/market-intelligence,/workspace/my-work,/workspace/notifications,/workspace/onestudios/desk,/workspace/production/desk,/workspace/risk/register,/workspace/search,/workspace/syndication/catalogue,/workspace/tend/catalogue,/workspace/vcf/missions,/workspace/vtm/match,/workspace/vtm/matching
+[TSK-24] entries with an unmounted declared route: 0 · entries claiming IMPLEMENTED with no mounted route: 0 · entries whose evidence names no checkable file: 1 · entries with a broken evidence citation: 0
+[TSK-24] per-entry table (entry | ids | mounted/declared | provenance | basis | first probe):
+[TSK-24] | UX-PUB-001..028 | 28 | 8/8 | NOT_VERIFIED | handler source | / 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-SYS-001 | 1 | 1/1 | NOT_VERIFIED | handler source | /sign-in 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-SYS-002 | 1 | 1/1 | NOT_VERIFIED | handler source | /auth/mfa 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-SYS-003 | 1 | 1/1 | NOT_VERIFIED | handler source | /auth/recovery 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-SYS-004 | 1 | 1/1 | NOT_VERIFIED | handler source | /auth/invitation 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-SYS-005 | 1 | 1/1 | NOT_VERIFIED | handler source | /auth/profile-setup 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-SYS-006..011 | 6 | 6/6 | NOT_VERIFIED | handler source | /select-workspace 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-SYS-012 | 1 | 1/1 | NOT_VERIFIED | handler source | /account/notifications 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-SYS-013 | 1 | 1/1 | NOT_VERIFIED | handler source | /account/sessions 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-SYS-014 | 1 | 1/1 | NOT_VERIFIED | handler source | /help/operator 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-HUB-001 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/my-work 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-HUB-002 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/search 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-HUB-003 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/notifications 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-HUB-004 | 1 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/management/overview 200 page declares no provenance | evidence 4/4
+[TSK-24] | UX-HUB-005 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-COM-001..003 | 3 | 0/0 | NOT_CONNECTED | route not mounted | — 0 no mounted route declared | evidence 1/1
+[TSK-24] | UX-COM-004 | 1 | 1/1 | NOT_VERIFIED | handler source | /enquiry 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-COM-005..009 | 5 | 1/1 | NOT_VERIFIED | handler source | /workspace/commercial/proposals/builder 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-COM-010 | 1 | 1/1 | NOT_VERIFIED | handler source | /portal/client/ORG-1/projects/PRJ-1 404 page declares no provenance | evidence 1/1
+[TSK-24] | UX-PRJ-001 | 1 | 0/0 | NOT_CONNECTED | route not mounted | — 0 no mounted route declared | evidence 1/1
+[TSK-24] | UX-PRJ-002 | 1 | 1/1 | NOT_VERIFIED | handler source | /portal/client/ORG-1/projects/PRJ-1 404 page declares no provenance | evidence 1/1
+[TSK-24] | UX-BR-001..033 | 33 | 1/1 | NOT_VERIFIED | handler source | /broadcast/screens/SCR-BCST-01 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-BR-012 | 1 | 1/1 | NOT_VERIFIED | handler source | /broadcast/screens/SCR-BCST-01 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-BR-030 | 1 | 1/1 | NOT_VERIFIED | handler source | /broadcast/screens/SCR-BCST-01 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-GOV-001..002 | 2 | 1/1 | NOT_VERIFIED | handler source | /workspace/approvals 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-GOV-003 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/governance/records 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-GOV-004 | 1 | 1/1 | NOT_VERIFIED | handler source | /broadcast/screens/SCR-BCST-01 200 page declares no provenance | evidence 4/4
+[TSK-24] | UX-GOV-005 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/governance/records 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-GOV-006 | 1 | 1/1 | NOT_VERIFIED | handler source | /broadcast/screens/SCR-BCST-01 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-GOV-007 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/governance/records 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-GOV-008 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/governance/records 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-GOV-009 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/cases/privacy 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-GOV-010 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/cases/security 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-CMS-001..006 | 6 | 1/1 | NOT_VERIFIED | handler source | /workspace/content/review 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-CMS-007 | 1 | 1/1 | NOT_VERIFIED | handler source | /api/v1/federation/destinations 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-CMS-008 | 1 | 1/1 | NOT_VERIFIED | handler source | /api/v1/enquiries/routing-config 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-ADM-001 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/admin/access 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-ADM-002 | 1 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/cr8tech/operations 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-ADM-003 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/admin/source-mappings 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-ADM-004 | 1 | 1/1 | DOMAIN_ENGINE | live probe | /admin/feature-flags 200 engine provenance badge | evidence 1/1
+[TSK-24] | UX-REC-001..006 | 6 | 1/1 | NOT_VERIFIED | handler source | /workspace/governance/records 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-AFCA-001..008 | 8 | 1/1 | NOT_VERIFIED | handler source | /workspace/afca 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-APP-001..008 | 8 | 1/1 | NOT_VERIFIED | handler source | /apply 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-ACC-001..008 | 8 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/accelerator 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-AFC-001..006 | 6 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/community/guilds 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-VTM-001..009 | 9 | 1/1 | NOT_VERIFIED | handler source | /vtm/marketplace 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-VTM-010 | 1 | 1/1 | NOT_VERIFIED | handler source | /vtm/terms 200 page declares no provenance | evidence 0/0
+[TSK-24] | UX-VTM-011 | 1 | 1/1 | NOT_VERIFIED | handler source | /portal/vtm/payment-visibility 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-VCF-001..008 | 8 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/vcf/missions 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-ONE-001..009 | 9 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/production/desk 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-EVT-001..008 | 8 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/events/desk 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-TEND-001..008 | 8 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/tend/catalogue 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-HSP-001..008 | 8 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/headspace/intelligence 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-CR8-001..008 | 8 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/cr8tech/operations 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-AGT-001..009 | 9 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/aos/console 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-POR-001 | 1 | 1/1 | NOT_VERIFIED | handler source | /portal/client/ORG-1/projects 404 page declares no provenance | evidence 1/1
+[TSK-24] | UX-POR-002 | 1 | 1/1 | NOT_VERIFIED | cited module | — 0 route not probeable; cited module declares no provenance | evidence 3/3
+[TSK-24] | UX-POR-003 | 1 | 1/1 | NOT_VERIFIED | handler source | /portal/partner/ORG-1 503 page declares no provenance | evidence 1/1
+[TSK-24] | UX-POR-004 | 1 | 1/1 | NOT_VERIFIED | handler source | /portal/creator/X-1 503 page declares no provenance | evidence 1/1
+[TSK-24] | UX-POR-005 | 1 | 1/1 | NOT_VERIFIED | handler source | /portal/vendor/X-1 503 page declares no provenance | evidence 1/1
+
+[90mstdout[2m | tests/unit/screen-register-verification.test.ts[2m > [22m[2mTSK-24 (CA-11): the screen register verifies what it claims[2m > [22m[2mcounts reachable HTML surfaces instead of quoting an unmeasured screen total
+[22m[39m[TSK-24] reachable HTML surfaces: /, /account/notifications, /account/sessions, /admin/feature-flags, /apply, /auth/invitation, /auth/mfa, /auth/profile-setup, /auth/recovery, /broadcast/screens/SCR-BCST-01, /enquiry, /help/operator, /portal/vtm/payment-visibility, /select-workspace, /sign-in, /vtm/marketplace, /vtm/terms, /workspace, /workspace/accelerator, /workspace/admin/access, /workspace/admin/source-mappings, /workspace/afca, /workspace/aos/console, /workspace/approvals, /workspace/cases/privacy, /workspace/cases/security, /workspace/commercial/proposals/builder, /workspace/community/guilds, /workspace/content/review, /workspace/cr8tech/operations, /workspace/events/desk, /workspace/governance/records, /workspace/headspace/intelligence, /workspace/management/overview, /workspace/my-work, /workspace/notifications, /workspace/production/desk, /workspace/search, /workspace/tend/catalogue, /workspace/vcf/missions
+[TSK-24] application-wide HTML surfaces (literal router paths answering 200 text/html to SuperAdmin): 111 of 229 literals probed
+
+ [32m✓[39m tests/unit/screen-register-verification.test.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 728[2mms[22m[39m
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mBCST-03: schedule lifecycle enforces RFA, rights attestation, lock-out
+[22m[39mprisma:error 
+Invalid `prisma.$queryRawUnsafe()` invocation:
+
+
+Raw query failed. Code: `28000`. Message: `role "root" does not exist`
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSEC-08: mutation idempotency (route level)
+[22m[39m{"timestamp":"2026-10-12T23:12:55.471Z","level":"WARN","message":"Redis adapter construction failed; falling back to in-memory cache","traceId":"61312c24-6603-4ecc-adad-b7a491851cbc","spanId":"62070408-ada9-4e","component":"server_bootstrap","backend":"memory","reason":"TypeError: Invalid URL"}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSEC-08: mutation idempotency (route level)
+[22m[39mprisma:error 
+Invalid `getPrismaClient().mediaAssetRecord.findMany()` invocation in
+/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:481:57
+
+  478 }
+  479 
+  480 export async function loadMediaAssetRecords(): Promise<MediaAssetRecord[]> {
+→ 481   const rows = await getPrismaClient().mediaAssetRecord.findMany(
+User was denied access on the database `(not available)`
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSEC-08: mutation idempotency (route level)
+[22m[39m{"timestamp":"2026-10-12T23:12:55.525Z","level":"WARN","message":"Durable store hydration failed — release-critical surfaces start empty","traceId":"3f4f8acd-dcf6-4a13-a9ea-305c60f06cca","spanId":"839de92d-3fef-44","component":"server_bootstrap","error":"PrismaClientKnownRequestError: \nInvalid `getPrismaClient().mediaAssetRecord.findMany()` invocation in\n/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:481:57\n\n  478 }\n  479 \n  480 export async function loadMediaAssetRecords(): Promise<MediaAssetRecord[]> {\n→ 481   const rows = await getPrismaClient().mediaAssetRecord.findMany(\nUser was denied access on the database `(not available)`"}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSEC-08: mutation idempotency (route level)
+[22m[39m{"timestamp":"2026-10-12T23:12:55.526Z","level":"INFO","message":"Registered rights records hydrated for the clearance gate","traceId":"6d875b91-fb0c-43cf-9678-156edb0227b3","spanId":"e79eeb76-549a-4f","component":"server_bootstrap","records":1}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSEC-08: mutation idempotency (route level)
+[22m[39m{"timestamp":"2026-10-12T23:12:55.527Z","level":"INFO","message":"VMNL Enterprise Server listening on port 4261","traceId":"32b46bd9-be00-42c1-8f27-45644c200b08","spanId":"f8e0d7cb-b362-42","component":"server_bootstrap","port":4261,"env":"test"}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSCR-03: media asset registration (route level)
+[22m[39mprisma:error 
+Invalid `getPrismaClient().mediaAssetRecord.findMany()` invocation in
+/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:481:57
+
+  478 }
+  479 
+  480 export async function loadMediaAssetRecords(): Promise<MediaAssetRecord[]> {
+→ 481   const rows = await getPrismaClient().mediaAssetRecord.findMany(
+User was denied access on the database `(not available)`
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSCR-03: media asset registration (route level)
+[22m[39m{"timestamp":"2026-10-12T23:12:55.580Z","level":"WARN","message":"Durable store hydration failed — release-critical surfaces start empty","traceId":"b454b11c-5d93-44fa-9ac9-23741aa380ee","spanId":"133a9fe1-0610-4a","component":"server_bootstrap","error":"PrismaClientKnownRequestError: \nInvalid `getPrismaClient().mediaAssetRecord.findMany()` invocation in\n/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:481:57\n\n  478 }\n  479 \n  480 export async function loadMediaAssetRecords(): Promise<MediaAssetRecord[]> {\n→ 481   const rows = await getPrismaClient().mediaAssetRecord.findMany(\nUser was denied access on the database `(not available)`"}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSCR-03: media asset registration (route level)
+[22m[39m{"timestamp":"2026-10-12T23:12:55.581Z","level":"INFO","message":"Registered rights records hydrated for the clearance gate","traceId":"23e55734-3596-4bd9-ad43-f7fe8f0122e3","spanId":"1ff2a3ea-6a54-4d","component":"server_bootstrap","records":1}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSCR-03: media asset registration (route level)
+[22m[39m{"timestamp":"2026-10-12T23:12:55.584Z","level":"INFO","message":"VMNL Enterprise Server listening on port 4262","traceId":"149352e4-29b3-4b2c-9b29-33856ecd2108","spanId":"7715cede-6802-4a","component":"server_bootstrap","port":4262,"env":"test"}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mTSK-58: media-asset routes refuse cross-tenant and unowned rows
+[22m[39mprisma:error 
+Invalid `getPrismaClient().mediaAssetRecord.findMany()` invocation in
+/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:481:57
+
+  478 }
+  479 
+  480 export async function loadMediaAssetRecords(): Promise<MediaAssetRecord[]> {
+→ 481   const rows = await getPrismaClient().mediaAssetRecord.findMany(
+User was denied access on the database `(not available)`
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mTSK-58: media-asset routes refuse cross-tenant and unowned rows
+[22m[39m{"timestamp":"2026-10-12T23:12:55.606Z","level":"WARN","message":"Durable store hydration failed — release-critical surfaces start empty","traceId":"71f5090a-ea29-499c-97ce-1971a3f18d94","spanId":"9a5223c1-692a-42","component":"server_bootstrap","error":"PrismaClientKnownRequestError: \nInvalid `getPrismaClient().mediaAssetRecord.findMany()` invocation in\n/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:481:57\n\n  478 }\n  479 \n  480 export async function loadMediaAssetRecords(): Promise<MediaAssetRecord[]> {\n→ 481   const rows = await getPrismaClient().mediaAssetRecord.findMany(\nUser was denied access on the database `(not available)`"}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mTSK-58: media-asset routes refuse cross-tenant and unowned rows
+[22m[39m{"timestamp":"2026-10-12T23:12:55.607Z","level":"INFO","message":"Registered rights records hydrated for the clearance gate","traceId":"ce758469-de5d-494b-92d1-3ae283b042ed","spanId":"459bc37f-95a2-40","component":"server_bootstrap","records":1}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mTSK-58: media-asset routes refuse cross-tenant and unowned rows
+[22m[39m{"timestamp":"2026-10-12T23:12:55.607Z","level":"INFO","message":"VMNL Enterprise Server listening on port 4270","traceId":"4641cc72-f19b-49e3-be43-edb126e01861","spanId":"a742c5e4-6ee4-41","component":"server_bootstrap","port":4270,"env":"test"}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSCR-03: CMS editor references registered media (UX-CMS-006)[2m > [22m[2mpersists picker selections end-to-end through the editor form routes
+[22m[39mprisma:error 
+Invalid `getPrismaClient().mediaAssetRecord.findMany()` invocation in
+/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:481:57
+
+  478 }
+  479 
+  480 export async function loadMediaAssetRecords(): Promise<MediaAssetRecord[]> {
+→ 481   const rows = await getPrismaClient().mediaAssetRecord.findMany(
+User was denied access on the database `(not available)`
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSCR-03: CMS editor references registered media (UX-CMS-006)[2m > [22m[2mpersists picker selections end-to-end through the editor form routes
+[22m[39m{"timestamp":"2026-10-12T23:12:55.658Z","level":"WARN","message":"Durable store hydration failed — release-critical surfaces start empty","traceId":"b996c51f-a1c2-46f6-8ee5-b0a554b43174","spanId":"e8e5be8f-bde0-4f","component":"server_bootstrap","error":"PrismaClientKnownRequestError: \nInvalid `getPrismaClient().mediaAssetRecord.findMany()` invocation in\n/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:481:57\n\n  478 }\n  479 \n  480 export async function loadMediaAssetRecords(): Promise<MediaAssetRecord[]> {\n→ 481   const rows = await getPrismaClient().mediaAssetRecord.findMany(\nUser was denied access on the database `(not available)`"}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSCR-03: CMS editor references registered media (UX-CMS-006)[2m > [22m[2mpersists picker selections end-to-end through the editor form routes
+[22m[39m{"timestamp":"2026-10-12T23:12:55.658Z","level":"INFO","message":"Registered rights records hydrated for the clearance gate","traceId":"b706bb53-5383-4389-b8fb-ae6978f439dc","spanId":"e673981f-08d5-4a","component":"server_bootstrap","records":1}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSCR-03: CMS editor references registered media (UX-CMS-006)[2m > [22m[2mpersists picker selections end-to-end through the editor form routes
+[22m[39m{"timestamp":"2026-10-12T23:12:55.658Z","level":"INFO","message":"VMNL Enterprise Server listening on port 4263","traceId":"65f6a70d-6f03-4e12-818e-6b54903167aa","spanId":"80f4b859-b6bb-46","component":"server_bootstrap","port":4263,"env":"test"}
+
+[90mstderr[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSCR-03: golden DAM backfill[2m > [22m[2mpersistEpisodeMediaAssets reports the standing reference total on re-runs, not a per-run delta
+[22m[39m[VMNL-DB-SEED] DAM backfill: episode EP-0001 not found — master reference MA-EP-0001-MASTER NOT persisted.
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSCR-03: golden DAM backfill[2m > [22m[2mboots the sandbox with demo content referencing its registered key art
+[22m[39mprisma:error 
+Invalid `getPrismaClient().mediaAssetRecord.findMany()` invocation in
+/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:481:57
+
+  478 }
+  479 
+  480 export async function loadMediaAssetRecords(): Promise<MediaAssetRecord[]> {
+→ 481   const rows = await getPrismaClient().mediaAssetRecord.findMany(
+User was denied access on the database `(not available)`
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSCR-03: golden DAM backfill[2m > [22m[2mboots the sandbox with demo content referencing its registered key art
+[22m[39m{"timestamp":"2026-10-12T23:12:55.696Z","level":"WARN","message":"Durable store hydration failed — release-critical surfaces start empty","traceId":"5163184e-8864-4c84-ad08-e62253cfcf07","spanId":"28c73a38-0f79-42","component":"server_bootstrap","error":"PrismaClientKnownRequestError: \nInvalid `getPrismaClient().mediaAssetRecord.findMany()` invocation in\n/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:481:57\n\n  478 }\n  479 \n  480 export async function loadMediaAssetRecords(): Promise<MediaAssetRecord[]> {\n→ 481   const rows = await getPrismaClient().mediaAssetRecord.findMany(\nUser was denied access on the database `(not available)`"}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSCR-03: golden DAM backfill[2m > [22m[2mboots the sandbox with demo content referencing its registered key art
+[22m[39m{"timestamp":"2026-10-12T23:12:55.696Z","level":"INFO","message":"Registered rights records hydrated for the clearance gate","traceId":"e03e32d3-03ff-4615-be5c-da458a4ed2be","spanId":"a78a251b-a49a-48","component":"server_bootstrap","records":1}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSCR-03: golden DAM backfill[2m > [22m[2mboots the sandbox with demo content referencing its registered key art
+[22m[39m{"timestamp":"2026-10-12T23:12:55.697Z","level":"INFO","message":"VMNL Enterprise Server listening on port 4264","traceId":"77b94569-4b82-4526-9261-e9d00b62d408","spanId":"5bb32860-f5ce-42","component":"server_bootstrap","port":4264,"env":"test"}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSchedule review desk: episode master linkage keyed by its channel parameter[2m > [22m[2mroute keys the linkage by ?channel (GET /broadcast/schedule/review?channel=ORIS)
+[22m[39mprisma:error 
+Invalid `getPrismaClient().mediaAssetRecord.findMany()` invocation in
+/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:481:57
+
+  478 }
+  479 
+  480 export async function loadMediaAssetRecords(): Promise<MediaAssetRecord[]> {
+→ 481   const rows = await getPrismaClient().mediaAssetRecord.findMany(
+User was denied access on the database `(not available)`
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSchedule review desk: episode master linkage keyed by its channel parameter[2m > [22m[2mroute keys the linkage by ?channel (GET /broadcast/schedule/review?channel=ORIS)
+[22m[39m{"timestamp":"2026-10-12T23:12:55.734Z","level":"WARN","message":"Durable store hydration failed — release-critical surfaces start empty","traceId":"dfc7be45-05ca-424c-ae27-502bc07fb655","spanId":"be0e5346-532a-44","component":"server_bootstrap","error":"PrismaClientKnownRequestError: \nInvalid `getPrismaClient().mediaAssetRecord.findMany()` invocation in\n/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:481:57\n\n  478 }\n  479 \n  480 export async function loadMediaAssetRecords(): Promise<MediaAssetRecord[]> {\n→ 481   const rows = await getPrismaClient().mediaAssetRecord.findMany(\nUser was denied access on the database `(not available)`"}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSchedule review desk: episode master linkage keyed by its channel parameter[2m > [22m[2mroute keys the linkage by ?channel (GET /broadcast/schedule/review?channel=ORIS)
+[22m[39m{"timestamp":"2026-10-12T23:12:55.735Z","level":"INFO","message":"Registered rights records hydrated for the clearance gate","traceId":"cae7d354-d627-422c-82b5-6a586bf70475","spanId":"d60cfb71-3501-49","component":"server_bootstrap","records":4}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSchedule review desk: episode master linkage keyed by its channel parameter[2m > [22m[2mroute keys the linkage by ?channel (GET /broadcast/schedule/review?channel=ORIS)
+[22m[39m{"timestamp":"2026-10-12T23:12:55.736Z","level":"INFO","message":"VMNL Enterprise Server listening on port 4267","traceId":"4fe8551d-1a63-4c29-b9c9-c4f0406b0ef1","spanId":"820cef4b-ceff-4d","component":"server_bootstrap","port":4267,"env":"test"}
+
+ [32m✓[39m tests/unit/todo-final-remediation.test.ts [2m([22m[2m84 tests[22m[2m)[22m[33m 740[2mms[22m[39m
+     [33m[2m✓[22m[39m memory adapter: get/set/del, TTL expiry, setIfAbsent lock semantics, incrBy, keys [33m 303[2mms[22m[39m
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization
+[22m[39m{"timestamp":"2026-10-12T23:12:56.263Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"d06721c1-b8d2-42b4-816b-8387c989ce82","spanId":"1547d39f-95cd-47","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization
+[22m[39mprisma:error 
+Invalid `getPrismaClient().mediaAssetRecord.findMany()` invocation in
+/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:481:57
+
+  478 }
+  479 
+  480 export async function loadMediaAssetRecords(): Promise<MediaAssetRecord[]> {
+→ 481   const rows = await getPrismaClient().mediaAssetRecord.findMany(
+User was denied access on the database `(not available)`
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization
+[22m[39m{"timestamp":"2026-10-12T23:12:56.402Z","level":"WARN","message":"Durable store hydration failed — release-critical surfaces start empty","traceId":"580155ec-0b47-413e-a4cc-ece857416126","spanId":"dfe9c1e1-5f0f-4e","component":"server_bootstrap","error":"PrismaClientKnownRequestError: \nInvalid `getPrismaClient().mediaAssetRecord.findMany()` invocation in\n/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:481:57\n\n  478 }\n  479 \n  480 export async function loadMediaAssetRecords(): Promise<MediaAssetRecord[]> {\n→ 481   const rows = await getPrismaClient().mediaAssetRecord.findMany(\nUser was denied access on the database `(not available)`"}
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization
+[22m[39mprisma:error 
+Invalid `prisma.$queryRawUnsafe()` invocation:
+
+
+Raw query failed. Code: `28000`. Message: `role "root" does not exist`
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization
+[22m[39m{"timestamp":"2026-10-12T23:12:56.412Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"86002193-908f-43bd-b2d2-dd794af37655","spanId":"d21bdad3-f9f3-45","component":"server_bootstrap","port":0,"env":"test"}
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m{"timestamp":"2026-10-12T23:12:56.560Z","level":"ERROR","message":"[AFCA-ERR-404] Cohort '' not found.","traceId":"90c1c735-f17a-4fa3-a932-fd4d915de9d3","spanId":"9bc28253-eece-46","component":"api_router","stack":"Error: [AFCA-ERR-404] Cohort '' not found.\n    at AfcaAcademyService.getCohortOrThrow (/Users/deprof/www/vmng/src/modules/hub/afca/index.ts:382:13)\n    at AfcaAcademyService.issueCertificate (/Users/deprof/www/vmng/src/modules/hub/afca/index.ts:285:25)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:6473:40)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at /Users/deprof/www/vmng/src/api/server.ts:593:7\n    at serveRequestInJournalGroup (/Users/deprof/www/vmng/src/api/server.ts:591:3)","duration":2}
+
+[90mstderr[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+[90mstderr[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m{"timestamp":"2026-10-12T23:12:56.573Z","level":"ERROR","message":"[VTM-BRF-01] Brief '' not found.","traceId":"0178672d-d48b-43f2-a7e3-e6ca5c5025f3","spanId":"4384381a-fc04-44","component":"api_router","stack":"Error: [VTM-BRF-01] Brief '' not found.\n    at VirtualTalentManagementEngine.matchTalent (/Users/deprof/www/vmng/src/modules/hub/vtm/index.ts:157:13)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:6530:41)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at /Users/deprof/www/vmng/src/api/server.ts:593:7\n    at serveRequestInJournalGroup (/Users/deprof/www/vmng/src/api/server.ts:591:3)","duration":2}
+
+[90mstderr[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m{"timestamp":"2026-10-12T23:12:56.594Z","level":"ERROR","message":"[TEND-AVL-02] Title 'TIT-001' not found in catalogue.","traceId":"5b9cb6ec-d278-4144-b775-2c3dddd55f88","spanId":"c94f3c64-d135-44","component":"api_router","stack":"Error: [TEND-AVL-02] Title 'TIT-001' not found in catalogue.\n    at TendDistributionEngine.checkAvails (/Users/deprof/www/vmng/src/modules/hub/tend/index.ts:95:13)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:6671:44)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at /Users/deprof/www/vmng/src/api/server.ts:593:7\n    at serveRequestInJournalGroup (/Users/deprof/www/vmng/src/api/server.ts:591:3)","duration":2}
+
+[90mstderr[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m{"timestamp":"2026-10-12T23:12:56.599Z","level":"ERROR","message":"[TEND-AVL-02] Title 'TIT-001' not found in catalogue.","traceId":"682b4f8c-b9cf-455b-99ec-94f94a6c6add","spanId":"dad8b355-ebc0-42","component":"api_router","stack":"Error: [TEND-AVL-02] Title 'TIT-001' not found in catalogue.\n    at TendDistributionEngine.checkAvails (/Users/deprof/www/vmng/src/modules/hub/tend/index.ts:95:13)\n    at TendDistributionEngine.createLicense (/Users/deprof/www/vmng/src/modules/hub/tend/index.ts:153:25)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:6688:44)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at /Users/deprof/www/vmng/src/api/server.ts:593:7\n    at serveRequestInJournalGroup (/Users/deprof/www/vmng/src/api/server.ts:591:3)","duration":1}
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m{"timestamp":"2026-10-12T23:12:56.604Z","level":"ERROR","message":"[COMM-BKG-01] Resource '' is not available.","traceId":"10c1759c-0fe2-419d-92cd-49ba1915eb3e","spanId":"3711c480-bbae-4e","component":"api_router","stack":"Error: [COMM-BKG-01] Resource '' is not available.\n    at AfroFusionCommunityHub.bookResource (/Users/deprof/www/vmng/src/modules/hub/community/index.ts:142:13)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:6744:46)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at /Users/deprof/www/vmng/src/api/server.ts:593:7\n    at serveRequestInJournalGroup (/Users/deprof/www/vmng/src/api/server.ts:591:3)","duration":1}
+
+[90mstderr[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+[90mstderr[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m{"timestamp":"2026-10-12T23:12:56.628Z","level":"ERROR","message":"[QTC-DEAL-02] Contract value must be greater than zero.","traceId":"8969c234-ac13-4f32-8cb3-083be61314bb","spanId":"06335ba2-c2e1-4b","component":"api_router","stack":"Error: [QTC-DEAL-02] Contract value must be greater than zero.\n    at QuoteToCashSalesEngine.createDeal (/Users/deprof/www/vmng/src/modules/finance/sales/index.ts:78:13)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:7496:40)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at /Users/deprof/www/vmng/src/api/server.ts:593:7\n    at serveRequestInJournalGroup (/Users/deprof/www/vmng/src/api/server.ts:591:3)","duration":3}
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m{"timestamp":"2026-10-12T23:12:56.636Z","level":"ERROR","message":"[QTC-DEAL-02] Contract value must be greater than zero.","traceId":"39826561-0c14-488e-8a55-981152040d4f","spanId":"a9398d37-c8de-43","component":"api_router","stack":"Error: [QTC-DEAL-02] Contract value must be greater than zero.\n    at QuoteToCashSalesEngine.createDeal (/Users/deprof/www/vmng/src/modules/finance/sales/index.ts:78:13)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:7496:40)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at /Users/deprof/www/vmng/src/api/server.ts:593:7\n    at serveRequestInJournalGroup (/Users/deprof/www/vmng/src/api/server.ts:591:3)","duration":3}
+
+[90mstderr[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+[90mstderr[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m{"timestamp":"2026-10-12T23:12:56.639Z","level":"ERROR","message":"[PAY-BAT-01] Payout batch must contain at least one item.","traceId":"7d0ff961-e8ad-4605-89dd-6dcd6b89fc24","spanId":"3aa9872a-2522-43","component":"api_router","stack":"Error: [PAY-BAT-01] Payout batch must contain at least one item.\n    at TalentPayoutEngine.createPayoutBatch (/Users/deprof/www/vmng/src/modules/finance/payouts/index.ts:114:13)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:7523:42)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at /Users/deprof/www/vmng/src/api/server.ts:593:7\n    at serveRequestInJournalGroup (/Users/deprof/www/vmng/src/api/server.ts:591:3)","duration":1}
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2mallows authenticated self-service privacy requests without audit-role escalation
+[22m[39mprisma:error 
+Invalid `getPrismaClient().dataSubjectRequest.create()` invocation in
+/Users/deprof/www/vmng/src/api/routes/privacy.routes.ts:71:54
+
+  68 // durable row exists, RECORD_ONLY when it does not.
+  69 let durable = false;
+  70 try {
+→ 71   await getPrismaClient().dataSubjectRequest.create(
+User was denied access on the database `(not available)`
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2mallows authenticated self-service privacy requests without audit-role escalation
+[22m[39mprisma:error 
+Invalid `getPrismaClient().dataSubjectRequest.findFirst()` invocation in
+/Users/deprof/www/vmng/src/api/routes/privacy.routes.ts:131:71
+
+  128 // not survive a restart) and say so.
+  129 let request = requestsByUser.get(user.userId);
+  130 try {
+→ 131   const durableRow = await getPrismaClient().dataSubjectRequest.findFirst(
+User was denied access on the database `(not available)`
+
+ [32m✓[39m tests/security/route-authorization.test.ts [2m([22m[2m13 tests[22m[2m)[22m[33m 594[2mms[22m[39m
+[90mstdout[2m | tests/unit/identity-and-rbac.test.ts[2m > [22m[2mS-IDENTITY Presentation Shell & RBAC Suite (UX-SYS-001 to 014 / Journey J-RL1-02)
+[22m[39m{"timestamp":"2026-10-12T23:12:57.461Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"e3cb84a0-66b1-4535-99ca-1ab359d66572","spanId":"1f4adc75-ca08-45","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+[90mstdout[2m | tests/unit/identity-and-rbac.test.ts[2m > [22m[2mS-IDENTITY Presentation Shell & RBAC Suite (UX-SYS-001 to 014 / Journey J-RL1-02)
+[22m[39mprisma:error 
+Invalid `getPrismaClient().mediaAssetRecord.findMany()` invocation in
+/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:481:57
+
+  478 }
+  479 
+  480 export async function loadMediaAssetRecords(): Promise<MediaAssetRecord[]> {
+→ 481   const rows = await getPrismaClient().mediaAssetRecord.findMany(
+User was denied access on the database `(not available)`
+
+[90mstdout[2m | tests/unit/identity-and-rbac.test.ts[2m > [22m[2mS-IDENTITY Presentation Shell & RBAC Suite (UX-SYS-001 to 014 / Journey J-RL1-02)
+[22m[39m{"timestamp":"2026-10-12T23:12:57.621Z","level":"WARN","message":"Durable store hydration failed — release-critical surfaces start empty","traceId":"b44ced6f-c602-49d1-af75-c7faa06caafa","spanId":"d2ab7176-220f-45","component":"server_bootstrap","error":"PrismaClientKnownRequestError: \nInvalid `getPrismaClient().mediaAssetRecord.findMany()` invocation in\n/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:481:57\n\n  478 }\n  479 \n  480 export async function loadMediaAssetRecords(): Promise<MediaAssetRecord[]> {\n→ 481   const rows = await getPrismaClient().mediaAssetRecord.findMany(\nUser was denied access on the database `(not available)`"}
+
+[90mstdout[2m | tests/unit/identity-and-rbac.test.ts[2m > [22m[2mS-IDENTITY Presentation Shell & RBAC Suite (UX-SYS-001 to 014 / Journey J-RL1-02)
+[22m[39mprisma:error 
+Invalid `prisma.$queryRawUnsafe()` invocation:
+
+
+Raw query failed. Code: `28000`. Message: `role "root" does not exist`
+
+[90mstdout[2m | tests/unit/identity-and-rbac.test.ts[2m > [22m[2mS-IDENTITY Presentation Shell & RBAC Suite (UX-SYS-001 to 014 / Journey J-RL1-02)
+[22m[39m{"timestamp":"2026-10-12T23:12:57.630Z","level":"INFO","message":"VMNL Enterprise Server listening on port 4215","traceId":"70d644a4-7a39-4b09-9fc5-0c28dd8d9790","spanId":"c172ab6f-7a95-43","component":"server_bootstrap","port":4215,"env":"test"}
+
+ [32m✓[39m tests/unit/identity-and-rbac.test.ts [2m([22m[2m11 tests[22m[2m)[22m[33m 799[2mms[22m[39m
+     [33m[2m✓[22m[39m requires MFA after password auth and upgrades only a valid login challenge [33m 455[2mms[22m[39m
+[90mstdout[2m | tests/unit/auth.test.ts
+[22m[39mprisma:error 
+Invalid `prisma.$queryRawUnsafe()` invocation:
+
+
+Raw query failed. Code: `28000`. Message: `role "root" does not exist`
+
+[90mstderr[2m | tests/unit/auth.test.ts
+[22m[39m[TSK-30] no reachable Postgres (
+Invalid `prisma.$queryRawUnsafe()` invocation:
+
+
+Raw query failed. Code: `28000`. Message: `role "root" does not exist`): the database half of the sealed-envelope constraint is NOT verified in this run.
+
+ [32m✓[39m tests/unit/auth.test.ts [2m([22m[2m15 tests[22m[2m | [22m[33m3 skipped[39m[2m)[22m[33m 492[2mms[22m[39m
+[90mstdout[2m | tests/unit/extended-workspaces.test.ts[2m > [22m[2mExtended Workspaces & Counterparty Portals Unit Tests
+[22m[39mprisma:error 
+Invalid `prisma.$queryRawUnsafe()` invocation:
+
+
+Raw query failed. Code: `28000`. Message: `role "root" does not exist`
+
+[90mstdout[2m | tests/unit/extended-workspaces.test.ts[2m > [22m[2mExtended Workspaces & Counterparty Portals Unit Tests
+[22m[39m{"timestamp":"2026-10-12T23:12:59.924Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"7c5b9986-7e4a-4568-a54d-46f7aae96ff2","spanId":"b12764e2-0fba-44","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+[90mstdout[2m | tests/unit/extended-workspaces.test.ts[2m > [22m[2mExtended Workspaces & Counterparty Portals Unit Tests
+[22m[39mprisma:error 
+Invalid `getPrismaClient().mediaAssetRecord.findMany()` invocation in
+/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:481:57
+
+  478 }
+  479 
+  480 export async function loadMediaAssetRecords(): Promise<MediaAssetRecord[]> {
+→ 481   const rows = await getPrismaClient().mediaAssetRecord.findMany(
+User was denied access on the database `(not available)`
+
+[90mstdout[2m | tests/unit/extended-workspaces.test.ts[2m > [22m[2mExtended Workspaces & Counterparty Portals Unit Tests
+[22m[39m{"timestamp":"2026-10-12T23:12:59.998Z","level":"WARN","message":"Durable store hydration failed — release-critical surfaces start empty","traceId":"4a43187b-5705-4ea1-8933-cb5330ba1ffb","spanId":"c2efef7d-6ecf-45","component":"server_bootstrap","error":"PrismaClientKnownRequestError: \nInvalid `getPrismaClient().mediaAssetRecord.findMany()` invocation in\n/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:481:57\n\n  478 }\n  479 \n  480 export async function loadMediaAssetRecords(): Promise<MediaAssetRecord[]> {\n→ 481   const rows = await getPrismaClient().mediaAssetRecord.findMany(\nUser was denied access on the database `(not available)`"}
+
+[90mstdout[2m | tests/unit/extended-workspaces.test.ts[2m > [22m[2mExtended Workspaces & Counterparty Portals Unit Tests
+[22m[39m{"timestamp":"2026-10-12T23:13:00.004Z","level":"INFO","message":"VMNL Enterprise Server listening on port 4235","traceId":"d1c37392-3521-461d-bdd8-63bd3d220a91","spanId":"c9a15174-f9a0-45","component":"server_bootstrap","port":4235,"env":"test"}
+
+ [32m✓[39m tests/unit/extended-workspaces.test.ts [2m([22m[2m28 tests[22m[2m)[22m[33m 427[2mms[22m[39m
+[90mstdout[2m | tests/integration/enterprise-end-to-end.test.ts[2m > [22m[2mVMNL Enterprise End-to-End Platform Integration
+[22m[39mprisma:error 
+Invalid `prisma.$queryRawUnsafe()` invocation:
+
+
+Raw query failed. Code: `28000`. Message: `role "root" does not exist`
+
+[90mstdout[2m | tests/integration/enterprise-end-to-end.test.ts[2m > [22m[2mVMNL Enterprise End-to-End Platform Integration
+[22m[39m{"timestamp":"2026-10-12T23:13:00.929Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"9c44f2c9-c8b5-46bd-8bb8-f3630808eb70","spanId":"2ffd0ea6-9cf6-48","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+[90mstdout[2m | tests/integration/enterprise-end-to-end.test.ts[2m > [22m[2mVMNL Enterprise End-to-End Platform Integration
+[22m[39mprisma:error 
+Invalid `getPrismaClient().mediaAssetRecord.findMany()` invocation in
+/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:481:57
+
+  478 }
+  479 
+  480 export async function loadMediaAssetRecords(): Promise<MediaAssetRecord[]> {
+→ 481   const rows = await getPrismaClient().mediaAssetRecord.findMany(
+User was denied access on the database `(not available)`
+
+[90mstdout[2m | tests/integration/enterprise-end-to-end.test.ts[2m > [22m[2mVMNL Enterprise End-to-End Platform Integration
+[22m[39m{"timestamp":"2026-10-12T23:13:01.000Z","level":"WARN","message":"Durable store hydration failed — release-critical surfaces start empty","traceId":"2e8dc36a-6ee8-4451-817d-beab3fea1100","spanId":"d64f6c95-29a2-42","component":"server_bootstrap","error":"PrismaClientKnownRequestError: \nInvalid `getPrismaClient().mediaAssetRecord.findMany()` invocation in\n/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:481:57\n\n  478 }\n  479 \n  480 export async function loadMediaAssetRecords(): Promise<MediaAssetRecord[]> {\n→ 481   const rows = await getPrismaClient().mediaAssetRecord.findMany(\nUser was denied access on the database `(not available)`"}
+
+[90mstdout[2m | tests/integration/enterprise-end-to-end.test.ts[2m > [22m[2mVMNL Enterprise End-to-End Platform Integration
+[22m[39m{"timestamp":"2026-10-12T23:13:01.004Z","level":"INFO","message":"VMNL Enterprise Server listening on port 49160","traceId":"80357d75-6ff9-4e31-9d1e-4985223f736a","spanId":"1e8a784b-76ed-44","component":"server_bootstrap","port":49160,"env":"test"}
+
+ [32m✓[39m tests/integration/enterprise-end-to-end.test.ts [2m([22m[2m42 tests[22m[2m)[22m[33m 531[2mms[22m[39m
+[90mstdout[2m | tests/unit/security-auth-rbac.test.ts[2m > [22m[2mSecurity, RBAC Enforcement & Authentication Suite (B-6, B-7, B-8)
+[22m[39m{"timestamp":"2026-10-12T23:13:01.985Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"44c3ec01-1199-4b24-96e1-59354685a53a","spanId":"d968e092-c92a-4a","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+[90mstdout[2m | tests/unit/security-auth-rbac.test.ts[2m > [22m[2mSecurity, RBAC Enforcement & Authentication Suite (B-6, B-7, B-8)
+[22m[39mprisma:error 
+Invalid `getPrismaClient().mediaAssetRecord.findMany()` invocation in
+/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:481:57
+
+  478 }
+  479 
+  480 export async function loadMediaAssetRecords(): Promise<MediaAssetRecord[]> {
+→ 481   const rows = await getPrismaClient().mediaAssetRecord.findMany(
+User was denied access on the database `(not available)`
+
+[90mstdout[2m | tests/unit/security-auth-rbac.test.ts[2m > [22m[2mSecurity, RBAC Enforcement & Authentication Suite (B-6, B-7, B-8)
+[22m[39m{"timestamp":"2026-10-12T23:13:02.142Z","level":"WARN","message":"Durable store hydration failed — release-critical surfaces start empty","traceId":"1cf71232-9640-4859-802e-6f0cbf613b2f","spanId":"9fdd8a26-449e-42","component":"server_bootstrap","error":"PrismaClientKnownRequestError: \nInvalid `getPrismaClient().mediaAssetRecord.findMany()` invocation in\n/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:481:57\n\n  478 }\n  479 \n  480 export async function loadMediaAssetRecords(): Promise<MediaAssetRecord[]> {\n→ 481   const rows = await getPrismaClient().mediaAssetRecord.findMany(\nUser was denied access on the database `(not available)`"}
+
+[90mstdout[2m | tests/unit/security-auth-rbac.test.ts[2m > [22m[2mSecurity, RBAC Enforcement & Authentication Suite (B-6, B-7, B-8)
+[22m[39mprisma:error 
+Invalid `prisma.$queryRawUnsafe()` invocation:
+
+
+Raw query failed. Code: `28000`. Message: `role "root" does not exist`
+
+[90mstdout[2m | tests/unit/security-auth-rbac.test.ts[2m > [22m[2mSecurity, RBAC Enforcement & Authentication Suite (B-6, B-7, B-8)
+[22m[39m{"timestamp":"2026-10-12T23:13:02.151Z","level":"INFO","message":"VMNL Enterprise Server listening on port 4199","traceId":"6f808c3a-83ea-4cf9-bbfb-f2d397461b74","spanId":"6760949f-5a0c-4f","component":"server_bootstrap","port":4199,"env":"test"}
+
+[90mstdout[2m | tests/unit/security-auth-rbac.test.ts[2m > [22m[2mSecurity, RBAC Enforcement & Authentication Suite (B-6, B-7, B-8)[2m > [22m[2mshould return 500 with sanitized body for authenticated storage errors (fail-closed guard regression)
+[22m[39m{"timestamp":"2026-10-12T23:13:02.221Z","level":"ERROR","message":"[VMNL-STORAGE-ERROR] MIME type 'application/x-internal-test' is not permitted for storage upload","traceId":"4f500628-2f27-4a2c-9a57-8e15db464148","spanId":"b8967da1-be02-44","component":"api_router","stack":"Error: [VMNL-STORAGE-ERROR] MIME type 'application/x-internal-test' is not permitted for storage upload\n    at generatePresignedUploadUrl (/Users/deprof/www/vmng/src/core/storage/index.ts:133:11)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:8047:25)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at /Users/deprof/www/vmng/src/api/server.ts:593:7\n    at serveRequestInJournalGroup (/Users/deprof/www/vmng/src/api/server.ts:591:3)","duration":3}
+
+[90mstderr[2m | tests/unit/security-auth-rbac.test.ts[2m > [22m[2mSecurity, RBAC Enforcement & Authentication Suite (B-6, B-7, B-8)[2m > [22m[2mshould return 500 with sanitized body for authenticated storage errors (fail-closed guard regression)
+[22m[39m[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+ [32m✓[39m tests/unit/security-auth-rbac.test.ts [2m([22m[2m16 tests[22m[2m)[22m[33m 553[2mms[22m[39m
+[90mstdout[2m | tests/unit/desk-census.test.ts[2m > [22m[2mTSK-23 (CA-10): authoritative desk census measured through the router
+[22m[39m{"timestamp":"2026-10-12T23:13:03.226Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"20b44a5c-fa83-4fcc-a155-c7858477d573","spanId":"9972c693-d4a0-4e","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+[90mstdout[2m | tests/unit/desk-census.test.ts[2m > [22m[2mTSK-23 (CA-10): authoritative desk census measured through the router
+[22m[39mprisma:error 
+Invalid `getPrismaClient().mediaAssetRecord.findMany()` invocation in
+/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:481:57
+
+  478 }
+  479 
+  480 export async function loadMediaAssetRecords(): Promise<MediaAssetRecord[]> {
+→ 481   const rows = await getPrismaClient().mediaAssetRecord.findMany(
+User was denied access on the database `(not available)`
+
+[90mstdout[2m | tests/unit/desk-census.test.ts[2m > [22m[2mTSK-23 (CA-10): authoritative desk census measured through the router
+[22m[39m{"timestamp":"2026-10-12T23:13:03.360Z","level":"WARN","message":"Durable store hydration failed — release-critical surfaces start empty","traceId":"0fd36e01-2661-49c5-a153-9a54ff05d173","spanId":"b81e0cef-7f4e-45","component":"server_bootstrap","error":"PrismaClientKnownRequestError: \nInvalid `getPrismaClient().mediaAssetRecord.findMany()` invocation in\n/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:481:57\n\n  478 }\n  479 \n  480 export async function loadMediaAssetRecords(): Promise<MediaAssetRecord[]> {\n→ 481   const rows = await getPrismaClient().mediaAssetRecord.findMany(\nUser was denied access on the database `(not available)`"}
+
+[90mstdout[2m | tests/unit/desk-census.test.ts[2m > [22m[2mTSK-23 (CA-10): authoritative desk census measured through the router
+[22m[39mprisma:error 
+Invalid `prisma.$queryRawUnsafe()` invocation:
+
+
+Raw query failed. Code: `28000`. Message: `role "root" does not exist`
+
+[90mstdout[2m | tests/unit/desk-census.test.ts[2m > [22m[2mTSK-23 (CA-10): authoritative desk census measured through the router
+[22m[39m{"timestamp":"2026-10-12T23:13:03.373Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"9f0eaebe-31ae-42f1-b585-5b8e84dd2ee9","spanId":"860f0ee7-da9d-49","component":"server_bootstrap","port":0,"env":"test"}
+
+[90mstdout[2m | tests/unit/desk-census.test.ts[2m > [22m[2mTSK-23 (CA-10): authoritative desk census measured through the router
+[22m[39m
+[TSK-23] desk census — registered: 48 · presentation shell: 47 · dedicated handler answered: 1
+[TSK-23] dedicated desks: afca (200)
+[TSK-23] anonymous access to a desk page: 200=0 302=48 403=0 other=0
+[TSK-23] a PlayoutOperator can open 47 of 48 desk pages; 1 are role-scoped by WORKSPACE_HTML_GUARDS (executive)
+[TSK-23] per-desk rows — reproduce: pnpm vitest run tests/unit/desk-census.test.ts
+[TSK-23] | executive | Executive & Core | ExecutiveLeader | shell | 302 | 403 | SuperAdmin/ExecutiveLeader |
+[TSK-23] | iam | Executive & Core | SuperAdmin | shell | 302 | 200 | — |
+[TSK-23] | organisations | Executive & Core | LegalCounsel | shell | 302 | 200 | — |
+[TSK-23] | projects | Executive & Core | ProductionDirector | shell | 302 | 200 | — |
+[TSK-23] | risk | Executive & Core | RiskManager | shell | 302 | 200 | — |
+[TSK-23] | board | Executive & Core | ExecutiveLeader | shell | 302 | 200 | — |
+[TSK-23] | procurement | Executive & Core | ProcurementManager | shell | 302 | 200 | — |
+[TSK-23] | audit | Executive & Core | InternalAuditor | shell | 302 | 200 | — |
+[TSK-23] | esg | Executive & Core | SustainabilityOfficer | shell | 302 | 200 | — |
+[TSK-23] | comms | Executive & Core | CommunicationsDirector | shell | 302 | 200 | — |
+[TSK-23] | hr | Executive & Core | HRDirector | shell | 302 | 200 | — |
+[TSK-23] | legal | Executive & Core | GeneralCounsel | shell | 302 | 200 | — |
+[TSK-23] | mcr | Broadcast Operations | MCRSupervisor | shell | 302 | 200 | — |
+[TSK-23] | traffic | Broadcast Operations | TrafficManager | shell | 302 | 200 | — |
+[TSK-23] | epg | Broadcast Operations | TrafficScheduler | shell | 302 | 200 | — |
+[TSK-23] | asrun | Broadcast Operations | BroadcastReconciliationLead | shell | 302 | 200 | — |
+[TSK-23] | uplink | Broadcast Operations | BroadcastTransmissionEngineer | shell | 302 | 200 | — |
+[TSK-23] | ingest | Broadcast Operations | IngestOperator | shell | 302 | 200 | — |
+[TSK-23] | graphics | Broadcast Operations | GraphicsCoordinator | shell | 302 | 200 | — |
+[TSK-23] | scte | Broadcast Operations | AutomationEngineer | shell | 302 | 200 | — |
+[TSK-23] | disaster | Broadcast Operations | SiteReliabilityEngineer | shell | 302 | 200 | — |
+[TSK-23] | audio | Broadcast Operations | AudioComplianceOfficer | shell | 302 | 200 | — |
+[TSK-23] | interstitial | Broadcast Operations | InterstitialProducer | shell | 302 | 200 | — |
+[TSK-23] | transmission | Broadcast Operations | TransmissionLead | shell | 302 | 200 | — |
+[TSK-23] | talent | Hub Specialist | HubCoordinator | shell | 302 | 200 | — |
+[TSK-23] | afca | Hub Specialist | AcademyDean | dedicated handler | 302 | 200 | — |
+[TSK-23] | community | Hub Specialist | CommunityManager | shell | 302 | 200 | — |
+[TSK-23] | vtm | Hub Specialist | TalentAgent | shell | 302 | 200 | — |
+[TSK-23] | vcf | Hub Specialist | InvestmentLead | shell | 302 | 200 | — |
+[TSK-23] | onestudios | Hub Specialist | ProductionDirector | shell | 302 | 200 | — |
+[TSK-23] | events | Hub Specialist | EventsProducer | shell | 302 | 200 | — |
+[TSK-23] | tend | Hub Specialist | RightsManager | shell | 302 | 200 | — |
+[TSK-23] | soundstage | Hub Specialist | StudioManager | shell | 302 | 200 | — |
+[TSK-23] | gear | Hub Specialist | EquipmentCoordinator | shell | 302 | 200 | — |
+[TSK-23] | postproduction | Hub Specialist | PostProductionSupervisor | shell | 302 | 200 | — |
+[TSK-23] | alumni | Hub Specialist | AlumniRelationsLead | shell | 302 | 200 | — |
+[TSK-23] | crm | Commercial & Finance | CommercialLead | shell | 302 | 200 | — |
+[TSK-23] | quotes | Commercial & Finance | CommercialLead | shell | 302 | 200 | — |
+[TSK-23] | contracts | Commercial & Finance | LegalCounsel | shell | 302 | 200 | — |
+[TSK-23] | finance | Commercial & Finance | FinanceController | shell | 302 | 200 | — |
+[TSK-23] | payouts | Commercial & Finance | DisbursementOfficer | shell | 302 | 200 | — |
+[TSK-23] | bankrecon | Commercial & Finance | TreasuryManager | shell | 302 | 200 | — |
+[TSK-23] | headspace | Tech & Governance | ChiefIntelligenceOfficer | shell | 302 | 200 | — |
+[TSK-23] | cr8tech | Tech & Governance | TechnologyLead | shell | 302 | 200 | — |
+[TSK-23] | rights | Tech & Governance | RightsManager | shell | 302 | 200 | — |
+[TSK-23] | privacy | Tech & Governance | DataProtectionOfficer | shell | 302 | 200 | — |
+[TSK-23] | security | Tech & Governance | SecOpsLead | shell | 302 | 200 | — |
+[TSK-23] | aos | Tech & Governance | AgenticOpsEngineer | shell | 302 | 200 | — |
+
+ [32m✓[39m tests/unit/desk-census.test.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 456[2mms[22m[39m
+[90mstdout[2m | tests/contract/openapi-contract.test.ts[2m > [22m[2mT-20 (B-17): OpenAPI Contract Verification
+[22m[39m{"timestamp":"2026-10-12T23:13:04.416Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"9bd60462-c64f-4115-911e-c65e0781ef7d","spanId":"c53a577d-c7b0-4b","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+[90mstdout[2m | tests/contract/openapi-contract.test.ts[2m > [22m[2mT-20 (B-17): OpenAPI Contract Verification
+[22m[39mprisma:error 
+Invalid `getPrismaClient().mediaAssetRecord.findMany()` invocation in
+/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:481:57
+
+  478 }
+  479 
+  480 export async function loadMediaAssetRecords(): Promise<MediaAssetRecord[]> {
+→ 481   const rows = await getPrismaClient().mediaAssetRecord.findMany(
+User was denied access on the database `(not available)`
+
+[90mstdout[2m | tests/contract/openapi-contract.test.ts[2m > [22m[2mT-20 (B-17): OpenAPI Contract Verification
+[22m[39m{"timestamp":"2026-10-12T23:13:04.625Z","level":"WARN","message":"Durable store hydration failed — release-critical surfaces start empty","traceId":"5ca50ca8-8b9a-4438-9dee-f4b2c9918d40","spanId":"98afe2e3-94e2-46","component":"server_bootstrap","error":"PrismaClientKnownRequestError: \nInvalid `getPrismaClient().mediaAssetRecord.findMany()` invocation in\n/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:481:57\n\n  478 }\n  479 \n  480 export async function loadMediaAssetRecords(): Promise<MediaAssetRecord[]> {\n→ 481   const rows = await getPrismaClient().mediaAssetRecord.findMany(\nUser was denied access on the database `(not available)`"}
+
+[90mstdout[2m | tests/contract/openapi-contract.test.ts[2m > [22m[2mT-20 (B-17): OpenAPI Contract Verification
+[22m[39mprisma:error 
+Invalid `prisma.$queryRawUnsafe()` invocation:
+
+
+Raw query failed. Code: `28000`. Message: `role "root" does not exist`
+
+[90mstdout[2m | tests/contract/openapi-contract.test.ts[2m > [22m[2mT-20 (B-17): OpenAPI Contract Verification
+[22m[39m{"timestamp":"2026-10-12T23:13:04.640Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"32da3961-220f-4f73-b692-2583ff055413","spanId":"4e8a8cdf-9932-4f","component":"server_bootstrap","port":0,"env":"test"}
+
+[90mstdout[2m | tests/contract/openapi-contract.test.ts[2m > [22m[2mT-20 (B-17): OpenAPI Contract Verification[2m > [22m[2mverifies bidirectional reachability: every documented OpenAPI route exists and does not 404
+[22m[39mprisma:error 
+Invalid `getPrismaClient().dataSubjectRequest.findFirst()` invocation in
+/Users/deprof/www/vmng/src/api/routes/privacy.routes.ts:131:71
+
+  128 // not survive a restart) and say so.
+  129 let request = requestsByUser.get(user.userId);
+  130 try {
+→ 131   const durableRow = await getPrismaClient().dataSubjectRequest.findFirst(
+User was denied access on the database `(not available)`
+
+[90mstderr[2m | tests/contract/openapi-contract.test.ts[2m > [22m[2mT-20 (B-17): OpenAPI Contract Verification[2m > [22m[2mverifies bidirectional reachability: every documented OpenAPI route exists and does not 404
+[22m[39m[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+[90mstdout[2m | tests/contract/openapi-contract.test.ts[2m > [22m[2mT-20 (B-17): OpenAPI Contract Verification[2m > [22m[2mverifies bidirectional reachability: every documented OpenAPI route exists and does not 404
+[22m[39m{"timestamp":"2026-10-12T23:13:04.808Z","level":"ERROR","message":"[VTM-BRF-01] Brief '' not found.","traceId":"f0c46627-c742-4c3a-b0f6-4884fc449a8f","spanId":"27ddc6ea-8409-4e","component":"api_router","stack":"Error: [VTM-BRF-01] Brief '' not found.\n    at VirtualTalentManagementEngine.matchTalent (/Users/deprof/www/vmng/src/modules/hub/vtm/index.ts:157:13)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:6530:41)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at /Users/deprof/www/vmng/src/api/server.ts:593:7\n    at serveRequestInJournalGroup (/Users/deprof/www/vmng/src/api/server.ts:591:3)","duration":1}
+
+[90mstdout[2m | tests/contract/openapi-contract.test.ts[2m > [22m[2mT-20 (B-17): OpenAPI Contract Verification[2m > [22m[2mverifies bidirectional reachability: every documented OpenAPI route exists and does not 404
+[22m[39m{"timestamp":"2026-10-12T23:13:04.829Z","level":"ERROR","message":"Cannot read properties of undefined (reading '0')","traceId":"a3181a05-a8ae-4f42-a1fe-8c533113e73d","spanId":"3613be14-2d81-45","component":"api_router","stack":"TypeError: Cannot read properties of undefined (reading '0')\n    at Function.evaluateRelease (/Users/deprof/www/vmng/src/modules/quality/gates.ts:230:29)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:8025:48)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at /Users/deprof/www/vmng/src/api/server.ts:593:7\n    at serveRequestInJournalGroup (/Users/deprof/www/vmng/src/api/server.ts:591:3)","duration":2}
+
+[90mstderr[2m | tests/contract/openapi-contract.test.ts[2m > [22m[2mT-20 (B-17): OpenAPI Contract Verification[2m > [22m[2mverifies bidirectional reachability: every documented OpenAPI route exists and does not 404
+[22m[39m[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+ [32m✓[39m tests/contract/openapi-contract.test.ts [2m([22m[2m10 tests[22m[2m)[22m[33m 426[2mms[22m[39m
+[90mstdout[2m | tests/unit/broadcast-screens.test.ts[2m > [22m[2mT-19 (B-15): 33 Operational Broadcast Screen Surfaces[2m > [22m[2mmatches all 33 broadcast screens to real routes with parameter resolution
+[22m[39mprisma:error 
+Invalid `prisma.$queryRawUnsafe()` invocation:
+
+
+Raw query failed. Code: `28000`. Message: `role "root" does not exist`
+
+[90mstdout[2m | tests/unit/broadcast-screens.test.ts[2m > [22m[2mT-19 (B-15): 33 Operational Broadcast Screen Surfaces[2m > [22m[2mT9-01 (F-9-01): Screen Route Authentication & Bypass Prevention
+[22m[39m{"timestamp":"2026-10-12T23:13:05.485Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"34a8dd69-8f2a-4a2d-86c1-6cdc2904202f","spanId":"94afc7b6-ca43-4d","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+[90mstdout[2m | tests/unit/broadcast-screens.test.ts[2m > [22m[2mT-19 (B-15): 33 Operational Broadcast Screen Surfaces[2m > [22m[2mT9-01 (F-9-01): Screen Route Authentication & Bypass Prevention
+[22m[39mprisma:error 
+Invalid `getPrismaClient().mediaAssetRecord.findMany()` invocation in
+/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:481:57
+
+  478 }
+  479 
+  480 export async function loadMediaAssetRecords(): Promise<MediaAssetRecord[]> {
+→ 481   const rows = await getPrismaClient().mediaAssetRecord.findMany(
+User was denied access on the database `(not available)`
+
+[90mstdout[2m | tests/unit/broadcast-screens.test.ts[2m > [22m[2mT-19 (B-15): 33 Operational Broadcast Screen Surfaces[2m > [22m[2mT9-01 (F-9-01): Screen Route Authentication & Bypass Prevention
+[22m[39m{"timestamp":"2026-10-12T23:13:05.529Z","level":"WARN","message":"Durable store hydration failed — release-critical surfaces start empty","traceId":"5ac07927-2823-48bb-9f2a-2228bf061a54","spanId":"7e628124-08f4-45","component":"server_bootstrap","error":"PrismaClientKnownRequestError: \nInvalid `getPrismaClient().mediaAssetRecord.findMany()` invocation in\n/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:481:57\n\n  478 }\n  479 \n  480 export async function loadMediaAssetRecords(): Promise<MediaAssetRecord[]> {\n→ 481   const rows = await getPrismaClient().mediaAssetRecord.findMany(\nUser was denied access on the database `(not available)`"}
+
+[90mstdout[2m | tests/unit/broadcast-screens.test.ts[2m > [22m[2mT-19 (B-15): 33 Operational Broadcast Screen Surfaces[2m > [22m[2mT9-01 (F-9-01): Screen Route Authentication & Bypass Prevention
+[22m[39m{"timestamp":"2026-10-12T23:13:05.530Z","level":"INFO","message":"Registered rights records hydrated for the clearance gate","traceId":"9f8d2a35-9559-4d94-baf2-3934dcc55003","spanId":"44084cad-c92f-49","component":"server_bootstrap","records":1}
+
+[90mstdout[2m | tests/unit/broadcast-screens.test.ts[2m > [22m[2mT-19 (B-15): 33 Operational Broadcast Screen Surfaces[2m > [22m[2mT9-01 (F-9-01): Screen Route Authentication & Bypass Prevention
+[22m[39m{"timestamp":"2026-10-12T23:13:05.532Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"465be57d-1c99-4eb5-9b0a-3ed404aa03ae","spanId":"5d29bee1-ba51-4b","component":"server_bootstrap","port":0,"env":"test"}
+
+[90mstdout[2m | tests/unit/broadcast-screens.test.ts[2m > [22m[2mT-19 (B-15): 33 Operational Broadcast Screen Surfaces[2m > [22m[2mTSK-11 box 6: served desks project the engines of their own process
+[22m[39mprisma:error 
+Invalid `getPrismaClient().mediaAssetRecord.findMany()` invocation in
+/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:481:57
+
+  478 }
+  479 
+  480 export async function loadMediaAssetRecords(): Promise<MediaAssetRecord[]> {
+→ 481   const rows = await getPrismaClient().mediaAssetRecord.findMany(
+User was denied access on the database `(not available)`
+
+[90mstdout[2m | tests/unit/broadcast-screens.test.ts[2m > [22m[2mT-19 (B-15): 33 Operational Broadcast Screen Surfaces[2m > [22m[2mTSK-11 box 6: served desks project the engines of their own process
+[22m[39m{"timestamp":"2026-10-12T23:13:05.596Z","level":"WARN","message":"Durable store hydration failed — release-critical surfaces start empty","traceId":"46259ca9-ee1d-4ddd-b082-973a52bcbb30","spanId":"2face715-be90-46","component":"server_bootstrap","error":"PrismaClientKnownRequestError: \nInvalid `getPrismaClient().mediaAssetRecord.findMany()` invocation in\n/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:481:57\n\n  478 }\n  479 \n  480 export async function loadMediaAssetRecords(): Promise<MediaAssetRecord[]> {\n→ 481   const rows = await getPrismaClient().mediaAssetRecord.findMany(\nUser was denied access on the database `(not available)`"}
+
+[90mstdout[2m | tests/unit/broadcast-screens.test.ts[2m > [22m[2mT-19 (B-15): 33 Operational Broadcast Screen Surfaces[2m > [22m[2mTSK-11 box 6: served desks project the engines of their own process
+[22m[39m{"timestamp":"2026-10-12T23:13:05.596Z","level":"INFO","message":"Registered rights records hydrated for the clearance gate","traceId":"40982a33-a594-4621-ad7d-91be8e4f3b17","spanId":"5f8cf927-90e4-4f","component":"server_bootstrap","records":1}
+
+[90mstdout[2m | tests/unit/broadcast-screens.test.ts[2m > [22m[2mT-19 (B-15): 33 Operational Broadcast Screen Surfaces[2m > [22m[2mTSK-11 box 6: served desks project the engines of their own process
+[22m[39m{"timestamp":"2026-10-12T23:13:05.597Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"657d01c1-1622-4b58-9995-4727f05254c0","spanId":"e29bccc8-2a82-41","component":"server_bootstrap","port":0,"env":"test"}
+
+ [32m✓[39m tests/unit/broadcast-screens.test.ts [2m([22m[2m20 tests[22m[2m)[22m[33m 331[2mms[22m[39m
+[90mstdout[2m | tests/unit/audit-remediation-regressions.test.ts[2m > [22m[2mverified audit remediations[2m > [22m[2mHTTP boundaries[2m > [22m[2mrequires CSRF on cookie-authenticated writes, denies cross-site origins, and preserves public intake
+[22m[39m{"timestamp":"2026-10-12T23:13:06.143Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"252f931f-958c-43f8-ac0e-0733286e5258","spanId":"8f13a1bb-4179-41","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+[90mstdout[2m | tests/unit/audit-remediation-regressions.test.ts[2m > [22m[2mverified audit remediations[2m > [22m[2mHTTP boundaries[2m > [22m[2mrequires CSRF on cookie-authenticated writes, denies cross-site origins, and preserves public intake
+[22m[39mprisma:error 
+Invalid `getPrismaClient().mediaAssetRecord.findMany()` invocation in
+/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:481:57
+
+  478 }
+  479 
+  480 export async function loadMediaAssetRecords(): Promise<MediaAssetRecord[]> {
+→ 481   const rows = await getPrismaClient().mediaAssetRecord.findMany(
+User was denied access on the database `(not available)`
+
+[90mstdout[2m | tests/unit/audit-remediation-regressions.test.ts[2m > [22m[2mverified audit remediations[2m > [22m[2mHTTP boundaries[2m > [22m[2mrequires CSRF on cookie-authenticated writes, denies cross-site origins, and preserves public intake
+[22m[39m{"timestamp":"2026-10-12T23:13:06.297Z","level":"WARN","message":"Durable store hydration failed — release-critical surfaces start empty","traceId":"bad06dbf-aae7-44f7-87f4-6f16eaa3b169","spanId":"6fb28ae0-1f4d-4f","component":"server_bootstrap","error":"PrismaClientKnownRequestError: \nInvalid `getPrismaClient().mediaAssetRecord.findMany()` invocation in\n/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:481:57\n\n  478 }\n  479 \n  480 export async function loadMediaAssetRecords(): Promise<MediaAssetRecord[]> {\n→ 481   const rows = await getPrismaClient().mediaAssetRecord.findMany(\nUser was denied access on the database `(not available)`"}
+
+[90mstdout[2m | tests/unit/audit-remediation-regressions.test.ts[2m > [22m[2mverified audit remediations[2m > [22m[2mHTTP boundaries[2m > [22m[2mrequires CSRF on cookie-authenticated writes, denies cross-site origins, and preserves public intake
+[22m[39mprisma:error 
+Invalid `prisma.$queryRawUnsafe()` invocation:
+
+
+Raw query failed. Code: `28000`. Message: `role "root" does not exist`
+
+[90mstdout[2m | tests/unit/audit-remediation-regressions.test.ts[2m > [22m[2mverified audit remediations[2m > [22m[2mHTTP boundaries[2m > [22m[2mrequires CSRF on cookie-authenticated writes, denies cross-site origins, and preserves public intake
+[22m[39m{"timestamp":"2026-10-12T23:13:06.310Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"03458920-70a1-42bb-b146-83dc1529a22e","spanId":"1fed2c2b-e0d9-4d","component":"server_bootstrap","port":0,"env":"test"}
+
+[90mstderr[2m | tests/unit/audit-remediation-regressions.test.ts[2m > [22m[2mverified audit remediations[2m > [22m[2mHTTP boundaries[2m > [22m[2mrejects incomplete signed payments and unsupported event types before ingestion
+[22m[39m[TSK-19] SKIP durable claim row check: no reachable Postgres (
+Invalid `prisma.$queryRawUnsafe()` invocation:
+
+
+Raw query failed. Code: `28000`. Message: `role "root" does not exist`).
+
+[90mstderr[2m | tests/unit/audit-remediation-regressions.test.ts[2m > [22m[2mverified audit remediations[2m > [22m[2mHTTP boundaries[2m > [22m[2mre-processes a provider retry whose earlier attempt claimed the event and never ingested it (TSK-19)
+[22m[39m[TSK-19] SKIP abandoned-claim takeover: no reachable Postgres (
+Invalid `prisma.$queryRawUnsafe()` invocation:
+
+
+Raw query failed. Code: `28000`. Message: `role "root" does not exist`).
+
+ [32m✓[39m tests/unit/audit-remediation-regressions.test.ts [2m([22m[2m12 tests[22m[2m)[22m[33m 339[2mms[22m[39m
+[90mstdout[2m | tests/unit/client-portal-and-operations.test.ts[2m > [22m[2mClient Portal (J-RL1-07), UX-SYS Onboarding & Operational Workbenches (J-RL1-08 to 14)
+[22m[39mprisma:error 
+Invalid `prisma.$queryRawUnsafe()` invocation:
+
+
+Raw query failed. Code: `28000`. Message: `role "root" does not exist`
+
+[90mstdout[2m | tests/unit/client-portal-and-operations.test.ts[2m > [22m[2mClient Portal (J-RL1-07), UX-SYS Onboarding & Operational Workbenches (J-RL1-08 to 14)
+[22m[39m{"timestamp":"2026-10-12T23:13:07.214Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"bd3668cb-e00d-4ad7-bd04-5b4f481fc31c","spanId":"278fa44d-b7b1-4d","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+[90mstdout[2m | tests/unit/client-portal-and-operations.test.ts[2m > [22m[2mClient Portal (J-RL1-07), UX-SYS Onboarding & Operational Workbenches (J-RL1-08 to 14)
+[22m[39mprisma:error 
+Invalid `getPrismaClient().mediaAssetRecord.findMany()` invocation in
+/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:481:57
+
+  478 }
+  479 
+  480 export async function loadMediaAssetRecords(): Promise<MediaAssetRecord[]> {
+→ 481   const rows = await getPrismaClient().mediaAssetRecord.findMany(
+User was denied access on the database `(not available)`
+
+[90mstdout[2m | tests/unit/client-portal-and-operations.test.ts[2m > [22m[2mClient Portal (J-RL1-07), UX-SYS Onboarding & Operational Workbenches (J-RL1-08 to 14)
+[22m[39m{"timestamp":"2026-10-12T23:13:07.293Z","level":"WARN","message":"Durable store hydration failed — release-critical surfaces start empty","traceId":"5ee7c5b0-8de4-47f3-8c94-8edead3a47a8","spanId":"37aea7b4-2af6-49","component":"server_bootstrap","error":"PrismaClientKnownRequestError: \nInvalid `getPrismaClient().mediaAssetRecord.findMany()` invocation in\n/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:481:57\n\n  478 }\n  479 \n  480 export async function loadMediaAssetRecords(): Promise<MediaAssetRecord[]> {\n→ 481   const rows = await getPrismaClient().mediaAssetRecord.findMany(\nUser was denied access on the database `(not available)`"}
+
+[90mstdout[2m | tests/unit/client-portal-and-operations.test.ts[2m > [22m[2mClient Portal (J-RL1-07), UX-SYS Onboarding & Operational Workbenches (J-RL1-08 to 14)
+[22m[39m{"timestamp":"2026-10-12T23:13:07.296Z","level":"INFO","message":"VMNL Enterprise Server listening on port 4219","traceId":"7ea97e91-955c-49ca-9424-513cc4de99c9","spanId":"d92aee76-09a6-49","component":"server_bootstrap","port":4219,"env":"test"}
+
+ [32m✓[39m tests/unit/client-portal-and-operations.test.ts [2m([22m[2m24 tests[22m[2m)[22m[33m 339[2mms[22m[39m
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate
+[22m[39m{"timestamp":"2026-10-12T23:13:07.931Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"f5805e70-9e14-49b0-988c-31329fcd35f6","spanId":"c7079578-f98e-4a","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate
+[22m[39mprisma:error 
+Invalid `getPrismaClient().mediaAssetRecord.findMany()` invocation in
+/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:481:57
+
+  478 }
+  479 
+  480 export async function loadMediaAssetRecords(): Promise<MediaAssetRecord[]> {
+→ 481   const rows = await getPrismaClient().mediaAssetRecord.findMany(
+User was denied access on the database `(not available)`
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate
+[22m[39m{"timestamp":"2026-10-12T23:13:08.069Z","level":"WARN","message":"Durable store hydration failed — release-critical surfaces start empty","traceId":"01d503e0-4573-4385-a6c9-a7ed7361a1ba","spanId":"16f97a6f-e1ff-4a","component":"server_bootstrap","error":"PrismaClientKnownRequestError: \nInvalid `getPrismaClient().mediaAssetRecord.findMany()` invocation in\n/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:481:57\n\n  478 }\n  479 \n  480 export async function loadMediaAssetRecords(): Promise<MediaAssetRecord[]> {\n→ 481   const rows = await getPrismaClient().mediaAssetRecord.findMany(\nUser was denied access on the database `(not available)`"}
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate
+[22m[39mprisma:error 
+Invalid `prisma.$queryRawUnsafe()` invocation:
+
+
+Raw query failed. Code: `28000`. Message: `role "root" does not exist`
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate
+[22m[39m{"timestamp":"2026-10-12T23:13:08.077Z","level":"INFO","message":"VMNL Enterprise Server listening on port 4288","traceId":"2fa4fca4-159e-4dd6-a86d-c1254e0e1f7e","spanId":"7ce1299c-1ea2-4e","component":"server_bootstrap","port":4288,"env":"test"}
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate
+[22m[39m
+[TSK-14] rights clearance path under test: in-memory sandbox (Rule 0.4a — not persistence)
+
+ [32m✓[39m tests/integration/rights-clearance-e2e.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 241[2mms[22m[39m
+[90mstdout[2m | tests/security/abuse-and-fuzzing.test.ts[2m > [22m[2mT-20 (B-17): Security Abuse & Fuzzing Protection
+[22m[39m{"timestamp":"2026-10-12T23:13:08.673Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"8b7e4099-025e-4b50-a1a5-11b678e3ef05","spanId":"0906e2a7-8b77-44","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+[90mstdout[2m | tests/security/abuse-and-fuzzing.test.ts[2m > [22m[2mT-20 (B-17): Security Abuse & Fuzzing Protection
+[22m[39mprisma:error 
+Invalid `getPrismaClient().mediaAssetRecord.findMany()` invocation in
+/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:481:57
+
+  478 }
+  479 
+  480 export async function loadMediaAssetRecords(): Promise<MediaAssetRecord[]> {
+→ 481   const rows = await getPrismaClient().mediaAssetRecord.findMany(
+User was denied access on the database `(not available)`
+
+[90mstdout[2m | tests/security/abuse-and-fuzzing.test.ts[2m > [22m[2mT-20 (B-17): Security Abuse & Fuzzing Protection
+[22m[39m{"timestamp":"2026-10-12T23:13:08.839Z","level":"WARN","message":"Durable store hydration failed — release-critical surfaces start empty","traceId":"a7fa9003-8023-4f4c-82f2-a66ad6411e89","spanId":"bc6cd1c3-e6e9-43","component":"server_bootstrap","error":"PrismaClientKnownRequestError: \nInvalid `getPrismaClient().mediaAssetRecord.findMany()` invocation in\n/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:481:57\n\n  478 }\n  479 \n  480 export async function loadMediaAssetRecords(): Promise<MediaAssetRecord[]> {\n→ 481   const rows = await getPrismaClient().mediaAssetRecord.findMany(\nUser was denied access on the database `(not available)`"}
+
+[90mstdout[2m | tests/security/abuse-and-fuzzing.test.ts[2m > [22m[2mT-20 (B-17): Security Abuse & Fuzzing Protection
+[22m[39mprisma:error 
+Invalid `prisma.$queryRawUnsafe()` invocation:
+
+
+Raw query failed. Code: `28000`. Message: `role "root" does not exist`
+
+[90mstdout[2m | tests/security/abuse-and-fuzzing.test.ts[2m > [22m[2mT-20 (B-17): Security Abuse & Fuzzing Protection
+[22m[39m{"timestamp":"2026-10-12T23:13:08.847Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"336398ee-17ae-4edc-ab53-55bd23a92ff3","spanId":"7cd2c47b-86b7-45","component":"server_bootstrap","port":0,"env":"test"}
+
+[90mstdout[2m | tests/security/abuse-and-fuzzing.test.ts[2m > [22m[2mT-20 (B-17): Security Abuse & Fuzzing Protection[2m > [22m[2mhandles malformed JSON body gracefully without crashing server (400 Bad Request)
+[22m[39m{"timestamp":"2026-10-12T23:13:08.890Z","level":"ERROR","message":"Invalid JSON body payload","traceId":"0c9fda37-8016-44d4-ab19-a247bd02b810","spanId":"efe24ce6-d6f5-4d","component":"api_router","stack":"Error: Invalid JSON body payload\n    at parseJsonBody (/Users/deprof/www/vmng/src/api/router.ts:510:11)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:3695:20)\n    at /Users/deprof/www/vmng/src/api/server.ts:593:7\n    at serveRequestInJournalGroup (/Users/deprof/www/vmng/src/api/server.ts:591:3)","duration":1}
+
+[90mstderr[2m | tests/security/abuse-and-fuzzing.test.ts[2m > [22m[2mT-20 (B-17): Security Abuse & Fuzzing Protection[2m > [22m[2mhandles malformed JSON body gracefully without crashing server (400 Bad Request)
+[22m[39m[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+ [32m✓[39m tests/security/abuse-and-fuzzing.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 266[2mms[22m[39m
+[90mstdout[2m | tests/unit/broadcast-schedule-lifecycle.test.ts[2m > [22m[2mTSK-12 (CA-14): the schedule machine is the PRD §15 chain
+[22m[39mprisma:error 
+Invalid `prisma.$queryRawUnsafe()` invocation:
+
+
+Raw query failed. Code: `28000`. Message: `role "root" does not exist`
+
+ [32m✓[39m tests/unit/broadcast-schedule-lifecycle.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 129[2mms[22m[39m
+[90mstdout[2m | tests/unit/auth-shared-across-instances.test.ts
+[22m[39mprisma:error 
+Invalid `prisma.$queryRawUnsafe()` invocation:
+
+
+Raw query failed. Code: `28000`. Message: `role "root" does not exist`
+
+[90mstderr[2m | tests/unit/auth-shared-across-instances.test.ts
+[22m[39m[TSK-27] no reachable Postgres (
+Invalid `prisma.$queryRawUnsafe()` invocation:
+
+
+Raw query failed. Code: `28000`. Message: `role "root" does not exist`): the readiness half of the KV gating is NOT verified in this run.
+
+ [32m✓[39m tests/unit/auth-shared-across-instances.test.ts [2m([22m[2m12 tests[22m[2m | [22m[33m1 skipped[39m[2m)[22m[33m 307[2mms[22m[39m
+ [32m✓[39m tests/unit/inline-style-codemod.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 204[2mms[22m[39m
+[90mstdout[2m | tests/unit/production-core-and-infrastructure.test.ts[2m > [22m[2mProduction Core & Background Infrastructure[2m > [22m[2m1. Database Repositories (Prisma CRUD with Resilient Fallback)
+[22m[39mprisma:error 
+Invalid `prisma.$queryRawUnsafe()` invocation:
+
+
+Raw query failed. Code: `28000`. Message: `role "root" does not exist`
+
+[90mstdout[2m | tests/unit/production-core-and-infrastructure.test.ts[2m > [22m[2mProduction Core & Background Infrastructure[2m > [22m[2m1. Database Repositories (Prisma CRUD with Resilient Fallback)
+[22m[39m[TSK-05] repository path under test: in-memory fallback (no DB reachable)
+
+ [32m✓[39m tests/unit/production-core-and-infrastructure.test.ts [2m([22m[2m22 tests[22m[2m)[22m[32m 219[2mms[22m[39m
+ [32m✓[39m tests/unit/hygiene-guards.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 179[2mms[22m[39m
+ [32m✓[39m tests/unit/canonical-model.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 167[2mms[22m[39m
+[90mstdout[2m | tests/unit/broadcast-rights-gate.test.ts[2m > [22m[2mTSK-10 (CA-07): approval, amendment and export decide on the registered RightsRecord
+[22m[39mprisma:error 
+Invalid `prisma.$queryRawUnsafe()` invocation:
+
+
+Raw query failed. Code: `28000`. Message: `role "root" does not exist`
+
+[90mstdout[2m | tests/unit/broadcast-rights-gate.test.ts[2m > [22m[2mTSK-10 (CA-07): approval, amendment and export decide on the registered RightsRecord
+[22m[39m
+[TSK-10] rights gate path under test: in-memory sandbox (Rule 0.4a — not persistence)
+
+ [32m✓[39m tests/unit/broadcast-rights-gate.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 111[2mms[22m[39m
+[90mstdout[2m | tests/unit/todo-remediation.test.ts[2m > [22m[2mTODO-BCST-02: EPG export honesty gate[2m > [22m[2mexports real XMLTV when an approved, rights-cleared schedule source is connected
+[22m[39mprisma:error 
+Invalid `prisma.$queryRawUnsafe()` invocation:
+
+
+Raw query failed. Code: `28000`. Message: `role "root" does not exist`
+
+ [32m✓[39m tests/unit/todo-remediation.test.ts [2m([22m[2m37 tests[22m[2m)[22m[32m 140[2mms[22m[39m
+[90mstdout[2m | tests/integration/journey-failure-drills.test.ts
+[22m[39mprisma:error 
+Invalid `prisma.$queryRawUnsafe()` invocation:
+
+
+Raw query failed. Code: `28000`. Message: `role "root" does not exist`
+
+ [32m✓[39m tests/integration/journey-failure-drills.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 115[2mms[22m[39m
+ [32m✓[39m tests/unit/systems-of-record.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 97[2mms[22m[39m
+[90mstdout[2m | tests/unit/observability.test.ts[2m > [22m[2mPhase 10: Observability & OpenTelemetry Instrumentation[2m > [22m[2mgenerates trace contexts, outputs structured logs, and triggers automated SLA alerts
+[22m[39m{"timestamp":"2026-10-12T23:13:13.589Z","level":"INFO","message":"Automation playlist loaded for StarTimes DTT","traceId":"d3448a45-a245-4b2b-8f41-9a863a9275c1","spanId":"b0926b9f-777b-4e","component":"BROADCAST_PLAYOUT","channel":"NXTR","itemCount":48}
+
+[90mstderr[2m | tests/unit/observability.test.ts[2m > [22m[2mPhase 10: Observability & OpenTelemetry Instrumentation[2m > [22m[2mgenerates trace contexts, outputs structured logs, and triggers automated SLA alerts
+[22m[39m[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 0.15% > 0.1%
+[VMNL-ALERT] [WARNING] PLAYOUT_LATENCY_DEGRADATION: Playout API latency elevated: 650ms > 500ms
+[VMNL-ALERT] [CRITICAL] ELEVATED_DLQ_DEPTH: Azeebo+ federation DLQ backlog exceeded threshold: 25 items > 10
+
+ [32m✓[39m tests/unit/observability.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 71[2mms[22m[39m
+ [32m✓[39m tests/unit/rendered-html-invariants.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 60[2mms[22m[39m
+[90mstdout[2m | tests/unit/register-inheritance.test.ts[2m > [22m[2mTSK-07 (CA-06): the surviving register resolves every inherited identifier[2m > [22m[2mcarries a census row for every inherited identifier cited anywhere in the repository
+[22m[39m
+[TSK-07] inherited-identifier census — rows: 71 · IDs covered: 72 · cited in tree: 72 · uncited rows: 0 (none)
+[TSK-07] dispositions: {"CLOSED":61,"HUMAN":5,"CLOSED_WITH_HUMAN":4,"REOPENED":1}
+
+ [32m✓[39m tests/unit/register-inheritance.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 67[2mms[22m[39m
+ [32m✓[39m tests/unit/styleguide.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 46[2mms[22m[39m
+ [32m✓[39m tests/unit/admissions.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 29[2mms[22m[39m
+[90mstdout[2m | tests/unit/broadcast-provenance-coverage.test.ts
+[22m[39m[TSK-25] screens 33 · banner 33 · without 0 · bespoke panels 6 (SCR-BCST-12 via renderScheduleGridTimelineHtml, SCR-BCST-23 via renderLivePlayoutMonitorHtml, SCR-BCST-22 via renderPlaylistLockViewHtml, SCR-BCST-24 via renderAsRunReconciliationDiffHtml, SCR-BCST-14 via renderEpgInspectorDiffHtml, SCR-BCST-31 via renderBroadcastYieldAnalyticsHtml) · KPI strips 33 · fabricated kpis left in the label table 0
+
+[90mstdout[2m | tests/unit/broadcast-provenance-coverage.test.ts[2m > [22m[2mTSK-25: provenance-banner coverage, measured by rendering[2m > [22m[2mmeasures the census the "3/33" claim was standing in for, after the TSK-11 rewiring
+[22m[39m[TSK-25] screens still showing an unsourced badge: 33/33
+[TSK-25] screens serving a DOMAIN_ENGINE SOURCE: badge: 1/33 (SCR-BCST-02)
+
+ [32m✓[39m tests/unit/broadcast-provenance-coverage.test.ts [2m([22m[2m31 tests[22m[2m)[22m[32m 33[2mms[22m[39m
+ [32m✓[39m tests/unit/token-discipline.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 46[2mms[22m[39m
+ [32m✓[39m tests/unit/poa-delivery-exceptions.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 29[2mms[22m[39m
+ [32m✓[39m tests/a11y/visual-regression-baseline.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 38[2mms[22m[39m
+ [32m✓[39m tests/unit/public-surfaces.test.ts [2m([22m[2m18 tests[22m[2m)[22m[32m 36[2mms[22m[39m
+ [32m✓[39m tests/unit/vtm-portal.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 27[2mms[22m[39m
+ [32m✓[39m tests/integration/enquiry-failure-drill.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/unit/federation-destination-registry.test.ts [2m([22m[2m20 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m tests/unit/broadcast.test.ts [2m([22m[2m18 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+ [32m✓[39m tests/unit/hub-talent.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m tests/unit/broadcast-advances.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/uat-broadcast-failure-drills.test.ts [2m([22m[2m29 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m tests/unit/public-provenance.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m tests/unit/config.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m tests/unit/wiring.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m tests/unit/stylesheet-resolution.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m tests/a11y/responsive.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/unit/scr-desk-rewiring.test.ts [2m([22m[2m21 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+ [32m✓[39m tests/unit/intelligence.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+[90mstdout[2m | tests/unit/audit-implementation-hardening.test.ts[2m > [22m[2maudit implementation hardening[2m > [22m[2mAUD-03/04: production boot refuses memory-only KV backend[2m > [22m[2mthrows when production boots resolve the in-memory adapter
+[22m[39m{"timestamp":"2026-10-12T23:13:20.778Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"a504dd9c-567f-48d1-9b29-d84e53523a27","spanId":"173c16bf-e811-40","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+ [32m✓[39m tests/unit/audit-implementation-hardening.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+[90mstdout[2m | tests/unit/durability-drill-coverage.test.ts[2m > [22m[2mTSK-47: every durable domain has a restart/failure drill[2m > [22m[2mprints the coverage census the register quotes
+[22m[39m
+[TSK-47] durable domains: 16 · registered stores in src/: 15 · reader branches: 16 · restart reads in the suite: 18
+  enquiry             2 restart drill(s)  TSK-17  src/modules/hub/enquiry/index.ts:69
+  approval            1 restart drill(s)  TSK-17  src/core/approvals/index.ts:61
+  case                1 restart drill(s)  TSK-17  src/core/cases/index.ts:35
+  risk                1 restart drill(s)  TSK-17  src/core/work/index.ts:174
+  issue               1 restart drill(s)  TSK-17  src/core/work/index.ts:175
+  destination         1 restart drill(s)  TSK-17  src/core/federation/destinations.ts:41
+  mediaAsset          1 restart drill(s)  TSK-17  src/core/storage/index.ts:325
+  session             1 restart drill(s)  TSK-17  src/core/auth/sessions.ts:53
+  idempotency         1 restart drill(s)  TSK-17  src/core/websecurity/index.ts:264
+  content             1 restart drill(s)  TSK-17  src/core/content/index.ts:104
+  journal             1 restart drill(s)  TSK-32  src/modules/finance/ledger/index.ts:83
+  sponsorBinding      1 restart drill(s)  TSK-16  src/modules/broadcast/sponsorship/index.ts:26
+  sponsorFulfillment  1 restart drill(s)  TSK-16  src/modules/broadcast/sponsorship/index.ts:27
+  salesDeal           2 restart drill(s)  TSK-60  src/modules/finance/sales/index.ts:28
+  auditLedger         1 restart drill(s)  TSK-18  src/core/audit/index.ts:177
+  providerClaim       1 restart drill(s)  TSK-19  claim row (not journal-staged)
+
+[90mstdout[2m | tests/unit/durability-drill-coverage.test.ts[2m > [22m[2mTSK-47: the journey-drill census the register prints is the file's[2m > [22m[2mnames the drill ids so a silent deletion shows up as a change, not a pass
+[22m[39m[TSK-47] journey failure drills (13): DRILL-APP-01, DRILL-APP-02, DRILL-SCHED-01, DRILL-RIGHTS-01, DRILL-RECON-01, DRILL-RECON-02, DRILL-PUB-01, DRILL-NAV-01, DRILL-FIN-01, DRILL-FIN-02, DRILL-FIN-03, DRILL-GATE-01, DRILL-TRAFFIC-01
+
+ [32m✓[39m tests/unit/durability-drill-coverage.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+[90mstdout[2m | tests/unit/ac-traceability.test.ts[2m > [22m[2mTSK-43 (CA-21): the AC traceability index claims only what tests label[2m > [22m[2mreports the measured AC census
+[22m[39m
+[TSK-43] AC census — rows: 16 · claimed IDs (ranges expanded): 103 · labelled in tests: 17 · unlabelled: 86
+[TSK-43] | Commercial enquiry & intake | R03 | PARTIAL | ids 12 | labelled 8 | unlabelled: R03-07,R03-09,R03-10,R03-12
+[TSK-43] | Identity: sign-in / MFA / invitations / sessions | R02 | IMPLEMENTED | ids 14 | labelled 0 | unlabelled: R02-01,R02-02,R02-03,R02-04,R02-05,R02-06,R02-07,R02-08,R02-09,R02-10,R02-11,R02-12,R02-13,R02-14
+[TSK-43] | Workspace & route authorization | R02/R05 | IMPLEMENTED | ids 9 | labelled 0 | unlabelled: R05-01,R05-02,R05-03,R05-04,R05-05,R05-06,R05-07,R05-08,R05-09
+[TSK-43] | Approved media picker (UX-CMS-006) | R05 (CMS) | PARTIAL | ids 5 | labelled 3 | unlabelled: 04,05
+[TSK-43] | Quote-to-cash & ledger | R06 | IMPLEMENTED | ids 12 | labelled 0 | unlabelled: R06-01,R06-02,R06-03,R06-04,R06-05,R06-06,R06-07,R06-08,R06-09,R06-10,R06-11,R06-12
+[TSK-43] | Broadcast schedule lifecycle | R07 | IMPLEMENTED | ids 8 | labelled 0 | unlabelled: R07-01,R07-02,R07-03,R07-04,R07-05,R07-06,R07-07,R07-08
+[TSK-43] | Schedule approval & rights clearance (TSK-10 / CA-07) | R07 | VERIFIED | ids 6 | labelled 6 | all labelled
+[TSK-43] | Sponsorship binding & fulfillment | R07 | IMPLEMENTED | ids 4 | labelled 0 | unlabelled: R07-09,R07-10,R07-11,R07-12
+[TSK-43] | Events gate & offline scans | R08 | IMPLEMENTED | ids 8 | labelled 0 | unlabelled: R08-01,R08-02,R08-03,R08-04,R08-05,R08-06,R08-07,R08-08
+[TSK-43] | Content publication | R09 | IMPLEMENTED | ids 10 | labelled 0 | unlabelled: R09-01,R09-02,R09-03,R09-04,R09-05,R09-06,R09-07,R09-08,R09-09,R09-10
+[TSK-43] | Syndication & royalties | R10 | IMPLEMENTED | ids 6 | labelled 0 | unlabelled: R10-01,R10-02,R10-03,R10-04,R10-05,R10-06
+[TSK-43] | Federation & payment visibility | R11 | IMPLEMENTED | ids 8 | labelled 0 | unlabelled: R11-01,R11-02,R11-03,R11-04,R11-05,R11-06,R11-07,R11-08
+[TSK-43] | Backup / restore readiness (PRC-08) | R14-adjacent (operations) | DRILL-VERIFIED | ids 1 | labelled 0 | unlabelled: 01
+[TSK-43] | Usability & AT validation | R13 | NOT_RUN | ids 0 | labelled 0 | all labelled
+[TSK-43] | Manual accessibility coverage | R12 | PARTIAL | ids 0 | labelled 0 | all labelled
+[TSK-43] | StarTimes carriage interface | R14 (BG6) | NOT_TESTED | ids 0 | labelled 0 | all labelled
+
+ [32m✓[39m tests/unit/ac-traceability.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+[90mstdout[2m | tests/unit/audit.test.ts
+[22m[39mprisma:error 
+Invalid `prisma.$queryRawUnsafe()` invocation:
+
+
+Raw query failed. Code: `28000`. Message: `role "root" does not exist`
+
+[90mstderr[2m | tests/unit/audit.test.ts
+[22m[39m[TSK-18] SKIP: no reachable Postgres (
+Invalid `prisma.$queryRawUnsafe()` invocation:
+
+
+Raw query failed. Code: `28000`. Message: `role "root" does not exist`). The audit ledger's durable reads and transactional writes below are unmeasured in this run.
+
+ [32m✓[39m tests/unit/audit.test.ts [2m([22m[2m8 tests[22m[2m | [22m[33m2 skipped[39m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m tests/unit/hub-production.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m tests/unit/storage.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/a11y/accessibility-audit.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/tokens-contrast.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m tests/unit/finance.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m tests/unit/domain.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/federation.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m tests/unit/feature-flags.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+[90mstdout[2m | tests/security/route-guard-parity.test.ts[2m > [22m[2mTSK-29: mutating-route ↔ guard parity (CA-31)[2m > [22m[2mfinds the mutating dispatch sites it claims to find
+[22m[39m[TSK-29] mutating dispatch sites 117 (API 104) · guards 75 · inline-enforced 59 · handler-scoped documented 55 · public by design 11
+
+ [32m✓[39m tests/security/route-guard-parity.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/unit/finance-minor-units.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/prototypes-and-shells.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/reconciliation-mt940.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/quality-gates.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/rbac.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+[90mstdout[2m | tests/unit/durability-release-critical.test.ts
+[22m[39mprisma:error 
+Invalid `prisma.$queryRawUnsafe()` invocation:
+
+
+Raw query failed. Code: `28000`. Message: `role "root" does not exist`
+
+[90mstderr[2m | tests/unit/durability-release-critical.test.ts
+[22m[39m[TSK-17] SKIP: no reachable Postgres (
+Invalid `prisma.$queryRawUnsafe()` invocation:
+
+
+Raw query failed. Code: `28000`. Message: `role "root" does not exist`). Restart durability is NOT verified in this run.
+
+ [2m[90m↓[39m[22m tests/unit/durability-release-critical.test.ts [2m([22m[2m19 tests[22m[2m | [22m[33m19 skipped[39m[2m)[22m
+
+[2m Test Files [22m [1m[32m67 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (68)[39m
+[2m      Tests [22m [1m[32m794 passed[39m[22m[2m | [22m[33m25 skipped[39m[90m (819)[39m
+[2m   Start at [22m 00:12:51
+[2m   Duration [22m 34.96s[2m (transform 2.67s, setup 0ms, import 15.17s, tests 9.72s, environment 5ms)[22m
+

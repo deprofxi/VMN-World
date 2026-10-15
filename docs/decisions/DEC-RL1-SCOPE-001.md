@@ -15,6 +15,14 @@ UIUX-CCPP-001 §1.4 requires a decision record identifying, for every partial or
 
 **Precedence rule (CCPP §6.1):** This decision, once signed, is a Level-3 "approved release-scope decision" and resolves the conflict. Until signed, the governing docx deferrals remain in force and `tasks.md`/`LATEST.md` claims of "225/225 screens operational / zero deferred dead-ends" must not be relied on for release decisions.
 
+**Measured 2026-10-07 (TSK-24):** the figure this record repudiates is now machine-checkable rather than
+a matter of which prose was written last. `docs/decisions/screen-register.json` (R1.2) holds **60 entries
+standing for 226 documented IDs**, and `tests/unit/screen-register-verification.test.ts` measures their
+provenance as **75 DOMAIN_ENGINE / 4 NOT_CONNECTED / 147 NOT_VERIFIED** — i.e. neither "225 operational"
+nor "60 screens" is true, and the majority of documented IDs still carry no evidence of a bound engine.
+See `docs/audit/screen-register-verification.md`. This record remains `PENDING_SIGNATURE`; nothing here
+signs it or converts a deferral into an approval.
+
 ## 2. Allocation Values (per CCPP §1.1)
 
 `INCLUDED` — intended in RL1 · `PARTIAL` — a defined portion included · `DELEGATED` — delivered via verified existing system · `DEFERRED` — required but outside RL1 · `BLOCKED` — intended, dependency unavailable.

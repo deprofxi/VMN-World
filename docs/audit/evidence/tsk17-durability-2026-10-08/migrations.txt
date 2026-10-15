@@ -1,0 +1,15 @@
+# npx prisma migrate status
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma/schema.prisma.
+Datasource "db": PostgreSQL database "vmnl_enterprise", schema "public" at "localhost:5432"
+
+7 migrations found in prisma/migrations
+
+Database schema is up to date!
+
+# npx prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --script
+Loaded Prisma config from prisma.config.ts.
+
+-- This is an empty migration.
+

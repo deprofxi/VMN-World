@@ -1,0 +1,132 @@
+TSK-09 — commands behind the closure (2026-10-15)
+
+Every figure in README.md and in the `tasks.md` closures is the stdout of one of
+the commands below, run on this tree. Nothing is transcribed from earlier prose.
+
+## 1. Self-containment, per revision
+
+```bash
+node self-containment-probe.mjs 61355c6   # before the series (script archived beside this file)
+node self-containment-probe.mjs 85aad76   # tip of the code series
+```
+
+The probe lists a revision's own tracked files with `git ls-tree -r <rev>
+--name-only`, reads each one's contents with `git show <rev>:<path>`, resolves
+every relative `from "./…"` import against that same list, and reports the
+imports that resolve to nothing in that revision. `head-self-containment.txt`
+carries both outputs verbatim.
+
+```
+61355c6 → 10 absent imports          85aad76 → 0
+```
+
+Working-tree variant (same resolution rule, contents read from disk): 15 absent
+modules at the moment the series started, which is why the closure says "ten in
+the repository, fifteen as the tree stood".
+
+Files added by the series:
+
+```bash
+git show --name-only --diff-filter=A be8dff9 | grep -c "^src/"      # → 18
+git show --name-only --diff-filter=A 2ce8fab | grep -cE "^(tests|scripts)/"  # → 30
+git show --name-only --diff-filter=A 99ade46 | grep -c "^prisma/"   # → 12
+```
+
+## 2. Migrations deploy from empty (TSK-06 box 1, gate for this box)
+
+```bash
+psql postgresql://root@localhost:5432/postgres -c "CREATE DATABASE vmnl_migrate_scratch_tsk09"
+DATABASE_URL=postgresql://root@localhost:5432/vmnl_migrate_scratch_tsk09?schema=public \
+  CI=1 pnpm exec prisma migrate deploy            # exit 0
+psql …/vmnl_migrate_scratch_tsk09 -tAc "select count(*) from information_schema.tables
+  where table_schema='public'"                     # → 44
+ls -1 prisma/migrations | wc -l                    # → 14  (13 directories + lock)
+git ls-files prisma/migrations | wc -l             # → 2   (before this series)
+psql postgresql://root@localhost:5432/postgres -c "DROP DATABASE vmnl_migrate_scratch_tsk09"
+```
+
+`44` = the **43** declared models plus `_prisma_migrations`. Eleven migration
+directories and `migration_lock.toml` were untracked; only `0_init` and
+`20261013142927_add_composite_keyset_indexes` were in the tree, so CI's
+`prisma migrate deploy` step had almost nothing to apply. The scratch database
+was created by this measurement and dropped by it; no other database was opened.
+
+## 3. Gates
+
+```bash
+CI=1 pnpm lint                        → exit 0   (--max-warnings 0, package.json; lint.txt)
+CI=1 pnpm typecheck                   → exit 0   (typecheck.txt)
+CI=1 pnpm build                       → exit 0   (build.txt)
+CI=1 … NODE_ENV=test pnpm test        → 78 files / 872 tests / 0 skipped, exit 0 (full-suite.txt)
+CI=1 … pnpm test:coverage             → exit 0, All files 79.09 | 70.43 | 82.92 | 80.43 (test-coverage.txt)
+node scripts/audit-check.js           → exit 0
+node scripts/audit-threshold.js       → exit 0
+node scripts/explicit-any-budget.js   → exit 0
+```
+
+`exits.txt` is the one file carrying all five exit codes as they were measured
+(2026-10-15, on the tree the register/docs commit lands). 78 files / 872 tests
+is the census *after* `tests/unit/state-machine-doc-pins.test.ts` (7 tests,
+TSK-41 box 2) joins the suite; the 77/865 figure this archive first recorded was
+the same tree without that guard, and the first lint run of the day was exit 1
+because the self-containment probe was archived as a `.cjs` — the repo's lint
+config gives Node globals to `**/*.mjs` only, so the fix was the rename, not a
+config exception.
+
+Floors in `vitest.config.ts:24-29`: statements 73, branches 62, functions 77,
+lines 72. The run clears all four, which is the precondition for letting
+`.github/workflows/ci.yml:95` (`pnpm run test:coverage`) enforce them on CI.
+
+## 4. Secrets and hygiene
+
+```bash
+git check-ignore -v .env                          → .gitignore:65:*.env   .env
+git ls-files | grep -E "^\.env"                   → .env.example only
+grep -rlE "AKIA[0-9A-Z]{16}|-----BEGIN (RSA|OPEN|EC|PRIVATE)|ghp_[A-Za-z0-9]{20}|AIza[0-9A-Za-z_]{30}|sk_live_[A-Za-z0-9]{10}" \
+      <each of the 191 files the 35 dirty paths expand to>  → no matches
+grep -rliE "eyJ[A-Za-z0-9_-]{20,}\.eyJ|postgres(ql)?://[^ ]*:[^ ]*@" \
+      docs/audit/evidence audit.md docs/decisions docs/security \
+      docs/security/route-authorization-coverage.md  → no matches
+```
+
+`.env.example` carries only `CHANGE_ME_…` placeholders and one value named as
+sandbox-only (`POSTGRES_PASSWORD=vmn_sandbox_only_password`, commented as never
+to be reused outside the stack); `.dockerignore` excludes `.env*` except the
+example; `.trivyignore` contains its rules header and no active suppression.
+The two credential-shaped defaults that were in the example before
+(`super-secret-vmnl-token-change-in-production-min-32-chars`, and
+`ALLOW_SANDBOX_FALLBACK=true`) are replaced by placeholders in this series.
+
+## 5. Residual working tree
+
+```bash
+git status --porcelain | wc -l   # → 35 between 85aad76 and the register/docs commit
+git status --porcelain | awk '{print $1}' | sort | uniq -c
+                                 # → 25 ?? + 9 M + 1 D = 35
+```
+
+Composition of the 35: **17** previously-untracked evidence archives under
+`docs/audit/evidence/`, **8** other untracked paths (`audit.md`,
+`docs/audit/desk-census.md`, `docs/audit/screen-register-verification.md`,
+`docs/decisions/DEC-REGISTER-SURVIVOR-001.md`,
+`docs/decisions/DEC-CCPP-SECTION3-STRUCTURE-001.md`,
+`docs/security/route-authorization-coverage.md`,
+`tests/unit/state-machine-doc-pins.test.ts` and `pages.pdf`), **9** modified
+documents/tests (`tasks.md`, `docs/domain/state-machines.md`,
+`docs/audit/ac-traceability-index.md`, `docs/audit/dependency-triage.md`,
+`docs/audit/todo-remediation-evidence.md`, `docs/decisions/DEC-RL1-SCOPE-001.md`,
+`docs/decisions/screen-register.json`, `tests/unit/citation-integrity.test.ts`,
+`tests/unit/register-inheritance.test.ts`) and the recorded **deletion** of
+`todo.md`. `git status --porcelain` collapses an untracked directory to one
+line, so 35 is the porcelain census, which is how the register's earlier
+"114 dirty paths" figure was measured too.
+
+```bash
+git status --porcelain | wc -l   # → 1 (pages.pdf), by the decision recorded in README.md
+```
+
+`pages.pdf` is generated by `scripts/generate-pages-pdf.mjs` and cited by
+nothing; committing it would put a binary artifact in history for no evidential
+gain. The series retires the register's "114 dirty paths" and the re-measured
+189/246. Any later closure edit re-dirties the tree by design — the claim is the
+series, not a permanently clean working tree.

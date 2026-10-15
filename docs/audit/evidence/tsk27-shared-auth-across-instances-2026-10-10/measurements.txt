@@ -1,0 +1,29 @@
+## Measurements — 2026-10-11 (UTC), same tree as the gate logs
+
+kvGetJson in src/: 0  (CA-26's Map-first read — deleted)
+isTokenIdRevokedAsync in src/: 0  (dead async revocation helper — deleted)
+kvSetJson / kvDelJson in src/: 0  (write-only mirror helpers — deleted)
+resolveSessionUser call sites (excl. definition): 93
+prisma.user writes in src/: 0  (identity is still not a User table — TSK-20's M label)
+
+--- every file:line this closure publishes, opened:
+cites opened: 73 · mismatches: 0
+
+--- fleet-shared key names:
+`auth:fail:${emailKey}`
+`auth:lock:${emailKey}`
+`auth:mfa-consumed:${challengeId}`
+`revoked:${tokenId}`
+`session:${id}`
+`session:${tokenId}`
+`user:${emailKey}`
+`user:`
+
+--- baseline:
+ce098f8
+     192
+  63 ??
+   2 D
+ 127 M
+     268
+git remote -v lines: 0

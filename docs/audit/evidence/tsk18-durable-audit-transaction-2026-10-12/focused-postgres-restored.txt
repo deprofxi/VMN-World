@@ -1,0 +1,128 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.11 [39m[90m/Users/deprof/www/vmng[39m
+
+[90mstdout[2m | tests/unit/audit-remediation-regressions.test.ts[2m > [22m[2mverified audit remediations[2m > [22m[2mHTTP boundaries[2m > [22m[2mrequires CSRF on cookie-authenticated writes, denies cross-site origins, and preserves public intake
+[22m[39m{"timestamp":"2026-10-12T23:24:02.136Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"3df42066-3f55-4b84-bbb6-842a9541f79f","spanId":"7bea75fd-7eb2-4c","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+[90mstdout[2m | tests/unit/audit-remediation-regressions.test.ts[2m > [22m[2mverified audit remediations[2m > [22m[2mHTTP boundaries[2m > [22m[2mrequires CSRF on cookie-authenticated writes, denies cross-site origins, and preserves public intake
+[22m[39m{"timestamp":"2026-10-12T23:24:02.389Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"c95b1dd6-88be-4d09-9e44-f2de8049e4d9","spanId":"4042ac5a-c69c-46","component":"server_bootstrap","port":0,"env":"test"}
+
+[90mstdout[2m | tests/unit/audit-remediation-regressions.test.ts[2m > [22m[2mverified audit remediations[2m > [22m[2mHTTP boundaries[2m > [22m[2mrejects incomplete signed payments and unsupported event types before ingestion
+[22m[39mprisma:error 
+Invalid `getPrismaClient().providerEventClaim.create()` invocation in
+/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:912:48
+
+  909 const now = new Date();
+  910 const id = `${provider}:${eventId}`;
+  911 try {
+→ 912   await getPrismaClient().providerEventClaim.create(
+Unique constraint failed on the constraint: `ProviderEventClaim_pkey`
+
+[90mstdout[2m | tests/unit/audit-remediation-regressions.test.ts[2m > [22m[2mverified audit remediations[2m > [22m[2mHTTP boundaries[2m > [22m[2mre-processes a provider retry whose earlier attempt claimed the event and never ingested it (TSK-19)
+[22m[39mprisma:error 
+Invalid `getPrismaClient().providerEventClaim.create()` invocation in
+/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:912:48
+
+  909 const now = new Date();
+  910 const id = `${provider}:${eventId}`;
+  911 try {
+→ 912   await getPrismaClient().providerEventClaim.create(
+Unique constraint failed on the constraint: `ProviderEventClaim_pkey`
+
+[90mstdout[2m | tests/unit/audit-remediation-regressions.test.ts[2m > [22m[2mverified audit remediations[2m > [22m[2mHTTP boundaries[2m > [22m[2mre-processes a provider retry whose earlier attempt claimed the event and never ingested it (TSK-19)
+[22m[39mprisma:error 
+Invalid `getPrismaClient().providerEventClaim.create()` invocation in
+/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:912:48
+
+  909 const now = new Date();
+  910 const id = `${provider}:${eventId}`;
+  911 try {
+→ 912   await getPrismaClient().providerEventClaim.create(
+Unique constraint failed on the constraint: `ProviderEventClaim_pkey`
+
+ [32m✓[39m tests/unit/audit-remediation-regressions.test.ts [2m([22m[2m12 tests[22m[2m)[22m[33m 705[2mms[22m[39m
+       [33m[2m✓[22m[39m requires CSRF on cookie-authenticated writes, denies cross-site origins, and preserves public intake [33m 613[2mms[22m[39m
+[90mstdout[2m | tests/unit/durability-drill-coverage.test.ts[2m > [22m[2mTSK-47: every durable domain has a restart/failure drill[2m > [22m[2mprints the coverage census the register quotes
+[22m[39m
+[TSK-47] durable domains: 16 · registered stores in src/: 15 · reader branches: 16 · restart reads in the suite: 18
+  enquiry             2 restart drill(s)  TSK-17  src/modules/hub/enquiry/index.ts:69
+  approval            1 restart drill(s)  TSK-17  src/core/approvals/index.ts:61
+  case                1 restart drill(s)  TSK-17  src/core/cases/index.ts:35
+  risk                1 restart drill(s)  TSK-17  src/core/work/index.ts:174
+  issue               1 restart drill(s)  TSK-17  src/core/work/index.ts:175
+  destination         1 restart drill(s)  TSK-17  src/core/federation/destinations.ts:41
+  mediaAsset          1 restart drill(s)  TSK-17  src/core/storage/index.ts:325
+  session             1 restart drill(s)  TSK-17  src/core/auth/sessions.ts:53
+  idempotency         1 restart drill(s)  TSK-17  src/core/websecurity/index.ts:264
+  content             1 restart drill(s)  TSK-17  src/core/content/index.ts:104
+  journal             1 restart drill(s)  TSK-32  src/modules/finance/ledger/index.ts:83
+  sponsorBinding      1 restart drill(s)  TSK-16  src/modules/broadcast/sponsorship/index.ts:26
+  sponsorFulfillment  1 restart drill(s)  TSK-16  src/modules/broadcast/sponsorship/index.ts:27
+  salesDeal           2 restart drill(s)  TSK-60  src/modules/finance/sales/index.ts:28
+  auditLedger         1 restart drill(s)  TSK-18  src/core/audit/index.ts:177
+  providerClaim       1 restart drill(s)  TSK-19  claim row (not journal-staged)
+
+[90mstdout[2m | tests/unit/durability-drill-coverage.test.ts[2m > [22m[2mTSK-47: the journey-drill census the register prints is the file's[2m > [22m[2mnames the drill ids so a silent deletion shows up as a change, not a pass
+[22m[39m[TSK-47] journey failure drills (13): DRILL-APP-01, DRILL-APP-02, DRILL-SCHED-01, DRILL-RIGHTS-01, DRILL-RECON-01, DRILL-RECON-02, DRILL-PUB-01, DRILL-NAV-01, DRILL-FIN-01, DRILL-FIN-02, DRILL-FIN-03, DRILL-GATE-01, DRILL-TRAFFIC-01
+
+ [32m✓[39m tests/unit/durability-drill-coverage.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+[90mstdout[2m | tests/unit/audit.test.ts[2m > [22m[2mTSK-18: the audit ledger is durable and lands with its transaction[2m > [22m[2mcrash between writes: the ledger entry rolls back with the rows it attests, and the failure is signalled
+[22m[39m{"timestamp":"2026-10-12T23:24:03.380Z","level":"WARN","message":"Audit durable write rolled back with its transaction; ledger degraded to in-memory (prisma_error)","component":"audit","entryId":"f31626ac-dd4a-42a7-a05f-dfc28fd54942","reason":"[TSK-18 TEST] durable write rejected for tsk18-mv5vpbvm-c41fad95-boom"}
+
+ [32m✓[39m tests/unit/audit.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 87[2mms[22m[39m
+[90mstdout[2m | tests/unit/durability-release-critical.test.ts[2m > [22m[2mTSK-17: the HTTP response path is what drains the journal
+[22m[39m{"timestamp":"2026-10-12T23:24:11.524Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"58719dfb-ff8a-4414-bc05-553969e6e18f","spanId":"a57a814b-a96a-44","component":"server_bootstrap","assets":251,"items":1,"revisions":1,"bindings":0,"fulfillments":0,"deals":0}
+
+[90mstdout[2m | tests/unit/durability-release-critical.test.ts[2m > [22m[2mTSK-17: the HTTP response path is what drains the journal
+[22m[39m{"timestamp":"2026-10-12T23:24:11.574Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"ec8cb41a-62bf-44ef-b302-ea1a12d1ba96","spanId":"daa2d1b4-b793-40","component":"server_bootstrap","port":0,"env":"test"}
+
+[90mstdout[2m | tests/unit/durability-release-critical.test.ts[2m > [22m[2mTSK-17: the HTTP response path is what drains the journal[2m > [22m[2mfails closed with 503 and rolls the approval back when Postgres rejects the row
+[22m[39mprisma:error 
+Invalid `getPrismaClient().approvalItem.upsert()` invocation in
+/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:146:40
+
+  143 // ---------------------------------------------------------------------------
+  144 
+  145 export async function persistApprovalItem(record: ApprovalItem): Promise<void> {
+→ 146   await getPrismaClient().approvalItem.upsert(
+Value out of range for the type: numeric field overflow
+
+[90mstderr[2m | tests/unit/durability-release-critical.test.ts[2m > [22m[2mTSK-17: the HTTP response path is what drains the journal[2m > [22m[2mfails closed with 503 and rolls the approval back when Postgres rejects the row
+[22m[39m[VMNL-ALERT] [CRITICAL] AUDIT_DURABLE_PERSISTENCE_DEGRADED: Audit ledger durable write rolled back with its transaction; ledger degraded to in-memory (prisma_error): 1 entry(ies) affected
+
+[90mstdout[2m | tests/unit/durability-release-critical.test.ts[2m > [22m[2mTSK-17: the HTTP response path is what drains the journal[2m > [22m[2mfails closed with 503 and rolls the approval back when Postgres rejects the row
+[22m[39m{"timestamp":"2026-10-12T23:24:12.772Z","level":"WARN","message":"Audit durable write rolled back with its transaction; ledger degraded to in-memory (prisma_error)","component":"audit","entryId":"68b1471f-44e1-4369-8eed-e2c6fe25d92c","reason":"\nInvalid `getPrismaClient().approvalItem.upsert()` invocation in\n/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:146:40\n\n  143 // ---------------------------------------------------------------------------\n  144 \n  145 export async function persistApprovalItem(record: ApprovalItem): Promise<void> {\n→ 146   await getPrismaClient().approvalItem.upsert(\nValue out of range for the type: numeric field overflow"}
+
+[90mstdout[2m | tests/unit/durability-release-critical.test.ts[2m > [22m[2mTSK-17: the HTTP response path is what drains the journal[2m > [22m[2mrefuses a provider replay in a process that never saw the original webhook (TSK-19)
+[22m[39mprisma:error 
+Invalid `getPrismaClient().providerEventClaim.create()` invocation in
+/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:912:48
+
+  909 const now = new Date();
+  910 const id = `${provider}:${eventId}`;
+  911 try {
+→ 912   await getPrismaClient().providerEventClaim.create(
+Unique constraint failed on the constraint: `ProviderEventClaim_pkey`
+
+ [32m✓[39m tests/unit/durability-release-critical.test.ts [2m([22m[2m19 tests[22m[2m)[22m[33m 9363[2mms[22m[39m
+     [33m[2m✓[22m[39m hydrates the enquiry queue from Postgres and keeps the intake contract intact [33m 556[2mms[22m[39m
+     [33m[2m✓[22m[39m persists an approval with its NGN scope exact, not as a float approximation [33m 469[2mms[22m[39m
+     [33m[2m✓[22m[39m keeps the restricted case queue durable, including its audit trail [33m 472[2mms[22m[39m
+     [33m[2m✓[22m[39m persists a risk and an issue, including the issue → risk linkage [33m 926[2mms[22m[39m
+     [33m[2m✓[22m[39m keeps Azeebo+ destination verification state durable, registrant included [33m 461[2mms[22m[39m
+     [33m[2m✓[22m[39m persists a DAM master with exact byte size and its access state [33m 468[2mms[22m[39m
+     [33m[2m✓[22m[39m keeps a session durable without ever storing the raw token [33m 455[2mms[22m[39m
+     [33m[2m✓[22m[39m replays an idempotency outcome from Postgres, response body included [33m 453[2mms[22m[39m
+     [33m[2m✓[22m[39m keeps a CMS revision chain durable, including the superseded revision [33m 481[2mms[22m[39m
+     [33m[2m✓[22m[39m persists a balanced journal entry with its two lines and exact totals [33m 442[2mms[22m[39m
+     [33m[2m✓[22m[39m persists a sponsor binding with its placement counter and fulfilment evidence [33m 1403[2mms[22m[39m
+     [33m[2m✓[22m[39m persists a signed deal through cash and recognition with every money counter exact [33m 469[2mms[22m[39m
+     [33m[2m✓[22m[39m does not invent an approval stamp or proof document a deal never had [33m 463[2mms[22m[39m
+     [33m[2m✓[22m[39m a 201 enquiry response means the row is already in Postgres [33m 1170[2mms[22m[39m
+     [33m[2m✓[22m[39m refuses a provider replay in a process that never saw the original webhook (TSK-19) [33m 496[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m4 passed[39m[22m[90m (4)[39m
+[2m      Tests [22m [1m[32m48 passed[39m[22m[90m (48)[39m
+[2m   Start at [22m 00:24:00
+[2m   Duration [22m 12.62s[2m (transform 1.10s, setup 0ms, import 1.99s, tests 10.17s, environment 0ms)[22m
+

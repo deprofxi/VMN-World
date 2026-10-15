@@ -1,0 +1,5 @@
+
+> vmng@1.0.0 build /Users/deprof/www/vmng
+> tsc
+
+build_exit=0

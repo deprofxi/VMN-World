@@ -1,0 +1,77 @@
+TSK-58 box 2 — fail-closed unowned-asset branch · measurements taken 2026-10-12 on this tree
+
+== 1. The changed branch (src/core/storage/index.ts) ==
+        1	/**
+        2	 * Lists registry assets. A tenant session sees only rows carrying its own
+        3	 * `tenantId`: a tenant-less row is *unowned*, not shared, and the old
+        4	 * `!a.tenantId ||` branch handed every one of them to every tenant. Callers
+        5	 * that pass no scope (server-side projections, the dev/test bypass) still read
+        6	 * the whole registry; non-AVAILABLE assets need an explicit reviewer request.
+        7	 */
+        8	export function listApprovedMediaAssets(params?: { tenantId?: string; includeNonAvailable?: boolean }): MediaAssetRecord[] {
+        9	  let all = [...mediaAssetRegistry.values()];
+       10	  if (params?.tenantId) {
+       11	    all = all.filter((a) => a.tenantId === params.tenantId);
+       12	  }
+       13	  if (!params?.includeNonAvailable) {
+       14	    all = all.filter((a) => a.accessState === "AVAILABLE");
+       15	  }
+       16	  return all.sort((a, b) => b.registeredAt.getTime() - a.registeredAt.getTime());
+       17	}
+  pin check: :408 -> export function listApprovedMediaAssets(params?: { tenantId?: string; includeNonAvailable?: boolean }): MediaAssetRecord[] {
+  pin check: :411 -> all = all.filter((a) => a.tenantId === params.tenantId);
+  pin check: :412 -> }
+  register box cited :381; :381 -> tenantId: params.tenantId,  (record builder, not the read path)
+
+== 2. Golden backfill carries no tenantId (unowned library) ==
+       params.push({
+         assetId: `MA-${ep.id}-MASTER`,
+         title,
+         assetKey,
+       const assetKey = `golden/programmes/${prog.id}/keyart.jpg`;
+       params.push({
+         assetId: `MA-${prog.id}-KEYART`,
+         title: `${prog.title} — key art`,
+  grep -c 'tenantId' src/db/seeds/dam-backfill.ts -> 0
+
+== 3. MediaAssetRecord ownership census, local Postgres (db vmnl_enterprise) ==
+   (unowned)|1427
+   tenant-b|78
+   tenant-a|78
+   vmnl|2
+   1585 total, 1427 unowned
+
+== 4. Tenant sessions that reach the read path ==
+   GET /api/v1/cms/media-assets: const assets = listApprovedMediaAssets({ tenantId: user.tenantId, includeNonAvailable: false });
+   picker desk                   : const assets = listApprovedMediaAssets({ tenantId: user?.tenantId, includeNonAvailable: true });
+   editor desks                  : availableAssets: listApprovedMediaAssets({ tenantId: user.tenantId }),
+                                 + availableAssets: listApprovedMediaAssets({ tenantId: user.tenantId }),
+   guard entries                 : { pathname: "/api/v1/cms/media-assets", method: "POST", action: "create", resource: "storage" }, { pathname: "/api/v1/cms/media-assets", method: "GET", action: "read", resource: "storage" }, 
+   session user always carries tenantId except the bypasses:
+     dev/test harness  router.ts:733 -> userId: "test-user-id",
+     auth seed default auth/index.ts:497 -> tenantId: u.tenantId || "vmnl-hq",
+     auth seed default auth/index.ts:557 -> tenantId: u.tenantId || "vmnl-hq",
+     registerUser    auth/index.ts:637 -> tenantId: params.tenantId || "vmnl-hq",
+   id-addressed read is unaffected: storage/index.ts:397 -> export function getMediaAsset(assetId: string): MediaAssetRecord | undefined {
+
+== 5. Boxes 1 and 3 remain open: the central predicate is still unreachable ==
+   canPerform definitions/call sites (src/**/*.ts):
+   src/core/rbac/index.ts:521:export function canPerform(
+   src/core/rbac/index.ts:571:  if (!canPerform(user, action, resource, context)) {
+   src/api/router.ts:769:  const allowed = canPerform(user, action, resource);
+   src/api/router.ts:8093:      if (!user || !canPerform(user, "create", "content")) {
+   src/api/routes/enquiry.routes.ts:25:      if (!canPerform(user, "read", "enquiry")) {
+   src/api/routes/enquiry.routes.ts:49:      if (!canPerform(user, "update", "enquiry")) {
+   -> no external call passes the 4th (context) argument; only rbac/index.ts:571 forwards it internally
+
+== 6. Measured consequence of the change ==
+   rows a vmnl-hq session can list: 0
+   rows an unowned-blind tenant session cannot see: 1427 (959 AVAILABLE) tagged (unowned)
+   (the 250-row golden backfill is inside that unowned set: registerGoldenDamAssets -> tests/unit/todo-final-remediation.test.ts expects 250)
+
+== 7. Test coverage added for this box ==
+   1236:  it("refuses a tenant the unowned (tenant-less) rows — fail-closed scoping (TSK-58)", () => {
+   1327:describe("TSK-58: media-asset routes refuse cross-tenant and unowned rows", () => {
+   1386:  it("serves a tenant only its own rows over HTTP", async () => {
+   1396:  it("keeps an unowned row out of every tenant session (fail-closed, not shared)", async () => {
+   1407:  it("renders the tenant's media desk without another tenant's asset", async () => {

@@ -1,0 +1,58 @@
+`pnpm test:coverage` run history on the TSK-20 final tree — 2026-10-13
+=====================================================================
+
+Four runs of the same gate, same working tree (`ce098f8` + 201 dirty entries; the
+only file that differs between them is the probe's error *string* in
+`tests/unit/screen-register-verification.test.ts`, changed between run 2 and run 3
+so a timeout would name its route). Recorded because Rule 0.4a forbids publishing
+only the green run.
+
+  #  log                          started   exit  result
+  1  coverage.txt                 01:54     0     68 files / 822 tests / 0 skipped
+                                              All files 78.97 / 70.16 / 82.97 / 80.32
+  2  final-coverage.txt           09:56     1     815 passed + 7 skipped; FAIL
+                                              tests/unit/screen-register-verification.test.ts
+                                              "Error: probe timeout" (10 s socket timeout)
+                                              Duration 896.60s (tests 339.30s)
+  3  final-coverage-rerun.txt     10:25     1     identical failure, identical counts
+                                              Duration 930.64s (tests 572.73s)
+  4  final-coverage-rerun2.txt    10:52     0     68 files / 822 tests / 0 skipped
+                                              All files 78.97 / 70.16 / 82.97 / 80.32
+                                              Duration 293.78s (tests 164.83s)
+
+What was true at the time of each run, measured, not assumed:
+
+  * The host was under sustained foreign load all morning — `uptime` recorded
+    214–231 at 10:50 (run 4 finished), 268–316 from 11:30 onward, and the top of
+    `ps aux -r` was occupied by the Qoder renderer, WindowServer, Google Drive and
+    a Freebuff helper, none of them this project. Runs 2 and 3 were the red ones.
+  * Nothing else was running against Postgres during runs 2–4: the suite is
+    single-worker by configuration (`vitest.config.ts` minWorkers/maxWorkers 1)
+    and no other gate command was launched while they ran.
+  * The failing assertion is not a business assertion. It is `get()`'s 10-second
+    socket timeout in the probe helper (`tests/unit/screen-register-verification.
+    test.ts:334`), used by `beforeAll` while it walks ~60 register entries against
+    a server booted in the test process. The same file passes standalone in 36 s
+    with `--coverage` on the same tree (`pnpm vitest run --coverage tests/unit/
+    screen-register-verification.test.ts` -> 1 file passed; exit 1 came from the
+    coverage *threshold*, which one file cannot satisfy, not from a test failure).
+  * Run 4 is the run whose figures the register publishes, and it also had the
+    improved timeout message, so a future red run names the route it stalled on.
+
+Honest statement of what this leaves open
+-----------------------------------------
+
+The gate is **not deterministically green on this machine in this state**. It is
+green twice (01:54 and 10:52) and red twice (09:56 and 10:25) on an unchanged
+tree, with the red runs carrying the same route-probe timeout. The cause was not
+established by these four runs — the load correlation is suggestive, not proof,
+and no route was named because the message did not exist yet. What is *not* the
+explanation: a weakened assertion, a skipped test, or a database difference — all
+four runs used `postgresql://localhost:5432/vmnl_enterprise_gates`, migrated and
+unseeded.
+
+The follow-up this opens (recorded in `tasks.md`, not closed here): re-run with
+the naming message until either a green run under high load or a red run under
+low load appears, which decides whether the 10 s probe timeout is an environment
+assumption or a route that really stalls. This record does not raise the timeout,
+because that would be tuning the gate rather than measuring it.

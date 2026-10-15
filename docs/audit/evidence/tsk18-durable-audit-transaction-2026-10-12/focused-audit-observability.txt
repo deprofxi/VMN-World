@@ -1,0 +1,54 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.11 [39m[90m/Users/deprof/www/vmng[39m
+
+[90mstdout[2m | tests/unit/audit.test.ts[2m > [22m[2mTSK-18: the audit ledger is durable and lands with its transaction[2m > [22m[2mcrash between writes: the ledger entry rolls back with the rows it attests, and the failure is signalled
+[22m[39m{"timestamp":"2026-10-12T15:57:28.529Z","level":"WARN","message":"Audit durable write rolled back with its transaction; ledger degraded to in-memory (prisma_error)","component":"audit","entryId":"55fcdcef-6cb1-45bc-87f4-e4c35123076b","reason":"[TSK-18 TEST] durable write rejected for tsk18-mv5fqz7i-535d244f-boom"}
+
+ [31m❯[39m tests/unit/audit.test.ts [2m([22m[2m8 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 2303[2mms[22m[39m
+     [33m[2m✓[22m[39m should record immutable audit log entries and allow filtered retrieval with cryptographic hash chaining (B-9) [33m 1109[2mms[22m[39m
+     [32m✓[39m should detect unauthorized payload mutation in the audit chain (T-13, R3-4)[32m 1[2mms[22m[39m
+     [32m✓[39m should detect deleted entries causing chain link breaks (T-13, R3-4)[32m 2[2mms[22m[39m
+     [32m✓[39m should correctly compute entry hashes independently (T-13)[32m 7[2mms[22m[39m
+     [32m✓[39m should distinguish sandbox vs real notification delivery (T-14, N-9)[32m 4[2mms[22m[39m
+     [32m✓[39m should reject invalid notification payloads missing required fields[32m 8[2mms[22m[39m
+     [33m[2m✓[22m[39m lands the business row and its ledger entry in one transaction, and reads the ledger from Postgres [33m 882[2mms[22m[39m
+[31m     [31m×[31m crash between writes: the ledger entry rolls back with the rows it attests, and the failure is signalled[39m[32m 200[2mms[22m[39m
+[90mstdout[2m | tests/unit/observability.test.ts[2m > [22m[2mPhase 10: Observability & OpenTelemetry Instrumentation[2m > [22m[2mgenerates trace contexts, outputs structured logs, and triggers automated SLA alerts
+[22m[39m{"timestamp":"2026-10-12T15:57:31.126Z","level":"INFO","message":"Automation playlist loaded for StarTimes DTT","traceId":"ba5a4512-83c1-439f-8b1b-69a1a3d79774","spanId":"161342b8-2dcc-4f","component":"BROADCAST_PLAYOUT","channel":"NXTR","itemCount":48}
+
+[90mstderr[2m | tests/unit/observability.test.ts[2m > [22m[2mPhase 10: Observability & OpenTelemetry Instrumentation[2m > [22m[2mgenerates trace contexts, outputs structured logs, and triggers automated SLA alerts
+[22m[39m[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 0.15% > 0.1%
+[VMNL-ALERT] [WARNING] PLAYOUT_LATENCY_DEGRADATION: Playout API latency elevated: 650ms > 500ms
+[VMNL-ALERT] [CRITICAL] ELEVATED_DLQ_DEPTH: Azeebo+ federation DLQ backlog exceeded threshold: 25 items > 10
+
+ [32m✓[39m tests/unit/observability.test.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 949[2mms[22m[39m
+     [33m[2m✓[22m[39m exports metrics batch to local mock OTLP endpoint over HTTP (T-21, B-19) [33m 358[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/unit/audit.test.ts[2m > [22mTSK-18: the audit ledger is durable and lands with its transaction[2m > [22mcrash between writes: the ledger entry rolls back with the rows it attests, and the failure is signalled
+[31m[1mAssertionError[22m: expected 1 to be +0 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 0[39m
+[31m+ 1[39m
+
+[36m [2m❯[22m tests/unit/audit.test.ts:[2m335:34[22m[39m
+    [90m333|[39m
+    [90m334|[39m     // Every optimistic index entry the transaction carried was rolled…
+    [90m335|[39m     [34mexpect[39m(optimisticIndex[33m.[39msize)[33m.[39m[34mtoBe[39m([34m0[39m)[33m;[39m
+    [90m   |[39m                                  [31m^[39m
+    [90m336|[39m     [34mexpect[39m([34mpendingDurableWrites[39m())[33m.[39m[34mtoBe[39m([34m0[39m)[33m;[39m
+    [90m337|[39m     expect(durableJournalStats().failed).toBeGreaterThanOrEqual(failur…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m16 passed[39m[22m[90m (17)[39m
+[2m   Start at [22m 16:57:19
+[2m   Duration [22m 12.16s[2m (transform 2.73s, setup 0ms, import 5.28s, tests 3.25s, environment 6ms)[22m
+
+FOCUSED=1

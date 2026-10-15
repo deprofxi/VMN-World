@@ -1,0 +1,78 @@
+# TSK-44 measurements — 2026-10-09 (working tree, HEAD ce098f8 uncommitted)
+
+== focused families run: npx vitest run tests/security tests/contract tests/a11y tests/integration
+ Test Files  11 passed (11)
+      Tests  127 passed (127)
+   Duration  34.52s (transform 4.56s, setup 0ms, import 12.42s, tests 17.61s, environment 2ms)
+vitest exit code: 0 (measured immediately after the run, before any other command)
+
+== per-file test counts (parsed from focused-run.txt)
+   6 tests/a11y/accessibility-audit.test.ts
+   6 tests/a11y/responsive.test.ts
+   6 tests/a11y/visual-regression-baseline.test.ts
+  10 tests/contract/openapi-contract.test.ts
+   9 tests/integration/enquiry-failure-drill.test.ts
+  42 tests/integration/enterprise-end-to-end.test.ts
+  13 tests/integration/journey-failure-drills.test.ts
+   8 tests/integration/rights-clearance-e2e.test.ts
+   8 tests/security/abuse-and-fuzzing.test.ts
+  13 tests/security/route-authorization.test.ts
+   6 tests/security/route-guard-parity.test.ts
+
+== skip/todo annotations across tests/
+       0
+
+== vitest.config.ts tracking state
+?? vitest.config.ts
+fatal: path 'vitest.config.ts' exists on disk, but not in 'HEAD'
+
+== coverage thresholds declared
+    minWorkers: 1,
+    maxWorkers: 1,
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "json", "html"],
+      // AUD-18: baseline measured 2026-10-06 (73.26 lines / 63.97 branches /
+      // 78.7 functions / 74.43 statements). Floors sit just below the
+      // measured baseline so coverage cannot silently regress — ratchet
+      // upward as the debt burns down.
+      thresholds: {
+        lines: 72,
+        branches: 62,
+        functions: 77,
+        statements: 73,
+      },
+      exclude: [
+
+== CI gated step
+      - name: Run Test Pyramid & 20 UAT Drills with Coverage (AUD-25)
+        run: pnpm run test:coverage
+
+== dirty set
+     189
+     240
+
+== re-measured after writing README.md into this directory
+189  (short form, unchanged: the dir counts once)
+241  (expanded: this README is the added path)
+
+== gate logs copied into this directory (post-README):
+   test-final.txt  -> 65 files / 746 tests, 0 failed, 0 skipped, exit 0
+typecheck.txt  -> exit 0
+lint.txt  -> exit 0 (eslint . --max-warnings 0)
+== files now present: README.md focused-run.txt lint.txt measurements.txt test-final.txt typecheck.txt
+
+== why these artifacts are .txt and not .log
+".gitignore:3" is "*.log", so "git status --porcelain --untracked-files=all" listed only
+README.md and measurements.txt while four run outputs sat in this same directory:
+  ?? docs/audit/evidence/tsk44-suites-as-gates-2026-10-09/README.md
+  ?? docs/audit/evidence/tsk44-suites-as-gates-2026-10-09/measurements.txt
+All five outputs were then renamed to .txt (same bytes) and all six now list. The identical
+defect was found in docs/audit/evidence/migrations-2026-10-07/ and deploy-from-empty.log was
+renamed there too. Evidence that cannot be staged is not evidence at a commit.
+
+== dirty set, FINAL measurement after every edit in this increment (supersedes the 189/240 pair
+   above, which was taken mid-increment)
+git status --porcelain | wc -l                                  -> 189
+git status --porcelain --untracked-files=all | wc -l            -> 246
+  118 ??   /   126 M   /   2 D

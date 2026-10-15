@@ -1,0 +1,178 @@
+## focused instruments — 2026-10-11T20:27:40Z
+exit=0
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.11 [39m[90m/Users/deprof/www/vmng[39m
+
+[90mstdout[2m | tests/unit/broadcast-screens.test.ts[2m > [22m[2mT-19 (B-15): 33 Operational Broadcast Screen Surfaces[2m > [22m[2mT9-01 (F-9-01): Screen Route Authentication & Bypass Prevention
+[22m[39m{"timestamp":"2026-10-11T20:27:44.241Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"d33a69cd-3b6f-40ac-9550-bda08bc5bbb2","spanId":"5e1f36c6-bd2a-47","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+[90mstdout[2m | tests/unit/broadcast-screens.test.ts[2m > [22m[2mT-19 (B-15): 33 Operational Broadcast Screen Surfaces[2m > [22m[2mT9-01 (F-9-01): Screen Route Authentication & Bypass Prevention
+[22m[39m{"timestamp":"2026-10-11T20:27:44.464Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"e6c47c47-125c-401b-9177-6675c0d3ccb5","spanId":"76da6dab-d83e-48","component":"server_bootstrap","assets":1143,"items":57,"revisions":110,"bindings":2,"fulfillments":4}
+
+[90mstdout[2m | tests/unit/broadcast-screens.test.ts[2m > [22m[2mT-19 (B-15): 33 Operational Broadcast Screen Surfaces[2m > [22m[2mT9-01 (F-9-01): Screen Route Authentication & Bypass Prevention
+[22m[39m{"timestamp":"2026-10-11T20:27:44.491Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"92595ad1-7ff1-4b7f-8253-3f0eb4818a0e","spanId":"a14ee123-6bb2-4a","component":"server_bootstrap","port":0,"env":"test"}
+
+ [32m✓[39m tests/unit/broadcast-screens.test.ts [2m([22m[2m16 tests[22m[2m)[22m[33m 2817[2mms[22m[39m
+[90mstdout[2m | tests/unit/screen-register-verification.test.ts[2m > [22m[2mTSK-24 (CA-11): the screen register verifies what it claims
+[22m[39m{"timestamp":"2026-10-11T20:27:45.709Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"de8555b5-db48-4bd8-9015-69407778f142","spanId":"0b722b08-43c1-4e","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+[90mstdout[2m | tests/unit/screen-register-verification.test.ts[2m > [22m[2mTSK-24 (CA-11): the screen register verifies what it claims
+[22m[39m{"timestamp":"2026-10-11T20:27:46.037Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"020bf429-efa8-4b59-8d7d-ab46bf729ab1","spanId":"7f6aa4a1-a306-41","component":"server_bootstrap","assets":1143,"items":57,"revisions":110,"bindings":2,"fulfillments":4}
+
+[90mstdout[2m | tests/unit/screen-register-verification.test.ts[2m > [22m[2mTSK-24 (CA-11): the screen register verifies what it claims
+[22m[39m{"timestamp":"2026-10-11T20:27:46.080Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"f69c5f00-6eb4-4141-9d59-b70a0afb9936","spanId":"a24f98c3-6111-4b","component":"server_bootstrap","port":0,"env":"test"}
+
+[90mstdout[2m | tests/unit/screen-register-verification.test.ts[2m > [22m[2mTSK-24 (CA-11): the screen register verifies what it claims
+[22m[39m
+[TSK-24] register verification — entries: 60 · documented IDs: 226 · router dispatch surface: 229 literals + 54 prefixes
+[TSK-24] provenance by documented ID: {"NOT_VERIFIED":147,"DOMAIN_ENGINE":75,"NOT_CONNECTED":4}
+[TSK-24] reachable HTML surfaces (distinct register-declared paths answered 200 text/html): 40
+[TSK-24] application-wide literal-path HTML surfaces: 111 — /,/about,/access-request,/accessibility,/account/notifications,/account/profile,/account/sessions,/admin/feature-flags,/admissions/queue,/advertising,/api/docs,/apply,/auth/invitation,/auth/mfa,/auth/profile-setup,/auth/recovery,/auth/session-expired,/auth/switch-role,/azeebo,/azeebo/attribution,/azeebo/gateway,/broadcast/asrun/exceptions,/broadcast/dashboard,/broadcast/poa/exceptions,/broadcast/rights/review-request,/broadcast/schedule/review,/broadcast/screens,/careers,/channels,/channels/isimbido,/channels/nxtr,/channels/orisun,/contact,/docs,/enquiry,/help,/help/operator,/hub,/hub/afca,/hub/community,/hub/creators,/hub/distribution,/hub/events,/hub/onestudios,/hub/production,/hub/talent,/hub/technology,/hub/vcf,/hub/vtm,/insights,/learn,/login,/partners,/portal/vtm/marketplace,/portal/vtm/payment-visibility,/portal/vtm/terms,/privacy,/prototypes,/schedule,/select-workspace,/sign-in,/sign-out,/styleguide,/vtm/marketplace,/vtm/terms,/workspace,/workspace/accelerator,/workspace/accelerator/desk,/workspace/admin/access,/workspace/admin/feature-flags,/workspace/admin/source-mappings,/workspace/admissions,/workspace/afca,/workspace/afca/assignments/submit,/workspace/afca/gradebook,/workspace/afca/grading/rubric,/workspace/afca/learning-plan,/workspace/afca/lms,/workspace/agentic-os,/workspace/aos/console,/workspace/approvals,/workspace/commercial/proposals/builder,/workspace/community/guilds,/workspace/content/editor,/workspace/content/media-picker,/workspace/content/review,/workspace/cr8tech/operations,/workspace/devops/console,/workspace/events/desk,/workspace/foundry/missions,/workspace/fusion-events,/workspace/governance/issues,/workspace/governance/records,/workspace/governance/risks,/workspace/guilds,/workspace/headspace/intelligence,/workspace/hub/overview,/workspace/issues/tracker,/workspace/management/overview,/workspace/market-intelligence,/workspace/my-work,/workspace/notifications,/workspace/onestudios/desk,/workspace/production/desk,/workspace/risk/register,/workspace/search,/workspace/syndication/catalogue,/workspace/tend/catalogue,/workspace/vcf/missions,/workspace/vtm/match,/workspace/vtm/matching
+[TSK-24] entries with an unmounted declared route: 0 · entries claiming IMPLEMENTED with no mounted route: 0 · entries whose evidence names no checkable file: 1 · entries with a broken evidence citation: 0
+[TSK-24] per-entry table (entry | ids | mounted/declared | provenance | basis | first probe):
+[TSK-24] | UX-PUB-001..028 | 28 | 8/8 | NOT_VERIFIED | handler source | / 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-SYS-001 | 1 | 1/1 | NOT_VERIFIED | handler source | /sign-in 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-SYS-002 | 1 | 1/1 | NOT_VERIFIED | handler source | /auth/mfa 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-SYS-003 | 1 | 1/1 | NOT_VERIFIED | handler source | /auth/recovery 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-SYS-004 | 1 | 1/1 | NOT_VERIFIED | handler source | /auth/invitation 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-SYS-005 | 1 | 1/1 | NOT_VERIFIED | handler source | /auth/profile-setup 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-SYS-006..011 | 6 | 6/6 | NOT_VERIFIED | handler source | /select-workspace 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-SYS-012 | 1 | 1/1 | NOT_VERIFIED | handler source | /account/notifications 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-SYS-013 | 1 | 1/1 | NOT_VERIFIED | handler source | /account/sessions 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-SYS-014 | 1 | 1/1 | NOT_VERIFIED | handler source | /help/operator 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-HUB-001 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/my-work 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-HUB-002 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/search 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-HUB-003 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/notifications 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-HUB-004 | 1 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/management/overview 200 page declares no provenance | evidence 4/4
+[TSK-24] | UX-HUB-005 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-COM-001..003 | 3 | 0/0 | NOT_CONNECTED | route not mounted | — 0 no mounted route declared | evidence 1/1
+[TSK-24] | UX-COM-004 | 1 | 1/1 | NOT_VERIFIED | handler source | /enquiry 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-COM-005..009 | 5 | 1/1 | NOT_VERIFIED | handler source | /workspace/commercial/proposals/builder 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-COM-010 | 1 | 1/1 | NOT_VERIFIED | handler source | /portal/client/ORG-1/projects/PRJ-1 404 page declares no provenance | evidence 1/1
+[TSK-24] | UX-PRJ-001 | 1 | 0/0 | NOT_CONNECTED | route not mounted | — 0 no mounted route declared | evidence 1/1
+[TSK-24] | UX-PRJ-002 | 1 | 1/1 | NOT_VERIFIED | handler source | /portal/client/ORG-1/projects/PRJ-1 404 page declares no provenance | evidence 1/1
+[TSK-24] | UX-BR-001..033 | 33 | 1/1 | NOT_VERIFIED | handler source | /broadcast/screens/SCR-BCST-01 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-BR-012 | 1 | 1/1 | NOT_VERIFIED | handler source | /broadcast/screens/SCR-BCST-01 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-BR-030 | 1 | 1/1 | NOT_VERIFIED | handler source | /broadcast/screens/SCR-BCST-01 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-GOV-001..002 | 2 | 1/1 | NOT_VERIFIED | handler source | /workspace/approvals 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-GOV-003 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/governance/records 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-GOV-004 | 1 | 1/1 | NOT_VERIFIED | handler source | /broadcast/screens/SCR-BCST-01 200 page declares no provenance | evidence 4/4
+[TSK-24] | UX-GOV-005 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/governance/records 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-GOV-006 | 1 | 1/1 | NOT_VERIFIED | handler source | /broadcast/screens/SCR-BCST-01 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-GOV-007 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/governance/records 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-GOV-008 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/governance/records 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-GOV-009 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/cases/privacy 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-GOV-010 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/cases/security 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-CMS-001..006 | 6 | 1/1 | NOT_VERIFIED | handler source | /workspace/content/review 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-CMS-007 | 1 | 1/1 | NOT_VERIFIED | handler source | /api/v1/federation/destinations 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-CMS-008 | 1 | 1/1 | NOT_VERIFIED | handler source | /api/v1/enquiries/routing-config 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-ADM-001 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/admin/access 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-ADM-002 | 1 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/cr8tech/operations 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-ADM-003 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/admin/source-mappings 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-ADM-004 | 1 | 1/1 | DOMAIN_ENGINE | live probe | /admin/feature-flags 200 engine provenance badge | evidence 1/1
+[TSK-24] | UX-REC-001..006 | 6 | 1/1 | NOT_VERIFIED | handler source | /workspace/governance/records 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-AFCA-001..008 | 8 | 1/1 | NOT_VERIFIED | handler source | /workspace/afca 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-APP-001..008 | 8 | 1/1 | NOT_VERIFIED | handler source | /apply 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-ACC-001..008 | 8 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/accelerator 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-AFC-001..006 | 6 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/community/guilds 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-VTM-001..009 | 9 | 1/1 | NOT_VERIFIED | handler source | /vtm/marketplace 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-VTM-010 | 1 | 1/1 | NOT_VERIFIED | handler source | /vtm/terms 200 page declares no provenance | evidence 0/0
+[TSK-24] | UX-VTM-011 | 1 | 1/1 | NOT_VERIFIED | handler source | /portal/vtm/payment-visibility 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-VCF-001..008 | 8 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/vcf/missions 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-ONE-001..009 | 9 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/production/desk 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-EVT-001..008 | 8 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/events/desk 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-TEND-001..008 | 8 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/tend/catalogue 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-HSP-001..008 | 8 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/headspace/intelligence 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-CR8-001..008 | 8 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/cr8tech/operations 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-AGT-001..009 | 9 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/aos/console 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-POR-001 | 1 | 1/1 | NOT_VERIFIED | handler source | /portal/client/ORG-1/projects 404 page declares no provenance | evidence 1/1
+[TSK-24] | UX-POR-002 | 1 | 1/1 | NOT_VERIFIED | cited module | — 0 route not probeable; cited module declares no provenance | evidence 3/3
+[TSK-24] | UX-POR-003 | 1 | 1/1 | NOT_VERIFIED | handler source | /portal/partner/ORG-1 503 page declares no provenance | evidence 1/1
+[TSK-24] | UX-POR-004 | 1 | 1/1 | NOT_VERIFIED | handler source | /portal/creator/X-1 503 page declares no provenance | evidence 1/1
+[TSK-24] | UX-POR-005 | 1 | 1/1 | NOT_VERIFIED | handler source | /portal/vendor/X-1 503 page declares no provenance | evidence 1/1
+
+[90mstdout[2m | tests/unit/screen-register-verification.test.ts[2m > [22m[2mTSK-24 (CA-11): the screen register verifies what it claims[2m > [22m[2mcounts reachable HTML surfaces instead of quoting an unmeasured screen total
+[22m[39m[TSK-24] reachable HTML surfaces: /, /account/notifications, /account/sessions, /admin/feature-flags, /apply, /auth/invitation, /auth/mfa, /auth/profile-setup, /auth/recovery, /broadcast/screens/SCR-BCST-01, /enquiry, /help/operator, /portal/vtm/payment-visibility, /select-workspace, /sign-in, /vtm/marketplace, /vtm/terms, /workspace, /workspace/accelerator, /workspace/admin/access, /workspace/admin/source-mappings, /workspace/afca, /workspace/aos/console, /workspace/approvals, /workspace/cases/privacy, /workspace/cases/security, /workspace/commercial/proposals/builder, /workspace/community/guilds, /workspace/content/review, /workspace/cr8tech/operations, /workspace/events/desk, /workspace/governance/records, /workspace/headspace/intelligence, /workspace/management/overview, /workspace/my-work, /workspace/notifications, /workspace/production/desk, /workspace/search, /workspace/tend/catalogue, /workspace/vcf/missions
+[TSK-24] application-wide HTML surfaces (literal router paths answering 200 text/html to SuperAdmin): 111 of 229 literals probed
+
+ [32m✓[39m tests/unit/screen-register-verification.test.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 1362[2mms[22m[39m
+[90mstdout[2m | tests/unit/desk-census.test.ts[2m > [22m[2mTSK-23 (CA-10): authoritative desk census measured through the router
+[22m[39m{"timestamp":"2026-10-11T20:27:47.540Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"a7645e1e-1214-46eb-b1a4-425b7dc77a41","spanId":"3c8dec4b-d027-40","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+[90mstdout[2m | tests/unit/desk-census.test.ts[2m > [22m[2mTSK-23 (CA-10): authoritative desk census measured through the router
+[22m[39m{"timestamp":"2026-10-11T20:27:47.742Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"9e05cc0a-5f90-4a32-b537-3882ed45444c","spanId":"9dcaedc8-0b79-49","component":"server_bootstrap","assets":1143,"items":57,"revisions":110,"bindings":2,"fulfillments":4}
+
+[90mstdout[2m | tests/unit/desk-census.test.ts[2m > [22m[2mTSK-23 (CA-10): authoritative desk census measured through the router
+[22m[39m{"timestamp":"2026-10-11T20:27:47.763Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"e0770c95-3b1c-4600-a03f-6e30e2efc02a","spanId":"8066ebb7-1a8b-4d","component":"server_bootstrap","port":0,"env":"test"}
+
+[90mstdout[2m | tests/unit/desk-census.test.ts[2m > [22m[2mTSK-23 (CA-10): authoritative desk census measured through the router
+[22m[39m
+[TSK-23] desk census — registered: 48 · presentation shell: 47 · dedicated handler answered: 1
+[TSK-23] dedicated desks: afca (200)
+[TSK-23] anonymous access to a desk page: 200=0 302=48 403=0 other=0
+[TSK-23] a PlayoutOperator can open 47 of 48 desk pages; 1 are role-scoped by WORKSPACE_HTML_GUARDS (executive)
+[TSK-23] per-desk rows — reproduce: pnpm vitest run tests/unit/desk-census.test.ts
+[TSK-23] | executive | Executive & Core | ExecutiveLeader | shell | 302 | 403 | SuperAdmin/ExecutiveLeader |
+[TSK-23] | iam | Executive & Core | SuperAdmin | shell | 302 | 200 | — |
+[TSK-23] | organisations | Executive & Core | LegalCounsel | shell | 302 | 200 | — |
+[TSK-23] | projects | Executive & Core | ProductionDirector | shell | 302 | 200 | — |
+[TSK-23] | risk | Executive & Core | RiskManager | shell | 302 | 200 | — |
+[TSK-23] | board | Executive & Core | ExecutiveLeader | shell | 302 | 200 | — |
+[TSK-23] | procurement | Executive & Core | ProcurementManager | shell | 302 | 200 | — |
+[TSK-23] | audit | Executive & Core | InternalAuditor | shell | 302 | 200 | — |
+[TSK-23] | esg | Executive & Core | SustainabilityOfficer | shell | 302 | 200 | — |
+[TSK-23] | comms | Executive & Core | CommunicationsDirector | shell | 302 | 200 | — |
+[TSK-23] | hr | Executive & Core | HRDirector | shell | 302 | 200 | — |
+[TSK-23] | legal | Executive & Core | GeneralCounsel | shell | 302 | 200 | — |
+[TSK-23] | mcr | Broadcast Operations | MCRSupervisor | shell | 302 | 200 | — |
+[TSK-23] | traffic | Broadcast Operations | TrafficManager | shell | 302 | 200 | — |
+[TSK-23] | epg | Broadcast Operations | TrafficScheduler | shell | 302 | 200 | — |
+[TSK-23] | asrun | Broadcast Operations | BroadcastReconciliationLead | shell | 302 | 200 | — |
+[TSK-23] | uplink | Broadcast Operations | BroadcastTransmissionEngineer | shell | 302 | 200 | — |
+[TSK-23] | ingest | Broadcast Operations | IngestOperator | shell | 302 | 200 | — |
+[TSK-23] | graphics | Broadcast Operations | GraphicsCoordinator | shell | 302 | 200 | — |
+[TSK-23] | scte | Broadcast Operations | AutomationEngineer | shell | 302 | 200 | — |
+[TSK-23] | disaster | Broadcast Operations | SiteReliabilityEngineer | shell | 302 | 200 | — |
+[TSK-23] | audio | Broadcast Operations | AudioComplianceOfficer | shell | 302 | 200 | — |
+[TSK-23] | interstitial | Broadcast Operations | InterstitialProducer | shell | 302 | 200 | — |
+[TSK-23] | transmission | Broadcast Operations | TransmissionLead | shell | 302 | 200 | — |
+[TSK-23] | talent | Hub Specialist | HubCoordinator | shell | 302 | 200 | — |
+[TSK-23] | afca | Hub Specialist | AcademyDean | dedicated handler | 302 | 200 | — |
+[TSK-23] | community | Hub Specialist | CommunityManager | shell | 302 | 200 | — |
+[TSK-23] | vtm | Hub Specialist | TalentAgent | shell | 302 | 200 | — |
+[TSK-23] | vcf | Hub Specialist | InvestmentLead | shell | 302 | 200 | — |
+[TSK-23] | onestudios | Hub Specialist | ProductionDirector | shell | 302 | 200 | — |
+[TSK-23] | events | Hub Specialist | EventsProducer | shell | 302 | 200 | — |
+[TSK-23] | tend | Hub Specialist | RightsManager | shell | 302 | 200 | — |
+[TSK-23] | soundstage | Hub Specialist | StudioManager | shell | 302 | 200 | — |
+[TSK-23] | gear | Hub Specialist | EquipmentCoordinator | shell | 302 | 200 | — |
+[TSK-23] | postproduction | Hub Specialist | PostProductionSupervisor | shell | 302 | 200 | — |
+[TSK-23] | alumni | Hub Specialist | AlumniRelationsLead | shell | 302 | 200 | — |
+[TSK-23] | crm | Commercial & Finance | CommercialLead | shell | 302 | 200 | — |
+[TSK-23] | quotes | Commercial & Finance | CommercialLead | shell | 302 | 200 | — |
+[TSK-23] | contracts | Commercial & Finance | LegalCounsel | shell | 302 | 200 | — |
+[TSK-23] | finance | Commercial & Finance | FinanceController | shell | 302 | 200 | — |
+[TSK-23] | payouts | Commercial & Finance | DisbursementOfficer | shell | 302 | 200 | — |
+[TSK-23] | bankrecon | Commercial & Finance | TreasuryManager | shell | 302 | 200 | — |
+[TSK-23] | headspace | Tech & Governance | ChiefIntelligenceOfficer | shell | 302 | 200 | — |
+[TSK-23] | cr8tech | Tech & Governance | TechnologyLead | shell | 302 | 200 | — |
+[TSK-23] | rights | Tech & Governance | RightsManager | shell | 302 | 200 | — |
+[TSK-23] | privacy | Tech & Governance | DataProtectionOfficer | shell | 302 | 200 | — |
+[TSK-23] | security | Tech & Governance | SecOpsLead | shell | 302 | 200 | — |
+[TSK-23] | aos | Tech & Governance | AgenticOpsEngineer | shell | 302 | 200 | — |
+
+ [32m✓[39m tests/unit/desk-census.test.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 965[2mms[22m[39m
+ [32m✓[39m tests/unit/rendered-html-invariants.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 66[2mms[22m[39m
+[90mstdout[2m | tests/unit/broadcast-provenance-coverage.test.ts
+[22m[39m[TSK-25] screens 33 · banner 33 · without 0 · bespoke panels 6 (SCR-BCST-12 via renderScheduleGridTimelineHtml, SCR-BCST-23 via renderLivePlayoutMonitorHtml, SCR-BCST-22 via renderPlaylistLockViewHtml, SCR-BCST-24 via renderAsRunReconciliationDiffHtml, SCR-BCST-14 via renderEpgInspectorDiffHtml, SCR-BCST-31 via renderBroadcastYieldAnalyticsHtml) · KPI strips 33 · fabricated kpis left in the label table 0
+
+[90mstdout[2m | tests/unit/broadcast-provenance-coverage.test.ts[2m > [22m[2mTSK-25: provenance-banner coverage, measured by rendering[2m > [22m[2mmeasures the census the "3/33" claim was standing in for, after the TSK-11 rewiring
+[22m[39m[TSK-25] screens still showing an unsourced badge: 33/33
+
+ [32m✓[39m tests/unit/broadcast-provenance-coverage.test.ts [2m([22m[2m31 tests[22m[2m)[22m[32m 25[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m5 passed[39m[22m[90m (5)[39m
+[2m      Tests [22m [1m[32m62 passed[39m[22m[90m (62)[39m
+[2m   Start at [22m 21:27:41
+[2m   Duration [22m 7.48s[2m (transform 1.66s, setup 0ms, import 1.52s, tests 5.23s, environment 1ms)[22m
+

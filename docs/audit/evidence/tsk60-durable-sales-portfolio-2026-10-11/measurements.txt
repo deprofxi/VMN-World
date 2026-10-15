@@ -1,0 +1,144 @@
+TSK-60 box 3 — durable salesDeal portfolio: measurements
+Re-measured 2026-10-12 on the tree whose gate outputs sit in this directory.
+Each line shows the figure and, in brackets, the command that produces it.
+
+== Tree state ==
+  HEAD                                   : ce098f8 feat(broadcast): link schedule entries to episode masters — episodeCode, live now/next master, demo schedule seed, desk keying
+  git status --porcelain                 : 196 entries
+  git status --porcelain -uall           : 297 files
+  git remote -v                          : 0 entries (no remote; nothing committed, nothing pushed)
+  machine load                           : 5.28 / 10.06 / 16.20 load average with 50 unrelated nest --watch processes from another repo (/Users/deprof/www/YCN)
+
+== Prisma model (prisma/schema.prisma) ==
+  model SalesDealRecord declared at      : :882
+  columns                                : 18
+  @@index blocks                         : 2 -> @@index([clientOrgId, stage]) ; @@index([updatedAt]) ; 
+  *Ngn Decimal(14, 2) money columns      : 5 -> totalContractValueNgn depositAmountNgn invoicedAmountNgn cashCollectedAmountNgn recognizedRevenueNgn 
+  nullable columns (no stamp invented)   : 5 -> salesLeadApprovedAt financeApproverId financeApprovedAt depositPaidAt proofDocumentUrl 
+  total models in schema                 : 43   [grep -c '^model ' prisma/schema.prisma]
+
+== Migration ==
+  directory                              : 20261011220000_add_durable_sales_deal_portfolio
+  sql lines                              : 36
+  CREATE TABLE / CREATE INDEX            : 1 / 2
+  prisma migrate status                  : exit 0 -> '11 migrations found in prisma/migrations Database schema is up to date!'  (verbatim in migrate-status.txt; DATABASE_URL read from the untracked .env, never printed)
+
+== Write-behind journal seam (src/core/database/durable-journal.ts) ==
+  registerDurableStore<T> exported at    : :54
+  stageDurableWrite<T> exported at       : :62
+
+== Durable stores registered in src ==
+  count                                  : 14   [grep -rn 'registerDurableStore<' src | grep -v 'export function' | wc -l]
+    src/core/auth/sessions.ts:53:registerDurableStore<SessionRecord>("sessionRecord", persistSessionRecord);
+    src/core/cases/index.ts:35:registerDurableStore<PrivacySecurityCase>("privacySecurityCase", persistPrivacySecurityCase);
+    src/core/content/index.ts:104:registerDurableStore<ContentItem>("contentItem", persistContentItem);
+    src/core/storage/index.ts:325:registerDurableStore<MediaAssetRecord>("mediaAssetRecord", persistMediaAssetRecord);
+    src/core/work/index.ts:174:registerDurableStore<RiskRecord>("riskRecord", persistRiskRecord);
+    src/core/work/index.ts:175:registerDurableStore<IssueRecord>("issueRecord", persistIssueRecord);
+    src/core/federation/destinations.ts:41:registerDurableStore<AzeeboDestinationWrite>("azeeboDestination", persistAzeeboDestination);
+    src/core/approvals/index.ts:61:registerDurableStore<ApprovalItem>("approvalItem", persistApprovalItem);
+    src/core/websecurity/index.ts:264:registerDurableStore<IdempotencyRecord>("idempotencyRecord", persistIdempotencyRecord);
+    src/modules/finance/ledger/index.ts:83:registerDurableStore<JournalEntry>("journalEntry", persistJournalEntry);
+    src/modules/finance/sales/index.ts:28:registerDurableStore<SalesDeal>("salesDeal", persistSalesDeal);
+    src/modules/hub/enquiry/index.ts:69:registerDurableStore<EnquiryRecord>("commercialEnquiry", persistCommercialEnquiry);
+    src/modules/broadcast/sponsorship/index.ts:26:registerDurableStore<SponsorBinding>("sponsorBinding", persistSponsorBinding);
+    src/modules/broadcast/sponsorship/index.ts:27:registerDurableStore<SponsorBindingFulfillment>("sponsorFulfillment", persistSponsorFulfillment);
+  stageDurableWrite< call sites in src   : 15
+  -> salesDeal is the 14th registered store; the engine keeps its Map as the read path and stages every mutation through the same journal the other thirteen use.
+
+== QuoteToCashSalesEngine (src/modules/finance/sales/index.ts) ==
+  file lines                             : 308
+  journal import                         : :15
+  registerDurableStore<SalesDeal>        : :28   store key: "salesDeal"
+  private deals = new Map (read path)    : :64
+  this.stageDeal(...) sites              : 7 -> :94 :125 :151 :168 :189 :215 :263 
+  private stageDeal(deal, prior)         : :105
+    stageDurableWrite<SalesDeal>         : :106
+    rollback paths                       : 2 (restores the prior field set / removes the new key, so an un-staged write leaves the Map exactly as it was)
+  public hydrate(deals: SalesDeal[])     : :276
+  export async function hydrateSalesEngine: :304
+
+== Boot hydration (src/api/server.ts) ==
+  new QuoteToCashSalesEngine()           : :169
+  await hydrateSalesEngine(salesEngine)  : :338   (hydrates the SAME instance the routes close over)
+  telemetry guard '|| sales.deals > 0'   : :345
+  hydrate payload spreads ...sales       : :351  (the same call that reports the other hydrated stores)
+
+== Repository pair (src/core/database/repositories/release-critical.repository.ts) ==
+  persistSalesDeal                       : :968
+  loadSalesDeals                         : :994
+  persist uses upsert                    : 1 site(s)
+  load maps NULL -> absent field         : 5 conditional spreads (salesLeadApprovedAt financeApproverId financeApprovedAt depositPaidAt proofDocumentUrl ) — a restarted, never-approved deal reads back with NO financeApprovedAt and NO proofDocumentUrl, which is the point of the second restart test.
+
+== Restart-boundary harness ==
+  tests/helpers/durable-restart-reader.mjs stores: 15
+    :28:  enquiry: async (key) => {
+    :32:  approval: async (key) => {
+    :36:  case: async (key) => {
+    :40:  risk: async (key) => {
+    :44:  issue: async (key) => {
+    :48:  destination: async (key) => {
+    :52:  mediaAsset: async (key) => {
+    :56:  content: async (key) => {
+    :67:  session: async (key) => {
+    :74:  idempotency: async (key) => {
+    :80:  journal: async (key) => {
+    :91:  salesDeal: async (key) => {
+    :97:  sponsorBinding: async (key) => {
+    :103:  sponsorFulfillment: async (key) => {
+    :116:  providerClaim: async (key) => {
+  salesDeal branch                       : :91
+  reader asserts a live database         : 2 place(s); the reader spawns a NEW OS process against compiled dist/src, so a hydrated deal it returns cannot have come from the writing process memory
+  tests/unit/durability-release-critical.test.ts : 828 lines, 19 tests (20 lines contain restartIt( -- 19 declarations plus the helper definition at :163, whose body calls it() at :164)
+  salesDeal test labels                  : 529 578 
+    :529  restartIt("persists a signed deal through cash and recognition with every money counter exact", async () => {
+    :578  restartIt("does not invent an approval stamp or proof document a deal never had", async () => {
+
+== Portal provenance (src/web/portal/client-portal.ts) ==
+  SOURCE: strings in the file              : 3 (2 rendered provenance lines + the doc comment at :91 stating what a SOURCE line owes the reader)
+  SOURCE lines naming SalesDealRecord    : 2 -> :106 and :245
+    91: * The `SOURCE:` line is a provenance statement, not decoration: every row is a
+    106:            SOURCE: SalesDealRecord (durable, Postgres) hydrated into QuoteToCashSalesEngine.listDeals() &bull; scoped to clientOrgId = ${escapeHtml(orgId)}
+    245:          SOURCE: SalesDealRecord (durable, Postgres) &rarr; deal ${escapeHtml(project.id)} read from QuoteToCashSalesEngine.getDeal() &bull; every figure above is read from that rec
+  MOCK_CLIENT_PROJECTS left anywhere     : 2 line(s), and the only src hit is the doc comment recording what was deleted:
+    src/web/portal/client-portal.ts:7: * `MOCK_CLIENT_PROJECTS` registry — with its invented as-run timestamps,
+    tests/unit/client-portal-and-operations.test.ts:281:      expect(router).not.toContain("MOCK_CLIENT_PROJECTS");
+
+== Fixture repeatability (durability made the second run fail with [QTC-DEAL-01] 'already exists'; these are the fixes) ==
+  DEAL-TSK13-LEAKPROBE sites             : 4
+    tests/unit/client-portal-and-operations.test.ts:110:      where: { id: { startsWith: "DEAL-TSK13-LEAKPROBE" } },
+    tests/unit/client-portal-and-operations.test.ts:331:          id: "DEAL-TSK13-LEAKPROBE",
+    tests/unit/client-portal-and-operations.test.ts:346:      expect(asOutsider.body).not.toContain("DEAL-TSK13-LEAKPROBE");
+    tests/unit/client-portal-and-operations.test.ts:357:        "/portal/client/organisations/org-dangote/projects/DEAL-TSK13-LEAKPROBE",
+  tests/helpers/db-parents.ts dealIds    : :78 the scope property, deletion applied inside deleteFixtureRows
+  e2e DEAL_FIXTURE_IDS                   : tests/integration/enterprise-end-to-end.test.ts:87  (deleted BEFORE beforeAll and AFTER app.stop(), because the journal drain at stop would re-write a row cleared earlier)
+  portal resetDurableDemoFixtures        : tests/unit/client-portal-and-operations.test.ts:97
+  portal salesDealRecord.deleteMany      : :109
+  portal assertion on the durable SOURCE : 2 place(s) -- the list-page assertion was TIGHTENED, not relaxed, when the provenance line changed
+
+== Register census (tasks.md) after this closure ==
+  [ ] open                                 : 74   (was 75 before this box closed)
+  [~] in progress                          : 0
+  [B] blocked                              : 3
+  [x] done                                 : 114
+
+== Gates, serial, on this tree, output to files in this directory (never piped through tail) ==
+  pnpm typecheck                exit 0   typecheck.txt   (tsc --noEmit, 0 errors)
+  pnpm lint                     exit 0   lint.txt        (eslint . --max-warnings 0)
+  pnpm build                    exit 0   build.txt       (tsc)
+  npx prisma migrate status     exit 0   migrate-status.txt
+  npx vitest run <5 focused>    exit 0   focused-run.txt  5 files / 104 tests passed
+  pnpm test                     exit 0   full-suite.txt   67 files / 800 tests passed, 354.91 s
+  pnpm test:coverage            exit 0   coverage.txt     67 files / 800 tests passed, 32.05 s
+                                          All files: 78.96 stmts / 70.36 branches / 82.84 funcs / 80.26 lines
+                                          floors (vitest.config.ts): 73 / 62 / 77 / 72 -- every floor met, none moved
+
+== Honest note on the runs that did NOT pass ==
+  Two earlier full-suite runs on this same tree each lost exactly one test, both to
+  'Error: Test timed out in 60000ms' under machine contention, not to a behaviour failure:
+    full-suite-contended-1.txt  rights-clearance-e2e.test.ts   1 failed | 799 passed, 974.14 s (the test itself used 953.71 s)
+    full-suite-contended-2.txt  enterprise-end-to-end.test.ts  1 failed | 799 passed
+  Both files pass in isolation, and the two runs above are the clean re-runs. The contention
+  source is external: 50 'nest start --watch' processes belonging to another repository (/Users/deprof/www/YCN) were alive during the whole session, with load averages recorded at 8.28 / 14.23 / 19.15.
+  This is reported, not fixed by weakening the timeout: the 60 s per-test timeout in vitest.config.ts is untouched.
+  Isolation re-run of the contended file: npx vitest run tests/integration/rights-clearance-e2e.test.ts -> exit 0, 8 tests passed, 1.39 s of test time (rights-clearance-isolated.txt). Same file, same tree, same database: the full-suite loss was scheduling, not behaviour.

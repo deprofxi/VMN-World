@@ -1,0 +1,895 @@
+
+> vmng@1.0.0 test:coverage /Users/deprof/www/vmng
+> vitest run --coverage
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.11 [39m[90m/Users/deprof/www/vmng[39m
+      [2mCoverage enabled with [22m[33mv8[39m
+
+[90mstdout[2m | tests/unit/durability-release-critical.test.ts[2m > [22m[2mTSK-17: the HTTP response path is what drains the journal
+[22m[39m{"timestamp":"2026-10-12T23:34:56.364Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"6fe1c3de-b46d-4e40-bdea-07b243301506","spanId":"2843990f-c705-47","component":"server_bootstrap","assets":325,"items":7,"revisions":10,"bindings":1,"fulfillments":2,"deals":4}
+
+[90mstdout[2m | tests/unit/durability-release-critical.test.ts[2m > [22m[2mTSK-17: the HTTP response path is what drains the journal
+[22m[39m{"timestamp":"2026-10-12T23:34:56.377Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"003f0489-3795-45e2-871b-4a67a41e20ae","spanId":"63eec898-28f4-4f","component":"server_bootstrap","port":0,"env":"test"}
+
+[90mstdout[2m | tests/unit/durability-release-critical.test.ts[2m > [22m[2mTSK-17: the HTTP response path is what drains the journal[2m > [22m[2mfails closed with 503 and rolls the approval back when Postgres rejects the row
+[22m[39mprisma:error 
+Invalid `getPrismaClient().approvalItem.upsert()` invocation in
+/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:146:40
+
+  143 // ---------------------------------------------------------------------------
+  144 
+  145 export async function persistApprovalItem(record: ApprovalItem): Promise<void> {
+→ 146   await getPrismaClient().approvalItem.upsert(
+Value out of range for the type: numeric field overflow
+
+[90mstderr[2m | tests/unit/durability-release-critical.test.ts[2m > [22m[2mTSK-17: the HTTP response path is what drains the journal[2m > [22m[2mfails closed with 503 and rolls the approval back when Postgres rejects the row
+[22m[39m[VMNL-ALERT] [CRITICAL] AUDIT_DURABLE_PERSISTENCE_DEGRADED: Audit ledger durable write rolled back with its transaction; ledger degraded to in-memory (prisma_error): 1 entry(ies) affected
+
+[90mstdout[2m | tests/unit/durability-release-critical.test.ts[2m > [22m[2mTSK-17: the HTTP response path is what drains the journal[2m > [22m[2mfails closed with 503 and rolls the approval back when Postgres rejects the row
+[22m[39m{"timestamp":"2026-10-12T23:34:57.599Z","level":"WARN","message":"Audit durable write rolled back with its transaction; ledger degraded to in-memory (prisma_error)","component":"audit","entryId":"9a1802e7-0729-4cdb-a9fa-8608b75b3da3","reason":"\nInvalid `getPrismaClient().approvalItem.upsert()` invocation in\n/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:146:40\n\n  143 // ---------------------------------------------------------------------------\n  144 \n  145 export async function persistApprovalItem(record: ApprovalItem): Promise<void> {\n→ 146   await getPrismaClient().approvalItem.upsert(\nValue out of range for the type: numeric field overflow"}
+
+[90mstdout[2m | tests/unit/durability-release-critical.test.ts[2m > [22m[2mTSK-17: the HTTP response path is what drains the journal[2m > [22m[2mrefuses a provider replay in a process that never saw the original webhook (TSK-19)
+[22m[39mprisma:error 
+Invalid `getPrismaClient().providerEventClaim.create()` invocation in
+/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:912:48
+
+  909 const now = new Date();
+  910 const id = `${provider}:${eventId}`;
+  911 try {
+→ 912   await getPrismaClient().providerEventClaim.create(
+Unique constraint failed on the constraint: `ProviderEventClaim_pkey`
+
+ [32m✓[39m tests/unit/durability-release-critical.test.ts [2m([22m[2m19 tests[22m[2m)[22m[33m 10075[2mms[22m[39m
+     [33m[2m✓[22m[39m hydrates the enquiry queue from Postgres and keeps the intake contract intact [33m 698[2mms[22m[39m
+     [33m[2m✓[22m[39m persists an approval with its NGN scope exact, not as a float approximation [33m 687[2mms[22m[39m
+     [33m[2m✓[22m[39m keeps the restricted case queue durable, including its audit trail [33m 592[2mms[22m[39m
+     [33m[2m✓[22m[39m persists a risk and an issue, including the issue → risk linkage [33m 1066[2mms[22m[39m
+     [33m[2m✓[22m[39m keeps Azeebo+ destination verification state durable, registrant included [33m 460[2mms[22m[39m
+     [33m[2m✓[22m[39m persists a DAM master with exact byte size and its access state [33m 458[2mms[22m[39m
+     [33m[2m✓[22m[39m keeps a session durable without ever storing the raw token [33m 466[2mms[22m[39m
+     [33m[2m✓[22m[39m replays an idempotency outcome from Postgres, response body included [33m 503[2mms[22m[39m
+     [33m[2m✓[22m[39m keeps a CMS revision chain durable, including the superseded revision [33m 461[2mms[22m[39m
+     [33m[2m✓[22m[39m persists a balanced journal entry with its two lines and exact totals [33m 499[2mms[22m[39m
+     [33m[2m✓[22m[39m persists a sponsor binding with its placement counter and fulfilment evidence [33m 1455[2mms[22m[39m
+     [33m[2m✓[22m[39m persists a signed deal through cash and recognition with every money counter exact [33m 493[2mms[22m[39m
+     [33m[2m✓[22m[39m does not invent an approval stamp or proof document a deal never had [33m 437[2mms[22m[39m
+     [33m[2m✓[22m[39m a 201 enquiry response means the row is already in Postgres [33m 1204[2mms[22m[39m
+     [33m[2m✓[22m[39m refuses a provider replay in a process that never saw the original webhook (TSK-19) [33m 455[2mms[22m[39m
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSEC-08: mutation idempotency (route level)
+[22m[39m{"timestamp":"2026-10-12T23:34:59.136Z","level":"WARN","message":"Redis adapter construction failed; falling back to in-memory cache","traceId":"229ac6dc-74f4-445e-b3c5-3e8b3b3f8275","spanId":"ccdea156-24eb-44","component":"server_bootstrap","backend":"memory","reason":"TypeError: Invalid URL"}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSEC-08: mutation idempotency (route level)
+[22m[39m{"timestamp":"2026-10-12T23:34:59.188Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"c499d464-f48d-4471-8964-6e898616b43c","spanId":"c230c779-c3cf-4d","component":"server_bootstrap","assets":325,"items":7,"revisions":10,"bindings":1,"fulfillments":2,"deals":4}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSEC-08: mutation idempotency (route level)
+[22m[39m{"timestamp":"2026-10-12T23:34:59.206Z","level":"INFO","message":"VMNL Enterprise Server listening on port 4261","traceId":"66542b43-9d7a-457a-89c5-08dbf6ceaa70","spanId":"3a36c165-052a-45","component":"server_bootstrap","port":4261,"env":"test"}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSCR-03: media asset registration (route level)
+[22m[39m{"timestamp":"2026-10-12T23:34:59.698Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"5bf0b4eb-57aa-4022-b8af-70c8e1721b8c","spanId":"9b6bcb17-960b-4b","component":"server_bootstrap","assets":325,"items":7,"revisions":10,"bindings":1,"fulfillments":2,"deals":4}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSCR-03: media asset registration (route level)
+[22m[39m{"timestamp":"2026-10-12T23:34:59.700Z","level":"INFO","message":"VMNL Enterprise Server listening on port 4262","traceId":"c165e5c7-534c-4f92-bbe6-47b5d1f6bf34","spanId":"4b0d7bf0-78b2-4a","component":"server_bootstrap","port":4262,"env":"test"}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mTSK-58: media-asset routes refuse cross-tenant and unowned rows
+[22m[39m{"timestamp":"2026-10-12T23:34:59.953Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"f0addea6-d9f1-469e-a332-5f2cd06f9922","spanId":"23870b9b-163a-4d","component":"server_bootstrap","assets":333,"items":7,"revisions":10,"bindings":1,"fulfillments":2,"deals":4}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mTSK-58: media-asset routes refuse cross-tenant and unowned rows
+[22m[39m{"timestamp":"2026-10-12T23:34:59.955Z","level":"INFO","message":"VMNL Enterprise Server listening on port 4270","traceId":"f5ad0068-0a00-4daa-a228-c8ef33bebe73","spanId":"c6e5cdee-e9c8-4e","component":"server_bootstrap","port":4270,"env":"test"}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSCR-03: CMS editor references registered media (UX-CMS-006)[2m > [22m[2mpersists picker selections end-to-end through the editor form routes
+[22m[39m{"timestamp":"2026-10-12T23:35:00.231Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"062a0fb3-d8a6-4fae-bbb4-e52e4eecc20b","spanId":"3dcc4c1e-9ddb-40","component":"server_bootstrap","assets":333,"items":7,"revisions":10,"bindings":1,"fulfillments":2,"deals":4}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSCR-03: CMS editor references registered media (UX-CMS-006)[2m > [22m[2mpersists picker selections end-to-end through the editor form routes
+[22m[39m{"timestamp":"2026-10-12T23:35:00.234Z","level":"INFO","message":"VMNL Enterprise Server listening on port 4263","traceId":"2874e507-cbf2-40e4-8184-edd8074d7a27","spanId":"ab6698ac-2baf-44","component":"server_bootstrap","port":4263,"env":"test"}
+
+[90mstderr[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSCR-03: golden DAM backfill[2m > [22m[2mpersistEpisodeMediaAssets reports the standing reference total on re-runs, not a per-run delta
+[22m[39m[VMNL-DB-SEED] DAM backfill: episode EP-0001 not found — master reference MA-EP-0001-MASTER NOT persisted.
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSCR-03: golden DAM backfill[2m > [22m[2mboots the sandbox with demo content referencing its registered key art
+[22m[39m{"timestamp":"2026-10-12T23:35:00.526Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"5be8bca7-18d3-4f61-a4df-d7bad35d38cc","spanId":"8b29667c-1b63-43","component":"server_bootstrap","assets":342,"items":8,"revisions":12,"bindings":1,"fulfillments":2,"deals":4}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSCR-03: golden DAM backfill[2m > [22m[2mboots the sandbox with demo content referencing its registered key art
+[22m[39m{"timestamp":"2026-10-12T23:35:00.528Z","level":"INFO","message":"VMNL Enterprise Server listening on port 4264","traceId":"a91a71d2-bf50-44af-8fa4-41f6efd5efdd","spanId":"a96952c5-fb6c-46","component":"server_bootstrap","port":4264,"env":"test"}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSchedule review desk: episode master linkage keyed by its channel parameter[2m > [22m[2mroute keys the linkage by ?channel (GET /broadcast/schedule/review?channel=ORIS)
+[22m[39m{"timestamp":"2026-10-12T23:35:00.902Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"af29974d-35ee-47a8-9425-bf2b0788afd9","spanId":"d6de9cf6-9abf-49","component":"server_bootstrap","assets":342,"items":8,"revisions":12,"bindings":1,"fulfillments":2,"deals":4}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSchedule review desk: episode master linkage keyed by its channel parameter[2m > [22m[2mroute keys the linkage by ?channel (GET /broadcast/schedule/review?channel=ORIS)
+[22m[39m{"timestamp":"2026-10-12T23:35:00.906Z","level":"INFO","message":"VMNL Enterprise Server listening on port 4267","traceId":"31788791-a9d2-492a-8851-67962a34e75c","spanId":"691faf4f-b7f7-44","component":"server_bootstrap","port":4267,"env":"test"}
+
+ [32m✓[39m tests/unit/todo-final-remediation.test.ts [2m([22m[2m84 tests[22m[2m)[22m[33m 2479[2mms[22m[39m
+     [33m[2m✓[22m[39m memory adapter: get/set/del, TTL expiry, setIfAbsent lock semantics, incrBy, keys [33m 303[2mms[22m[39m
+     [33m[2m✓[22m[39m publishes content once per operation key and replays the original revision [33m 466[2mms[22m[39m
+[90mstdout[2m | tests/integration/enterprise-end-to-end.test.ts[2m > [22m[2mVMNL Enterprise End-to-End Platform Integration
+[22m[39m{"timestamp":"2026-10-12T23:35:01.788Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"45af5643-3a15-477d-a99a-c7f9de496813","spanId":"68d4ecab-9140-49","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+[90mstdout[2m | tests/integration/enterprise-end-to-end.test.ts[2m > [22m[2mVMNL Enterprise End-to-End Platform Integration
+[22m[39m{"timestamp":"2026-10-12T23:35:01.861Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"0d74e1fe-bfc0-494d-aa44-fae1222a4b0e","spanId":"9b0b0afa-1fe2-46","component":"server_bootstrap","assets":342,"items":8,"revisions":12,"bindings":1,"fulfillments":2,"deals":4}
+
+[90mstdout[2m | tests/integration/enterprise-end-to-end.test.ts[2m > [22m[2mVMNL Enterprise End-to-End Platform Integration
+[22m[39m{"timestamp":"2026-10-12T23:35:01.880Z","level":"INFO","message":"VMNL Enterprise Server listening on port 49191","traceId":"951b3da2-7004-46e2-9e76-b3009065982a","spanId":"969baf65-e87c-4f","component":"server_bootstrap","port":49191,"env":"test"}
+
+ [32m✓[39m tests/integration/enterprise-end-to-end.test.ts [2m([22m[2m42 tests[22m[2m)[22m[33m 867[2mms[22m[39m
+[90mstdout[2m | tests/unit/screen-register-verification.test.ts[2m > [22m[2mTSK-24 (CA-11): the screen register verifies what it claims
+[22m[39m{"timestamp":"2026-10-12T23:35:03.021Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"9e6e6e93-2ee7-4948-902a-c86e1b06abc9","spanId":"06a907fd-219f-42","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+[90mstdout[2m | tests/unit/screen-register-verification.test.ts[2m > [22m[2mTSK-24 (CA-11): the screen register verifies what it claims
+[22m[39m{"timestamp":"2026-10-12T23:35:03.194Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"e2bc4345-96e9-4524-9f35-aae8723686bd","spanId":"eda2922a-7d04-47","component":"server_bootstrap","assets":342,"items":8,"revisions":12,"bindings":1,"fulfillments":2,"deals":4}
+
+[90mstdout[2m | tests/unit/screen-register-verification.test.ts[2m > [22m[2mTSK-24 (CA-11): the screen register verifies what it claims
+[22m[39m{"timestamp":"2026-10-12T23:35:03.206Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"685a4bc0-4951-4939-a613-225f31e7ff6c","spanId":"d1e0fe95-7927-41","component":"server_bootstrap","port":0,"env":"test"}
+
+[90mstdout[2m | tests/unit/screen-register-verification.test.ts[2m > [22m[2mTSK-24 (CA-11): the screen register verifies what it claims
+[22m[39m
+[TSK-24] register verification — entries: 60 · documented IDs: 226 · router dispatch surface: 229 literals + 54 prefixes
+[TSK-24] provenance by documented ID: {"NOT_VERIFIED":147,"DOMAIN_ENGINE":75,"NOT_CONNECTED":4}
+[TSK-24] reachable HTML surfaces (distinct register-declared paths answered 200 text/html): 40
+[TSK-24] application-wide literal-path HTML surfaces: 111 — /,/about,/access-request,/accessibility,/account/notifications,/account/profile,/account/sessions,/admin/feature-flags,/admissions/queue,/advertising,/api/docs,/apply,/auth/invitation,/auth/mfa,/auth/profile-setup,/auth/recovery,/auth/session-expired,/auth/switch-role,/azeebo,/azeebo/attribution,/azeebo/gateway,/broadcast/asrun/exceptions,/broadcast/dashboard,/broadcast/poa/exceptions,/broadcast/rights/review-request,/broadcast/schedule/review,/broadcast/screens,/careers,/channels,/channels/isimbido,/channels/nxtr,/channels/orisun,/contact,/docs,/enquiry,/help,/help/operator,/hub,/hub/afca,/hub/community,/hub/creators,/hub/distribution,/hub/events,/hub/onestudios,/hub/production,/hub/talent,/hub/technology,/hub/vcf,/hub/vtm,/insights,/learn,/login,/partners,/portal/vtm/marketplace,/portal/vtm/payment-visibility,/portal/vtm/terms,/privacy,/prototypes,/schedule,/select-workspace,/sign-in,/sign-out,/styleguide,/vtm/marketplace,/vtm/terms,/workspace,/workspace/accelerator,/workspace/accelerator/desk,/workspace/admin/access,/workspace/admin/feature-flags,/workspace/admin/source-mappings,/workspace/admissions,/workspace/afca,/workspace/afca/assignments/submit,/workspace/afca/gradebook,/workspace/afca/grading/rubric,/workspace/afca/learning-plan,/workspace/afca/lms,/workspace/agentic-os,/workspace/aos/console,/workspace/approvals,/workspace/commercial/proposals/builder,/workspace/community/guilds,/workspace/content/editor,/workspace/content/media-picker,/workspace/content/review,/workspace/cr8tech/operations,/workspace/devops/console,/workspace/events/desk,/workspace/foundry/missions,/workspace/fusion-events,/workspace/governance/issues,/workspace/governance/records,/workspace/governance/risks,/workspace/guilds,/workspace/headspace/intelligence,/workspace/hub/overview,/workspace/issues/tracker,/workspace/management/overview,/workspace/market-intelligence,/workspace/my-work,/workspace/notifications,/workspace/onestudios/desk,/workspace/production/desk,/workspace/risk/register,/workspace/search,/workspace/syndication/catalogue,/workspace/tend/catalogue,/workspace/vcf/missions,/workspace/vtm/match,/workspace/vtm/matching
+[TSK-24] entries with an unmounted declared route: 0 · entries claiming IMPLEMENTED with no mounted route: 0 · entries whose evidence names no checkable file: 1 · entries with a broken evidence citation: 0
+[TSK-24] per-entry table (entry | ids | mounted/declared | provenance | basis | first probe):
+[TSK-24] | UX-PUB-001..028 | 28 | 8/8 | NOT_VERIFIED | handler source | / 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-SYS-001 | 1 | 1/1 | NOT_VERIFIED | handler source | /sign-in 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-SYS-002 | 1 | 1/1 | NOT_VERIFIED | handler source | /auth/mfa 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-SYS-003 | 1 | 1/1 | NOT_VERIFIED | handler source | /auth/recovery 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-SYS-004 | 1 | 1/1 | NOT_VERIFIED | handler source | /auth/invitation 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-SYS-005 | 1 | 1/1 | NOT_VERIFIED | handler source | /auth/profile-setup 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-SYS-006..011 | 6 | 6/6 | NOT_VERIFIED | handler source | /select-workspace 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-SYS-012 | 1 | 1/1 | NOT_VERIFIED | handler source | /account/notifications 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-SYS-013 | 1 | 1/1 | NOT_VERIFIED | handler source | /account/sessions 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-SYS-014 | 1 | 1/1 | NOT_VERIFIED | handler source | /help/operator 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-HUB-001 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/my-work 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-HUB-002 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/search 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-HUB-003 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/notifications 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-HUB-004 | 1 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/management/overview 200 page declares no provenance | evidence 4/4
+[TSK-24] | UX-HUB-005 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-COM-001..003 | 3 | 0/0 | NOT_CONNECTED | route not mounted | — 0 no mounted route declared | evidence 1/1
+[TSK-24] | UX-COM-004 | 1 | 1/1 | NOT_VERIFIED | handler source | /enquiry 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-COM-005..009 | 5 | 1/1 | NOT_VERIFIED | handler source | /workspace/commercial/proposals/builder 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-COM-010 | 1 | 1/1 | NOT_VERIFIED | handler source | /portal/client/ORG-1/projects/PRJ-1 404 page declares no provenance | evidence 1/1
+[TSK-24] | UX-PRJ-001 | 1 | 0/0 | NOT_CONNECTED | route not mounted | — 0 no mounted route declared | evidence 1/1
+[TSK-24] | UX-PRJ-002 | 1 | 1/1 | NOT_VERIFIED | handler source | /portal/client/ORG-1/projects/PRJ-1 404 page declares no provenance | evidence 1/1
+[TSK-24] | UX-BR-001..033 | 33 | 1/1 | NOT_VERIFIED | handler source | /broadcast/screens/SCR-BCST-01 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-BR-012 | 1 | 1/1 | NOT_VERIFIED | handler source | /broadcast/screens/SCR-BCST-01 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-BR-030 | 1 | 1/1 | NOT_VERIFIED | handler source | /broadcast/screens/SCR-BCST-01 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-GOV-001..002 | 2 | 1/1 | NOT_VERIFIED | handler source | /workspace/approvals 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-GOV-003 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/governance/records 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-GOV-004 | 1 | 1/1 | NOT_VERIFIED | handler source | /broadcast/screens/SCR-BCST-01 200 page declares no provenance | evidence 4/4
+[TSK-24] | UX-GOV-005 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/governance/records 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-GOV-006 | 1 | 1/1 | NOT_VERIFIED | handler source | /broadcast/screens/SCR-BCST-01 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-GOV-007 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/governance/records 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-GOV-008 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/governance/records 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-GOV-009 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/cases/privacy 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-GOV-010 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/cases/security 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-CMS-001..006 | 6 | 1/1 | NOT_VERIFIED | handler source | /workspace/content/review 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-CMS-007 | 1 | 1/1 | NOT_VERIFIED | handler source | /api/v1/federation/destinations 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-CMS-008 | 1 | 1/1 | NOT_VERIFIED | handler source | /api/v1/enquiries/routing-config 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-ADM-001 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/admin/access 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-ADM-002 | 1 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/cr8tech/operations 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-ADM-003 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace/admin/source-mappings 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-ADM-004 | 1 | 1/1 | DOMAIN_ENGINE | live probe | /admin/feature-flags 200 engine provenance badge | evidence 1/1
+[TSK-24] | UX-REC-001..006 | 6 | 1/1 | NOT_VERIFIED | handler source | /workspace/governance/records 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-AFCA-001..008 | 8 | 1/1 | NOT_VERIFIED | handler source | /workspace/afca 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-APP-001..008 | 8 | 1/1 | NOT_VERIFIED | handler source | /apply 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-ACC-001..008 | 8 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/accelerator 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-AFC-001..006 | 6 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/community/guilds 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-VTM-001..009 | 9 | 1/1 | NOT_VERIFIED | handler source | /vtm/marketplace 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-VTM-010 | 1 | 1/1 | NOT_VERIFIED | handler source | /vtm/terms 200 page declares no provenance | evidence 0/0
+[TSK-24] | UX-VTM-011 | 1 | 1/1 | NOT_VERIFIED | handler source | /portal/vtm/payment-visibility 200 page declares no provenance | evidence 2/2
+[TSK-24] | UX-VCF-001..008 | 8 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/vcf/missions 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-ONE-001..009 | 9 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/production/desk 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-EVT-001..008 | 8 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/events/desk 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-TEND-001..008 | 8 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/tend/catalogue 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-HSP-001..008 | 8 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/headspace/intelligence 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-CR8-001..008 | 8 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/cr8tech/operations 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-AGT-001..009 | 9 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/aos/console 200 page declares no provenance | evidence 1/1
+[TSK-24] | UX-POR-001 | 1 | 1/1 | NOT_VERIFIED | handler source | /portal/client/ORG-1/projects 404 page declares no provenance | evidence 1/1
+[TSK-24] | UX-POR-002 | 1 | 1/1 | NOT_VERIFIED | cited module | — 0 route not probeable; cited module declares no provenance | evidence 3/3
+[TSK-24] | UX-POR-003 | 1 | 1/1 | NOT_VERIFIED | handler source | /portal/partner/ORG-1 503 page declares no provenance | evidence 1/1
+[TSK-24] | UX-POR-004 | 1 | 1/1 | NOT_VERIFIED | handler source | /portal/creator/X-1 503 page declares no provenance | evidence 1/1
+[TSK-24] | UX-POR-005 | 1 | 1/1 | NOT_VERIFIED | handler source | /portal/vendor/X-1 503 page declares no provenance | evidence 1/1
+
+[90mstdout[2m | tests/unit/screen-register-verification.test.ts[2m > [22m[2mTSK-24 (CA-11): the screen register verifies what it claims[2m > [22m[2mcounts reachable HTML surfaces instead of quoting an unmeasured screen total
+[22m[39m[TSK-24] reachable HTML surfaces: /, /account/notifications, /account/sessions, /admin/feature-flags, /apply, /auth/invitation, /auth/mfa, /auth/profile-setup, /auth/recovery, /broadcast/screens/SCR-BCST-01, /enquiry, /help/operator, /portal/vtm/payment-visibility, /select-workspace, /sign-in, /vtm/marketplace, /vtm/terms, /workspace, /workspace/accelerator, /workspace/admin/access, /workspace/admin/source-mappings, /workspace/afca, /workspace/aos/console, /workspace/approvals, /workspace/cases/privacy, /workspace/cases/security, /workspace/commercial/proposals/builder, /workspace/community/guilds, /workspace/content/review, /workspace/cr8tech/operations, /workspace/events/desk, /workspace/governance/records, /workspace/headspace/intelligence, /workspace/management/overview, /workspace/my-work, /workspace/notifications, /workspace/production/desk, /workspace/search, /workspace/tend/catalogue, /workspace/vcf/missions
+[TSK-24] application-wide HTML surfaces (literal router paths answering 200 text/html to SuperAdmin): 111 of 229 literals probed
+
+ [32m✓[39m tests/unit/screen-register-verification.test.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 1026[2mms[22m[39m
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization
+[22m[39m{"timestamp":"2026-10-12T23:35:04.624Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"19a5fed8-acd5-4a5d-bfcd-5384a356d895","spanId":"2f96d9e8-6b66-41","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization
+[22m[39m{"timestamp":"2026-10-12T23:35:04.828Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"066e5fbd-84ef-473b-a28d-2310752adb16","spanId":"ce066c16-73d5-42","component":"server_bootstrap","assets":342,"items":8,"revisions":12,"bindings":1,"fulfillments":2,"deals":4}
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization
+[22m[39m{"timestamp":"2026-10-12T23:35:04.846Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"be646210-8727-4249-b811-ff398b86ba89","spanId":"af8be476-ce0f-48","component":"server_bootstrap","port":0,"env":"test"}
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39mprisma:error 
+Invalid `client.talentProfile.upsert()` invocation in
+/Users/deprof/www/vmng/src/core/database/repositories/talent.repository.ts:63:52
+
+  60 if (db.connected) {
+  61   try {
+  62     const client = getPrismaClient();
+→ 63     const created = await client.talentProfile.upsert(
+Foreign key constraint violated on the constraint: `TalentProfile_personId_fkey`
+
+[90mstderr[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m{"timestamp":"2026-10-12T23:35:05.607Z","level":"ERROR","message":"[VMNL-REPO-ERROR] talentProfile write failed and the repository is operating fail-closed (no in-memory fallback configured).","traceId":"2dea93cf-2d56-4bb1-8b80-95fcea504fd3","spanId":"c7f9175f-d6a1-4d","component":"api_router","stack":"RepositoryUnavailableError: [VMNL-REPO-ERROR] talentProfile write failed and the repository is operating fail-closed (no in-memory fallback configured).\n    at handleRepoError (/Users/deprof/www/vmng/src/core/database/repository-mode.ts:50:11)\n    at TalentRepository.createTalent (/Users/deprof/www/vmng/src/core/database/repositories/talent.repository.ts:103:15)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:6421:28)\n    at /Users/deprof/www/vmng/src/api/server.ts:593:7\n    at serveRequestInJournalGroup (/Users/deprof/www/vmng/src/api/server.ts:591:3)","duration":28}
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m{"timestamp":"2026-10-12T23:35:05.610Z","level":"ERROR","message":"[AFCA-ERR-404] Cohort '' not found.","traceId":"ad2d8c88-dc73-4d2a-994e-6516c775d12d","spanId":"f95e7129-563a-4c","component":"api_router","stack":"Error: [AFCA-ERR-404] Cohort '' not found.\n    at AfcaAcademyService.getCohortOrThrow (/Users/deprof/www/vmng/src/modules/hub/afca/index.ts:382:13)\n    at AfcaAcademyService.issueCertificate (/Users/deprof/www/vmng/src/modules/hub/afca/index.ts:285:25)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:6473:40)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at /Users/deprof/www/vmng/src/api/server.ts:593:7\n    at serveRequestInJournalGroup (/Users/deprof/www/vmng/src/api/server.ts:591:3)","duration":2}
+
+[90mstderr[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+[90mstderr[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m{"timestamp":"2026-10-12T23:35:05.618Z","level":"ERROR","message":"[VTM-BRF-01] Brief '' not found.","traceId":"4c1bdaf8-579e-449a-b755-6de271c8a9c3","spanId":"78ea9c82-d1ae-4b","component":"api_router","stack":"Error: [VTM-BRF-01] Brief '' not found.\n    at VirtualTalentManagementEngine.matchTalent (/Users/deprof/www/vmng/src/modules/hub/vtm/index.ts:157:13)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:6530:41)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at /Users/deprof/www/vmng/src/api/server.ts:593:7\n    at serveRequestInJournalGroup (/Users/deprof/www/vmng/src/api/server.ts:591:3)","duration":1}
+
+[90mstderr[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m{"timestamp":"2026-10-12T23:35:05.627Z","level":"ERROR","message":"[TEND-AVL-02] Title 'TIT-001' not found in catalogue.","traceId":"48472ade-349b-45fa-ad98-2354077a5e6d","spanId":"b7b99ac9-065e-48","component":"api_router","stack":"Error: [TEND-AVL-02] Title 'TIT-001' not found in catalogue.\n    at TendDistributionEngine.checkAvails (/Users/deprof/www/vmng/src/modules/hub/tend/index.ts:95:13)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:6671:44)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at /Users/deprof/www/vmng/src/api/server.ts:593:7\n    at serveRequestInJournalGroup (/Users/deprof/www/vmng/src/api/server.ts:591:3)","duration":1}
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m{"timestamp":"2026-10-12T23:35:05.629Z","level":"ERROR","message":"[TEND-AVL-02] Title 'TIT-001' not found in catalogue.","traceId":"cc4e7f28-a147-4d9d-87a8-ea7daca3747c","spanId":"0a6cf454-acfd-49","component":"api_router","stack":"Error: [TEND-AVL-02] Title 'TIT-001' not found in catalogue.\n    at TendDistributionEngine.checkAvails (/Users/deprof/www/vmng/src/modules/hub/tend/index.ts:95:13)\n    at TendDistributionEngine.createLicense (/Users/deprof/www/vmng/src/modules/hub/tend/index.ts:153:25)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:6688:44)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at /Users/deprof/www/vmng/src/api/server.ts:593:7\n    at serveRequestInJournalGroup (/Users/deprof/www/vmng/src/api/server.ts:591:3)","duration":1}
+
+[90mstderr[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m{"timestamp":"2026-10-12T23:35:05.633Z","level":"ERROR","message":"[COMM-BKG-01] Resource '' is not available.","traceId":"1fb07697-eee1-40a8-947e-d439328d97b1","spanId":"85398c2c-bd02-4e","component":"api_router","stack":"Error: [COMM-BKG-01] Resource '' is not available.\n    at AfroFusionCommunityHub.bookResource (/Users/deprof/www/vmng/src/modules/hub/community/index.ts:142:13)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:6744:46)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at /Users/deprof/www/vmng/src/api/server.ts:593:7\n    at serveRequestInJournalGroup (/Users/deprof/www/vmng/src/api/server.ts:591:3)","duration":2}
+
+[90mstderr[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+[90mstderr[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m{"timestamp":"2026-10-12T23:35:05.651Z","level":"ERROR","message":"[QTC-DEAL-02] Contract value must be greater than zero.","traceId":"763b2ca5-2b20-4bbd-a174-0e4f6f185ffb","spanId":"e82c5246-f824-4b","component":"api_router","stack":"Error: [QTC-DEAL-02] Contract value must be greater than zero.\n    at QuoteToCashSalesEngine.createDeal (/Users/deprof/www/vmng/src/modules/finance/sales/index.ts:78:13)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:7496:40)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at /Users/deprof/www/vmng/src/api/server.ts:593:7\n    at serveRequestInJournalGroup (/Users/deprof/www/vmng/src/api/server.ts:591:3)","duration":1}
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m{"timestamp":"2026-10-12T23:35:05.653Z","level":"ERROR","message":"[QTC-DEAL-02] Contract value must be greater than zero.","traceId":"2b98f2c4-ddd7-4a75-8856-51b47f6cac56","spanId":"c31433d7-5d9c-44","component":"api_router","stack":"Error: [QTC-DEAL-02] Contract value must be greater than zero.\n    at QuoteToCashSalesEngine.createDeal (/Users/deprof/www/vmng/src/modules/finance/sales/index.ts:78:13)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:7496:40)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at /Users/deprof/www/vmng/src/api/server.ts:593:7\n    at serveRequestInJournalGroup (/Users/deprof/www/vmng/src/api/server.ts:591:3)","duration":2}
+
+[90mstderr[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+[90mstdout[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m{"timestamp":"2026-10-12T23:35:05.656Z","level":"ERROR","message":"[PAY-BAT-01] Payout batch must contain at least one item.","traceId":"38e49890-99dc-49a7-bb74-22818516b9de","spanId":"03f63edf-1abc-43","component":"api_router","stack":"Error: [PAY-BAT-01] Payout batch must contain at least one item.\n    at TalentPayoutEngine.createPayoutBatch (/Users/deprof/www/vmng/src/modules/finance/payouts/index.ts:114:13)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:7523:42)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at /Users/deprof/www/vmng/src/api/server.ts:593:7\n    at serveRequestInJournalGroup (/Users/deprof/www/vmng/src/api/server.ts:591:3)","duration":2}
+
+[90mstderr[2m | tests/security/route-authorization.test.ts[2m > [22m[2mAUD-01: Centralized Route Authorization[2m > [22m[2madmits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[22m[39m[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+ [32m✓[39m tests/security/route-authorization.test.ts [2m([22m[2m13 tests[22m[2m)[22m[33m 1234[2mms[22m[39m
+     [33m[2m✓[22m[39m rejects unauthenticated calls with 401 for every guarded route [33m 698[2mms[22m[39m
+[90mstdout[2m | tests/unit/identity-and-rbac.test.ts[2m > [22m[2mS-IDENTITY Presentation Shell & RBAC Suite (UX-SYS-001 to 014 / Journey J-RL1-02)
+[22m[39m{"timestamp":"2026-10-12T23:35:06.486Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"4edcd803-e905-4c2a-91bd-7465e328ec21","spanId":"c68cbea5-d6e7-4b","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+[90mstdout[2m | tests/unit/identity-and-rbac.test.ts[2m > [22m[2mS-IDENTITY Presentation Shell & RBAC Suite (UX-SYS-001 to 014 / Journey J-RL1-02)
+[22m[39m{"timestamp":"2026-10-12T23:35:06.716Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"ed386444-d55a-4538-9417-d984e8c8a2ff","spanId":"a3a59499-c72e-4b","component":"server_bootstrap","assets":342,"items":8,"revisions":12,"bindings":1,"fulfillments":2,"deals":4}
+
+[90mstdout[2m | tests/unit/identity-and-rbac.test.ts[2m > [22m[2mS-IDENTITY Presentation Shell & RBAC Suite (UX-SYS-001 to 014 / Journey J-RL1-02)
+[22m[39m{"timestamp":"2026-10-12T23:35:06.733Z","level":"INFO","message":"VMNL Enterprise Server listening on port 4215","traceId":"2c36959f-03e5-4909-bf1e-cbe8e585218a","spanId":"61acce7a-c6a5-44","component":"server_bootstrap","port":4215,"env":"test"}
+
+ [32m✓[39m tests/unit/identity-and-rbac.test.ts [2m([22m[2m11 tests[22m[2m)[22m[33m 1276[2mms[22m[39m
+     [33m[2m✓[22m[39m renders UX-SYS-001 Sign In screen with one-click sandbox personas and WCAG form controls [33m 666[2mms[22m[39m
+[90mstdout[2m | tests/unit/extended-workspaces.test.ts[2m > [22m[2mExtended Workspaces & Counterparty Portals Unit Tests
+[22m[39m{"timestamp":"2026-10-12T23:35:08.809Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"bfca8b60-dba8-49ae-ad09-942f0403aeef","spanId":"8b37f250-81fa-46","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+[90mstdout[2m | tests/unit/extended-workspaces.test.ts[2m > [22m[2mExtended Workspaces & Counterparty Portals Unit Tests
+[22m[39m{"timestamp":"2026-10-12T23:35:08.904Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"95dfce5c-7df4-4d9e-8de5-ba15b2fd10ff","spanId":"d4de91de-9eb4-4c","component":"server_bootstrap","assets":342,"items":8,"revisions":12,"bindings":1,"fulfillments":2,"deals":4}
+
+[90mstdout[2m | tests/unit/extended-workspaces.test.ts[2m > [22m[2mExtended Workspaces & Counterparty Portals Unit Tests
+[22m[39m{"timestamp":"2026-10-12T23:35:08.919Z","level":"INFO","message":"VMNL Enterprise Server listening on port 4235","traceId":"e5fe4215-34a2-4857-a886-0d9d3e527014","spanId":"d1ef11f3-788c-47","component":"server_bootstrap","port":4235,"env":"test"}
+
+ [32m✓[39m tests/unit/extended-workspaces.test.ts [2m([22m[2m28 tests[22m[2m)[22m[33m 1126[2mms[22m[39m
+       [33m[2m✓[22m[39m GET /workspace/commercial/proposals/builder responds with 200 (empty store, honest) [33m 653[2mms[22m[39m
+[90mstdout[2m | tests/contract/openapi-contract.test.ts[2m > [22m[2mT-20 (B-17): OpenAPI Contract Verification
+[22m[39m{"timestamp":"2026-10-12T23:35:10.246Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"ce2b13a5-b623-4b4c-94e2-741c356d2d1b","spanId":"798cc001-1649-45","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+[90mstdout[2m | tests/contract/openapi-contract.test.ts[2m > [22m[2mT-20 (B-17): OpenAPI Contract Verification
+[22m[39m{"timestamp":"2026-10-12T23:35:10.422Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"ccdd45e2-a661-445a-aa03-f249f1eecb28","spanId":"9e3b0689-ef80-46","component":"server_bootstrap","assets":342,"items":8,"revisions":12,"bindings":1,"fulfillments":2,"deals":5}
+
+[90mstdout[2m | tests/contract/openapi-contract.test.ts[2m > [22m[2mT-20 (B-17): OpenAPI Contract Verification
+[22m[39m{"timestamp":"2026-10-12T23:35:10.436Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"2e9034f9-75b2-4105-9628-59ac72bf2cd5","spanId":"64dd321f-d815-4d","component":"server_bootstrap","port":0,"env":"test"}
+
+[90mstdout[2m | tests/contract/openapi-contract.test.ts[2m > [22m[2mT-20 (B-17): OpenAPI Contract Verification[2m > [22m[2mverifies bidirectional reachability: every documented OpenAPI route exists and does not 404
+[22m[39m{"timestamp":"2026-10-12T23:35:10.886Z","level":"ERROR","message":"[VTM-BRF-01] Brief '' not found.","traceId":"27086383-59a1-4121-b933-3bbe848b51e0","spanId":"597b4eb9-df43-43","component":"api_router","stack":"Error: [VTM-BRF-01] Brief '' not found.\n    at VirtualTalentManagementEngine.matchTalent (/Users/deprof/www/vmng/src/modules/hub/vtm/index.ts:157:13)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:6530:41)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at /Users/deprof/www/vmng/src/api/server.ts:593:7\n    at serveRequestInJournalGroup (/Users/deprof/www/vmng/src/api/server.ts:591:3)","duration":1}
+
+[90mstderr[2m | tests/contract/openapi-contract.test.ts[2m > [22m[2mT-20 (B-17): OpenAPI Contract Verification[2m > [22m[2mverifies bidirectional reachability: every documented OpenAPI route exists and does not 404
+[22m[39m[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+[90mstdout[2m | tests/contract/openapi-contract.test.ts[2m > [22m[2mT-20 (B-17): OpenAPI Contract Verification[2m > [22m[2mverifies bidirectional reachability: every documented OpenAPI route exists and does not 404
+[22m[39m{"timestamp":"2026-10-12T23:35:10.898Z","level":"ERROR","message":"Cannot read properties of undefined (reading '0')","traceId":"fad1f3ed-eaea-400d-b6d2-bc1fc7d89c37","spanId":"dbff36da-8fa3-42","component":"api_router","stack":"TypeError: Cannot read properties of undefined (reading '0')\n    at Function.evaluateRelease (/Users/deprof/www/vmng/src/modules/quality/gates.ts:230:29)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:8025:48)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at /Users/deprof/www/vmng/src/api/server.ts:593:7\n    at serveRequestInJournalGroup (/Users/deprof/www/vmng/src/api/server.ts:591:3)","duration":1}
+
+[90mstderr[2m | tests/contract/openapi-contract.test.ts[2m > [22m[2mT-20 (B-17): OpenAPI Contract Verification[2m > [22m[2mverifies bidirectional reachability: every documented OpenAPI route exists and does not 404
+[22m[39m[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+ [32m✓[39m tests/contract/openapi-contract.test.ts [2m([22m[2m10 tests[22m[2m)[22m[33m 668[2mms[22m[39m
+     [33m[2m✓[22m[39m validates /healthz response matches contract schema [33m 349[2mms[22m[39m
+[90mstdout[2m | tests/unit/security-auth-rbac.test.ts[2m > [22m[2mSecurity, RBAC Enforcement & Authentication Suite (B-6, B-7, B-8)
+[22m[39m{"timestamp":"2026-10-12T23:35:11.475Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"6a5a2226-e9a9-4621-9baa-0c9468c6b03a","spanId":"ee457efe-8a97-4a","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+[90mstdout[2m | tests/unit/security-auth-rbac.test.ts[2m > [22m[2mSecurity, RBAC Enforcement & Authentication Suite (B-6, B-7, B-8)
+[22m[39m{"timestamp":"2026-10-12T23:35:11.697Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"45885f38-38a1-48f6-994d-4a2665d32ebf","spanId":"59c740bc-5da1-4f","component":"server_bootstrap","assets":342,"items":8,"revisions":12,"bindings":1,"fulfillments":2,"deals":5}
+
+[90mstdout[2m | tests/unit/security-auth-rbac.test.ts[2m > [22m[2mSecurity, RBAC Enforcement & Authentication Suite (B-6, B-7, B-8)
+[22m[39m{"timestamp":"2026-10-12T23:35:11.721Z","level":"INFO","message":"VMNL Enterprise Server listening on port 4199","traceId":"419e03a3-03b8-4b98-aaaa-7e26e9576312","spanId":"078e3269-d57b-48","component":"server_bootstrap","port":4199,"env":"test"}
+
+[90mstdout[2m | tests/unit/security-auth-rbac.test.ts[2m > [22m[2mSecurity, RBAC Enforcement & Authentication Suite (B-6, B-7, B-8)[2m > [22m[2mshould return 500 with sanitized body for authenticated storage errors (fail-closed guard regression)
+[22m[39m{"timestamp":"2026-10-12T23:35:12.289Z","level":"ERROR","message":"[VMNL-STORAGE-ERROR] MIME type 'application/x-internal-test' is not permitted for storage upload","traceId":"62a38966-a3c8-4604-a9ca-ecabc9846751","spanId":"50b62a15-0b1e-45","component":"api_router","stack":"Error: [VMNL-STORAGE-ERROR] MIME type 'application/x-internal-test' is not permitted for storage upload\n    at generatePresignedUploadUrl (/Users/deprof/www/vmng/src/core/storage/index.ts:133:11)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:8047:25)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at /Users/deprof/www/vmng/src/api/server.ts:593:7\n    at serveRequestInJournalGroup (/Users/deprof/www/vmng/src/api/server.ts:591:3)","duration":2}
+
+[90mstderr[2m | tests/unit/security-auth-rbac.test.ts[2m > [22m[2mSecurity, RBAC Enforcement & Authentication Suite (B-6, B-7, B-8)[2m > [22m[2mshould return 500 with sanitized body for authenticated storage errors (fail-closed guard regression)
+[22m[39m[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+ [32m✓[39m tests/unit/security-auth-rbac.test.ts [2m([22m[2m16 tests[22m[2m)[22m[33m 997[2mms[22m[39m
+     [33m[2m✓[22m[39m should hide internal exception details from 500 responses (route now guarded, so unauthenticated callers get 401 before any handler logic) [33m 526[2mms[22m[39m
+[90mstdout[2m | tests/unit/audit-remediation-regressions.test.ts[2m > [22m[2mverified audit remediations[2m > [22m[2mHTTP boundaries[2m > [22m[2mrequires CSRF on cookie-authenticated writes, denies cross-site origins, and preserves public intake
+[22m[39m{"timestamp":"2026-10-12T23:35:13.012Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"79e6de79-04ee-407c-87e9-7f9485fc49cb","spanId":"149f53da-86b7-4d","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+[90mstdout[2m | tests/unit/audit-remediation-regressions.test.ts[2m > [22m[2mverified audit remediations[2m > [22m[2mHTTP boundaries[2m > [22m[2mrequires CSRF on cookie-authenticated writes, denies cross-site origins, and preserves public intake
+[22m[39m{"timestamp":"2026-10-12T23:35:13.206Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"afd19bd0-dea7-47f4-91f3-0d332aefbe52","spanId":"75a28512-cdde-47","component":"server_bootstrap","assets":342,"items":8,"revisions":12,"bindings":1,"fulfillments":2,"deals":5}
+
+[90mstdout[2m | tests/unit/audit-remediation-regressions.test.ts[2m > [22m[2mverified audit remediations[2m > [22m[2mHTTP boundaries[2m > [22m[2mrequires CSRF on cookie-authenticated writes, denies cross-site origins, and preserves public intake
+[22m[39m{"timestamp":"2026-10-12T23:35:13.221Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"00b59f04-201a-4662-b253-0ed6ef99adcb","spanId":"a637ab70-6520-4a","component":"server_bootstrap","port":0,"env":"test"}
+
+[90mstdout[2m | tests/unit/audit-remediation-regressions.test.ts[2m > [22m[2mverified audit remediations[2m > [22m[2mHTTP boundaries[2m > [22m[2mrejects incomplete signed payments and unsupported event types before ingestion
+[22m[39mprisma:error 
+Invalid `getPrismaClient().providerEventClaim.create()` invocation in
+/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:912:48
+
+  909 const now = new Date();
+  910 const id = `${provider}:${eventId}`;
+  911 try {
+→ 912   await getPrismaClient().providerEventClaim.create(
+Unique constraint failed on the constraint: `ProviderEventClaim_pkey`
+
+[90mstdout[2m | tests/unit/audit-remediation-regressions.test.ts[2m > [22m[2mverified audit remediations[2m > [22m[2mHTTP boundaries[2m > [22m[2mre-processes a provider retry whose earlier attempt claimed the event and never ingested it (TSK-19)
+[22m[39mprisma:error 
+Invalid `getPrismaClient().providerEventClaim.create()` invocation in
+/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:912:48
+
+  909 const now = new Date();
+  910 const id = `${provider}:${eventId}`;
+  911 try {
+→ 912   await getPrismaClient().providerEventClaim.create(
+Unique constraint failed on the constraint: `ProviderEventClaim_pkey`
+
+[90mstdout[2m | tests/unit/audit-remediation-regressions.test.ts[2m > [22m[2mverified audit remediations[2m > [22m[2mHTTP boundaries[2m > [22m[2mre-processes a provider retry whose earlier attempt claimed the event and never ingested it (TSK-19)
+[22m[39mprisma:error 
+Invalid `getPrismaClient().providerEventClaim.create()` invocation in
+/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:912:48
+
+  909 const now = new Date();
+  910 const id = `${provider}:${eventId}`;
+  911 try {
+→ 912   await getPrismaClient().providerEventClaim.create(
+Unique constraint failed on the constraint: `ProviderEventClaim_pkey`
+
+ [32m✓[39m tests/unit/audit-remediation-regressions.test.ts [2m([22m[2m12 tests[22m[2m)[22m[33m 685[2mms[22m[39m
+       [33m[2m✓[22m[39m requires CSRF on cookie-authenticated writes, denies cross-site origins, and preserves public intake [33m 561[2mms[22m[39m
+[90mstdout[2m | tests/unit/broadcast-screens.test.ts[2m > [22m[2mT-19 (B-15): 33 Operational Broadcast Screen Surfaces[2m > [22m[2mT9-01 (F-9-01): Screen Route Authentication & Bypass Prevention
+[22m[39m{"timestamp":"2026-10-12T23:35:14.357Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"0776df8d-d61a-4956-bcb7-596fd95533fc","spanId":"06a208e6-fa63-4e","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+[90mstdout[2m | tests/unit/broadcast-screens.test.ts[2m > [22m[2mT-19 (B-15): 33 Operational Broadcast Screen Surfaces[2m > [22m[2mT9-01 (F-9-01): Screen Route Authentication & Bypass Prevention
+[22m[39m{"timestamp":"2026-10-12T23:35:14.413Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"3356386c-5f8d-4c03-9085-b5d2127a562a","spanId":"9278d57d-4e3e-4b","component":"server_bootstrap","assets":342,"items":8,"revisions":12,"bindings":1,"fulfillments":2,"deals":5}
+
+[90mstdout[2m | tests/unit/broadcast-screens.test.ts[2m > [22m[2mT-19 (B-15): 33 Operational Broadcast Screen Surfaces[2m > [22m[2mT9-01 (F-9-01): Screen Route Authentication & Bypass Prevention
+[22m[39m{"timestamp":"2026-10-12T23:35:14.431Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"73203381-f84e-4a67-ab00-198642db8842","spanId":"9062ae49-544a-4b","component":"server_bootstrap","port":0,"env":"test"}
+
+[90mstdout[2m | tests/unit/broadcast-screens.test.ts[2m > [22m[2mT-19 (B-15): 33 Operational Broadcast Screen Surfaces[2m > [22m[2mTSK-11 box 6: served desks project the engines of their own process
+[22m[39m{"timestamp":"2026-10-12T23:35:14.832Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"8354d3e2-a326-4383-b5e0-a145a6e8a761","spanId":"1d89ffeb-4a65-42","component":"server_bootstrap","assets":342,"items":8,"revisions":12,"bindings":1,"fulfillments":2,"deals":5}
+
+[90mstdout[2m | tests/unit/broadcast-screens.test.ts[2m > [22m[2mT-19 (B-15): 33 Operational Broadcast Screen Surfaces[2m > [22m[2mTSK-11 box 6: served desks project the engines of their own process
+[22m[39m{"timestamp":"2026-10-12T23:35:14.837Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"c34687ad-69be-4a8f-aec9-cbf383bd6639","spanId":"669d8d28-ed20-40","component":"server_bootstrap","port":0,"env":"test"}
+
+ [32m✓[39m tests/unit/broadcast-screens.test.ts [2m([22m[2m20 tests[22m[2m)[22m[33m 736[2mms[22m[39m
+       [33m[2m✓[22m[39m rejects unauthenticated requests to broadcast screens with 401 Unauthorized [33m 360[2mms[22m[39m
+[90mstdout[2m | tests/unit/client-portal-and-operations.test.ts[2m > [22m[2mClient Portal (J-RL1-07), UX-SYS Onboarding & Operational Workbenches (J-RL1-08 to 14)
+[22m[39m{"timestamp":"2026-10-12T23:35:15.501Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"a581d9e2-ebce-46fd-9b92-b9f70f238f4e","spanId":"ec7e7fdc-e2f2-4e","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+[90mstdout[2m | tests/unit/client-portal-and-operations.test.ts[2m > [22m[2mClient Portal (J-RL1-07), UX-SYS Onboarding & Operational Workbenches (J-RL1-08 to 14)
+[22m[39m{"timestamp":"2026-10-12T23:35:15.560Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"aebcc7b5-988d-4e1c-9b4b-776771f8ae75","spanId":"b396811c-6c0c-41","component":"server_bootstrap","assets":342,"items":7,"revisions":11,"bindings":1,"fulfillments":2,"deals":5}
+
+[90mstdout[2m | tests/unit/client-portal-and-operations.test.ts[2m > [22m[2mClient Portal (J-RL1-07), UX-SYS Onboarding & Operational Workbenches (J-RL1-08 to 14)
+[22m[39m{"timestamp":"2026-10-12T23:35:15.571Z","level":"INFO","message":"VMNL Enterprise Server listening on port 4219","traceId":"2dec4296-15fc-40ab-ae89-ad5299539bf5","spanId":"54ecee61-6043-40","component":"server_bootstrap","port":4219,"env":"test"}
+
+ [32m✓[39m tests/unit/client-portal-and-operations.test.ts [2m([22m[2m24 tests[22m[2m)[22m[33m 673[2mms[22m[39m
+       [33m[2m✓[22m[39m requires a verified canonical relationship and returns 401/403 for missing or guessed membership [33m 342[2mms[22m[39m
+[90mstdout[2m | tests/unit/desk-census.test.ts[2m > [22m[2mTSK-23 (CA-10): authoritative desk census measured through the router
+[22m[39m{"timestamp":"2026-10-12T23:35:16.506Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"2153141d-7498-41e2-84b0-ffb364ba3b6d","spanId":"313e9fdb-42d0-4f","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+[90mstdout[2m | tests/unit/desk-census.test.ts[2m > [22m[2mTSK-23 (CA-10): authoritative desk census measured through the router
+[22m[39m{"timestamp":"2026-10-12T23:35:16.693Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"f0ad8bea-693f-49cb-a0a0-6a7d57ec99ca","spanId":"245f29fc-156a-4b","component":"server_bootstrap","assets":342,"items":7,"revisions":11,"bindings":1,"fulfillments":2,"deals":5}
+
+[90mstdout[2m | tests/unit/desk-census.test.ts[2m > [22m[2mTSK-23 (CA-10): authoritative desk census measured through the router
+[22m[39m{"timestamp":"2026-10-12T23:35:16.708Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"01be8536-53c3-4123-b73d-34dd49d0605b","spanId":"dab31b71-dc3d-44","component":"server_bootstrap","port":0,"env":"test"}
+
+[90mstdout[2m | tests/unit/desk-census.test.ts[2m > [22m[2mTSK-23 (CA-10): authoritative desk census measured through the router
+[22m[39m
+[TSK-23] desk census — registered: 48 · presentation shell: 47 · dedicated handler answered: 1
+[TSK-23] dedicated desks: afca (200)
+[TSK-23] anonymous access to a desk page: 200=0 302=48 403=0 other=0
+[TSK-23] a PlayoutOperator can open 47 of 48 desk pages; 1 are role-scoped by WORKSPACE_HTML_GUARDS (executive)
+[TSK-23] per-desk rows — reproduce: pnpm vitest run tests/unit/desk-census.test.ts
+[TSK-23] | executive | Executive & Core | ExecutiveLeader | shell | 302 | 403 | SuperAdmin/ExecutiveLeader |
+[TSK-23] | iam | Executive & Core | SuperAdmin | shell | 302 | 200 | — |
+[TSK-23] | organisations | Executive & Core | LegalCounsel | shell | 302 | 200 | — |
+[TSK-23] | projects | Executive & Core | ProductionDirector | shell | 302 | 200 | — |
+[TSK-23] | risk | Executive & Core | RiskManager | shell | 302 | 200 | — |
+[TSK-23] | board | Executive & Core | ExecutiveLeader | shell | 302 | 200 | — |
+[TSK-23] | procurement | Executive & Core | ProcurementManager | shell | 302 | 200 | — |
+[TSK-23] | audit | Executive & Core | InternalAuditor | shell | 302 | 200 | — |
+[TSK-23] | esg | Executive & Core | SustainabilityOfficer | shell | 302 | 200 | — |
+[TSK-23] | comms | Executive & Core | CommunicationsDirector | shell | 302 | 200 | — |
+[TSK-23] | hr | Executive & Core | HRDirector | shell | 302 | 200 | — |
+[TSK-23] | legal | Executive & Core | GeneralCounsel | shell | 302 | 200 | — |
+[TSK-23] | mcr | Broadcast Operations | MCRSupervisor | shell | 302 | 200 | — |
+[TSK-23] | traffic | Broadcast Operations | TrafficManager | shell | 302 | 200 | — |
+[TSK-23] | epg | Broadcast Operations | TrafficScheduler | shell | 302 | 200 | — |
+[TSK-23] | asrun | Broadcast Operations | BroadcastReconciliationLead | shell | 302 | 200 | — |
+[TSK-23] | uplink | Broadcast Operations | BroadcastTransmissionEngineer | shell | 302 | 200 | — |
+[TSK-23] | ingest | Broadcast Operations | IngestOperator | shell | 302 | 200 | — |
+[TSK-23] | graphics | Broadcast Operations | GraphicsCoordinator | shell | 302 | 200 | — |
+[TSK-23] | scte | Broadcast Operations | AutomationEngineer | shell | 302 | 200 | — |
+[TSK-23] | disaster | Broadcast Operations | SiteReliabilityEngineer | shell | 302 | 200 | — |
+[TSK-23] | audio | Broadcast Operations | AudioComplianceOfficer | shell | 302 | 200 | — |
+[TSK-23] | interstitial | Broadcast Operations | InterstitialProducer | shell | 302 | 200 | — |
+[TSK-23] | transmission | Broadcast Operations | TransmissionLead | shell | 302 | 200 | — |
+[TSK-23] | talent | Hub Specialist | HubCoordinator | shell | 302 | 200 | — |
+[TSK-23] | afca | Hub Specialist | AcademyDean | dedicated handler | 302 | 200 | — |
+[TSK-23] | community | Hub Specialist | CommunityManager | shell | 302 | 200 | — |
+[TSK-23] | vtm | Hub Specialist | TalentAgent | shell | 302 | 200 | — |
+[TSK-23] | vcf | Hub Specialist | InvestmentLead | shell | 302 | 200 | — |
+[TSK-23] | onestudios | Hub Specialist | ProductionDirector | shell | 302 | 200 | — |
+[TSK-23] | events | Hub Specialist | EventsProducer | shell | 302 | 200 | — |
+[TSK-23] | tend | Hub Specialist | RightsManager | shell | 302 | 200 | — |
+[TSK-23] | soundstage | Hub Specialist | StudioManager | shell | 302 | 200 | — |
+[TSK-23] | gear | Hub Specialist | EquipmentCoordinator | shell | 302 | 200 | — |
+[TSK-23] | postproduction | Hub Specialist | PostProductionSupervisor | shell | 302 | 200 | — |
+[TSK-23] | alumni | Hub Specialist | AlumniRelationsLead | shell | 302 | 200 | — |
+[TSK-23] | crm | Commercial & Finance | CommercialLead | shell | 302 | 200 | — |
+[TSK-23] | quotes | Commercial & Finance | CommercialLead | shell | 302 | 200 | — |
+[TSK-23] | contracts | Commercial & Finance | LegalCounsel | shell | 302 | 200 | — |
+[TSK-23] | finance | Commercial & Finance | FinanceController | shell | 302 | 200 | — |
+[TSK-23] | payouts | Commercial & Finance | DisbursementOfficer | shell | 302 | 200 | — |
+[TSK-23] | bankrecon | Commercial & Finance | TreasuryManager | shell | 302 | 200 | — |
+[TSK-23] | headspace | Tech & Governance | ChiefIntelligenceOfficer | shell | 302 | 200 | — |
+[TSK-23] | cr8tech | Tech & Governance | TechnologyLead | shell | 302 | 200 | — |
+[TSK-23] | rights | Tech & Governance | RightsManager | shell | 302 | 200 | — |
+[TSK-23] | privacy | Tech & Governance | DataProtectionOfficer | shell | 302 | 200 | — |
+[TSK-23] | security | Tech & Governance | SecOpsLead | shell | 302 | 200 | — |
+[TSK-23] | aos | Tech & Governance | AgenticOpsEngineer | shell | 302 | 200 | — |
+
+ [32m✓[39m tests/unit/desk-census.test.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 664[2mms[22m[39m
+[90mstdout[2m | tests/unit/auth-shared-across-instances.test.ts[2m > [22m[2mTSK-27: an unreachable shared backend takes the pod out of rotation[2m > [22m[2mreports 503 while the shared backend is unhealthy, and 200 when an operator opts out
+[22m[39m{"timestamp":"2026-10-12T23:35:17.972Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"b304ce6d-8ea6-4358-af93-79b27d695018","spanId":"78e80705-2231-4a","component":"server_bootstrap","assets":342,"items":8,"revisions":12,"bindings":1,"fulfillments":2,"deals":5}
+
+[90mstdout[2m | tests/unit/auth-shared-across-instances.test.ts[2m > [22m[2mTSK-27: an unreachable shared backend takes the pod out of rotation[2m > [22m[2mreports 503 while the shared backend is unhealthy, and 200 when an operator opts out
+[22m[39m{"timestamp":"2026-10-12T23:35:17.984Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"066f3118-a1cd-4377-bc4e-796c64330793","spanId":"9d78c834-5155-4d","component":"server_bootstrap","port":0,"env":"test"}
+
+ [32m✓[39m tests/unit/auth-shared-across-instances.test.ts [2m([22m[2m12 tests[22m[2m)[22m[33m 606[2mms[22m[39m
+     [33m[2m✓[22m[39m reports 503 while the shared backend is unhealthy, and 200 when an operator opts out [33m 417[2mms[22m[39m
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate
+[22m[39m{"timestamp":"2026-10-12T23:35:18.778Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"29f4cef6-1f89-4702-a7fd-a21d48f5aa81","spanId":"73a11467-d7ea-4c","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate
+[22m[39m{"timestamp":"2026-10-12T23:35:18.971Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"da87b4d8-8bb0-49b3-a094-de5b8f65254d","spanId":"98c90b91-6f3a-48","component":"server_bootstrap","assets":342,"items":8,"revisions":12,"bindings":1,"fulfillments":2,"deals":5}
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate
+[22m[39m{"timestamp":"2026-10-12T23:35:18.988Z","level":"INFO","message":"VMNL Enterprise Server listening on port 4288","traceId":"4dc9dc22-f84e-4ba3-b95b-e11630bcbf46","spanId":"afffa923-0a66-43","component":"server_bootstrap","port":4288,"env":"test"}
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate
+[22m[39m
+[TSK-14] rights clearance path under test: Postgres (fail_closed)
+
+ [32m✓[39m tests/integration/rights-clearance-e2e.test.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 684[2mms[22m[39m
+     [33m[2m✓[22m[39m blocks the slot on the registered record before any review exists [33m 358[2mms[22m[39m
+[90mstdout[2m | tests/security/abuse-and-fuzzing.test.ts[2m > [22m[2mT-20 (B-17): Security Abuse & Fuzzing Protection
+[22m[39m{"timestamp":"2026-10-12T23:35:19.925Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"dc05ddfd-989f-4b60-ad6d-aa354e5f6618","spanId":"787a060e-9c37-4d","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+[90mstdout[2m | tests/security/abuse-and-fuzzing.test.ts[2m > [22m[2mT-20 (B-17): Security Abuse & Fuzzing Protection
+[22m[39m{"timestamp":"2026-10-12T23:35:20.138Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"68b47a25-7ef3-4448-8b41-6fe94db76803","spanId":"dfcccdcf-71b7-43","component":"server_bootstrap","assets":342,"items":8,"revisions":12,"bindings":1,"fulfillments":2,"deals":5}
+
+[90mstdout[2m | tests/security/abuse-and-fuzzing.test.ts[2m > [22m[2mT-20 (B-17): Security Abuse & Fuzzing Protection
+[22m[39m{"timestamp":"2026-10-12T23:35:20.155Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"071cc110-a8b2-4f72-bf2f-ad022b1568d7","spanId":"1222c6a2-31c4-44","component":"server_bootstrap","port":0,"env":"test"}
+
+[90mstdout[2m | tests/security/abuse-and-fuzzing.test.ts[2m > [22m[2mT-20 (B-17): Security Abuse & Fuzzing Protection[2m > [22m[2mhandles malformed JSON body gracefully without crashing server (400 Bad Request)
+[22m[39m{"timestamp":"2026-10-12T23:35:20.217Z","level":"ERROR","message":"Invalid JSON body payload","traceId":"a700f728-397d-457e-abd1-051bc79c5f9c","spanId":"11b9d488-1872-4b","component":"api_router","stack":"Error: Invalid JSON body payload\n    at parseJsonBody (/Users/deprof/www/vmng/src/api/router.ts:510:11)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:3695:20)\n    at /Users/deprof/www/vmng/src/api/server.ts:593:7\n    at serveRequestInJournalGroup (/Users/deprof/www/vmng/src/api/server.ts:591:3)","duration":2}
+
+[90mstderr[2m | tests/security/abuse-and-fuzzing.test.ts[2m > [22m[2mT-20 (B-17): Security Abuse & Fuzzing Protection[2m > [22m[2mhandles malformed JSON body gracefully without crashing server (400 Bad Request)
+[22m[39m[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+ [32m✓[39m tests/security/abuse-and-fuzzing.test.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 694[2mms[22m[39m
+     [33m[2m✓[22m[39m handles malformed JSON body gracefully without crashing server (400 Bad Request) [33m 427[2mms[22m[39m
+[90mstdout[2m | tests/unit/auth.test.ts[2m > [22m[2mTSK-30: the database refuses an unsealed value (migration 20261009200000)[2m > [22m[2mrejects a plaintext national ID and accepts the sealed envelope
+[22m[39mprisma:error 
+Invalid `prisma.person.create()` invocation in
+/Users/deprof/www/vmng/tests/unit/auth.test.ts:311:23
+
+  308 it("rejects a plaintext national ID and accepts the sealed envelope", async () => {
+  309   const prisma = getPrismaClient();
+  310   await expect(
+→ 311     prisma.person.create(
+Database error. Code: `23514`. Message: `new row for relation "Person" violates check constraint "Person_nationalId_sealed_envelope"`
+
+[90mstdout[2m | tests/unit/auth.test.ts[2m > [22m[2mTSK-30: the database refuses an unsealed value (migration 20261009200000)[2m > [22m[2mrejects a plaintext TOTP seed on the User row too
+[22m[39mprisma:error 
+Invalid `prisma.user.create()` invocation in
+/Users/deprof/www/vmng/tests/unit/auth.test.ts:344:21
+
+  341 cleanup.push(() => prisma.person.deleteMany({ where: { id: person.id } }));
+  342 
+  343 await expect(
+→ 344   prisma.user.create(
+Database error. Code: `23514`. Message: `new row for relation "User" violates check constraint "User_mfaSecret_sealed_envelope"`
+
+ [32m✓[39m tests/unit/auth.test.ts [2m([22m[2m15 tests[22m[2m)[22m[33m 554[2mms[22m[39m
+[90mstdout[2m | tests/unit/production-core-and-infrastructure.test.ts[2m > [22m[2mProduction Core & Background Infrastructure[2m > [22m[2m1. Database Repositories (Prisma CRUD with Resilient Fallback)
+[22m[39m[TSK-05] repository path under test: Postgres (fail_closed)
+
+ [32m✓[39m tests/unit/production-core-and-infrastructure.test.ts [2m([22m[2m22 tests[22m[2m)[22m[33m 342[2mms[22m[39m
+[90mstdout[2m | tests/unit/broadcast-rights-gate.test.ts[2m > [22m[2mTSK-10 (CA-07): approval, amendment and export decide on the registered RightsRecord
+[22m[39m
+[TSK-10] rights gate path under test: Postgres (fail_closed)
+
+ [32m✓[39m tests/unit/broadcast-rights-gate.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 250[2mms[22m[39m
+ [32m✓[39m tests/integration/journey-failure-drills.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 161[2mms[22m[39m
+ [32m✓[39m tests/unit/broadcast-schedule-lifecycle.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 153[2mms[22m[39m
+ [32m✓[39m tests/unit/hygiene-guards.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 173[2mms[22m[39m
+ [32m✓[39m tests/unit/inline-style-codemod.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 147[2mms[22m[39m
+ [32m✓[39m tests/unit/todo-remediation.test.ts [2m([22m[2m37 tests[22m[2m)[22m[32m 143[2mms[22m[39m
+ [32m✓[39m tests/unit/canonical-model.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 129[2mms[22m[39m
+[90mstdout[2m | tests/unit/audit.test.ts[2m > [22m[2mTSK-18: the audit ledger is durable and lands with its transaction[2m > [22m[2mcrash between writes: the ledger entry rolls back with the rows it attests, and the failure is signalled
+[22m[39m{"timestamp":"2026-10-12T23:35:25.545Z","level":"WARN","message":"Audit durable write rolled back with its transaction; ledger degraded to in-memory (prisma_error)","component":"audit","entryId":"14c271c2-3b8d-4a8a-bde3-9971f76670a1","reason":"[TSK-18 TEST] durable write rejected for tsk18-mv5w3y8s-b5a2539f-boom"}
+
+ [32m✓[39m tests/unit/audit.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 83[2mms[22m[39m
+ [32m✓[39m tests/unit/systems-of-record.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 87[2mms[22m[39m
+[90mstdout[2m | tests/unit/observability.test.ts[2m > [22m[2mPhase 10: Observability & OpenTelemetry Instrumentation[2m > [22m[2mgenerates trace contexts, outputs structured logs, and triggers automated SLA alerts
+[22m[39m{"timestamp":"2026-10-12T23:35:25.995Z","level":"INFO","message":"Automation playlist loaded for StarTimes DTT","traceId":"43def6db-1dd9-4ea7-89c2-981869d9e5f1","spanId":"8d35be0b-79fd-4c","component":"BROADCAST_PLAYOUT","channel":"NXTR","itemCount":48}
+
+[90mstderr[2m | tests/unit/observability.test.ts[2m > [22m[2mPhase 10: Observability & OpenTelemetry Instrumentation[2m > [22m[2mgenerates trace contexts, outputs structured logs, and triggers automated SLA alerts
+[22m[39m[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 0.15% > 0.1%
+[VMNL-ALERT] [WARNING] PLAYOUT_LATENCY_DEGRADATION: Playout API latency elevated: 650ms > 500ms
+[VMNL-ALERT] [CRITICAL] ELEVATED_DLQ_DEPTH: Azeebo+ federation DLQ backlog exceeded threshold: 25 items > 10
+
+ [32m✓[39m tests/unit/observability.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 69[2mms[22m[39m
+[90mstdout[2m | tests/unit/register-inheritance.test.ts[2m > [22m[2mTSK-07 (CA-06): the surviving register resolves every inherited identifier[2m > [22m[2mcarries a census row for every inherited identifier cited anywhere in the repository
+[22m[39m
+[TSK-07] inherited-identifier census — rows: 71 · IDs covered: 72 · cited in tree: 72 · uncited rows: 0 (none)
+[TSK-07] dispositions: {"CLOSED":61,"HUMAN":5,"CLOSED_WITH_HUMAN":4,"REOPENED":1}
+
+ [32m✓[39m tests/unit/register-inheritance.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 65[2mms[22m[39m
+ [32m✓[39m tests/unit/rendered-html-invariants.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 50[2mms[22m[39m
+ [32m✓[39m tests/unit/styleguide.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 66[2mms[22m[39m
+ [32m✓[39m tests/unit/token-discipline.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 33[2mms[22m[39m
+ [32m✓[39m tests/unit/admissions.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 28[2mms[22m[39m
+ [32m✓[39m tests/a11y/visual-regression-baseline.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 35[2mms[22m[39m
+[90mstdout[2m | tests/unit/broadcast-provenance-coverage.test.ts
+[22m[39m[TSK-25] screens 33 · banner 33 · without 0 · bespoke panels 6 (SCR-BCST-12 via renderScheduleGridTimelineHtml, SCR-BCST-23 via renderLivePlayoutMonitorHtml, SCR-BCST-22 via renderPlaylistLockViewHtml, SCR-BCST-24 via renderAsRunReconciliationDiffHtml, SCR-BCST-14 via renderEpgInspectorDiffHtml, SCR-BCST-31 via renderBroadcastYieldAnalyticsHtml) · KPI strips 33 · fabricated kpis left in the label table 0
+
+[90mstdout[2m | tests/unit/broadcast-provenance-coverage.test.ts[2m > [22m[2mTSK-25: provenance-banner coverage, measured by rendering[2m > [22m[2mmeasures the census the "3/33" claim was standing in for, after the TSK-11 rewiring
+[22m[39m[TSK-25] screens still showing an unsourced badge: 33/33
+[TSK-25] screens serving a DOMAIN_ENGINE SOURCE: badge: 1/33 (SCR-BCST-02)
+
+ [32m✓[39m tests/unit/broadcast-provenance-coverage.test.ts [2m([22m[2m31 tests[22m[2m)[22m[32m 28[2mms[22m[39m
+ [32m✓[39m tests/unit/poa-delivery-exceptions.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 27[2mms[22m[39m
+ [32m✓[39m tests/unit/public-surfaces.test.ts [2m([22m[2m18 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+ [32m✓[39m tests/unit/vtm-portal.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 20[2mms[22m[39m
+ [32m✓[39m tests/unit/federation-destination-registry.test.ts [2m([22m[2m20 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m tests/integration/enquiry-failure-drill.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/unit/stylesheet-resolution.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m tests/unit/broadcast.test.ts [2m([22m[2m18 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m tests/unit/broadcast-advances.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m tests/unit/scr-desk-rewiring.test.ts [2m([22m[2m21 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m tests/unit/wiring.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m tests/unit/hub-talent.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/unit/uat-broadcast-failure-drills.test.ts [2m([22m[2m29 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+[90mstdout[2m | tests/unit/audit-implementation-hardening.test.ts[2m > [22m[2maudit implementation hardening[2m > [22m[2mAUD-03/04: production boot refuses memory-only KV backend[2m > [22m[2mthrows when production boots resolve the in-memory adapter
+[22m[39m{"timestamp":"2026-10-12T23:35:31.737Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"a0bdf0df-a368-4e74-8e0a-f739d31e5ddf","spanId":"03a3f71c-a4bd-45","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+ [32m✓[39m tests/unit/audit-implementation-hardening.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m tests/unit/config.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/public-provenance.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m tests/a11y/responsive.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+[90mstdout[2m | tests/unit/ac-traceability.test.ts[2m > [22m[2mTSK-43 (CA-21): the AC traceability index claims only what tests label[2m > [22m[2mreports the measured AC census
+[22m[39m
+[TSK-43] AC census — rows: 16 · claimed IDs (ranges expanded): 103 · labelled in tests: 17 · unlabelled: 86
+[TSK-43] | Commercial enquiry & intake | R03 | PARTIAL | ids 12 | labelled 8 | unlabelled: R03-07,R03-09,R03-10,R03-12
+[TSK-43] | Identity: sign-in / MFA / invitations / sessions | R02 | IMPLEMENTED | ids 14 | labelled 0 | unlabelled: R02-01,R02-02,R02-03,R02-04,R02-05,R02-06,R02-07,R02-08,R02-09,R02-10,R02-11,R02-12,R02-13,R02-14
+[TSK-43] | Workspace & route authorization | R02/R05 | IMPLEMENTED | ids 9 | labelled 0 | unlabelled: R05-01,R05-02,R05-03,R05-04,R05-05,R05-06,R05-07,R05-08,R05-09
+[TSK-43] | Approved media picker (UX-CMS-006) | R05 (CMS) | PARTIAL | ids 5 | labelled 3 | unlabelled: 04,05
+[TSK-43] | Quote-to-cash & ledger | R06 | IMPLEMENTED | ids 12 | labelled 0 | unlabelled: R06-01,R06-02,R06-03,R06-04,R06-05,R06-06,R06-07,R06-08,R06-09,R06-10,R06-11,R06-12
+[TSK-43] | Broadcast schedule lifecycle | R07 | IMPLEMENTED | ids 8 | labelled 0 | unlabelled: R07-01,R07-02,R07-03,R07-04,R07-05,R07-06,R07-07,R07-08
+[TSK-43] | Schedule approval & rights clearance (TSK-10 / CA-07) | R07 | VERIFIED | ids 6 | labelled 6 | all labelled
+[TSK-43] | Sponsorship binding & fulfillment | R07 | IMPLEMENTED | ids 4 | labelled 0 | unlabelled: R07-09,R07-10,R07-11,R07-12
+[TSK-43] | Events gate & offline scans | R08 | IMPLEMENTED | ids 8 | labelled 0 | unlabelled: R08-01,R08-02,R08-03,R08-04,R08-05,R08-06,R08-07,R08-08
+[TSK-43] | Content publication | R09 | IMPLEMENTED | ids 10 | labelled 0 | unlabelled: R09-01,R09-02,R09-03,R09-04,R09-05,R09-06,R09-07,R09-08,R09-09,R09-10
+[TSK-43] | Syndication & royalties | R10 | IMPLEMENTED | ids 6 | labelled 0 | unlabelled: R10-01,R10-02,R10-03,R10-04,R10-05,R10-06
+[TSK-43] | Federation & payment visibility | R11 | IMPLEMENTED | ids 8 | labelled 0 | unlabelled: R11-01,R11-02,R11-03,R11-04,R11-05,R11-06,R11-07,R11-08
+[TSK-43] | Backup / restore readiness (PRC-08) | R14-adjacent (operations) | DRILL-VERIFIED | ids 1 | labelled 0 | unlabelled: 01
+[TSK-43] | Usability & AT validation | R13 | NOT_RUN | ids 0 | labelled 0 | all labelled
+[TSK-43] | Manual accessibility coverage | R12 | PARTIAL | ids 0 | labelled 0 | all labelled
+[TSK-43] | StarTimes carriage interface | R14 (BG6) | NOT_TESTED | ids 0 | labelled 0 | all labelled
+
+ [32m✓[39m tests/unit/ac-traceability.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/federation.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m tests/unit/hub-production.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/storage.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/a11y/accessibility-audit.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+[90mstdout[2m | tests/unit/durability-drill-coverage.test.ts[2m > [22m[2mTSK-47: every durable domain has a restart/failure drill[2m > [22m[2mprints the coverage census the register quotes
+[22m[39m
+[TSK-47] durable domains: 16 · registered stores in src/: 15 · reader branches: 16 · restart reads in the suite: 18
+  enquiry             2 restart drill(s)  TSK-17  src/modules/hub/enquiry/index.ts:69
+  approval            1 restart drill(s)  TSK-17  src/core/approvals/index.ts:61
+  case                1 restart drill(s)  TSK-17  src/core/cases/index.ts:35
+  risk                1 restart drill(s)  TSK-17  src/core/work/index.ts:174
+  issue               1 restart drill(s)  TSK-17  src/core/work/index.ts:175
+  destination         1 restart drill(s)  TSK-17  src/core/federation/destinations.ts:41
+  mediaAsset          1 restart drill(s)  TSK-17  src/core/storage/index.ts:325
+  session             1 restart drill(s)  TSK-17  src/core/auth/sessions.ts:53
+  idempotency         1 restart drill(s)  TSK-17  src/core/websecurity/index.ts:264
+  content             1 restart drill(s)  TSK-17  src/core/content/index.ts:104
+  journal             1 restart drill(s)  TSK-32  src/modules/finance/ledger/index.ts:83
+  sponsorBinding      1 restart drill(s)  TSK-16  src/modules/broadcast/sponsorship/index.ts:26
+  sponsorFulfillment  1 restart drill(s)  TSK-16  src/modules/broadcast/sponsorship/index.ts:27
+  salesDeal           2 restart drill(s)  TSK-60  src/modules/finance/sales/index.ts:28
+  auditLedger         1 restart drill(s)  TSK-18  src/core/audit/index.ts:177
+  providerClaim       1 restart drill(s)  TSK-19  claim row (not journal-staged)
+
+[90mstdout[2m | tests/unit/durability-drill-coverage.test.ts[2m > [22m[2mTSK-47: the journey-drill census the register prints is the file's[2m > [22m[2mnames the drill ids so a silent deletion shows up as a change, not a pass
+[22m[39m[TSK-47] journey failure drills (13): DRILL-APP-01, DRILL-APP-02, DRILL-SCHED-01, DRILL-RIGHTS-01, DRILL-RECON-01, DRILL-RECON-02, DRILL-PUB-01, DRILL-NAV-01, DRILL-FIN-01, DRILL-FIN-02, DRILL-FIN-03, DRILL-GATE-01, DRILL-TRAFFIC-01
+
+ [32m✓[39m tests/unit/durability-drill-coverage.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/feature-flags.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/prototypes-and-shells.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/intelligence.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/unit/rbac.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+[90mstdout[2m | tests/security/route-guard-parity.test.ts[2m > [22m[2mTSK-29: mutating-route ↔ guard parity (CA-31)[2m > [22m[2mfinds the mutating dispatch sites it claims to find
+[22m[39m[TSK-29] mutating dispatch sites 117 (API 104) · guards 75 · inline-enforced 59 · handler-scoped documented 55 · public by design 11
+
+ [32m✓[39m tests/security/route-guard-parity.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/finance-minor-units.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/finance.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m tests/unit/reconciliation-mt940.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/quality-gates.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/domain.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/tokens-contrast.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m68 passed[39m[22m[90m (68)[39m
+[2m      Tests [22m [1m[32m819 passed[39m[22m[90m (819)[39m
+[2m   Start at [22m 00:34:45
+[2m   Duration [22m 51.76s[2m (transform 2.82s, setup 0ms, import 13.28s, tests 27.41s, environment 5ms)[22m
+
+[34m % [39m[2mCoverage report from [22m[33mv8[39m
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-------------------|---------|----------|---------|---------|-------------------
+All files          |   78.96 |    70.15 |   82.95 |   80.32 |                   
+ api               |   69.38 |    70.08 |   64.83 |   70.91 |                   
+  docs.ts          |   94.44 |    73.33 |     100 |     100 | 901,911-926       
+  router.ts        |   70.12 |    71.31 |   66.42 |   71.55 | ...8199,8233-8240 
+  server.ts        |   56.72 |    29.56 |   52.63 |   59.09 | ...42-555,596-597 
+ api/routes        |   78.04 |       75 |     100 |   77.77 |                   
+  ...iry.routes.ts |   62.06 |       60 |     100 |   62.06 | ...46-47,50-51,56 
+  index.ts         |     100 |      100 |     100 |     100 |                   
+  ...acy.routes.ts |   84.09 |    77.41 |     100 |   84.09 | ...12-113,123-124 
+  types.ts         |       0 |        0 |       0 |       0 |                   
+ api/schemas       |   92.85 |    33.33 |   66.66 |   92.85 |                   
+  index.ts         |   92.85 |    33.33 |   66.66 |   92.85 | 41,165            
+ core/approvals    |   83.87 |    67.64 |   85.71 |   84.48 |                   
+  index.ts         |   83.87 |    67.64 |   85.71 |   84.48 | ...56,159,187,190 
+ core/audit        |   63.79 |    55.93 |   73.91 |   66.66 |                   
+  index.ts         |   63.79 |    55.93 |   73.91 |   66.66 | ...78-388,420-492 
+ core/auth         |   78.84 |    64.32 |   78.43 |   81.72 |                   
+  index.ts         |   81.18 |    61.92 |   89.13 |   84.67 | ...18,739,742-745 
+  invitations.ts   |   83.33 |    83.33 |   83.33 |   83.33 | ...79,105,122-123 
+  mfa.ts           |   22.22 |    31.81 |      25 |      25 | 27-57,72          
+  sessions.ts      |   75.93 |    70.31 |   67.56 |   77.68 | ...81,392-394,401 
+  totp.ts          |   94.44 |    80.95 |   88.88 |    97.1 | 56,120            
+ core/cache        |    89.7 |    83.72 |    87.5 |   90.47 |                   
+  index.ts         |    89.7 |    83.72 |    87.5 |   90.47 | ...30,136,142-143 
+ core/cases        |   88.09 |    76.92 |   83.33 |    92.3 |                   
+  index.ts         |   88.09 |    76.92 |   83.33 |    92.3 | 43,70,89          
+ core/config       |   92.07 |    82.55 |     100 |   93.33 |                   
+  index.ts         |   89.47 |    83.33 |     100 |   88.88 | 94,102,109,177    
+  ...n-register.ts |   93.47 |       80 |     100 |   97.36 | 68                
+  ...e-mappings.ts |   94.11 |    83.33 |     100 |   93.75 | 94                
+ core/content      |      80 |    77.19 |   77.77 |   82.65 |                   
+  index.ts         |      80 |    77.19 |   77.77 |   82.65 | ...72,275,301,319 
+ core/database     |   76.72 |     64.4 |    82.6 |   77.57 |                   
+  ...le-journal.ts |   85.07 |    79.31 |   92.85 |   88.13 | ...59,205,211-214 
+  index.ts         |   70.58 |    61.11 |      60 |   69.69 | 32,80-98          
+  ...itory-mode.ts |   53.33 |    33.33 |      75 |   53.33 | 52-79             
+ ...e/repositories |   65.46 |    60.38 |   66.66 |   68.29 |                   
+  ...repository.ts |   63.49 |    56.75 |   54.54 |   67.24 | ...83,213-226,236 
+  index.ts         |       0 |        0 |       0 |       0 |                   
+  ...repository.ts |   42.59 |    36.41 |      30 |   45.36 | ...13-420,432-474 
+  pagination.ts    |     100 |      100 |     100 |     100 |                   
+  ...repository.ts |   82.73 |    71.37 |   89.65 |   85.96 | ...98-803,924,947 
+  ...repository.ts |   75.51 |    69.76 |   81.81 |   79.54 | ...26-129,145,161 
+  ...repository.ts |   59.61 |    67.16 |   39.13 |    62.1 | ...86-392,422-433 
+  ...repository.ts |   65.43 |    58.41 |   53.84 |   69.33 | ...32,266-272,292 
+ core/domain       |   71.42 |       72 |   71.42 |   74.07 |                   
+  types.ts         |   71.42 |       72 |   71.42 |   74.07 | 256-276           
+ .../feature-flags |   81.81 |    59.52 |     100 |   81.81 |                   
+  index.ts         |   81.81 |    59.52 |     100 |   81.81 | ...56,482,493-494 
+ core/federation   |   90.24 |    83.72 |   85.71 |   93.42 |                   
+  destinations.ts  |   90.24 |    83.72 |   85.71 |   93.42 | ...45-146,219,235 
+ .../notifications |   34.92 |    53.12 |   23.07 |   36.06 |                   
+  index.ts         |   34.92 |    53.12 |   23.07 |   36.06 | ...49-171,196-231 
+ .../observability |   84.76 |     77.9 |      88 |   89.13 |                   
+  index.ts         |   84.76 |     77.9 |      88 |   89.13 | 88-108,334,390    
+ core/queue        |   83.33 |       80 |   83.33 |   85.41 |                   
+  index.ts         |   83.33 |       80 |   83.33 |   85.41 | ...77-184,261-264 
+ core/rbac         |   98.82 |    96.15 |     100 |    98.7 |                   
+  index.ts         |   98.82 |    96.15 |     100 |    98.7 | 528               
+ core/storage      |   88.99 |       80 |   93.75 |    89.1 |                   
+  index.ts         |   88.99 |       80 |   93.75 |    89.1 | ...57,261,333,358 
+ core/websecurity  |   81.94 |    70.21 |    92.3 |   82.81 |                   
+  index.ts         |   81.94 |    70.21 |    92.3 |   82.81 | ...12,336,403,438 
+ core/work         |   89.89 |    73.21 |   79.16 |   95.23 |                   
+  index.ts         |   89.89 |    73.21 |   79.16 |   95.23 | 92,183,194,231    
+ db                |    9.23 |    10.86 |      25 |    6.34 |                   
+  ...e-and-seed.ts |    9.23 |    10.86 |      25 |    6.34 | 12-269,286-290    
+ db/seeds          |     100 |    88.88 |     100 |     100 |                   
+  dam-backfill.ts  |     100 |    88.88 |     100 |     100 | 39                
+ db/seeds/golden   |     100 |      100 |     100 |     100 |                   
+  index.ts         |     100 |      100 |     100 |     100 |                   
+ modules/broadcast |   98.42 |    90.69 |     100 |     100 |                   
+  ...de-masters.ts |     100 |      100 |     100 |     100 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+  schedule-demo.ts |   95.91 |    77.77 |     100 |     100 | 100-103,125-135   
+ ...roadcast/asrun |   94.15 |     75.3 |   96.66 |    94.3 |                   
+  exceptions.ts    |   95.52 |    90.62 |     100 |   96.55 | 160,266           
+  index.ts         |   93.26 |     65.3 |   92.85 |      93 | ...78-280,291-293 
+ ...adcast/billing |   91.02 |    76.59 |   93.33 |   93.15 |                   
+  index.ts         |    90.9 |    76.59 |   93.33 |   93.05 | ...88,191,255,261 
+  ...rds.config.ts |     100 |      100 |     100 |     100 |                   
+ ...dcast/carriage |     100 |    71.42 |     100 |     100 |                   
+  index.ts         |     100 |    71.42 |     100 |     100 | 38,90             
+ ...dcast/channels |     100 |      100 |     100 |     100 |                   
+  index.ts         |     100 |      100 |     100 |     100 |                   
+ .../broadcast/epg |   88.33 |     61.9 |    87.5 |   87.71 |                   
+  index.ts         |   84.09 |     64.7 |   85.71 |   83.33 | 82-88             
+  scheduler.ts     |     100 |       50 |     100 |     100 | 25                
+ ...oadcast/export |   96.61 |    71.79 |     100 |   96.36 |                   
+  ...-schedules.ts |     100 |       75 |     100 |     100 | 41-49             
+  epg.ts           |   91.66 |    77.77 |     100 |    91.3 | 108,161           
+  index.ts         |     100 |    55.55 |     100 |     100 | 37-102            
+ ...adcast/playout |   96.22 |    81.48 |   95.45 |   95.45 |                   
+  index.ts         |   96.22 |    81.48 |   95.45 |   95.45 | 225,234           
+ ...ast/programmes |      80 |       75 |     100 |      80 |                   
+  index.ts         |      80 |       75 |     100 |      80 | 45,49             
+ ...oadcast/rights |   86.01 |    76.22 |   82.14 |   88.54 |                   
+  clearance.ts     |   89.18 |    83.05 |     100 |   89.18 | 76,120,155,173    
+  index.ts         |       0 |        0 |       0 |       0 |                   
+  registry.ts      |   85.18 |    47.36 |   81.81 |    91.3 | 65,96             
+  ...ew-request.ts |   81.03 |    79.59 |    62.5 |    84.9 | ...63,179,188,199 
+  ...-clearance.ts |   95.23 |       75 |     100 |   94.44 | 66                
+ ...ast/scheduling |   91.42 |       85 |     100 |      90 |                   
+  index.ts         |   91.42 |       85 |     100 |      90 | 70-72             
+ ...adcast/screens |     100 |    81.48 |     100 |     100 |                   
+  data.ts          |     100 |    80.76 |     100 |     100 | 57-61,116-128,153 
+  index.ts         |     100 |      100 |     100 |     100 |                   
+ ...st/sponsorship |   87.64 |    57.14 |   83.33 |    87.5 |                   
+  index.ts         |   87.64 |    57.14 |   83.33 |    87.5 | ...89,207,252-255 
+ ...adcast/traffic |      95 |    80.35 |     100 |   94.36 |                   
+  index.ts         |      95 |    80.35 |     100 |   94.36 | 69,174-175,270    
+ ...dcast/versions |   89.69 |    84.57 |   95.55 |   95.73 |                   
+  index.ts         |   89.69 |    84.57 |   95.55 |   95.73 | ...77,695,703,772 
+ ...les/federation |       0 |        0 |       0 |       0 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+ ...eration/azeebo |   91.26 |    81.63 |   88.23 |   91.37 |                   
+  attribution.ts   |     100 |       75 |     100 |     100 | 89-91             
+  bridge.ts        |    87.5 |    84.21 |      80 |   89.09 | 49,59,87,164-169  
+  index.ts         |       0 |        0 |       0 |       0 |                   
+  links.ts         |   96.29 |      100 |   85.71 |   96.15 | 120               
+  metadata.ts      |   83.33 |       50 |      80 |   83.33 | 46,78,94          
+ modules/finance   |       0 |        0 |       0 |       0 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+ ...finance/ledger |   90.47 |    97.05 |   68.18 |    92.5 |                   
+  index.ts         |   86.79 |    93.93 |   54.54 |   91.83 | 110,137,201,232   
+  posting.ts       |   93.15 |      100 |   81.81 |   92.95 | 204-215,318       
+ ...inance/payouts |    92.5 |    83.33 |     100 |   94.66 |                   
+  index.ts         |    92.5 |    83.33 |     100 |   94.66 | 76,175,221,240    
+ ...reconciliation |    93.1 |    63.33 |   94.11 |   94.89 |                   
+  index.ts         |   97.05 |      100 |   85.71 |   97.05 | 65                
+  mt940.ts         |   91.89 |    60.71 |     100 |   94.17 | 126,142-145,187   
+ .../finance/sales |   91.66 |    80.55 |   93.75 |   91.57 |                   
+  index.ts         |   91.66 |    80.55 |   93.75 |   91.57 | ...58,206,245,292 
+ modules/hub       |       0 |        0 |       0 |       0 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+ modules/hub/afca  |      88 |    72.22 |   92.59 |   88.02 |                   
+  admissions.ts    |   96.36 |    87.87 |      90 |   98.07 | 190               
+  index.ts         |   84.16 |    63.15 |   94.11 |   83.47 | ...93,299,333-334 
+ .../hub/community |   72.58 |    65.62 |      75 |   73.77 |                   
+  index.ts         |   72.58 |    65.62 |      75 |   73.77 | ...98,207-220,226 
+ ...es/hub/enquiry |    75.7 |    78.18 |   78.57 |   75.72 |                   
+  index.ts         |    75.7 |    78.18 |   78.57 |   75.72 | ...91-292,304-316 
+ ...les/hub/events |   76.56 |    67.69 |   83.33 |   77.23 |                   
+  index.ts         |   76.56 |    67.69 |   83.33 |   77.23 | ...82-390,401-402 
+ ...hub/onestudios |   77.04 |    61.29 |   86.66 |   77.96 |                   
+  index.ts         |   77.04 |    61.29 |   86.66 |   77.96 | ...06,220,247,256 
+ ...les/hub/talent |   82.35 |    68.85 |   92.85 |   82.35 |                   
+  index.ts         |   82.35 |    68.85 |   92.85 |   82.35 | ...29,336-340,370 
+ modules/hub/tend  |   79.38 |     69.6 |   82.35 |   83.18 |                   
+  index.ts         |   79.38 |     69.6 |   82.35 |   83.18 | ...12,329-337,340 
+ modules/hub/vcf   |    88.6 |    70.58 |   85.71 |   89.74 |                   
+  index.ts         |    88.6 |    70.58 |   85.71 |   89.74 | ...62,221,291,301 
+ modules/hub/vtm   |   88.07 |    71.05 |      90 |   88.34 |                   
+  index.ts         |   88.07 |    71.05 |      90 |   88.34 | ...00,322,355,366 
+ ...s/intelligence |       0 |        0 |       0 |       0 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+ ...telligence/aos |   81.53 |     62.5 |   92.85 |   81.53 |                   
+  index.ts         |   81.53 |     62.5 |   92.85 |   81.53 | ...83,187,192-195 
+ ...igence/cr8tech |   92.15 |    76.47 |      80 |   91.66 |                   
+  index.ts         |   92.15 |    76.47 |      80 |   91.66 | 64,109,125-129    
+ ...ence/headspace |      90 |       75 |    87.5 |    92.3 |                   
+  index.ts         |      90 |       75 |    87.5 |    92.3 | 93,111,142        
+ modules/quality   |    79.1 |    59.01 |     100 |   78.78 |                   
+  gates.ts         |    79.1 |    59.01 |     100 |   78.78 | ...64,185-201,240 
+ web               |       0 |        0 |       0 |       0 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+ web/assets        |     100 |      100 |     100 |     100 |                   
+  client-bundle.ts |     100 |      100 |     100 |     100 |                   
+  index.ts         |     100 |      100 |     100 |     100 |                   
+ web/broadcast     |   93.98 |    71.42 |   94.59 |   94.48 |                   
+  index.ts         |   93.98 |    71.42 |   94.59 |   94.48 | ...91,698-699,920 
+ web/components    |   96.89 |    82.35 |   95.83 |   98.36 |                   
+  ...de-masters.ts |   93.93 |    79.31 |     100 |     100 | 31,73,111-113,116 
+  escape.ts        |     100 |      100 |     100 |     100 |                   
+  icons.ts         |     100 |    92.85 |     100 |     100 | 219               
+  index.ts         |   98.24 |    80.24 |     100 |   98.24 | 105               
+  tokens.ts        |   95.83 |       90 |   83.33 |   95.83 | 204               
+ web/federation    |     100 |       50 |     100 |     100 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+  surface-e.ts     |     100 |       50 |     100 |     100 | 48-239            
+ web/portal        |   94.91 |    65.38 |   91.66 |   94.23 |                   
+  client-portal.ts |     100 |    72.72 |     100 |     100 | 151-283           
+  index.ts         |       0 |        0 |       0 |       0 |                   
+  ...visibility.ts |    92.3 |       60 |      88 |   91.42 | 82,85,123         
+  vtm-portal.ts    |     100 |    83.33 |     100 |     100 | 211               
+ web/public        |    96.4 |    78.93 |   96.15 |   96.53 |                   
+  ...ture-flags.ts |   95.45 |       55 |    87.5 |   94.44 | 19                
+  admissions.ts    |     100 |    77.77 |     100 |     100 | 178-190,220,262   
+  auth-screens.ts  |   97.95 |    71.07 |   94.11 |   97.91 | 1115              
+  channels.ts      |   88.88 |       50 |     100 |    87.5 | 72                
+  corporate.ts     |     100 |      100 |     100 |     100 |                   
+  dashboard.ts     |     100 |    93.98 |     100 |     100 | ...10,238,261,542 
+  hub.ts           |   90.19 |     77.5 |   84.61 |   91.83 | 164,223,240,835   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+  prototypes.ts    |   97.77 |    82.14 |     100 |   97.77 | 176               
+  pub-screens.ts   |     100 |     42.1 |     100 |     100 | 77,218-223        
+  ...e-registry.ts |     100 |      100 |     100 |     100 |                   
+  ...esentation.ts |    94.2 |    83.72 |   91.66 |   94.02 | 129,146,176,188   
+  screens-view.ts  |     100 |    79.16 |     100 |     100 | ...53,166,172-258 
+  surface-a.ts     |   95.65 |       80 |     100 |   95.45 | 45                
+  verification.ts  |     100 |    72.22 |     100 |     100 | 67-69,224-318     
+ web/styles        |     100 |      100 |     100 |     100 |                   
+  ...-utilities.ts |     100 |      100 |     100 |     100 |                   
+  index.ts         |     100 |      100 |     100 |     100 |                   
+ web/workspace     |   81.98 |    59.38 |   75.97 |   82.59 |                   
+  ...n-consoles.ts |   92.85 |    63.63 |     100 |    92.3 | 78,178            
+  ...tended-lms.ts |   73.33 |       70 |     100 |   73.33 | 22,93,188,285     
+  afca-lms.ts      |   66.66 |       50 |     100 |   66.66 | 17,129            
+  ...l-proposal.ts |   89.83 |    67.39 |     100 |   91.07 | 82,85,149,176,314 
+  ...ent-editor.ts |   94.73 |    82.14 |     100 |   94.73 | 85                
+  ...ty-portals.ts |   76.31 |     52.7 |      75 |   76.31 | ...75,311,405,549 
+  ...b-extended.ts |   69.23 |    49.61 |   56.66 |   71.42 | ...,962,1013-1042 
+  ...operations.ts |     100 |    69.23 |     100 |     100 | ...95,569,682-765 
+  ...-registers.ts |   40.74 |    22.58 |   27.27 |    37.5 | ...08,226-247,295 
+  index.ts         |       0 |        0 |       0 |       0 |                   
+  ...e-and-tech.ts |    82.6 |    54.34 |   83.33 |    82.6 | 24,50,148,341     
+  media-picker.ts  |   97.05 |     91.3 |     100 |   96.66 | 122               
+  surface-bc.ts    |   94.73 |    92.85 |     100 |     100 | 593,609           
+  work-hub.ts      |      80 |    41.66 |    62.5 |   84.61 | 90,150            
+-------------------|---------|----------|---------|---------|-------------------

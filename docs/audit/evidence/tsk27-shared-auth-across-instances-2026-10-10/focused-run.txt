@@ -1,0 +1,66 @@
+## focused run — 2026-10-11T05:55:53Z
+exit=0
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.11 [39m[90m/Users/deprof/www/vmng[39m
+
+[90mstdout[2m | tests/unit/auth-shared-across-instances.test.ts[2m > [22m[2mTSK-27: an unreachable shared backend takes the pod out of rotation[2m > [22m[2mreports 503 while the shared backend is unhealthy, and 200 when an operator opts out
+[22m[39m{"timestamp":"2026-10-11T05:56:47.071Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"8ffe0e47-325a-47c8-85ce-e768070b64d2","spanId":"7695b7bf-ca3e-49","component":"server_bootstrap","assets":939,"items":45,"revisions":86,"bindings":2,"fulfillments":4}
+
+[90mstdout[2m | tests/unit/auth-shared-across-instances.test.ts[2m > [22m[2mTSK-27: an unreachable shared backend takes the pod out of rotation[2m > [22m[2mreports 503 while the shared backend is unhealthy, and 200 when an operator opts out
+[22m[39m{"timestamp":"2026-10-11T05:56:47.591Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"860df331-45e5-44bc-ad33-ab56f5cf976b","spanId":"a6982838-f6c2-4c","component":"server_bootstrap","port":0,"env":"test"}
+
+ [32m✓[39m tests/unit/auth-shared-across-instances.test.ts [2m([22m[2m12 tests[22m[2m)[22m[33m 11171[2mms[22m[39m
+     [33m[2m✓[22m[39m locks an account whose failures were earned across two instances [33m 609[2mms[22m[39m
+     [33m[2m✓[22m[39m clears the shared counters on a good login, so the lockout is not permanent [33m 855[2mms[22m[39m
+     [33m[2m✓[22m[39m reads enrollment from the adapter, so a second instance sees it and cannot re-register it [33m 1969[2mms[22m[39m
+     [33m[2m✓[22m[39m reports 503 while the shared backend is unhealthy, and 200 when an operator opts out [33m 7020[2mms[22m[39m
+[90mstdout[2m | tests/unit/auth.test.ts[2m > [22m[2mTSK-30: the database refuses an unsealed value (migration 20261009200000)[2m > [22m[2mrejects a plaintext national ID and accepts the sealed envelope
+[22m[39mprisma:error 
+Invalid `prisma.person.create()` invocation in
+/Users/deprof/www/vmng/tests/unit/auth.test.ts:311:23
+
+  308 it("rejects a plaintext national ID and accepts the sealed envelope", async () => {
+  309   const prisma = getPrismaClient();
+  310   await expect(
+→ 311     prisma.person.create(
+Database error. Code: `23514`. Message: `new row for relation "Person" violates check constraint "Person_nationalId_sealed_envelope"`
+
+[90mstdout[2m | tests/unit/auth.test.ts[2m > [22m[2mTSK-30: the database refuses an unsealed value (migration 20261009200000)[2m > [22m[2mrejects a plaintext TOTP seed on the User row too
+[22m[39mprisma:error 
+Invalid `prisma.user.create()` invocation in
+/Users/deprof/www/vmng/tests/unit/auth.test.ts:344:21
+
+  341 cleanup.push(() => prisma.person.deleteMany({ where: { id: person.id } }));
+  342 
+  343 await expect(
+→ 344   prisma.user.create(
+Database error. Code: `23514`. Message: `new row for relation "User" violates check constraint "User_mfaSecret_sealed_envelope"`
+
+ [32m✓[39m tests/unit/auth.test.ts [2m([22m[2m15 tests[22m[2m)[22m[33m 7116[2mms[22m[39m
+     [33m[2m✓[22m[39m seals MFA secrets before they leave the process and round-trips them on read [33m 1520[2mms[22m[39m
+     [33m[2m✓[22m[39m recognises only the AES-256-GCM envelope and refuses to seal a sealed value twice [33m 1104[2mms[22m[39m
+     [33m[2m✓[22m[39m logs the decryption access itself, without logging the secret or the ciphertext [33m 1581[2mms[22m[39m
+     [33m[2m✓[22m[39m rejects a plaintext national ID and accepts the sealed envelope [33m 1412[2mms[22m[39m
+     [33m[2m✓[22m[39m rejects a plaintext TOTP seed on the User row too [33m 777[2mms[22m[39m
+ [32m✓[39m tests/unit/canonical-model.test.ts [2m([22m[2m13 tests[22m[2m)[22m[33m 5550[2mms[22m[39m
+     [33m[2m✓[22m[39m keeps §4's money facts: kobo helpers at the cited lines and the 15/5/10 column split [33m 318[2mms[22m[39m
+     [33m[2m✓[22m[39m keeps §5's time counts and §6's identifier counts [33m 2842[2mms[22m[39m
+     [33m[2m✓[22m[39m recounts §7's two code conventions and the three schedule counting rules [33m 1193[2mms[22m[39m
+     [33m[2m✓[22m[39m opens every file:line citation [33m 626[2mms[22m[39m
+ [32m✓[39m tests/unit/systems-of-record.test.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 1648[2mms[22m[39m
+     [33m[2m✓[22m[39m opens every file:line citation it publishes [33m 470[2mms[22m[39m
+     [33m[2m✓[22m[39m keeps the store inventory counts the document publishes in §3.3 and §6 [33m 720[2mms[22m[39m
+[90mstdout[2m | tests/unit/register-inheritance.test.ts[2m > [22m[2mTSK-07 (CA-06): the surviving register resolves every inherited identifier[2m > [22m[2mcarries a census row for every inherited identifier cited anywhere in the repository
+[22m[39m
+[TSK-07] inherited-identifier census — rows: 71 · IDs covered: 72 · cited in tree: 72 · uncited rows: 0 (none)
+[TSK-07] dispositions: {"CLOSED":61,"HUMAN":5,"CLOSED_WITH_HUMAN":4,"REOPENED":1}
+
+ [32m✓[39m tests/unit/register-inheritance.test.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 1510[2mms[22m[39m
+     [33m[2m✓[22m[39m keeps every mention of the retired registers historical [33m 556[2mms[22m[39m
+     [33m[2m✓[22m[39m names File 1.txt nowhere except the two records of its removal [33m 542[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m5 passed[39m[22m[90m (5)[39m
+[2m      Tests [22m [1m[32m53 passed[39m[22m[90m (53)[39m
+[2m   Start at [22m 06:56:07
+[2m   Duration [22m 89.70s[2m (transform 25.20s, setup 0ms, import 45.69s, tests 26.99s, environment 4ms)[22m
+

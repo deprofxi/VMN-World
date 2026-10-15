@@ -1,0 +1,53 @@
+CREATE DATABASE
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma/schema.prisma.
+Datasource "db": PostgreSQL database "vmnl_migrate_scratch_tsk09", schema "public" at "localhost:5432"
+
+13 migrations found in prisma/migrations
+
+Applying migration `0_init`
+Applying migration `20261002140000_add_read_path_indexes`
+Applying migration `20261002150000_add_finance_event_indexes`
+Applying migration `20261006120000_add_data_subject_requests`
+Applying migration `20261007191447_add_rights_record_channel_scope`
+Applying migration `20261008213000_add_release_critical_durable_stores`
+Applying migration `20261008220000_add_remaining_release_critical_durable_stores`
+Applying migration `20261009133000_add_durable_provider_event_claims`
+Applying migration `20261009153000_add_provider_claim_ingest_phase`
+Applying migration `20261009200000_add_pii_sealed_envelope_checks`
+Applying migration `20261011220000_add_durable_sales_deal_portfolio`
+Applying migration `20261012120000_relax_audit_ledger_actor_identity`
+Applying migration `20261013142927_add_composite_keyset_indexes`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 0_init/
+    └─ migration.sql
+  └─ 20261002140000_add_read_path_indexes/
+    └─ migration.sql
+  └─ 20261002150000_add_finance_event_indexes/
+    └─ migration.sql
+  └─ 20261006120000_add_data_subject_requests/
+    └─ migration.sql
+  └─ 20261007191447_add_rights_record_channel_scope/
+    └─ migration.sql
+  └─ 20261008213000_add_release_critical_durable_stores/
+    └─ migration.sql
+  └─ 20261008220000_add_remaining_release_critical_durable_stores/
+    └─ migration.sql
+  └─ 20261009133000_add_durable_provider_event_claims/
+    └─ migration.sql
+  └─ 20261009153000_add_provider_claim_ingest_phase/
+    └─ migration.sql
+  └─ 20261009200000_add_pii_sealed_envelope_checks/
+    └─ migration.sql
+  └─ 20261011220000_add_durable_sales_deal_portfolio/
+    └─ migration.sql
+  └─ 20261012120000_relax_audit_ledger_actor_identity/
+    └─ migration.sql
+  └─ 20261013142927_add_composite_keyset_indexes/
+    └─ migration.sql
+
+All migrations have been successfully applied.

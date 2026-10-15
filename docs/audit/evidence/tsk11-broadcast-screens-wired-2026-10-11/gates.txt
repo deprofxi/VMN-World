@@ -1,0 +1,11 @@
+## gates, replayed verbatim — 2026-10-11T20:25:08Z
+
+typecheck exit: 0
+> tsc --noEmit
+
+lint exit: 0
+> eslint . --max-warnings 0
+
+build exit: 0
+> tsc
+

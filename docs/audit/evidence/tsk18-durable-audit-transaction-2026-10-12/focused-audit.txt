@@ -1,0 +1,15 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.11 [39m[90m/Users/deprof/www/vmng[39m
+
+[90mstdout[2m | tests/unit/audit.test.ts[2m > [22m[2mTSK-18: the audit ledger is durable and lands with its transaction[2m > [22m[2mcrash between writes: the ledger entry rolls back with the rows it attests, and the failure is signalled
+[22m[39m{"timestamp":"2026-10-12T16:02:03.943Z","level":"WARN","message":"Audit durable write rolled back with its transaction; ledger degraded to in-memory (prisma_error)","component":"audit","entryId":"cb7bcfb6-49f6-455a-a154-d33e23dd3feb","reason":"[TSK-18 TEST] durable write rejected for tsk18-mv5fwvhl-3a3b720a-boom"}
+
+ [32m✓[39m tests/unit/audit.test.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 1716[2mms[22m[39m
+     [33m[2m✓[22m[39m should record immutable audit log entries and allow filtered retrieval with cryptographic hash chaining (B-9) [33m 949[2mms[22m[39m
+     [33m[2m✓[22m[39m lands the business row and its ledger entry in one transaction, and reads the ledger from Postgres [33m 492[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m8 passed[39m[22m[90m (8)[39m
+[2m   Start at [22m 17:01:53
+[2m   Duration [22m 11.02s[2m (transform 3.82s, setup 0ms, import 7.28s, tests 1.72s, environment 0ms)[22m
+

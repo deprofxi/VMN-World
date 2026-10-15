@@ -1,0 +1,54 @@
+# TSK-30 — migration 20261009200000_add_pii_sealed_envelope_checks, deployed 2026-10-09
+
+## prisma migrate status (DATABASE_URL=postgresql://root@localhost:5432/vmnl_enterprise?schema=public)
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma/schema.prisma.
+Datasource "db": PostgreSQL database "vmnl_enterprise", schema "public" at "localhost:5432"
+
+10 migrations found in prisma/migrations
+
+Database schema is up to date!
+migrate status EXIT=0
+
+## _prisma_migrations row for this migration
+ERROR:  column "rolled_at" does not exist
+LINE 1: ...gration_name, finished_at is not null as applied, rolled_at ...
+                                                             ^
+
+## pg_constraint rows present in BOTH local databases (vmnl_enterprise = app DB, vmn_enterprise = test DB)
+-- vmnl_enterprise
+Person_nationalId_sealed_envelope | Person | CHECK ((("nationalId" IS NULL) OR ("nationalId" ~ '^enc:v1:[0-9a-f]+:[0-9a-f]{24}:[0-9a-f]{32}$'::text)))
+User_mfaSecret_sealed_envelope | User | CHECK ((("mfaSecret" IS NULL) OR ("mfaSecret" ~ '^enc:v1:[0-9a-f]+:[0-9a-f]{24}:[0-9a-f]{32}$'::text)))
+-- vmn_enterprise
+Person_nationalId_sealed_envelope | Person | CHECK ((("nationalId" IS NULL) OR ("nationalId" ~ '^enc:v1:[0-9a-f]+:[0-9a-f]{24}:[0-9a-f]{32}$'::text)))
+User_mfaSecret_sealed_envelope | User | CHECK ((("mfaSecret" IS NULL) OR ("mfaSecret" ~ '^enc:v1:[0-9a-f]+:[0-9a-f]{24}:[0-9a-f]{32}$'::text)))
+
+## direct SQL spot-check (each statement in its own rolled-back transaction; nothing persisted).
+## The executable proof is tests/unit/auth.test.ts -> "TSK-30: the database refuses an unsealed value"
+## (focused-run.txt shows Postgres code 23514 on both tables and the sealed write succeeding).
+
+-- plaintext national ID:
+BEGIN
+ERROR:  new row for relation "Person" violates check constraint "Person_nationalId_sealed_envelope"
+DETAIL:  Failing row contains (pmdemo-p, pmdemo-p@vmnl.ng, null, Demo, Subject, PENDING, 12345678901, 2026-10-09 20:55:36.147, 2026-10-09 20:55:36.147).
+-- well-formed envelope:
+BEGIN
+INSERT 0 1
+ sealed_accepted 
+-----------------
+               1
+(1 row)
+
+ROLLBACK
+-- NULL (unchanged semantics):
+BEGIN
+INSERT 0 1
+ null_accepted 
+---------------
+             1
+(1 row)
+
+ROLLBACK
+-- rows left behind (must be 0):
+0

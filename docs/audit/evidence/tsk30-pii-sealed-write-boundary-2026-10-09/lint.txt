@@ -1,0 +1,4 @@
+
+> vmng@1.0.0 lint /Users/deprof/www/vmng
+> eslint . --max-warnings 0
+

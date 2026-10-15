@@ -1,0 +1,58 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.11 [39m[90m/Users/deprof/www/vmng[39m
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSEC-08: mutation idempotency (route level)
+[22m[39m{"timestamp":"2026-10-12T23:33:31.913Z","level":"WARN","message":"Redis adapter construction failed; falling back to in-memory cache","traceId":"f46cdefd-5b7c-42f9-aa15-e7926994e043","spanId":"63534e19-c40e-4f","component":"server_bootstrap","backend":"memory","reason":"TypeError: Invalid URL"}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSEC-08: mutation idempotency (route level)
+[22m[39m{"timestamp":"2026-10-12T23:33:31.975Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"a69efd0c-475e-4de1-ab29-99e3c052970f","spanId":"6c7818cf-3836-4b","component":"server_bootstrap","assets":288,"items":5,"revisions":6,"bindings":1,"fulfillments":2,"deals":0}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSEC-08: mutation idempotency (route level)
+[22m[39m{"timestamp":"2026-10-12T23:33:31.988Z","level":"INFO","message":"VMNL Enterprise Server listening on port 4261","traceId":"bdbcde3b-2807-4371-9e51-4d888e021dc7","spanId":"484a8853-fdef-41","component":"server_bootstrap","port":4261,"env":"test"}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSCR-03: media asset registration (route level)
+[22m[39m{"timestamp":"2026-10-12T23:33:32.465Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"c420266d-9f9b-4328-8077-57078b512172","spanId":"9fa74558-6623-45","component":"server_bootstrap","assets":288,"items":5,"revisions":6,"bindings":1,"fulfillments":2,"deals":0}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSCR-03: media asset registration (route level)
+[22m[39m{"timestamp":"2026-10-12T23:33:32.468Z","level":"INFO","message":"VMNL Enterprise Server listening on port 4262","traceId":"21a50c73-0670-4e4f-98ef-756584c22f58","spanId":"dff90f00-3d2d-4c","component":"server_bootstrap","port":4262,"env":"test"}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mTSK-58: media-asset routes refuse cross-tenant and unowned rows
+[22m[39m{"timestamp":"2026-10-12T23:33:32.700Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"c54416d5-2ef0-462f-a824-8d48c2c893ad","spanId":"7f9c745a-697f-4a","component":"server_bootstrap","assets":297,"items":5,"revisions":6,"bindings":1,"fulfillments":2,"deals":0}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mTSK-58: media-asset routes refuse cross-tenant and unowned rows
+[22m[39m{"timestamp":"2026-10-12T23:33:32.703Z","level":"INFO","message":"VMNL Enterprise Server listening on port 4270","traceId":"4c6ed6ec-20fd-49ef-8335-65fdf1af1302","spanId":"206bae44-ef17-45","component":"server_bootstrap","port":4270,"env":"test"}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSCR-03: CMS editor references registered media (UX-CMS-006)[2m > [22m[2mpersists picker selections end-to-end through the editor form routes
+[22m[39m{"timestamp":"2026-10-12T23:33:32.937Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"bc68a0dd-1d7f-4c62-8c21-60356684e4aa","spanId":"08b40cb8-5239-4b","component":"server_bootstrap","assets":297,"items":5,"revisions":6,"bindings":1,"fulfillments":2,"deals":0}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSCR-03: CMS editor references registered media (UX-CMS-006)[2m > [22m[2mpersists picker selections end-to-end through the editor form routes
+[22m[39m{"timestamp":"2026-10-12T23:33:32.940Z","level":"INFO","message":"VMNL Enterprise Server listening on port 4263","traceId":"f3074934-0088-4012-bad0-621aef30e3d5","spanId":"bfb8f973-e0d0-4c","component":"server_bootstrap","port":4263,"env":"test"}
+
+[90mstderr[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSCR-03: golden DAM backfill[2m > [22m[2mpersistEpisodeMediaAssets reports the standing reference total on re-runs, not a per-run delta
+[22m[39m[VMNL-DB-SEED] DAM backfill: episode EP-0001 not found — master reference MA-EP-0001-MASTER NOT persisted.
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSCR-03: golden DAM backfill[2m > [22m[2mboots the sandbox with demo content referencing its registered key art
+[22m[39m{"timestamp":"2026-10-12T23:33:33.187Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"5abc6798-3cda-448d-9ebc-59e45048e5af","spanId":"2c870f13-a32d-42","component":"server_bootstrap","assets":308,"items":6,"revisions":8,"bindings":1,"fulfillments":2,"deals":0}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSCR-03: golden DAM backfill[2m > [22m[2mboots the sandbox with demo content referencing its registered key art
+[22m[39m{"timestamp":"2026-10-12T23:33:33.189Z","level":"INFO","message":"VMNL Enterprise Server listening on port 4264","traceId":"8fcd74a2-5874-4b7b-87c2-b0e314faa32d","spanId":"1ae5d084-1692-43","component":"server_bootstrap","port":4264,"env":"test"}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSchedule review desk: episode master linkage keyed by its channel parameter[2m > [22m[2mroute keys the linkage by ?channel (GET /broadcast/schedule/review?channel=ORIS)
+[22m[39m{"timestamp":"2026-10-12T23:33:33.540Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"76d6b3fe-aadd-45cf-8388-4707f117c7a8","spanId":"6842a05d-c966-43","component":"server_bootstrap","assets":308,"items":6,"revisions":8,"bindings":1,"fulfillments":2,"deals":0}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSchedule review desk: episode master linkage keyed by its channel parameter[2m > [22m[2mroute keys the linkage by ?channel (GET /broadcast/schedule/review?channel=ORIS)
+[22m[39m{"timestamp":"2026-10-12T23:33:33.542Z","level":"INFO","message":"VMNL Enterprise Server listening on port 4267","traceId":"85405eba-a8ee-4778-9357-64aabe7c2a0b","spanId":"0fe552c4-5920-48","component":"server_bootstrap","port":4267,"env":"test"}
+
+ [32m✓[39m tests/unit/todo-final-remediation.test.ts [2m([22m[2m84 tests[22m[2m)[22m[33m 2334[2mms[22m[39m
+     [33m[2m✓[22m[39m memory adapter: get/set/del, TTL expiry, setIfAbsent lock semantics, incrBy, keys [33m 303[2mms[22m[39m
+     [33m[2m✓[22m[39m publishes content once per operation key and replays the original revision [33m 436[2mms[22m[39m
+[90mstdout[2m | tests/unit/production-core-and-infrastructure.test.ts[2m > [22m[2mProduction Core & Background Infrastructure[2m > [22m[2m1. Database Repositories (Prisma CRUD with Resilient Fallback)
+[22m[39m[TSK-05] repository path under test: Postgres (fail_closed)
+
+ [32m✓[39m tests/unit/production-core-and-infrastructure.test.ts [2m([22m[2m22 tests[22m[2m)[22m[32m 296[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m2 passed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[32m106 passed[39m[22m[90m (106)[39m
+[2m   Start at [22m 00:33:29
+[2m   Duration [22m 4.47s[2m (transform 1.18s, setup 0ms, import 1.59s, tests 2.63s, environment 0ms)[22m
+

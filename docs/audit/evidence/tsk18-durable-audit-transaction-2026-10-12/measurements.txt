@@ -1,0 +1,190 @@
+# TSK-18 — measured on the development database (`vmnl_enterprise`, localhost:5432), 2026-10-12
+# Measured after `prisma migrate deploy` applied 20261012120000_relax_audit_ledger_actor_identity.
+# Reproduce: from the repository root, `node docs/audit/evidence/tsk18-durable-audit-transaction-2026-10-12/measure.mjs`
+# (read-only queries against `AuditLog`; it prints the block below verbatim).
+
+{
+  "foreignKeysOnAuditLog": [],
+  "columns": "id userId? action resource resourceId? ipAddress? userAgent? changesJson? createdAt tenantId?",
+  "indexes": [
+    "AuditLog_action_resource_idx",
+    "AuditLog_createdAt_idx",
+    "AuditLog_pkey",
+    "AuditLog_tenantId_createdAt_idx",
+    "AuditLog_userId_createdAt_idx"
+  ],
+  "total": 1817,
+  "actor_null": 1786,
+  "scoped": 2,
+  "with_payload": 34,
+  "rowsWithStoredHashPayload": 34,
+  "recomputableFromOwnColumns": 34,
+  "createdAtEqualsEventTimestamp": 34,
+  "nineComponentPayloads": 34,
+  "tenantColumnMatchesPayloadComponent6": 34,
+  "sample": [
+    {
+      "id": "b960af62",
+      "action": "FEATURE_FLAG_UPDATED",
+      "userId": "usr-guard-test",
+      "tenantId": null,
+      "created_utc": "2026-10-12T16:11:27.641Z",
+      "event_ts": "2026-10-12T16:11:27.641Z"
+    },
+    {
+      "id": "09624af3",
+      "action": "FEATURE_FLAG_UPDATED",
+      "userId": "usr-guard-test",
+      "tenantId": null,
+      "created_utc": "2026-10-12T16:11:27.768Z",
+      "event_ts": "2026-10-12T16:11:27.768Z"
+    }
+  ]
+}
+
+## Baseline recorded the same morning, BEFORE the migration and before the write moved
+
+Measured by the same instrument against the un-migrated table (the shared-library asset counts
+taken on the same tree are in
+`docs/audit/evidence/tsk58-fail-closed-unscoped-assets-2026-10-12/measurements.txt`):
+
+| Fact | Value |
+|:---|:--|
+| Durable `AuditLog` rows | **1783** |
+| …with `userId IS NULL` | **1783 of 1783** — the FK refused synthetic/system actors and `onDelete: SetNull` erased the rest |
+| …whose hash recomputes from their own columns | **668 of 1783** (jsonb does not preserve key order; the pre-image was not stored) |
+| …with `createdAt` equal to their own event timestamp | **0 of 1783** |
+| Foreign keys on `AuditLog` | `AuditLog_userId_fkey` (`onDelete: SetNull`) |
+| `tenantId` | absent from the schema, from the hashed payload and from the row |
+
+## Why `createdAtEqualsEventTimestamp` reads 0 in a naive re-run
+
+The first pass of this instrument compared `"createdAt"` (returned by `node-postgres` as a JS `Date`
+built from a `timestamp` **without time zone**) with the payload's `…Z` instant, and every row
+mismatched by exactly the machine's UTC offset. The query now renders `createdAt` with
+`to_char(…, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')` and compares text: **34 of 34**. The 0 was an
+instrument bug, not a code bug, and it is recorded here rather than quietly re-run.
+
+## Route-level facts, printed by the suites in this directory
+
+* `[TSK-29] mutating dispatch sites 117 (API 104) · guards 75 · inline-enforced 59 ·
+  handler-scoped documented 55 · public by design 11` — unchanged by TSK-18 (no route added),
+  from `focused-docs-and-security.txt`.
+* `AuditLog` Prisma accessors in `src/`: **4** (was 3) — `release-critical.repository.ts:1051`
+  create, `:1114` findMany, `audit/index.ts:460` count, `:474` deleteMany. `pruneAuditLogs` still
+  has **zero** call sites.
+* Time-API counts moved to the values `tests/unit/canonical-model.test.ts` now pins:
+  `new Date()` **256**, `.toISOString()` **107**, `Date.now()` **132**.
+
+## Citation sweep forced by this change set (re-measured 2026-10-13, every one opened)
+
+TSK-18 edited `src/api/server.ts` (journal-group wrapper + alert wiring), `src/core/audit/index.ts`
+(payload builder, durable staging, read path, health counters), `prisma/schema.prisma` (AuditLog
+`tenantId`, FK dropped) and `tests/unit/durability-release-critical.test.ts` (the `auditLedger`
+restart read grew the 201-enquiry case). Every published pointer into those files was re-opened and
+moved to the measured line — no assertion was relaxed to make a pointer pass.
+
+| Pointer | Was | Now | What is there |
+|:---|:--|:--|:---|
+| boot hydration order (`src/api/server.ts`) | `:325-338` | `:326-339` | `refreshMediaAssetIndex` 326 · sessions 327 · idempotency 328 · enquiry 329 · approvals 330 · cases 331 · risk/issue 332 · destinations 333 · content 334 · `hydrateSponsorshipEngine` 335 · `hydrateSalesEngine` 339 |
+| rights + episode-master hydration | `:369`, `:370` | `:374`, `:375` | `refreshRegisteredRightsIndex`, `refreshEpisodeMasterIndex` |
+| seeds re-run | `:343-344` | `:344-345` | `registerGoldenDamAssets`, `ensureContentDemoSeed` |
+| shutdown journal drain | `:420` | `:422` | `await flushDurableJournal()` in `stop()` |
+| AUTH_BYPASS refusal | `:58-63` | `:74-80` | AUD-04 block |
+| sandbox-fallback refusal | `:73-81` (register) | `:81-94` | AUD-10 block |
+| federation fail-closed at boot | `:157-168` | `:148-161` | `[VMNL-FED]`-style WARN + `AzeeboLinkGateway` construction |
+| ledger wiring | `api/server.ts:279` | `:299` | `ledgerService: ledgerPostingService` |
+| sales telemetry | `:345`, `:351` | `:346`, `:352` | the hydration `if` and its structured payload |
+| `AuditLog.tenantId` column | — | `prisma/schema.prisma:341` | added by the migration above |
+| `model SalesDealRecord` | `:882` | `:888` | the schema gained 6 lines inside `AuditLog` |
+| `CommercialCampaign.clientName` | `:486` | `:492` | same +6 shift (`:486` is now the Finance section header) |
+| `model MediaAssetRecord` | `:695` | `:697` | its `///` comment block |
+| `model CommercialEnquiry` | `:565` | `:571` | `:565` sits in the TSK-17 design-rule header, now at `:555` |
+| TSK-17 design rules | `:548` | `:555` | the "no FKs / no state defaults / minted ids" header |
+| `recordAuditLog` | `:140` (TSK-30) | `:185` | annotated in place, history kept |
+| audit payload | `:124-133` (TSK-58 box 4) | `:154-165` | `buildAuditHashPayload`, nine components |
+| durable row→entry read | `:348-375` | `:348-374` | the block ends at the closing brace, not a blank line |
+| durability restart drills | `:285`, `:428` | `:286`, `:429` | destination + journal cases |
+| register exit-gate self-pin | `tasks.md:1533` | `tasks.md:1546` | the unticked TSK-10 §3 line |
+
+Deliberately **not** moved: the historical sentences that record a past position —
+`docs/handoffs/LATEST.md:162` and `tasks.md:1674` (`router.ts:393-429`, an insertion note),
+`tasks.md:1088` / `tasks.md:1475-1476` / `tasks.md:1689` (each says in its own sentence that the
+number it quotes is the *old* one). Rewriting those would destroy the audit trail the sentences
+exist to keep.
+
+`tests/unit/systems-of-record.test.ts`, `tests/unit/canonical-model.test.ts` and
+`tests/unit/durability-drill-coverage.test.ts` are the instruments that make the above measurable
+rather than promised: 28 tests, all green on this tree.
+
+## Environment discovery: why `source .env` before `pnpm test` fabricates failures (2026-10-13)
+
+Measured with a throw-away probe file (created, run, deleted — never committed):
+
+```
+NODE_ENV="development"  AUTH_BYPASS_ENABLED=undefined
+resolveSessionUser({ headers: { "x-test-role": "SuperAdmin" } })  ->  null
+POST /api/v1/workspace/content/CNT-LAGOS-201/publish  ->  401 {"code":"AUTH_TOKEN_REQUIRED"}
+```
+
+`.env` sets `NODE_ENV=development`. `(set -a; source .env; set +a; pnpm test)` puts that value in the
+shell before Vitest starts, and Vitest only defaults `NODE_ENV` to `test` when it is *unset*. From
+there the failure is mechanical: the test-role harness at `src/api/router.ts:730` is gated on
+`process.env.NODE_ENV === "test"`, so `resolveSessionUser` returns `null` and every route that the
+suite authenticates with `x-test-role` answers 401 (or 302 on the HTML paths). The first gates run on
+the restored cluster was done that way and produced **6 spurious failures** — three in
+`SEC-08: mutation idempotency (route level)` and three in `SCR-03`. Passing `DATABASE_URL` on the
+command line instead (`DATABASE_URL=… pnpm test`) reaches the right database without touching
+`NODE_ENV`, because `dotenv.config()` (`src/core/config/index.ts:5`) is called without `override` and
+therefore cannot replace a variable the shell already set. Re-run that way: 106/106 in the two
+affected files, 819/819 in the full suite.
+
+Rule 0.3 says a gate may not be weakened to pass. Here nothing in the tree changed between the red
+and green runs — only the environment, which is why both runs are filed in this directory.
+
+## The golden seed and the count-asserting repository suites do not coexist (2026-10-13)
+
+`pnpm db:seed` writes 5 VERIFIED talent, 11 ACTIVE campaigns, 50 programmes / 200 episodes into
+`vmnl_enterprise` (the run itself is `db-seed-fresh-database.txt`). Three suites then assert the size
+of a table they only ever add one row to — `tests/unit/production-core-and-infrastructure.test.ts:129`
+(`listTalent({ tier: "VERIFIED" })` → 1), `:164` (`listCampaigns("ACTIVE")` → 1), `:213`
+(`listAsRunRecords("NXTR")` → 1) — and `tests/unit/todo-final-remediation.test.ts:1829` asserts the
+episode-master index at `{ channels: 3, programmes: 2, episodes: 3 }` while
+`ensureScheduleDemoSeed()` (`:2207`) expects the seed to *refuse* to approve a day it cannot clear.
+On the seeded database those seven assertions report 6 / 11 / 4 / 52 / 203 / 3-uncleared and the full
+suite exits 10-red (`full-suite-golden-seeded-dev-db.txt`); on a migrated, unseeded database the same
+tree is 819/819 green (`full-suite.txt`).
+
+Consequence, stated rather than papered over: the DB-backed suites are only repeatable against a
+database that holds **fixture rows**, not demo content. This run used a second, additive database
+(`vmnl_enterprise_gates`) rather than deleting the seed rows from `vmnl_enterprise`, so the demo data
+is still there for browsing the pages. Whether the suites should scope their count assertions
+themselves is a register item, not something this evidence file will pretend is already fixed.
+
+## This directory's own edits shift pins too (re-measured 2026-10-13)
+
+Writing the TSK-18 closure into the register moved line numbers in the documents being cited, so the
+same Rule 9 sweep was applied to it:
+
+| Pin | Was | Now | Verified by |
+| --- | --- | --- | --- |
+| §3 exit-gate line, cited from `tasks.md:510` | `tasks.md:1546` | `tasks.md:1548` | `awk 'NR==1548'` prints `- [ ] The rights gate demonstrably blocks approval and export` |
+| TSK-58 box 4 (audit payload), cited from the closure bullet | `tasks.md:1088` | `tasks.md:1090` | the line begins `- [x] \`tenantId\` added to the hashed audit payload` |
+| labelled historical trail | `tasks.md:1475-1476`, `:1674`, `:1689` | `:1477-1478`, `:1676`, `:1691` | each line re-opened; the sentences still describe a past position |
+| `LedgerPostingService` / FIN-03 bullet, cited from `tasks.md:831`, `:1118`, `:1606` | `docs/handoffs/LATEST.md:184` | `:189` | the line is the `- [x] **Finance integrity:** FIN-03 (\`LedgerPostingService\` …)` bullet |
+| citation-sweep sentence, cited from `tasks.md:873` | `docs/handoffs/LATEST.md:162` | `:167` | the line begins `**Citation re-pin sweep (2026-10-12).**` |
+
+`docs/handoffs/LATEST.md` grew by one table row (`pnpm test:coverage`, `:19`) and five baseline lines,
+so every pin into it at `:19` or above was re-opened rather than incremented. Two families were left
+as they are and the reason is recorded rather than hidden:
+
+* the §1.3 / contradiction-table pins (`LATEST.md:13`, `:21`, `:26,31`, `:30`, `:54`, `:71`, `:137`)
+  name where a **false claim was printed at audit time**; they are the same class the 2026-10-12 sweep
+  refused to move, and `report.md` is an audit-time document.
+* five pins in the TSK-52 systems-of-record table (`tasks.md:828`–`:835`) cite `LATEST.md:16` and `:18`
+  for model names (`ApprovalItem`, `MediaAssetRecord`, `SponsorBindingRecord`…). They were **already
+  dead before this change**: `:16` and `:18` are rows of the gate table, and four of the five names the
+  sentences cite do not occur in the file at all (`grep -c` → `ApprovalItem` 0, `SponsorBindingRecord` 0,
+  `PrivacySecurityCase` 0, `AzeeboDestination` 0; `MediaAssetRecord` occurs 3 times, none of them at `:16`).
+  Re-pointing them by arithmetic would invent a symbol the document never carried, so they are reported
+  here as open drift for the next sweep, not quietly "fixed".

@@ -1,0 +1,41 @@
+# Served broadcast screen census, 2026-10-12, compiled dist/src (pnpm build exit 0), Postgres reachable,
+# NODE_ENV=test, role = screen.primaryRole per route. Reproduce:
+#   node docs/audit/evidence/tsk11-served-screen-engine-snapshot-2026-10-12/measure-served-census.mjs
+# Columns: screenId  httpStatus  unsourced-badge  source-badge  route
+SCR-BCST-01 200 no-unsourced-badge no-source-badge  /broadcast/dashboard
+SCR-BCST-02 200 UNSOURCED-BADGE DOMAIN_ENGINE  /broadcast/channels
+SCR-BCST-03 200 UNSOURCED-BADGE no-source-badge  /broadcast/channels/:id
+SCR-BCST-04 200 UNSOURCED-BADGE no-source-badge  /broadcast/programmes
+SCR-BCST-05 200 UNSOURCED-BADGE no-source-badge  /broadcast/programmes/:id
+SCR-BCST-06 200 UNSOURCED-BADGE no-source-badge  /broadcast/series/:id
+SCR-BCST-07 200 UNSOURCED-BADGE no-source-badge  /broadcast/episodes/:id
+SCR-BCST-08 200 UNSOURCED-BADGE no-source-badge  /broadcast/episodes/:id/versions
+SCR-BCST-09 200 UNSOURCED-BADGE no-source-badge  /broadcast/rights/readiness
+SCR-BCST-10 200 UNSOURCED-BADGE no-source-badge  /broadcast/acquisitions
+SCR-BCST-11 200 UNSOURCED-BADGE no-source-badge  /broadcast/commissioning
+SCR-BCST-12 200 UNSOURCED-BADGE no-source-badge  /broadcast/schedule/grid
+SCR-BCST-13 200 UNSOURCED-BADGE no-source-badge  /broadcast/schedule/dayparts
+SCR-BCST-14 200 UNSOURCED-BADGE no-source-badge  /broadcast/epg/syndication
+SCR-BCST-15 200 UNSOURCED-BADGE no-source-badge  /broadcast/promos
+SCR-BCST-16 200 UNSOURCED-BADGE no-source-badge  /broadcast/traffic/inventory
+SCR-BCST-17 200 UNSOURCED-BADGE no-source-badge  /broadcast/traffic/breaks/:id
+SCR-BCST-18 200 UNSOURCED-BADGE no-source-badge  /broadcast/campaigns
+SCR-BCST-19 200 UNSOURCED-BADGE no-source-badge  /broadcast/traffic/materials
+SCR-BCST-20 200 no-unsourced-badge DOMAIN_ENGINE  /broadcast/sponsorship
+SCR-BCST-21 200 UNSOURCED-BADGE no-source-badge  /broadcast/traffic/log/:date
+SCR-BCST-22 200 UNSOURCED-BADGE no-source-badge  /broadcast/playout/playlist/:date
+SCR-BCST-23 200 UNSOURCED-BADGE no-source-badge  /broadcast/playout/live
+SCR-BCST-24 200 UNSOURCED-BADGE no-source-badge  /broadcast/asrun/reconciliation
+SCR-BCST-25 200 UNSOURCED-BADGE no-source-badge  /broadcast/transmission/live
+SCR-BCST-26 200 UNSOURCED-BADGE no-source-badge  /broadcast/transmission/incidents
+SCR-BCST-27 200 UNSOURCED-BADGE no-source-badge  /broadcast/carriage/platforms
+SCR-BCST-28 200 UNSOURCED-BADGE no-source-badge  /broadcast/carriage/startimes
+SCR-BCST-29 200 UNSOURCED-BADGE no-source-badge  /broadcast/carriage/agreements
+SCR-BCST-30 200 UNSOURCED-BADGE no-source-badge  /broadcast/proof-of-air
+SCR-BCST-31 200 UNSOURCED-BADGE no-source-badge  /broadcast/finance/yield
+SCR-BCST-32 200 UNSOURCED-BADGE no-source-badge  /broadcast/analytics/performance
+SCR-BCST-33 200 UNSOURCED-BADGE no-source-badge  /broadcast/analytics/azeebo-conversion
+
+SERVED census over 33 screens:
+  screens still showing a NOT_CONNECTED/PROVISIONAL badge : 31
+  screens serving at least one DOMAIN_ENGINE SOURCE: badge : 2

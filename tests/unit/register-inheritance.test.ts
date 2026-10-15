@@ -24,6 +24,7 @@
 import { describe, it, expect } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const REPO_ROOT = fileURLToPath(new URL("../..", import.meta.url));
@@ -31,6 +32,10 @@ const SELF = "register-inheritance.test.ts";
 
 const ID_RE = /\bTODO-(?:SEC|SCR|BCST|FIN|PRC|GVR|DOC)-\d{2}\b/g;
 const DECISION_DOC = "docs/decisions/DEC-REGISTER-SURVIVOR-001.md";
+/** The retired register, deleted from the tree by recorded decision (TSK-07) but recoverable from git. */
+const RETIRED_REGISTER = "todo.md";
+/** `git show <rev>:<retired register>` with a 7–40 hex rev or HEAD; the rev, not HEAD, is the point. */
+const RECOVERY_CMD = /git show ([0-9a-f]{7,40}|HEAD):todo\.md/g;
 const SURVEY_DIRS = ["src", "tests", "docs", "scripts"];
 const SURVEY_FILES = ["audit.md", "CLAUDE.md", "tasks.md", "report.md"];
 const EXTENSIONS = /\.(ts|tsx|js|mjs|json|md)$/;
@@ -40,6 +45,15 @@ const HISTORICAL_RE =
 
 function readRepo(rel: string): string {
   return fs.readFileSync(path.join(REPO_ROOT, rel), "utf8");
+}
+
+/** Print a git blob, or null when the revision/path pair does not resolve. */
+function gitShow(rev: string, blob: string): string | null {
+  try {
+    return execFileSync("git", ["show", `${rev}:${blob}`], { cwd: REPO_ROOT, encoding: "utf8", maxBuffer: 1 << 24 });
+  } catch {
+    return null;
+  }
 }
 
 function surveyFiles(): string[] {
@@ -271,10 +285,19 @@ describe("TSK-07 (CA-06): the surviving register resolves every inherited identi
   });
 
   it("keeps the retired register recoverable by a command in this repository", () => {
-    // Rule 0.2: the census says the retired items' own text is recoverable from git; prove it here
-    // rather than asserting it. After the TSK-09 commit series lands the deletion the blob moves to
-    // the pre-deletion commit, which is why the command is recorded rather than hard-pinned to HEAD.
-    expect(tasks).toContain("git show HEAD:todo.md");
-    expect(readRepo(DECISION_DOC)).toContain("git show HEAD:todo.md");
+    // Rule 0.2: the census says the retired register's own text is recoverable from git; prove it
+    // here rather than asserting it. The recorded command names a *commit*, not HEAD: TSK-09 commits
+    // the deletion, so HEAD's tree no longer carries the blob. The guard reads whatever revision each
+    // document records and runs it, failing if that blob no longer resolves.
+    for (const doc of ["tasks.md", DECISION_DOC] as const) {
+      const recorded = [...readRepo(doc).matchAll(RECOVERY_CMD)].map((m) => m[1]);
+      expect(recorded.length, `${doc} records no recovery command for the retired register`).toBeGreaterThan(0);
+      for (const rev of recorded) {
+        const printed = gitShow(rev, RETIRED_REGISTER);
+        expect(printed, `${doc} records a recovery command at ${rev} that no longer resolves`).not.toBeNull();
+        expect(printed, `${doc} recovery command prints something other than the retired register`)
+          .toContain("VMNL-AZP-VMN-TODO-001");
+      }
+    }
   });
 });

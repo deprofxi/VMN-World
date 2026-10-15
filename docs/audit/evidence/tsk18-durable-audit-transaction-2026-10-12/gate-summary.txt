@@ -1,0 +1,38 @@
+TSK-18 gates — measured 2026-10-13 on one uncommitted working tree (no source file changed between runs)
+
+Database used by the runs below
+  vmnl_enterprise_gates @ localhost:5432 (FlyEnv MacPorts PostgreSQL 18.3)
+  created with `createdb -U root vmnl_enterprise_gates`, schema from `prisma migrate deploy`
+  (12 migrations, migrate-deploy-fresh-database-2026-10-13.txt), deliberately NOT seeded.
+  The suite reached it with `DATABASE_URL=… pnpm test`, never by sourcing `.env` (see
+  measurements.txt, "Environment discovery: why sourcing .env before pnpm test is wrong").
+
+  TYPECHECK  exit 0   typecheck.txt                     (tsc --noEmit)
+  LINT       exit 0   lint.txt                          (eslint . --max-warnings 0)
+  BUILD      exit 0   build.txt                         (tsc)
+  FULL       exit 0   full-suite.txt                    68 test files, 819 tests, 0 skipped, 45.33s
+  COVERAGE   exit 0   coverage.txt                      statements 78.96 · branches 70.15 ·
+                                                       functions 82.95 · lines 80.32
+                                                       thresholds 73 / 62 / 77 / 72 (not relaxed)
+  FOCUSED    exit 0   focused-gates-db.txt              7 files, 76 tests — systems-of-record (6),
+                                                       canonical-model (13), durability-drill-coverage (9),
+                                                       durability-release-critical, audit,
+                                                       audit-remediation-regressions, observability (48)
+  FOCUSED    exit 0   focused-unseeded-gates-db.txt     2 files, 106 tests — production-core-and-infrastructure
+                                                       and todo-final-remediation, the two files that were
+                                                       red against the seeded dev database
+
+Runs kept because a green run is not the only run (Rule 0.4 / 0.4a)
+  full-suite-golden-seeded-dev-db.txt  68 files, 809 passed / 10 failed, 0 skipped, 42.18s
+      — `vmnl_enterprise` with the golden seed loaded. The failures are the count-asserting
+        repository suites seeing the seed's rows: `listTalent({tier:"VERIFIED"})` returned 6
+        (the seed's 5 + the fixture), `listCampaigns("ACTIVE")` 11, `listAsRunRecords("NXTR")` 4,
+        the episode-master index 52 programmes / 203 episodes where the fixture expects 2 / 3, and
+        `ensureScheduleDemoSeed()` cleared 3 channels where the fixture expects 1 uncleared.
+        None is a TSK-18 regression; the cause is proven by re-running the same two files against
+        the unseeded gates database, where 106/106 pass (focused-unseeded-gates-db.txt).
+  full-suite-server-down.txt           66 files, 794 passed / 25 skipped — no Postgres on 5432
+  full-suite-wrong-cluster.txt         66 files, 794 passed / 25 skipped — empty homebrew cluster
+        Both exited 0. Skipped durability drills are not a durability pass.
+  focused-postgres-restored.txt        4 files / 48 tests, first run after the dev database was
+        rebuilt — kept because it preceded the seed-vs-suite discovery above.

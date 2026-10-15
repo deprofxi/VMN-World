@@ -1,0 +1,262 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.11 [39m[90m/Users/deprof/www/vmng[39m
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate
+[22m[39m{"timestamp":"2026-10-12T04:31:11.419Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"bad3cb1e-6ba4-413d-bd0a-380239fbe321","spanId":"d177cec2-8dc3-48","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate
+[22m[39m{"timestamp":"2026-10-12T04:31:11.920Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"1142c54b-7d60-4d9d-b27f-30a813a68ffa","spanId":"62c81f16-d929-4f","component":"server_bootstrap","assets":1330,"items":68,"revisions":132,"bindings":2,"fulfillments":4,"deals":10}
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate
+[22m[39m{"timestamp":"2026-10-12T04:31:11.943Z","level":"INFO","message":"VMNL Enterprise Server listening on port 4288","traceId":"aff7181d-3cd0-4ca6-b359-3a5c704ba4bb","spanId":"5d7d4f0f-6aaf-4b","component":"server_bootstrap","port":4288,"env":"test"}
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate
+[22m[39m
+[TSK-14] rights clearance path under test: Postgres (fail_closed)
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate[2m > [22m[2mclears the block end-to-end: request -> evidence -> durable record -> gate allows the slot
+[22m[39mprisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate[2m > [22m[2mclears the block end-to-end: request -> evidence -> durable record -> gate allows the slot
+[22m[39m{"timestamp":"2026-10-12T04:31:12.564Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate[2m > [22m[2mclears the block end-to-end: request -> evidence -> durable record -> gate allows the slot
+[22m[39mprisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate[2m > [22m[2mclears the block end-to-end: request -> evidence -> durable record -> gate allows the slot
+[22m[39m{"timestamp":"2026-10-12T04:31:12.585Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate[2m > [22m[2mclears the block end-to-end: request -> evidence -> durable record -> gate allows the slot
+[22m[39mprisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate[2m > [22m[2mclears the block end-to-end: request -> evidence -> durable record -> gate allows the slot
+[22m[39m{"timestamp":"2026-10-12T04:31:12.591Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate[2m > [22m[2mclears the block end-to-end: request -> evidence -> durable record -> gate allows the slot
+[22m[39mprisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate[2m > [22m[2mclears the block end-to-end: request -> evidence -> durable record -> gate allows the slot
+[22m[39m{"timestamp":"2026-10-12T04:31:12.610Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate[2m > [22m[2mkeeps the block and writes nothing when the review retains it
+[22m[39mprisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate[2m > [22m[2mkeeps the block and writes nothing when the review retains it
+[22m[39m{"timestamp":"2026-10-12T04:31:12.632Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate[2m > [22m[2mkeeps the block and writes nothing when the review retains it
+[22m[39mprisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate[2m > [22m[2mkeeps the block and writes nothing when the review retains it
+[22m[39m{"timestamp":"2026-10-12T04:31:12.654Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate[2m > [22m[2mkeeps the block and writes nothing when the review retains it
+[22m[39mprisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate[2m > [22m[2mkeeps the block and writes nothing when the review retains it
+[22m[39m{"timestamp":"2026-10-12T04:31:12.659Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate[2m > [22m[2mkeeps the block and writes nothing when the review retains it
+[22m[39mprisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate[2m > [22m[2mkeeps the block and writes nothing when the review retains it
+[22m[39m{"timestamp":"2026-10-12T04:31:12.667Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate[2m > [22m[2mrefuses to clear without authoritative evidence
+[22m[39mprisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate[2m > [22m[2mrefuses to clear without authoritative evidence
+[22m[39m{"timestamp":"2026-10-12T04:31:12.680Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate[2m > [22m[2mrefuses to clear without authoritative evidence
+[22m[39mprisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate[2m > [22m[2mrefuses to clear without authoritative evidence
+[22m[39m{"timestamp":"2026-10-12T04:31:12.714Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate[2m > [22m[2mcannot clear a RightsRecord that is not registered
+[22m[39mprisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate[2m > [22m[2mcannot clear a RightsRecord that is not registered
+[22m[39m{"timestamp":"2026-10-12T04:31:12.720Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate[2m > [22m[2mcannot clear a RightsRecord that is not registered
+[22m[39mprisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate[2m > [22m[2mcannot clear a RightsRecord that is not registered
+[22m[39m{"timestamp":"2026-10-12T04:31:12.737Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate[2m > [22m[2mcannot clear a RightsRecord that is not registered
+[22m[39mprisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate[2m > [22m[2mcannot clear a RightsRecord that is not registered
+[22m[39m{"timestamp":"2026-10-12T04:31:12.748Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate[2m > [22m[2mcannot clear a RightsRecord that is not registered
+[22m[39mprisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate[2m > [22m[2mcannot clear a RightsRecord that is not registered
+[22m[39m{"timestamp":"2026-10-12T04:31:12.752Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate[2m > [22m[2mrequires staff authority to resolve, not just a session
+[22m[39mprisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate[2m > [22m[2mrequires staff authority to resolve, not just a session
+[22m[39m{"timestamp":"2026-10-12T04:31:12.764Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate[2m > [22m[2mrequires staff authority to resolve, not just a session
+[22m[39mprisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate[2m > [22m[2mrequires staff authority to resolve, not just a session
+[22m[39m{"timestamp":"2026-10-12T04:31:12.779Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate[2m > [22m[2mrequires staff authority to resolve, not just a session
+[22m[39mprisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+[90mstdout[2m | tests/integration/rights-clearance-e2e.test.ts[2m > [22m[2mTSK-14 (CA-32): one rights context, and a cleared review satisfies the gate[2m > [22m[2mrequires staff authority to resolve, not just a session
+[22m[39m{"timestamp":"2026-10-12T04:31:12.780Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+ [32m✓[39m tests/integration/rights-clearance-e2e.test.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 1395[2mms[22m[39m
+     [33m[2m✓[22m[39m blocks the slot on the registered record before any review exists [33m 533[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m8 passed[39m[22m[90m (8)[39m
+[2m   Start at [22m 05:31:07
+[2m   Duration [22m 4.88s[2m (transform 2.50s, setup 0ms, import 3.21s, tests 1.39s, environment 0ms)[22m
+

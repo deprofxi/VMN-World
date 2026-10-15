@@ -1,0 +1,6 @@
+## typecheck — 2026-10-11T05:54:35Z
+exit=0
+
+> vmng@1.0.0 typecheck /Users/deprof/www/vmng
+> tsc --noEmit
+

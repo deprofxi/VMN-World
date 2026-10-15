@@ -1,0 +1,28 @@
+TSK-20 gate summary — 2026-10-13, all on the same final tree
+baseline ce098f8 + dirty working set (201 `git status --porcelain` entries, 362 with --untracked-files=all)
+NOTHING COMMITTED, NOTHING PUSHED — commit/push is the owner's decision.
+
+Database for every run: DATABASE_URL=postgresql://root@localhost:5432/vmnl_enterprise_gates?schema=public
+(migrated, UNSEEDED — `pnpm db:seed` data makes seven count-asserting suites report the seed's rows.)
+`.env` was never sourced: it exports NODE_ENV=development, which disables the x-test-role harness.
+
+  pnpm typecheck          exit 0                                  -> typecheck.txt
+  pnpm lint               exit 0  (--max-warnings 0)              -> lint.txt
+  pnpm build              exit 0                                  -> build.txt
+  pnpm test               exit 0  68 files / 822 tests / 0 skipped -> full-suite.txt
+  pnpm test:coverage      exit 0  78.97 st / 70.16 br / 82.97 fn / 80.32 ln -> coverage.txt
+                          floors 73 / 62 / 77 / 72 — none moved
+  instruments             exit 0  3 files / 100 tests             -> focused-instruments.txt
+    systems-of-record.test.ts            9 tests  (6 -> 9: +3 in this task)
+    screen-register-verification.test.ts 7 tests
+    todo-final-remediation.test.ts      84 tests  (pins seedStatLabel's two labels)
+
+  Delta on the previous pin (TSK-18: 68 / 819): +3 tests, all in systems-of-record.test.ts
+  (register parity, label derivation, matrix parity). No assertion was relaxed to obtain it.
+
+  COVERAGE FLAKE (Rule 0.4a, recorded not hidden): `pnpm test:coverage` on this
+  same tree ran four times today — green 01:54, red 09:56, red 10:25, green 10:52.
+  Both reds are the 10s route-probe timeout in screen-register-verification.test.ts,
+  both under sustained foreign host load (uptime 214-316; Qoder renderer,
+  WindowServer, Google Drive). The published figures come from the 10:52 green run
+  (identical to 01:54). Full history + what it leaves open: coverage-run-history.txt

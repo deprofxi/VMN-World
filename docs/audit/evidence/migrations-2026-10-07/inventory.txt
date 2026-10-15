@@ -1,0 +1,16 @@
+prisma migrate status (development DB vmnl_enterprise):
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma/schema.prisma.
+Datasource "db": PostgreSQL database "vmnl_enterprise", schema "public" at "localhost:5432"
+
+4 migrations found in prisma/migrations
+
+Database schema is up to date!
+
+tables in vmn_tsk06_deploy after clean deploy:
+28
+models in prisma/schema.prisma: 27
+
+Person scalar columns deployed (expected 9; audit claimed 20-26 undeployed):
+id, email, phone, firstName, lastName, kycStatus, nationalId, createdAt, updatedAt

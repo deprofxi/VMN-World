@@ -1,0 +1,5 @@
+
+> vmng@1.0.0 typecheck /Users/deprof/www/vmng
+> tsc --noEmit
+
+typecheck_exit=0

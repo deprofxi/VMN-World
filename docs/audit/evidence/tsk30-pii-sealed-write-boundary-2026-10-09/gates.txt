@@ -1,0 +1,9 @@
+# TSK-30 gate exits, measured 2026-10-09 on the working tree (baseline commit ce098f8, uncommitted)
+pnpm typecheck  -> exit 0   (see typecheck.txt)
+pnpm lint       -> exit 0   (eslint . --max-warnings 0; see lint.txt)
+pnpm build      -> exit 0   (see build.txt)
+pnpm test       -> exit 0   65 files / 753 tests passed, 0 failed, 0 skipped (see full-suite.txt)
+pnpm test:coverage -> exit 0  78.51 stmts / 69.94 branch / 82.25 funcs / 79.77 lines vs floors 73/62/77/72 (see coverage.txt)
+
+Second full run after the register + handoff prose landed (documents are read by tests/unit/register-inheritance.test.ts and tests/unit/canonical-model.test.ts, so they gate too):
+pnpm test -> exit 0  65 files / 753 tests passed (full-suite-final.txt)

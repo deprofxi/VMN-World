@@ -1,0 +1,50 @@
+# Pin re-pin sweep measurements, 2026-10-12
+
+## 1. What shifted
+Insertion: buildScreenEngineSnapshot at src/api/router.ts:393-429 (36 lines) + 1 import line = +37 for every router.ts line after :392.
+
+## 2. Verified target lines (fresh grep, not arithmetic)
+573:export async function sendJson(res: ServerResponse, statusCode: number, data: any): Promise<void> {
+709:function sessionTokenFrom(req: IncomingMessage): string | undefined {
+719:export function resolveSessionUser(req: IncomingMessage): SessionUser | null {
+733:      userId: "test-user-id",
+769:  const allowed = canPerform(user, action, resource);
+789:export const ROUTE_GUARDS: Array<{
+933:export const WORKSPACE_HTML_GUARDS: Array<{ prefix: string; roles: string[] }> = [
+979:function getClientOrgRelationship(sessionUser: SessionUser | null): ClientOrgRelationship {
+1148:    await primeSessionRevocation(sessionTokenFrom(req));
+1207:    const ADMIN_ALIASES = new Map<string, string>([
+
+## 3. Pin verifier (opens every re-pinned citation and matches the named symbol)
+checked 42 mapped pins, 0 mismatched
+unmapped pins (hand-check these; historical by design unless noted):
+  tasks.md:236 -> router.ts:468
+  tasks.md:364 -> router.ts:2496
+  tasks.md:437 -> router.ts:5652
+  tasks.md:878 -> router.ts:7883
+  tasks.md:1147 -> router.ts:4494
+  tasks.md:1176 -> router.ts:7198
+  tasks.md:1177 -> router.ts:531
+  tasks.md:1412 -> router.ts:6337
+  tasks.md:1661 -> router.ts:393
+  tasks.md:1661 -> router.ts:6337
+  docs/handoffs/LATEST.md:162 -> router.ts:393
+  docs/handoffs/LATEST.md:162 -> router.ts:6337
+verifier exit: 0
+
+## 4. Citation counts re-pinned
+39 fully-qualified router.ts:NNN pins + 13 bare :NNN continuations, over 7 documents
+5 document-to-document pins (tasks.md -> tasks.md x2, tasks.md -> LATEST.md x3)
+
+## 5. Pins deliberately left as written
+236:- [x] Remove the dead `isStringRecord` helper at `src/api/router.ts:468` (declared, never u
+364:| `docs/handoffs/LATEST.md:26,31` | "every `MOCK_*` dataset on these surfaces is deleted" |
+437:3. `src/api/router.ts:5652-5670` *(the endpoint's position then; it is `src/api/router.ts:6
+1412:`src/web/broadcast/index.ts:596` renders `class="s-sj5T5qvyn0" class="vmn-pulse-dot"`; `sr
+1661:9. **A `file:line` pin is re-opened, not re-verified by eye, after any insertion that shif
+
+## 6. Final confirmation on the finished tree (2026-10-12)
+node docs/audit/evidence/doc-pin-repin-2026-10-12/measure-pin-integrity.mjs -> exit 0: checked 42 mapped pins, 0 mismatched
+npx vitest run <the six doc guards> -> exit 0: Test Files 6 passed (6) / Tests 121 passed (121)
+pnpm test -> exit 0: Test Files 68 passed (68) / Tests 813 passed (813), 0 failed, 0 skipped (full-suite.txt)
+pnpm typecheck 0 · pnpm lint --max-warnings 0 0 · pnpm build 0

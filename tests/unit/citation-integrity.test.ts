@@ -120,7 +120,7 @@ const CCPP_DECIMAL_CEILING = 29;
 const MISSING_AUTHORITY_CEILING = 28;
 /** `AGENTS.md` — this repository's constitution is `CLAUDE.md` (TSK-39 owner decision). */
 const AGENTS_MD_CEILING = 10;
-/** `todo.md` — the retired register, recoverable by `git show HEAD:todo.md` (TSK-07). */
+/** `todo.md` — the retired register, recoverable by `git show 85aad76:todo.md` (TSK-07); TSK-09 commits its deletion. */
 const TODO_MD_CEILING = 45;
 
 const MISSING_AUTHORITIES = [

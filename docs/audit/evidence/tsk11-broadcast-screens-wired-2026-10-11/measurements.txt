@@ -1,0 +1,41 @@
+## Measurements — 2026-10-11T20:28:20.642Z (2026-10-11), same tree as the gate logs
+
+SCREEN_DECISIONS references in src/: 1
+kpis literal lines in the renderer: 1
+invented literals in src/ (each must be 0):
+  11,554 MHz: src/web/broadcast/index.ts
+  Eutelsat 16A: src/web/broadcast/index.ts
+  api.startimes.com/v2/epg/vmn: src/web/broadcast/index.ts
+  0x1021: 0
+  Channel 142: 0
+  19,240,000: src/web/broadcast/index.ts
+  94.2%: src/web/broadcast/index.ts
+  99.98%: src/web/broadcast/index.ts
+  SLA Compliance: 0
+  Zenith Bank Plc: 0
+  Dangote Cement: 0
+  nxtr_ident_2026_1080i.mxf: 0
+  e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855: 0
+
+anchors published by this closure, opened:
+  anchors opened: 26 · mismatches: 0
+
+register status of the broadcast entry (box 6 gate): (no matches)
+
+baseline:
+  HEAD ce098f8
+  entries 194, files 284
+  histogram 64 ?? |    2 D |  128 M
+  remotes: 0
+
+why those literals still appear in the source:
+  295: * `kpis` literals this table used to carry (“Carriage Uptime 99.98%”, “Daily Yield
+  296: * ₦18.4M”, “Eutelsat 16A @ 16°E”, “11,554 MHz” …) are deleted: every KPI a screen
+  717:  // The syndication endpoint was hard-coded here as api.startimes.com/v2/epg/vmn
+  753:  // TSK-11 box 4: this panel printed ₦19,240,000 of "gross daily linear yield",
+  754:  // a 94.2% fill rate and four daypart bars that no engine produced. Revenue
+  — every one sits in a comment that records what was deleted (lines 295-296, 717, 753-754).
+  None is emitted: the instrument renders all 33 screens × 4 states and asserts absence, and
+  `grep -nE '^\s*kpis: \[' src/web/broadcast/index.ts` is 0, so no value table remains.
+
+register entry (box 6 gate): { "id": "UX-BR-001..033", "name": "Broadcast 33 operational screens", "status": "MOCK", "route": "/broadcast/*", "evidence": "src/web/broadcast/index.ts sample decision/KPI constants retained as labelled demonstration data behind provenance banner (DEC C-4); RBAC 401/403 enforced; TODO-BCST-01 engin

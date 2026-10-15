@@ -1,0 +1,28 @@
+# TSK-20 instrument runs — 2026-10-13 (gates database: vmnl_enterprise_gates, unseeded)
+
+$ DATABASE_URL=postgresql://root@localhost:5432/vmnl_enterprise_gates?schema=public pnpm vitest run tests/unit/systems-of-record.test.ts tests/unit/screen-register-verification.test.ts
+[2m Test Files [22m [1m[32m2 passed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[32m16 passed[39m[22m[90m (16)[39m
+
+$ pnpm vitest run tests/unit/systems-of-record.test.ts tests/unit/screen-register-verification.test.ts   # per-file
+ [32m✓[39m tests/unit/systems-of-record.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 116[2mms[22m[39m
+
+# NEGATIVE EVIDENCE — the matrix test must fail when a label or a family id is removed.
+# Mutation applied to a scratch copy of docs/audit/journey-readiness-matrix.md, then reverted:
+#   1) Persistence cell of J-RL1-13: 'sandbox-state (routing-rules)' -> 'process memory only'
+#   2) parity-table family id 'queue-jobs' -> 'queue-jobz' (invented family)
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+[41m[1m FAIL [22m[49m tests/unit/systems-of-record.test.ts[2m > [22msystems-of-record.md census[2m > [22mlabels the readiness matrix's Persistence column with §3.3 family ids
+[31m[1mAssertionError[22m: §3.3 families the matrix never names: expected [ 'queue-jobs' ] to deeply equal [][39m
+    [90m313|[39m     [34mexpect[39m(absent[33m,[39m [32m"§3.3 families the matrix never names"[39m)[33m.[39m[34mtoEqual[39m([])[33m;[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m8 passed[39m[22m[90m (9)[39m
+# after revert:
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m9 passed[39m[22m[90m (9)[39m
+
+# Mutation 2 alone (label removed, family ids intact) — proves the Persistence-cell assertion separately:
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+[31m[1mAssertionError[22m: Persistence cells that describe process memory without labelling it: expected [ Array(1) ] to deeply equal [][39m
+[31m+   "J-RL1-13 Enquiry routing configuration: process memory only —  at , in the same file as the durable destination registry…",[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m8 passed[39m[22m[90m (9)[39m
+# reverted: [2m      Tests [22m [1m[32m9 passed[39m[22m[90m (9)[39m

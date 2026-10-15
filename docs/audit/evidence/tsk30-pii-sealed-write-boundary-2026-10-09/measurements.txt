@@ -1,0 +1,98 @@
+TSK-30 measurements — 2026-10-09, working tree on baseline commit ce098f8 (nothing committed)
+================================================================================
+
+1. What the increment added to the code
+---------------------------------------
+src/core/websecurity/index.ts
+  :383  export const SEALED_FIELD_ENVELOPE = /^enc:v1:[0-9a-f]+:[0-9a-f]{24}:[0-9a-f]{32}$/
+  :385  isSealedFieldValue()
+  :396  sealSensitiveField()          — refuses to seal twice, `[VMNL-PII-02]` at :398,
+                                        `[VMNL-PII-01]` (malformed self-check) at :403
+  :413  assertSealedForStorage()      — `[VMNL-PII-01] <field> must be sealed before it is
+                                        persisted` at :416; null/undefined pass through
+  :420  type OpenedField              — "opened" | "malformed" | "auth_failed"
+  :432  openSealedField()             — returns the outcome, never throws on a bad envelope
+
+src/core/auth/index.ts
+  :225  encryptUserSecretsForStore()  — now seals through sealSensitiveField(), passes an
+                                        existing envelope through instead of double-sealing
+  :232  persistUserToSharedStore()    — the single KV writer for `user:*`; calls
+                                        assertSealedForStorage("User.mfaSecret", …) at :236
+                                        *before* kvAdapter.set
+  :245  recordSecretAccess()          — audit entry per decryption attempt
+  :261  decryptUserSecretsFromStore() — openSealedField() at :263, recordSecretAccess() at :264,
+                                        fail-closed to mfaSecret: null
+  write sites routed through :232 — :512 (seed), :548 (updateUserMfaEnrollment), :575 (registerUser)
+
+prisma/migrations/20261009200000_add_pii_sealed_envelope_checks/migration.sql
+  :17  ALTER TABLE "Person" ADD CONSTRAINT "Person_nationalId_sealed_envelope" …
+  :20  ALTER TABLE "User" ADD CONSTRAINT "User_mfaSecret_sealed_envelope" …
+
+prisma/schema.prisma — Prisma cannot declare a CHECK, so the two columns carry a pointer comment
+  :90-100 above Person.nationalId (:101), :118-121 above User.mfaSecret (:122)
+
+2. Suite delta
+--------------
+tests/unit/auth.test.ts  8 tests → 15 tests (git HEAD baseline 8). New:
+  :187 describe("TSK-30: sealed-envelope write boundary")  — 4 app-level tests
+  :297/:308/:333 describe.skipIf(!WITH_DB)                 — 3 tests against real Postgres
+`pnpm test` 746 → 753 tests, 65 files, 0 failed, 0 skipped (full-suite.txt). Re-run after the register and
+handoff prose landed — those files are parsed by tests/unit/register-inheritance.test.ts and
+tests/unit/canonical-model.test.ts — again 65/753, exit 0 (full-suite-final.txt).
+
+3. Coverage (pnpm test:coverage, exit 0; floors 73/62/77/72)
+------------------------------------------------------------
+All files          78.51 stmts / 69.94 branch / 82.25 funcs / 79.77 lines
+core/auth          76.31 / 60.64 / 75.51 / 79.25
+core/websecurity   81.94 / 70.21 / 92.30 / 82.81
+
+4. Bracketed-tag census re-pin (the doc guard counts code, so new error codes move it)
+--------------------------------------------------------------------------------------
+grep -rhoE '\[[A-Z]{2,12}-[A-Z0-9]{2,12}-[0-9]{2,4}\]' --include='*.ts' src/ | tr -d '[]' | sort -u | wc -l
+  → 183   (was 181; the two new tags are [VMNL-PII-01] and [VMNL-PII-02])
+same pipeline without sort -u
+  → 192 occurrences (was 189; [VMNL-PII-01] appears twice, [VMNL-PII-02] once)
+families → 24 (unchanged; VMNL family distinct 3 → 5)
+
+Re-pinned: tests/unit/canonical-model.test.ts:377 (183), :379 (192), :380 (doc string);
+docs/domain/data-dictionary.md:30, :184, family table `VMNL` row, §8 recipe `# → 183`.
+
+5. Citation re-pin caused by this increment
+-------------------------------------------
+prisma/schema.prisma grew 862 → 873 lines; every cite at or after the Person block moved +11.
+Old → new (all re-measured against the file, not by arithmetic):
+  User.personId            116 → 113      TalentProfile.personId  186 → 198
+  CreatorProfile.personId  203 → 215      UserRole.tenantId       174 → 170
+  Organisation.tenantId    177 → 188      MediaAssetRecord.tenantId 684 → 695
+  seven separation columns 281-287 → 292-298 (comment 280 → 291)
+  rateCardCurrency 193→204, Project.currency→234, Contract.currency→251, Settlement.currency→299,
+  TalentPayoutBatch.currency→504 / status→506, EventTicket.status→468, CommercialCampaign.status→490,
+  BankStatementRecord.reconciledStatus→523, DataSubjectRequest.requestType→538 / status→539,
+  financialScopeNgn→595, totalDebitNgn→799, ProviderEventClaim→862, CommercialEnquiry→565,
+  Project model→226, JournalEntryRecord span→793-807, TSK-17 design-rule header→548,
+  application-minted-id rule→558, CommercialCampaign.clientName→486 (model span 483-498),
+  Person.nationalId,User.mfaSecret → 101,122.
+An earlier batch pass in this session over-shifted these by +15 instead of the measured +11; the
+over-shift was undone cite by cite and the result is what tests/unit/canonical-model.test.ts checks.
+
+src/core/auth/index.ts grew by the new functions; cites re-pinned:
+  userStore 367→406, seedDefaultUsers 380→419, synthesised personId 403/463/528→442/502/565,
+  accountLockoutStore 554→589, rateLimitStore 175→181, consumedMfaChallenges 26→32.
+
+Dated artifacts under docs/audit/evidence/** were deliberately NOT re-shifted: their schema cites
+were true on their measurement dates. Schema cites in older evidence therefore read 11 lines low
+(e.g. `migrations-2026-10-07`, `tsk17-*`, `tsk19-*`, `tsk44-*`).
+
+6. Non-null values in the two sealed columns, all local databases (the constraints are additive)
+------------------------------------------------------------------------------------------------
+psql -Atc 'select count(*) from "Person" where "nationalId" is not null;'  → 0
+psql -Atc 'select count(*) from "User" where "mfaSecret" is not null;'     → 0
+No application write path supplies Person.nationalId (src/db/migrate-and-seed.ts:158 is the only
+Person writer and never sets it), so the CHECK cannot reject an existing row.
+
+7. Tree state at the pin
+------------------------
+git status --porcelain                 → 190 entries (126 M / 62 ?? / 2 D)
+git status --porcelain --untracked=all → 258 entries/files (this evidence directory is 11 artifacts)
+Evidence files are `.txt`, not `.log`: `.gitignore:3` is `*.log`, which would hide a `.log`
+artifact from `git status` — evidence that cannot be staged is not evidence at a commit.

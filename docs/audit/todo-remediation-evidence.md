@@ -1,4 +1,18 @@
-# Remediation Evidence Register — todo.md execution (2026-09-30)
+# Remediation Evidence Register — retired TODO-001 register execution (2026-09-30)
+
+> **Which register this evidences (TSK-07).** This file evidences the execution of the retired
+> `todo.md` register (`VMNL-AZP-VMN-TODO-001`). The live register is **`tasks.md` —
+> `VMNL-AZP-VMN-TODO-002`**, and the `TODO-SEC-* / TODO-SCR-* / TODO-BCST-* / TODO-FIN-* /
+> TODO-PRC-* / TODO-GVR-* / TODO-DOC-*` identifiers used below are **inherited, not renumbered**:
+> where such an item is still open it is reopened in `tasks.md` §1.3 under its original ID
+> (e.g. `TODO-BCST-01` → `TSK-11`, `TODO-SEC-10` → `TSK-27`, `TODO-FIN-07` → `TSK-33`).
+> `todo.md` itself is deleted by recorded decision.
+>
+> **Verification figures below are superseded.** The "506 passed / 45 files, zero skips ·
+> `tsc --noEmit` clean" pin of 2026-10-02 described a tree that failed to compile with 152 errors
+> (`report.md` §1, CA-01/CA-25). The measured pin is `tasks.md` TSK-08 /
+> `docs/handoffs/LATEST.md` "Verification pin — 2026-10-07": tsc 0 errors, build 0, lint 0,
+> **50 files / 588 tests, 0 skipped** (with the recorded no-Postgres environment caveat).
 
 **Document:** `VMNL-AZP-VMN-REM-EVID-001 — R1.0`
 **Authority:** TODO-PRC-09 (traceability), TODO-DOC-05/06 (evidence pinning and register updates).
@@ -17,14 +31,14 @@
 | SCR-13 access console | `renderAccessAdminConsoleHtml` (`src/web/workspace/admin-consoles.ts`); `GET /workspace/admin/access` (SuperAdmin-only, read-only) | `todo-final-remediation.test.ts` — SCR-13 describe |
 | SCR-15 source mappings | `src/core/config/source-mappings.ts` HX-01…14 + `GET /workspace/admin/source-mappings` | `todo-final-remediation.test.ts` — SCR-15 describe (counts + `[SRCMAP-*]`) |
 | SCR-20 payment visibility | `src/web/portal/vtm-payment-visibility.ts`; `GET /portal/vtm/payment-visibility` | `todo-final-remediation.test.ts` — SCR-20 describe |
-| BCST-03 schedule lifecycle | `versions/index.ts`: upsert→submit→approve→lockout(T-30m)→amend (LOCKED immutable) | `todo-final-remediation.test.ts` — BCST-03 describe; drill: amendment-after-lock |
+| BCST-03 schedule lifecycle | **re-measured 2026-10-08 (TSK-12).** `src/modules/broadcast/versions/index.ts` now implements the PRD §15 chain, not the Round-6C subset: DRAFT→PROGRAMMING_REVIEW→RIGHTS_CHECK→TRAFFIC_READY→APPROVED→PLAYLIST_GENERATED→ON_AIR→AS_RUN_RECONCILED→ARCHIVED, plus the controls AMENDED/LOCKED; revision identity (`…#R1`, `#R2` on amendment, frozen entry sets); ON AIR and AS-RUN RECONCILED accept only verified operational evidence. `PENDING_APPROVAL` is gone from this machine. The Round-6C description ("upsert→submit→approve→lockout(T-30m)→amend") was the finding CA-14, not the requirement | `tests/unit/broadcast-schedule-lifecycle.test.ts` (13 tests: PRD-vs-code instrument, every stage in order, 11 guarded transitions, blocked candidate, anonymous-authority refusals, revision identity/freeze, amendment→R2→re-export, evidence-only ON AIR, reconciliation, LOCKED/AMENDED export) + `tests/unit/todo-final-remediation.test.ts` BCST-03 describe + drill: amendment-after-lock; machine described in `docs/domain/state-machines.md` §1 |
 | BCST-06 cache contract | `AutonomousCacheContract` + `evaluateAutonomousCacheContract`/`simulateDrill20CacheOutage` (`playout/index.ts`); hardware stays human/supplier | `todo-final-remediation.test.ts` — BCST-06 describe; drill: cache-outage contract |
 | BCST-08/09 presentation | `src/web/public/schedule-presentation.ts` (approved-schedules-only now/next, viewer TZ + `GOVERNING_TIMEZONE` label, honest unavailable state); widget on `/channels/nxtr|orisun|isimbido` | `todo-final-remediation.test.ts` — BCST-08/09 describe |
 | BCST-10 offline gate scans | `FusionEventsEngine.signOfflineScanToken/verifyOfflineScanToken/recordOfflineScan/syncOfflineScans` (single-use + fraud invariants preserved through sync) | `todo-final-remediation.test.ts` — BCST-10 describe; drill: offline expiry |
 | BCST-12 sponsor bindings | `SponsorBinding` + `createBinding/listBindings/recordBindingFulfillment/getFulfillmentReport` (`sponsorship/index.ts`) | `todo-final-remediation.test.ts` — BCST-12 describe |
 | FIN-03 ledger posting | `LedgerPostingService` (`src/modules/finance/ledger/posting.ts`) — balanced journals, kobo-exact, idempotent deltas | `todo-final-remediation.test.ts` — FIN-03 reconciliation describe |
 | FIN-04 WHT remittance | `buildWhtRemittanceSchedule`/`renderWhtAdviceSlip` (`payouts/index.ts`); FIRS-format confirmation left to Finance | `todo-final-remediation.test.ts` + drills — WHT describes |
-| FIN-07 billing←as-run | billing built only from matched as-run logs + make-good credit notes (`billing/index.ts`) | `todo-final-remediation.test.ts` — FIN-07 describe |
+| FIN-07 billing←as-run | billing built only from matched as-run logs (`src/modules/broadcast/billing/index.ts:161-240`) + make-good credit notes that are actually posted to the ledger as contra-revenue (`modules/finance/ledger/posting.ts:235`, wired into the served process at `api/server.ts:299` and reached from the proof-of-air resolve route) — closed 2026-10-09 by TSK-16 + TSK-33 | `todo-final-remediation.test.ts` — FIN-07 describe; `tests/unit/poa-delivery-exceptions.test.ts` (13 tests, incl. the law-5 "a credit never becomes revenue" assertion) |
 | FIN-08 royalty CSV | `TendDistributionEngine.parseRoyaltyStatementCsv` (per-row validation, commission + licence withholding) | `todo-final-remediation.test.ts` — FIN-08 describe; drill: bad-row recovery |
 | PRC-02 gate closure records | `docs/audit/design-gate-closure-records.md` (CLOSED + OPEN-with-owner recorded honestly) | — (documentation evidence) |
 | PRC-03 journey drills | `tests/integration/journey-failure-drills.test.ts` (13 drills) | green in full run |
@@ -32,6 +46,8 @@
 | PRC-08 backup automation | `docker/backups/backup.sh` + compose `postgres-backup` service + `docs/audit/backup-restore-drill.md` — **DRILL-01 executed 2026-10-01: restore 0.132 s, 26/26 table parity, app 200 from restored copy; WAL/PITR RPO target still open** | — (job + executed-drill evidence) |
 | PRC-09 AC-ID index | `docs/audit/ac-traceability-index.md` | — (documentation evidence) |
 | DOC-01…07 | taskss.md phantom withdrawn; design-task.md de-cited (`docs/decisions/design-task-de-citation.md`); DR runbook DB name fixed; ADR-013 corrected; evidence re-pinned 480/45 @ `ca303f0`+tree; claims downgraded | grep-verifiable in-repo |
+| DOC-05 evidence re-pin (TSK-08) | `docs/audit/evidence-register.md` Tier S2 block + §5 "What is NOT verified" DB bullet; `docs/handoffs/LATEST.md` verification pin; `audit.md` §5 supersession pointer — all re-measured 2026-10-08 to **tsc 0 · build 0 · lint 0 · 63 files / 689 tests / 0 skipped / 0 unhandled errors** over `ce098f8` + 167 dirty paths (114 M / 51 ?? / 2 D). `release-manifest.json:4` still names `ca303f0` and is recorded as BLOCKED on TSK-09 rather than re-pinned to a SHA that does not exist | `git status --porcelain \| awk '{print $1}' \| sort \| uniq -c` · `pnpm test` · `tests/unit/register-inheritance.test.ts` (prints the §1.4 census it enforces) |
+| TSK-17 durable release-critical stores (report.md CA-12) | 14 tables in two purely additive migrations (`20261008213000_add_release_critical_durable_stores`: 9 tables / 17 indexes; `20261008220000_add_remaining_release_critical_durable_stores`: 5 tables / 8 indexes), zero drift re-checked afterwards; one persist/load pair per store in `src/core/database/repositories/release-critical.repository.ts`; write-behind journal `src/core/database/durable-journal.ts` staged by each domain mutator, drained at `sendJson` (`src/api/router.ts:573`) and at `server.stop()` (`src/api/server.ts:422`); boot hydration dependency-ordered at `src/api/server.ts:326-339` and `:374-375`; `fail_closed` default with the sandbox path counted as `sandboxDeferred` | `tests/unit/durability-release-critical.test.ts` (**19 tests**, each restart a real second OS process — `tests/helpers/durable-restart-reader.mjs` — that boots `dist/src` and reports only what Postgres returned; `database: false` fails the test rather than passing an unmeasurable run); fail-closed proven twice (injected journal rejection + real HTTP `POST /api/v1/workspace/approvals` → **503 `REPOSITORY_UNAVAILABLE`** with the optimistic index entry rolled back); gate logs `docs/audit/evidence/tsk17-durability-2026-10-08/` (tsc/lint/build 0, `pnpm test` **64/705 twice**, coverage 78.14/69.31/81.69/79.52, `migrate status` + empty diff) |
 | SCR-03 media picker + editor integration | `registerMediaAsset`/`listApprovedMediaAssets` (`src/core/storage/index.ts`) + `src/web/workspace/media-picker.ts` + `src/web/workspace/content-editor.ts`; `GET /workspace/content/media-picker`, `POST/GET /api/v1/cms/media-assets`, `GET /workspace/content/editor[/:id]`, guarded `POST /api/v1/workspace/content-editor[/update]`; `[CMS-11]` registry validation wired via `wireMediaAssetLookup`; **review-queue media-reference column** (`renderQueueMediaCell` in governance-and-operations.ts resolves each row against the CMS store + DAM registry, flagging quarantined/failed/unregistered refs and phantom demo rows) | `todo-final-remediation.test.ts` — SCR-03 describes (provenance/access-state contract, tenant scoping, 401/route authority, `[CMS-11]` rejections, review-queue badge/empty/phantom-row assertions, CSRF-flow create→edit→persisted-picker-selection E2E) |
 
 ## Round 6B — SCR-17/18/19 desk rewiring traceability (2026-09-30)
@@ -50,6 +66,7 @@
 | SCR-14/18 tail Cr8Tech | Runtime-state health (Azeebo circuit, queue worker) + explicit NOT_CONFIGURED rows; `POST /cr8tech/test-all` retired 410 | `extended-workspaces.test.ts` — no invented endpoints; 410 regression |
 | SCR-18 tail AOS | `AgenticOperatingSystem.listAgents` registry + audit trail; kill switch `engageGlobalKillSwitch` really isolates | `scr-desk-rewiring.test.ts` — fail-closed isolation; `extended-workspaces.test.ts` — `bot-001` renders |
 | SCR-19 partner portal | Canonical deals scoped via `getClientOrgRelationship`; cross-org 403 | `extended-workspaces.test.ts` — scoped GET; scoping logic unit-covered in SCR-19 describes |
+| SCR-19 client portal | Canonical `QuoteToCashSalesEngine` deals projected by `clientOrgId` (`projectClientPortfolio`); `MOCK_CLIENT_PROJECTS` deleted 2026-10-09 (TSK-13); the per-deliverable and per-airing feeds state NOT CONNECTED rather than being invented, with the join registered as TSK-60 | `client-portal-and-operations.test.ts` — scoped portfolio render + honest empty state + fixture-deletion guard + 401/403/503 with a live-deal leak probe |
 | SCR-19 creator portal | `TalentPayoutEngine.listBatches` → beneficiary-scoped settlement lines (gross/fee/WHT/net distinct) | `scr-desk-rewiring.test.ts` — beneficiary scoping excludes other creators |
 | SCR-19 vendor portal | Canonical PO records only; explicit recorded-deferral empty state (DEC-RL1-SCOPE-001) | `extended-workspaces.test.ts` — "does not fabricate POs" |
 | SCR-19 management overview | Computed from engines (channels, pipeline contract/cash/recognition kept distinct per FIN-01) | `extended-workspaces.test.ts` — computed-figure render |
@@ -75,7 +92,7 @@
 | SCR-08 cases | `src/core/cases/index.ts` + routes + `/workspace/cases/{privacy,security}` | cases describes |
 | SCR-09/11 search & My Work | `authorisedSearch`/`aggregateMyWork` + pages + APIs | work describes |
 | SCR-10 notifications inbox | in-app records + `/workspace/notifications` | suppression test |
-| BCST-01 provenance | `renderMockDataBanner` on all 33 screens; `getScreenData` provenance service | screen-data describe; broadcast-screens tests still green |
+| BCST-01 provenance | `renderMockDataBanner` on all 33 screens — **verified 2026-10-11 by TSK-25: 33/33 served screens carry the banner, all four state variants included**; `getScreenData` provenance service — **at that measurement it had 0 production call sites, so 0/33 screens served an engine-sourced KPI strip** (`tests/unit/broadcast-provenance-coverage.test.ts`). **Re-measured 2026-10-11 after TSK-11: 33/33 serve the strip, 1/33 emits a live `SOURCE:` badge, 0/33 fully engine-sourced** | screen-data describe; broadcast-screens tests still green |
 | BCST-02 EPG honesty gate | `src/modules/broadcast/export/epg.ts` + `/broadcast/export/epg/xmltv` + push route | EPG describes |
 | BCST-04/05 versions & RFA | `src/modules/broadcast/versions/index.ts` + routes | versions describes |
 | FIN-01 recognition | delivery-gated, contract-capped `recognizeRevenue` + `recalculateRecognizedRevenue` | FIN-01 describes; legacy `finance.test.ts` unchanged & green |
@@ -86,7 +103,7 @@
 | PRC-01 readiness matrix | `docs/audit/journey-readiness-matrix.md` | — (documentation evidence) |
 | PRC-04 budgets | `docs/audit/performance-budgets.md` (DEBT-008 → TARGET) | — (documentation evidence) |
 
-## Deliberate test-contract updates (recorded per §0 of todo.md)
+## Deliberate test-contract updates (recorded under rule §0 of the retired `todo.md` register — `VMNL-AZP-VMN-TODO-001`, decision record `docs/decisions/DEC-REGISTER-SURVIVOR-001.md`)
 
 1. `client-portal-and-operations.test.ts` decide POST now authenticates as SuperAdmin with a reason — required because the four-eyes domain (SCR-06) rechecks authority server-side; MCRSupervisor is not authorised for RATE_CARD_OVERRIDE and an added negative test asserts exactly that.
 2. Client-portal GETs now send a session (`x-test-role`), because SEC-07 requires a relationship check; a cross-org 403 regression was added.
@@ -94,7 +111,7 @@
 
 ## Remaining open (not silently deferred) — as of Round 6C (2026-10-01)
 
-All engineering-closable register items are closed (see todo.md closure notes): **66 of 71 register items closed**. Five remain open, each requiring a human decision or human-run process:
+All engineering-closable register items are closed (the per-item tables above are the closure notes; the retired `todo.md` register itself is recoverable with `git show 85aad76:todo.md`, the last commit whose tree carries it — the TSK-09 series commits the deletion, so `HEAD` no longer does): **66 of 71 register items closed**. Five remain open, each requiring a human decision or human-run process:
 
 - **GVR-04** — rights override interpretation ruling (board/legal).
 - **GVR-05** — finance treatment of cash-basis recognition (Finance authority).

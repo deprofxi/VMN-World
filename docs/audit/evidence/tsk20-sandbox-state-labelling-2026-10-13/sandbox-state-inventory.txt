@@ -1,0 +1,56 @@
+TSK-20 — sandbox-state labelling, measured inventory (2026-10-13)
+
+Reproduce: node --experimental-strip-types docs/audit/evidence/tsk20-sandbox-state-labelling-2026-10-13/inventory.mjs
+         (imports src/core/config/screen-register.ts — the same module the register serves,
+          so every figure below is recomputed, never tallied by hand)
+
+systems-of-record.md §3.3 rows (authority)      : 30
+screen-register.json sandboxState.families      : 30
+register entries labelled sandbox-state          : 30
+documented IDs carrying the label                : 147
+documented IDs total (all statuses)              : 226 from 60 entries
+by status                                        : {"IMPLEMENTED":183,"MOCK":42,"MISSING":0,"DEFERRED":0,"ALIAS":1}
+families with at least one labelled screen        : 26
+families with NO labelled screen (labelling resid): proof-of-air-registry, bank-reconciliation, broadcast-traffic, playout-cache
+matrix: §3.3 family ids the matrix never names    : none
+matrix: parity-table rows                         : 30
+
+Per-family labelled-screen tally (recomputed by computeSandboxCoverage):
+  schedule-day               1 screen ids
+  broadcast-versions         1 screen ids
+  rights-review-requests     1 screen ids
+  proof-of-air-registry      0 screen ids
+  poa-delivery-exceptions    2 screen ids
+  auth-process-copies        1 screen ids
+  mfa-secrets                2 screen ids
+  invitations                1 screen ids
+  admissions-applications    1 screen ids
+  afca-catalogue             1 screen ids
+  events-fusion              1 screen ids
+  payout-batches             2 screen ids
+  bank-reconciliation        0 screen ids
+  talent-registry            2 screen ids
+  routing-rules              1 screen ids
+  queue-jobs                 1 screen ids
+  aos-agent-runs             1 screen ids
+  source-mappings            1 screen ids
+  vcf-pipeline               1 screen ids
+  vtm-book                   2 screen ids
+  tend-catalogue             1 screen ids
+  community-hub              1 screen ids
+  onestudios-gear            1 screen ids
+  headspace-library          1 screen ids
+  cr8tech-jobs               1 screen ids
+  broadcast-billing          1 screen ids
+  broadcast-traffic          0 screen ids
+  playout-cache              0 screen ids
+  session-side-stores        3 screen ids
+  feature-flag-overrides     1 screen ids
+
+Labelled entry ids, in register order:
+  UX-SYS-001, UX-SYS-002, UX-SYS-003, UX-SYS-004, UX-SYS-005, UX-SYS-012, UX-HUB-003, UX-HUB-004, UX-BR-001, UX-BR-002, UX-BR-003, UX-BR-004, UX-BR-005, UX-BR-006, UX-BR-007, UX-BR-008, UX-BR-009, UX-BR-010, UX-BR-011, UX-BR-012, UX-BR-013, UX-BR-014, UX-BR-015, UX-BR-016, UX-BR-017, UX-BR-018, UX-BR-019, UX-BR-020, UX-BR-021, UX-BR-022, UX-BR-023, UX-BR-024, UX-BR-025, UX-BR-026, UX-BR-027, UX-BR-028, UX-BR-029, UX-BR-030, UX-BR-031, UX-BR-032, UX-BR-033, UX-BR-030, UX-GOV-004, UX-GOV-006, UX-CMS-008, UX-ADM-002, UX-ADM-003, UX-ADM-004, UX-AFCA-001, UX-AFCA-002, UX-AFCA-003, UX-AFCA-004, UX-AFCA-005, UX-AFCA-006, UX-AFCA-007, UX-AFCA-008, UX-APP-001, UX-APP-002, UX-APP-003, UX-APP-004, UX-APP-005, UX-APP-006, UX-APP-007, UX-APP-008, UX-ACC-001, UX-ACC-002, UX-ACC-003, UX-ACC-004, UX-ACC-005, UX-ACC-006, UX-ACC-007, UX-ACC-008, UX-AFC-001, UX-AFC-002, UX-AFC-003, UX-AFC-004, UX-AFC-005, UX-AFC-006, UX-VTM-001, UX-VTM-002, UX-VTM-003, UX-VTM-004, UX-VTM-005, UX-VTM-006, UX-VTM-007, UX-VTM-008, UX-VTM-009, UX-VTM-011, UX-VCF-001, UX-VCF-002, UX-VCF-003, UX-VCF-004, UX-VCF-005, UX-VCF-006, UX-VCF-007, UX-VCF-008, UX-ONE-001, UX-ONE-002, UX-ONE-003, UX-ONE-004, UX-ONE-005, UX-ONE-006, UX-ONE-007, UX-ONE-008, UX-ONE-009, UX-EVT-001, UX-EVT-002, UX-EVT-003, UX-EVT-004, UX-EVT-005, UX-EVT-006, UX-EVT-007, UX-EVT-008, UX-TEND-001, UX-TEND-002, UX-TEND-003, UX-TEND-004, UX-TEND-005, UX-TEND-006, UX-TEND-007, UX-TEND-008, UX-HSP-001, UX-HSP-002, UX-HSP-003, UX-HSP-004, UX-HSP-005, UX-HSP-006, UX-HSP-007, UX-HSP-008, UX-CR8-001, UX-CR8-002, UX-CR8-003, UX-CR8-004, UX-CR8-005, UX-CR8-006, UX-CR8-007, UX-CR8-008, UX-AGT-001, UX-AGT-002, UX-AGT-003, UX-AGT-004, UX-AGT-005, UX-AGT-006, UX-AGT-007, UX-AGT-008, UX-AGT-009, UX-POR-004
+
+Deliberately NOT labelled (Rule 0.4a — the screen's own evidence reads no §3.3 store):
+  UX-BR-012  renders channel/episode-master state + fixed blocker copy (src/web/workspace/governance-and-operations.ts)
+  UX-SYS-013 keeps its registry in Postgres (SessionRecord, systems-of-record.md §3.1); only the preferences/
+             first-use/inbox side stores are sandbox-state, and this screen reads neither.

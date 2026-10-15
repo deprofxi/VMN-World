@@ -1,0 +1,985 @@
+
+ RUN  v4.1.11 /Users/deprof/www/vmng
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization
+{"timestamp":"2026-10-09T16:04:47.748Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"2d903f06-8028-4ea1-9cb0-71237562229c","spanId":"83e4dc36-7bd1-4c","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization
+{"timestamp":"2026-10-09T16:04:49.659Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"1a385125-74c6-4539-b492-a240a0bb92fa","spanId":"a32f4060-33c6-43","component":"server_bootstrap","assets":820,"items":38,"revisions":72,"bindings":2,"fulfillments":4}
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization
+{"timestamp":"2026-10-09T16:04:49.739Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"ab501d69-9f96-400c-9f66-5181e83aa252","spanId":"3413feb9-7bbf-4d","component":"server_bootstrap","port":0,"env":"test"}
+
+ ✓ tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > guards every known mutating enterprise route (no unguarded mutations) 9ms
+ ✓ tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > rejects unauthenticated calls with 401 for every guarded route 3261ms
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+prisma:error 
+Invalid `client.talentProfile.upsert()` invocation in
+/Users/deprof/www/vmng/src/core/database/repositories/talent.repository.ts:63:52
+
+  60 if (db.connected) {
+  61   try {
+  62     const client = getPrismaClient();
+→ 63     const created = await client.talentProfile.upsert(
+Foreign key constraint violated on the constraint: `TalentProfile_personId_fkey`
+
+stderr | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+{"timestamp":"2026-10-09T16:04:53.222Z","level":"ERROR","message":"[VMNL-REPO-ERROR] talentProfile write failed and the repository is operating fail-closed (no in-memory fallback configured).","traceId":"27141201-0a0a-405c-8a60-968cb6368631","spanId":"5ac0bf18-13e2-48","component":"api_router","stack":"RepositoryUnavailableError: [VMNL-REPO-ERROR] talentProfile write failed and the repository is operating fail-closed (no in-memory fallback configured).\n    at handleRepoError (/Users/deprof/www/vmng/src/core/database/repository-mode.ts:50:11)\n    at TalentRepository.createTalent (/Users/deprof/www/vmng/src/core/database/repositories/talent.repository.ts:103:15)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:6368:28)","duration":101}
+
+stderr | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+{"timestamp":"2026-10-09T16:04:53.236Z","level":"ERROR","message":"[AFCA-ERR-404] Cohort '' not found.","traceId":"dbfc092c-1778-48de-961d-146716285b74","spanId":"24d29069-5d19-40","component":"api_router","stack":"Error: [AFCA-ERR-404] Cohort '' not found.\n    at AfcaAcademyService.getCohortOrThrow (/Users/deprof/www/vmng/src/modules/hub/afca/index.ts:382:13)\n    at AfcaAcademyService.issueCertificate (/Users/deprof/www/vmng/src/modules/hub/afca/index.ts:285:25)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:6420:40)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)","duration":7}
+
+stderr | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+{"timestamp":"2026-10-09T16:04:53.260Z","level":"ERROR","message":"[VTM-BRF-01] Brief '' not found.","traceId":"7b3b67df-5d4c-407d-aaf2-4db700d0b1ac","spanId":"4f125f2a-f218-48","component":"api_router","stack":"Error: [VTM-BRF-01] Brief '' not found.\n    at VirtualTalentManagementEngine.matchTalent (/Users/deprof/www/vmng/src/modules/hub/vtm/index.ts:157:13)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:6477:41)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)","duration":2}
+
+stderr | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+{"timestamp":"2026-10-09T16:04:53.292Z","level":"ERROR","message":"[TEND-AVL-02] Title 'TIT-001' not found in catalogue.","traceId":"93baf4a2-cce7-4781-b8d1-6e6d68eae4da","spanId":"e91a973e-145d-45","component":"api_router","stack":"Error: [TEND-AVL-02] Title 'TIT-001' not found in catalogue.\n    at TendDistributionEngine.checkAvails (/Users/deprof/www/vmng/src/modules/hub/tend/index.ts:95:13)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:6618:44)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)","duration":2}
+
+stderr | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+{"timestamp":"2026-10-09T16:04:53.306Z","level":"ERROR","message":"[TEND-AVL-02] Title 'TIT-001' not found in catalogue.","traceId":"c6a3483c-61b7-46a8-924a-7d4e86891452","spanId":"66a8150f-fe63-4b","component":"api_router","stack":"Error: [TEND-AVL-02] Title 'TIT-001' not found in catalogue.\n    at TendDistributionEngine.checkAvails (/Users/deprof/www/vmng/src/modules/hub/tend/index.ts:95:13)\n    at TendDistributionEngine.createLicense (/Users/deprof/www/vmng/src/modules/hub/tend/index.ts:153:25)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:6635:44)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)","duration":11}
+
+stderr | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+{"timestamp":"2026-10-09T16:04:53.323Z","level":"ERROR","message":"[COMM-BKG-01] Resource '' is not available.","traceId":"5c86a64d-f359-4d8e-b745-35794aafd9fd","spanId":"7b605368-cec0-48","component":"api_router","stack":"Error: [COMM-BKG-01] Resource '' is not available.\n    at AfroFusionCommunityHub.bookResource (/Users/deprof/www/vmng/src/modules/hub/community/index.ts:142:13)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:6691:46)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)","duration":7}
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+{"timestamp":"2026-10-09T16:04:53.367Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+stderr | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+{"timestamp":"2026-10-09T16:04:53.379Z","level":"ERROR","message":"[QTC-DEAL-02] Contract value must be greater than zero.","traceId":"f7fd9450-1b6d-41be-8847-24a57b9e51b1","spanId":"d1db3bb3-2683-4e","component":"api_router","stack":"Error: [QTC-DEAL-02] Contract value must be greater than zero.\n    at QuoteToCashSalesEngine.createDeal (/Users/deprof/www/vmng/src/modules/finance/sales/index.ts:63:13)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:7443:40)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)","duration":4}
+
+stderr | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+{"timestamp":"2026-10-09T16:04:53.399Z","level":"ERROR","message":"[QTC-DEAL-02] Contract value must be greater than zero.","traceId":"d5838035-9c3d-4aad-b2f4-0d38b23c1c09","spanId":"cb6f4bd9-66c6-44","component":"api_router","stack":"Error: [QTC-DEAL-02] Contract value must be greater than zero.\n    at QuoteToCashSalesEngine.createDeal (/Users/deprof/www/vmng/src/modules/finance/sales/index.ts:63:13)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:7443:40)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)","duration":9}
+
+stderr | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+{"timestamp":"2026-10-09T16:04:53.410Z","level":"ERROR","message":"[PAY-BAT-01] Payout batch must contain at least one item.","traceId":"c29cdf98-64e6-4f53-ae7d-fc55f16b8421","spanId":"aa7c66fa-401d-41","component":"api_router","stack":"Error: [PAY-BAT-01] Payout batch must contain at least one item.\n    at TalentPayoutEngine.createPayoutBatch (/Users/deprof/www/vmng/src/modules/finance/payouts/index.ts:114:13)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:7470:42)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)","duration":5}
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+{"timestamp":"2026-10-09T16:04:53.434Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+{"timestamp":"2026-10-09T16:04:53.520Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+{"timestamp":"2026-10-09T16:04:53.535Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+{"timestamp":"2026-10-09T16:04:53.691Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+{"timestamp":"2026-10-09T16:04:53.701Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+{"timestamp":"2026-10-09T16:04:53.726Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+{"timestamp":"2026-10-09T16:04:53.769Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+{"timestamp":"2026-10-09T16:04:53.804Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+{"timestamp":"2026-10-09T16:04:53.838Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+{"timestamp":"2026-10-09T16:04:53.842Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+{"timestamp":"2026-10-09T16:04:53.865Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error
+{"timestamp":"2026-10-09T16:04:53.878Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+ ✓ tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > admits an authorized SuperAdmin for every guarded route or fails with non-auth error 866ms
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > rejects anonymous access to every workspace desk and admin alias (AUD-01, AUD-02)
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > rejects anonymous access to every workspace desk and admin alias (AUD-01, AUD-02)
+{"timestamp":"2026-10-09T16:04:53.910Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > rejects anonymous access to every workspace desk and admin alias (AUD-01, AUD-02)
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > rejects anonymous access to every workspace desk and admin alias (AUD-01, AUD-02)
+{"timestamp":"2026-10-09T16:04:53.914Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+ ✓ tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > rejects anonymous access to every workspace desk and admin alias (AUD-01, AUD-02) 30ms
+ ✓ tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > enforces each WORKSPACE_HTML_GUARDS prefix: 302 to sign-in anonymously, 403 for a role outside the guard, admitted inside it 63ms
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > allows authenticated self-service privacy requests without audit-role escalation
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > allows authenticated self-service privacy requests without audit-role escalation
+{"timestamp":"2026-10-09T16:04:54.039Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > allows authenticated self-service privacy requests without audit-role escalation
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > allows authenticated self-service privacy requests without audit-role escalation
+{"timestamp":"2026-10-09T16:04:54.076Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+ ✓ tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > protects PII-bearing collections GET /api/v1/enquiries and GET /api/v1/admissions/queue (AUD-03) 25ms
+ ✓ tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > allows authenticated self-service privacy requests without audit-role escalation 74ms
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > requires SuperAdmin for feature-flag writes while allowing authorized mutation
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > requires SuperAdmin for feature-flag writes while allowing authorized mutation
+{"timestamp":"2026-10-09T16:04:54.136Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > guards enquiry retry-routing by authorization before dispatch
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > guards enquiry retry-routing by authorization before dispatch
+{"timestamp":"2026-10-09T16:04:54.156Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > revalidates stable asset URLs rather than caching mutable bytes as immutable
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > revalidates stable asset URLs rather than caching mutable bytes as immutable
+{"timestamp":"2026-10-09T16:04:54.180Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+ ✓ tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > requires SuperAdmin for feature-flag writes while allowing authorized mutation 68ms
+ ✓ tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > guards enquiry retry-routing by authorization before dispatch 17ms
+ ✓ tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > does not disclose applicant data or reflect status-reference markup 5ms
+ ✓ tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > revalidates stable asset URLs rather than caching mutable bytes as immutable 16ms
+ ✓ tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > enforces CSRF double-submit token on POST /access-request (AUD-07) 5ms
+ ✓ tests/security/route-authorization.test.ts > AUD-01: Centralized Route Authorization > locks down /metrics when METRICS_TOKEN is set (AUD-06) 21ms
+stdout | tests/contract/openapi-contract.test.ts > T-20 (B-17): OpenAPI Contract Verification
+{"timestamp":"2026-10-09T16:04:55.917Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"c40f69aa-3a7f-4890-adde-1316b08a75b7","spanId":"1546d791-180f-48","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+stdout | tests/contract/openapi-contract.test.ts > T-20 (B-17): OpenAPI Contract Verification
+{"timestamp":"2026-10-09T16:04:57.437Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"85c85d8c-5580-47c6-8177-457c4db41451","spanId":"74ab4f01-6075-48","component":"server_bootstrap","assets":820,"items":38,"revisions":72,"bindings":2,"fulfillments":4}
+
+stdout | tests/contract/openapi-contract.test.ts > T-20 (B-17): OpenAPI Contract Verification
+{"timestamp":"2026-10-09T16:04:57.509Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"84e40f8f-1692-48f0-952c-a5b96a32f62c","spanId":"459bbb68-0fcc-48","component":"server_bootstrap","port":0,"env":"test"}
+
+ ✓ tests/contract/openapi-contract.test.ts > T-20 (B-17): OpenAPI Contract Verification > verifies OpenAPI specification integrity and path definitions 20ms
+ ✓ tests/contract/openapi-contract.test.ts > T-20 (B-17): OpenAPI Contract Verification > validates /healthz response matches contract schema 1964ms
+ ✓ tests/contract/openapi-contract.test.ts > T-20 (B-17): OpenAPI Contract Verification > validates /readyz response matches contract schema 25ms
+ ✓ tests/contract/openapi-contract.test.ts > T-20 (B-17): OpenAPI Contract Verification > validates /api/v1/broadcast/channels response matches contract schema 35ms
+ ✓ tests/contract/openapi-contract.test.ts > T-20 (B-17): OpenAPI Contract Verification > validates /api/v1/broadcast/screens response returns all 33 screen descriptors 11ms
+ ✓ tests/contract/openapi-contract.test.ts > T-20 (B-17): OpenAPI Contract Verification > validates /api/v1/openapi.json serves valid JSON identical to specification 16ms
+ ✓ tests/contract/openapi-contract.test.ts > T-20 (B-17): OpenAPI Contract Verification > documents only the validated incoming-charge webhook contract 1ms
+ ✓ tests/contract/openapi-contract.test.ts > T-20 (B-17): OpenAPI Contract Verification > verifies security schemes and webhook signatures are defined in components 1ms
+stdout | tests/contract/openapi-contract.test.ts > T-20 (B-17): OpenAPI Contract Verification > verifies bidirectional reachability: every documented OpenAPI route exists and does not 404
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/contract/openapi-contract.test.ts > T-20 (B-17): OpenAPI Contract Verification > verifies bidirectional reachability: every documented OpenAPI route exists and does not 404
+{"timestamp":"2026-10-09T16:04:59.815Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+stdout | tests/contract/openapi-contract.test.ts > T-20 (B-17): OpenAPI Contract Verification > verifies bidirectional reachability: every documented OpenAPI route exists and does not 404
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/contract/openapi-contract.test.ts > T-20 (B-17): OpenAPI Contract Verification > verifies bidirectional reachability: every documented OpenAPI route exists and does not 404
+{"timestamp":"2026-10-09T16:04:59.938Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+stderr | tests/contract/openapi-contract.test.ts > T-20 (B-17): OpenAPI Contract Verification > verifies bidirectional reachability: every documented OpenAPI route exists and does not 404
+[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+stdout | tests/contract/openapi-contract.test.ts > T-20 (B-17): OpenAPI Contract Verification > verifies bidirectional reachability: every documented OpenAPI route exists and does not 404
+{"timestamp":"2026-10-09T16:04:59.949Z","level":"ERROR","message":"[VTM-BRF-01] Brief '' not found.","traceId":"6eae3a87-408c-4b7e-819b-01433b5786f8","spanId":"dbc687e7-fe19-47","component":"api_router","stack":"Error: [VTM-BRF-01] Brief '' not found.\n    at VirtualTalentManagementEngine.matchTalent (/Users/deprof/www/vmng/src/modules/hub/vtm/index.ts:157:13)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:6477:41)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)","duration":2}
+
+stderr | tests/contract/openapi-contract.test.ts > T-20 (B-17): OpenAPI Contract Verification > verifies bidirectional reachability: every documented OpenAPI route exists and does not 404
+[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+stdout | tests/contract/openapi-contract.test.ts > T-20 (B-17): OpenAPI Contract Verification > verifies bidirectional reachability: every documented OpenAPI route exists and does not 404
+{"timestamp":"2026-10-09T16:04:59.987Z","level":"ERROR","message":"Cannot read properties of undefined (reading '0')","traceId":"293fa820-db13-422f-aacd-dccbdeae11e2","spanId":"7b2b7ed3-eb8d-4e","component":"api_router","stack":"TypeError: Cannot read properties of undefined (reading '0')\n    at Function.evaluateRelease (/Users/deprof/www/vmng/src/modules/quality/gates.ts:230:29)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:7972:48)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)","duration":2}
+
+ ✓ tests/contract/openapi-contract.test.ts > T-20 (B-17): OpenAPI Contract Verification > verifies bidirectional reachability: every documented OpenAPI route exists and does not 404 406ms
+ ✓ tests/contract/openapi-contract.test.ts > T-20 (B-17): OpenAPI Contract Verification > verifies contract completeness: all mutating enterprise route guards are tracked in the API registry or OpenAPI spec (AUD-12) 17ms
+stdout | tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration
+{"timestamp":"2026-10-09T16:05:01.787Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"9e682528-1963-4e06-9d3f-339979656c25","spanId":"fc7fa6ac-f458-44","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+stdout | tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration
+{"timestamp":"2026-10-09T16:05:02.263Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"71e944bd-b2b9-4b42-92a8-fd0387b41c56","spanId":"acf56daf-c0a4-46","component":"server_bootstrap","assets":820,"items":38,"revisions":72,"bindings":2,"fulfillments":4}
+
+stdout | tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration
+{"timestamp":"2026-10-09T16:05:02.297Z","level":"INFO","message":"VMNL Enterprise Server listening on port 49784","traceId":"592090e6-d62f-42bb-8685-d6f986449770","spanId":"7d250c46-5138-4b","component":"server_bootstrap","port":49784,"env":"test"}
+
+stdout | tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration
+{"timestamp":"2026-10-09T16:05:02.589Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 0. Public Web Pages & Operator Dashboard > should serve the corporate overview HTML on GET / 17ms
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 0. Public Web Pages & Operator Dashboard > should serve the channels showcase HTML on GET /channels 7ms
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 0. Public Web Pages & Operator Dashboard > should serve the Hub verticals HTML on GET /hub 4ms
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 0. Public Web Pages & Operator Dashboard > should serve the Broadcast Executive Dashboard on GET /broadcast/dashboard 7ms
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 0. Public Web Pages & Operator Dashboard > should serve the 33 Broadcast Screen Surfaces Catalog on GET /broadcast/screens 6ms
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 0. Public Web Pages & Operator Dashboard > should filter the 33 Screens Catalog by role on GET /broadcast/screens?role=PlayoutOperator 7ms
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 0. Public Web Pages & Operator Dashboard > should serve individual screen detail view on GET /broadcast/screens/:id 8ms
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 0. Public Web Pages & Operator Dashboard > should return friendly 404 error on GET /broadcast/screens/:id for invalid screen (AUD-32 soft-404 fix) 14ms
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 0. Public Web Pages & Operator Dashboard > should serve the interactive API Documentation on GET /docs 21ms
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 0. Public Web Pages & Operator Dashboard > should serve standard OpenAPI 3.1.0 JSON specification on GET /api/v1/openapi.json 7ms
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 0. Public Web Pages & Operator Dashboard > should serve linear channel pages (NXTR, ORIS, IMBD) and public programme detail 214ms
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 0. Public Web Pages & Operator Dashboard > should serve all Surface A Creative Hub verticals and public pages 80ms
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 0. Public Web Pages & Operator Dashboard > should serve Surface B & C Enterprise Workspaces directory and desk pages 31ms
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 0. Public Web Pages & Operator Dashboard > should serve Surface E Azeebo+ Federation gateway, attribution, and universe resolvers 84ms
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 0. Public Web Pages & Operator Dashboard > should handle HEAD requests centrally with 200 OK and no body (AUD-13) 3ms
+stdout | tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 3. Creative Economy Hub Integration > should issue verifiable AFCA certificate when competency rubrics pass
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 3. Creative Economy Hub Integration > should issue verifiable AFCA certificate when competency rubrics pass
+{"timestamp":"2026-10-09T16:05:04.415Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+stdout | tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 3. Creative Economy Hub Integration > should issue verifiable AFCA certificate when competency rubrics pass
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 3. Creative Economy Hub Integration > should issue verifiable AFCA certificate when competency rubrics pass
+{"timestamp":"2026-10-09T16:05:04.441Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 0. Public Web Pages & Operator Dashboard > should compress responses with gzip and apply Vary: Accept-Encoding (AUD-18) 23ms
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 0. Public Web Pages & Operator Dashboard > should mark authenticated HTML as private, no-store and public pages as must-revalidate (AUD-19) 10ms
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 1. Observability, Health & Telemetry > should respond to GET /healthz with healthy status and uptime 2ms
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 1. Observability, Health & Telemetry > should respond to GET /readyz with subsystem health and circuit breaker status 5ms
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 1. Observability, Health & Telemetry > should expose Prometheus metrics on GET /metrics 5ms
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 2. Broadcast Linear Operations > should return the canonical linear channels (NXTR, ORIS, IMBD) on GET /api/v1/broadcast/channels 4ms
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 2. Broadcast Linear Operations > should return the complete 33 Broadcast Screen Surfaces inventory 3ms
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 2. Broadcast Linear Operations > does not publish sample EPG data before an approved schedule source is connected 2ms
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 2. Broadcast Linear Operations > should reconcile As-Run logs and generate cryptographically signed Certificates of Airing 15ms
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 3. Creative Economy Hub Integration > should onboard creative talent with verified skills and profile ID 17ms
+stdout | tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 5. Azeebo+ Federation & Circuit Breaker > should dispatch webhooks and handle circuit breaker state
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 5. Azeebo+ Federation & Circuit Breaker > should dispatch webhooks and handle circuit breaker state
+{"timestamp":"2026-10-09T16:05:04.493Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+stdout | tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 6. Commercial Finance & Release Gates > should process Paystack and Flutterwave incoming webhook payloads and ingest transactions
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 6. Commercial Finance & Release Gates > should process Paystack and Flutterwave incoming webhook payloads and ingest transactions
+{"timestamp":"2026-10-09T16:05:04.535Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+stdout | tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 6. Commercial Finance & Release Gates > should process Paystack and Flutterwave incoming webhook payloads and ingest transactions
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 6. Commercial Finance & Release Gates > should process Paystack and Flutterwave incoming webhook payloads and ingest transactions
+{"timestamp":"2026-10-09T16:05:04.544Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 3. Creative Economy Hub Integration > should issue verifiable AFCA certificate when competency rubrics pass 40ms
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 3. Creative Economy Hub Integration > should verify event tickets and prevent double entry (UAT Drill 18) 8ms
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 4. Intelligence, Knowledge & Agentic OS > should search Headspace IP and regulations with role-based filtering 4ms
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 4. Intelligence, Knowledge & Agentic OS > should generate standard WebVTT subtitles via Cr8Tech 4ms
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 4. Intelligence, Knowledge & Agentic OS > should submit proposals through AOS Agentic OS and enforce HITL supervisor checks 10ms
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 5. Azeebo+ Federation & Circuit Breaker > should generate dynamic universal deep links across universes 3ms
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 5. Azeebo+ Federation & Circuit Breaker > should dispatch webhooks and handle circuit breaker state 18ms
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 6. Commercial Finance & Release Gates > should create commercial QTC deals with stage progression 9ms
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 6. Commercial Finance & Release Gates > should generate talent payout batch with statutory Nigerian WHT deductions (5% / 10%) 10ms
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 6. Commercial Finance & Release Gates > should evaluate Four-Tier Release Gates and confirm deployment clearance 10ms
+stdout | tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 6. Commercial Finance & Release Gates > should process Paystack and Flutterwave incoming webhook payloads and ingest transactions
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 6. Commercial Finance & Release Gates > should process Paystack and Flutterwave incoming webhook payloads and ingest transactions
+{"timestamp":"2026-10-09T16:05:04.551Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+stdout | tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 6. Commercial Finance & Release Gates > should process Paystack and Flutterwave incoming webhook payloads and ingest transactions
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 6. Commercial Finance & Release Gates > should process Paystack and Flutterwave incoming webhook payloads and ingest transactions
+{"timestamp":"2026-10-09T16:05:04.554Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+stdout | tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 7. Zero-Deferral Operational Flows & Feature Flag Engine Integration > should retrieve and toggle feature flags via API with audit trail
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 7. Zero-Deferral Operational Flows & Feature Flag Engine Integration > should retrieve and toggle feature flags via API with audit trail
+{"timestamp":"2026-10-09T16:05:04.584Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+stdout | tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 7. Zero-Deferral Operational Flows & Feature Flag Engine Integration > should serve all expanded public screens with valid semantic HTML and 200 OK
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 7. Zero-Deferral Operational Flows & Feature Flag Engine Integration > should serve all expanded public screens with valid semantic HTML and 200 OK
+{"timestamp":"2026-10-09T16:05:04.610Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 6. Commercial Finance & Release Gates > should process Paystack and Flutterwave incoming webhook payloads and ingest transactions 52ms
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 7. Zero-Deferral Operational Flows & Feature Flag Engine Integration > should retrieve and toggle feature flags via API with audit trail 19ms
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 7. Zero-Deferral Operational Flows & Feature Flag Engine Integration > should serve all expanded public screens with valid semantic HTML and 200 OK 35ms
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 7. Zero-Deferral Operational Flows & Feature Flag Engine Integration > requires an authorized session for VTM terms and never accepts a fabricated contract signature 20ms
+stdout | tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 7. Zero-Deferral Operational Flows & Feature Flag Engine Integration > keeps digital contract signing disabled pending a canonical workflow
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 7. Zero-Deferral Operational Flows & Feature Flag Engine Integration > keeps digital contract signing disabled pending a canonical workflow
+{"timestamp":"2026-10-09T16:05:04.710Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 7. Zero-Deferral Operational Flows & Feature Flag Engine Integration > should process commercial enquiry intake and refuse idempotency-key PII recovery 34ms
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 7. Zero-Deferral Operational Flows & Feature Flag Engine Integration > should execute complete AFCA admissions lifecycle (submit, queue, evaluate) 21ms
+ ✓ tests/integration/enterprise-end-to-end.test.ts > VMNL Enterprise End-to-End Platform Integration > 7. Zero-Deferral Operational Flows & Feature Flag Engine Integration > keeps digital contract signing disabled pending a canonical workflow 7ms
+stdout | tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate
+{"timestamp":"2026-10-09T16:05:05.869Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"b556f701-1b56-455a-b328-43c0c50d946c","spanId":"6ad06d84-4b6f-41","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+stdout | tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate
+{"timestamp":"2026-10-09T16:05:06.350Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"f6d61929-bb1c-4b20-8bb8-b9f9d012da0f","spanId":"b8f60368-a0c1-45","component":"server_bootstrap","assets":820,"items":38,"revisions":72,"bindings":2,"fulfillments":4}
+
+stdout | tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate
+{"timestamp":"2026-10-09T16:05:06.378Z","level":"INFO","message":"VMNL Enterprise Server listening on port 4288","traceId":"5b52c9cb-d9b7-475a-acda-766e2ec43a7f","spanId":"6da98893-cd71-42","component":"server_bootstrap","port":4288,"env":"test"}
+
+stdout | tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate
+
+[TSK-14] rights clearance path under test: Postgres (fail_closed)
+
+ ✓ tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > hosts one rights context and removes the colliding one 8ms
+ ✓ tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > blocks the slot on the registered record before any review exists 702ms
+stdout | tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > clears the block end-to-end: request -> evidence -> durable record -> gate allows the slot
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > clears the block end-to-end: request -> evidence -> durable record -> gate allows the slot
+{"timestamp":"2026-10-09T16:05:07.175Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+stdout | tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > clears the block end-to-end: request -> evidence -> durable record -> gate allows the slot
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > clears the block end-to-end: request -> evidence -> durable record -> gate allows the slot
+{"timestamp":"2026-10-09T16:05:07.193Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+stdout | tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > clears the block end-to-end: request -> evidence -> durable record -> gate allows the slot
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > clears the block end-to-end: request -> evidence -> durable record -> gate allows the slot
+{"timestamp":"2026-10-09T16:05:07.206Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+stdout | tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > clears the block end-to-end: request -> evidence -> durable record -> gate allows the slot
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > clears the block end-to-end: request -> evidence -> durable record -> gate allows the slot
+{"timestamp":"2026-10-09T16:05:07.225Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+ ✓ tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > clears the block end-to-end: request -> evidence -> durable record -> gate allows the slot 117ms
+stdout | tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > keeps the block and writes nothing when the review retains it
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > keeps the block and writes nothing when the review retains it
+{"timestamp":"2026-10-09T16:05:07.252Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+stdout | tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > keeps the block and writes nothing when the review retains it
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > keeps the block and writes nothing when the review retains it
+{"timestamp":"2026-10-09T16:05:07.273Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+stdout | tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > keeps the block and writes nothing when the review retains it
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > keeps the block and writes nothing when the review retains it
+{"timestamp":"2026-10-09T16:05:07.275Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+stdout | tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > keeps the block and writes nothing when the review retains it
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > keeps the block and writes nothing when the review retains it
+{"timestamp":"2026-10-09T16:05:07.281Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+stdout | tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > refuses to clear without authoritative evidence
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > refuses to clear without authoritative evidence
+{"timestamp":"2026-10-09T16:05:07.297Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+stdout | tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > refuses to clear without authoritative evidence
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > refuses to clear without authoritative evidence
+{"timestamp":"2026-10-09T16:05:07.335Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+ ✓ tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > keeps the block and writes nothing when the review retains it 47ms
+ ✓ tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > refuses to clear without authoritative evidence 51ms
+stdout | tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > cannot clear a RightsRecord that is not registered
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > cannot clear a RightsRecord that is not registered
+{"timestamp":"2026-10-09T16:05:07.339Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+stdout | tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > cannot clear a RightsRecord that is not registered
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > cannot clear a RightsRecord that is not registered
+{"timestamp":"2026-10-09T16:05:07.358Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+stdout | tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > cannot clear a RightsRecord that is not registered
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > cannot clear a RightsRecord that is not registered
+{"timestamp":"2026-10-09T16:05:07.372Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+stdout | tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > cannot clear a RightsRecord that is not registered
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > cannot clear a RightsRecord that is not registered
+{"timestamp":"2026-10-09T16:05:07.376Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+stdout | tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > requires staff authority to resolve, not just a session
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > requires staff authority to resolve, not just a session
+{"timestamp":"2026-10-09T16:05:07.394Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+stdout | tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > requires staff authority to resolve, not just a session
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > requires staff authority to resolve, not just a session
+{"timestamp":"2026-10-09T16:05:07.409Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+stdout | tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > AC-UI-RL1-R07-18 refuses a caller-supplied copy of the RightsRecord (TSK-10: the store decides)
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > AC-UI-RL1-R07-18 refuses a caller-supplied copy of the RightsRecord (TSK-10: the store decides)
+{"timestamp":"2026-10-09T16:05:07.422Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+ ✓ tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > cannot clear a RightsRecord that is not registered 43ms
+ ✓ tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > requires staff authority to resolve, not just a session 32ms
+ ✓ tests/integration/rights-clearance-e2e.test.ts > TSK-14 (CA-32): one rights context, and a cleared review satisfies the gate > AC-UI-RL1-R07-18 refuses a caller-supplied copy of the RightsRecord (TSK-10: the store decides) 29ms
+stdout | tests/security/abuse-and-fuzzing.test.ts > T-20 (B-17): Security Abuse & Fuzzing Protection
+{"timestamp":"2026-10-09T16:05:08.595Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"e43f1d4b-7af3-4961-a01f-acd4850d3550","spanId":"b2e535ae-3068-4b","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+stdout | tests/security/abuse-and-fuzzing.test.ts > T-20 (B-17): Security Abuse & Fuzzing Protection
+{"timestamp":"2026-10-09T16:05:09.079Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"4bd2b2de-7e93-495e-a92c-82392524380f","spanId":"685863ea-5d7e-4c","component":"server_bootstrap","assets":820,"items":38,"revisions":72,"bindings":2,"fulfillments":4}
+
+stdout | tests/security/abuse-and-fuzzing.test.ts > T-20 (B-17): Security Abuse & Fuzzing Protection
+{"timestamp":"2026-10-09T16:05:09.113Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"78539cbc-3c55-41a7-98a9-afc54f3fc400","spanId":"15702227-6cc5-4d","component":"server_bootstrap","port":0,"env":"test"}
+
+stdout | tests/security/abuse-and-fuzzing.test.ts > T-20 (B-17): Security Abuse & Fuzzing Protection > handles malformed JSON body gracefully without crashing server (400 Bad Request)
+{"timestamp":"2026-10-09T16:05:09.208Z","level":"ERROR","message":"Invalid JSON body payload","traceId":"fe066542-c609-428e-ac20-02ff0191d55b","spanId":"e3d92909-8460-40","component":"api_router","stack":"Error: Invalid JSON body payload\n    at parseJsonBody (/Users/deprof/www/vmng/src/api/router.ts:472:11)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at handleApiRequest (/Users/deprof/www/vmng/src/api/router.ts:3642:20)","duration":4}
+
+stderr | tests/security/abuse-and-fuzzing.test.ts > T-20 (B-17): Security Abuse & Fuzzing Protection > handles malformed JSON body gracefully without crashing server (400 Bad Request)
+[VMNL-ALERT] [CRITICAL] HIGH_5XX_ERROR_RATE: HTTP 5xx error rate exceeded threshold: 1% > 0.1%
+
+ ✓ tests/security/abuse-and-fuzzing.test.ts > T-20 (B-17): Security Abuse & Fuzzing Protection > handles malformed JSON body gracefully without crashing server (400 Bad Request) 937ms
+stdout | tests/security/abuse-and-fuzzing.test.ts
+prisma:error 
+Invalid `.auditLog.create()` invocation in
+/Users/deprof/www/vmng/src/core/audit/index.ts:183:15
+
+  180   auditTimestamp: timestamp.toISOString(),
+  181 };
+  182 void getPrismaClient()
+→ 183   .auditLog.create(
+Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
+
+stdout | tests/security/abuse-and-fuzzing.test.ts
+{"timestamp":"2026-10-09T16:05:10.139Z","level":"WARN","message":"Audit durable persistence failed; ledger degraded to in-memory (prisma_error)","component":"audit","reason":"\nInvalid `.auditLog.create()` invocation in\n/Users/deprof/www/vmng/src/core/audit/index.ts:183:15\n\n  180   auditTimestamp: timestamp.toISOString(),\n  181 };\n  182 void getPrismaClient()\n→ 183   .auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+
+ ✓ tests/security/abuse-and-fuzzing.test.ts > T-20 (B-17): Security Abuse & Fuzzing Protection > rejects unsigned Paystack webhook requests with 401 Unauthorized (T-01, T-02) 14ms
+ ✓ tests/security/abuse-and-fuzzing.test.ts > T-20 (B-17): Security Abuse & Fuzzing Protection > rejects forged/tampered Paystack webhook signatures with 401 Unauthorized (T-01) 7ms
+ ✓ tests/security/abuse-and-fuzzing.test.ts > T-20 (B-17): Security Abuse & Fuzzing Protection > rejects unsigned Flutterwave webhook requests with 401 Unauthorized (T-01, T-02) 10ms
+ ✓ tests/security/abuse-and-fuzzing.test.ts > T-20 (B-17): Security Abuse & Fuzzing Protection > prevents duplicate bank transaction ingestion on webhook replay attacks (T-03) 3ms
+ ✓ tests/security/abuse-and-fuzzing.test.ts > T-20 (B-17): Security Abuse & Fuzzing Protection > rejects invalid or expired JWT authorization tokens with 401 Unauthorized 9ms
+ ✓ tests/security/abuse-and-fuzzing.test.ts > T-20 (B-17): Security Abuse & Fuzzing Protection > prohibits unauthorized roles from performing restricted operations (403 Forbidden) 8ms
+ ✓ tests/security/abuse-and-fuzzing.test.ts > T-20 (B-17): Security Abuse & Fuzzing Protection > detects tampering when audit log ledger is modified out-of-band (T-13) 11ms
+ ✓ tests/integration/journey-failure-drills.test.ts > Failure drills — J-RL1-04 AFCA application journey (CCPP §5.7) > DRILL-APP-01: lookup of an unknown reference returns an honest null (no soft-404 phantom) 3ms
+ ✓ tests/integration/journey-failure-drills.test.ts > Failure drills — J-RL1-04 AFCA application journey (CCPP §5.7) > DRILL-APP-02: decision on an unknown reference fails safely 4ms
+ ✓ tests/integration/journey-failure-drills.test.ts > Failure drills — J-RL1-08 schedule review & mid-day amendment > DRILL-SCHED-01: amendment after lock-out is rejected atomically and the schedule locks (UAT Drill 08) 7ms
+ ✓ tests/integration/journey-failure-drills.test.ts > Failure drills — J-RL1-09 rights-attested schedule writes > DRILL-RIGHTS-01: a schedule entry without rights attestation is rejected before approval 3ms
+ ✓ tests/integration/journey-failure-drills.test.ts > Failure drills — J-RL1-10 reconciliation & make-good credit flow > DRILL-RECON-01: preempted as-run spots become make-good obligations, and credit notes reconcile them 5ms
+ ✓ tests/integration/journey-failure-drills.test.ts > Failure drills — J-RL1-10 reconciliation & make-good credit flow > DRILL-RECON-02: double-crediting the same make-good is rejected 1ms
+ ✓ tests/integration/journey-failure-drills.test.ts > Failure drills — J-RL1-11 content publication gates > DRILL-PUB-01: non-RFA media cannot enter an approved broadcast schedule (publication blocked upstream) 2ms
+ ✓ tests/integration/journey-failure-drills.test.ts > Failure drills — J-RL1-12 Azeebo+ / VTM escrow navigation > DRILL-NAV-01: escrow release requires signed contract and submitted milestone (no partial release) 2ms
+ ✓ tests/integration/journey-failure-drills.test.ts > Failure drills — finance journeys (P8) reconciliation safety > DRILL-FIN-01: duplicate as-run spot ids abort billing generation without partial schedules 2ms
+ ✓ tests/integration/journey-failure-drills.test.ts > Failure drills — finance journeys (P8) reconciliation safety > DRILL-FIN-02: unapproved payout batches never enter the WHT remittance schedule 2ms
+ ✓ tests/integration/journey-failure-drills.test.ts > Failure drills — finance journeys (P8) reconciliation safety > DRILL-FIN-03: royalty CSV row with a tampered withholding percent is rejected, not substituted 3ms
+ ✓ tests/integration/journey-failure-drills.test.ts > Failure drills — offline gate scanning (BCST-10 companion) > DRILL-GATE-01: expired offline tokens are refused and nothing reaches the sync queue 1ms
+ ✓ tests/integration/journey-failure-drills.test.ts > Failure drills — traffic engine resilience (UAT Drill 5 companion) > DRILL-TRAFFIC-01: booking into an unknown break fails loudly and does not enqueue make-good silently 1ms
+ ✓ tests/integration/enquiry-failure-drill.test.ts > Commercial Enquiry Vertical Slice (VS-RL1-01 / J-RL1-03 / HX-01) > AC-01: valid input creates one durable intake record and returns a receipt reference 304ms
+ ✓ tests/integration/enquiry-failure-drill.test.ts > Commercial Enquiry Vertical Slice (VS-RL1-01 / J-RL1-03 / HX-01) > AC-02: invalid input creates no accepted record and identifies corrective action 6ms
+ ✓ tests/integration/enquiry-failure-drill.test.ts > Commercial Enquiry Vertical Slice (VS-RL1-01 / J-RL1-03 / HX-01) > AC-03: repeating the same operation with same payload does not create duplicate 5ms
+ ✓ tests/integration/enquiry-failure-drill.test.ts > Commercial Enquiry Vertical Slice (VS-RL1-01 / J-RL1-03 / HX-01) > AC-04: lost response after acceptance can be recovered without duplicate effect 4ms
+ ✓ tests/integration/enquiry-failure-drill.test.ts > Commercial Enquiry Vertical Slice (VS-RL1-01 / J-RL1-03 / HX-01) > AC-05: downstream routing failure preserves the accepted enquiry in operator queue 7ms
+ ✓ tests/integration/enquiry-failure-drill.test.ts > Commercial Enquiry Vertical Slice (VS-RL1-01 / J-RL1-03 / HX-01) > AC-06: authorised operator can find enquiry, inspect state and queue position 5ms
+ ✓ tests/integration/enquiry-failure-drill.test.ts > Commercial Enquiry Vertical Slice (VS-RL1-01 / J-RL1-03 / HX-01) > AC-08: retry after routing recovery preserves receipt and completes downstream handoff 3ms
+ ✓ tests/integration/enquiry-failure-drill.test.ts > Commercial Enquiry Vertical Slice (VS-RL1-01 / J-RL1-03 / HX-01) > AC-11: disabling new intake prevents acceptance cleanly while preserving existing enquiries 12ms
+ ✓ tests/integration/enquiry-failure-drill.test.ts > Commercial Enquiry Vertical Slice (VS-RL1-01 / J-RL1-03 / HX-01) > Mandatory Failure Drill: 10-step complete verification drill 9ms
+ ✓ tests/a11y/visual-regression-baseline.test.ts > DT-1001: Visual Regression Baseline & Contract Snapshots > maintains structural baseline for Surface A: Public Portal & Channels 9ms
+ ✓ tests/a11y/visual-regression-baseline.test.ts > DT-1001: Visual Regression Baseline & Contract Snapshots > maintains structural baseline for Surface D: Hub Verticals 2ms
+ ✓ tests/a11y/visual-regression-baseline.test.ts > DT-1001: Visual Regression Baseline & Contract Snapshots > maintains structural baseline for Surface E: Federation Gateway (Azeebo+) 48ms
+ ✓ tests/a11y/visual-regression-baseline.test.ts > DT-1001: Visual Regression Baseline & Contract Snapshots > maintains structural baseline for Surface B & C: Operator Workspace Desks 4ms
+ ✓ tests/a11y/visual-regression-baseline.test.ts > DT-1001: Visual Regression Baseline & Contract Snapshots > maintains structural baseline for 33 Broadcast Consoles with Operator Shell (DT-401, DT-402) 19ms
+ ✓ tests/a11y/visual-regression-baseline.test.ts > DT-1001: Visual Regression Baseline & Contract Snapshots > verifies state matrix baseline consistency across all surfaces (DT-202, DT-404) 5ms
+ ✓ tests/a11y/responsive.test.ts > T9-17 (F-9-15): Responsive Layout & Mobile-First Viewport Verification > verifies viewport meta tag configuration for fluid responsive scaling 5ms
+ ✓ tests/a11y/responsive.test.ts > T9-17 (F-9-15): Responsive Layout & Mobile-First Viewport Verification > verifies mobile-first responsive media queries in the canonical stylesheet (AUD-20: styles now live in the cached asset, not inline) 2ms
+ ✓ tests/a11y/responsive.test.ts > T9-17 (F-9-15): Responsive Layout & Mobile-First Viewport Verification > ensures every page links the canonical stylesheet and keeps the mobile navbar contract 1ms
+ ✓ tests/a11y/responsive.test.ts > T9-17 (F-9-15): Responsive Layout & Mobile-First Viewport Verification > asserts zero rigid fixed-width containers that exceed mobile viewport widths 1ms
+ ✓ tests/a11y/responsive.test.ts > T9-17 (F-9-15): Responsive Layout & Mobile-First Viewport Verification > verifies tables and data grids include overflow-x: auto scroll containers 4ms
+ ✓ tests/a11y/responsive.test.ts > T9-17 (F-9-15): Responsive Layout & Mobile-First Viewport Verification > verifies layout compatibility across all target viewports (360, 390, 671, 768, 1024, 1440 px) 11ms
+ ✓ tests/a11y/accessibility-audit.test.ts > T-22 (B-21): Automated Accessibility (WCAG 2.2 AA) Verification > verifies document shell conforms to WCAG 2.2 AA (doctype, lang, meta, title) 7ms
+ ✓ tests/a11y/accessibility-audit.test.ts > T-22 (B-21): Automated Accessibility (WCAG 2.2 AA) Verification > verifies semantic landmark regions exist on all rendered layouts 3ms
+ ✓ tests/a11y/accessibility-audit.test.ts > T-22 (B-21): Automated Accessibility (WCAG 2.2 AA) Verification > verifies minimum touch targets and interactive control accessibility 1ms
+ ✓ tests/a11y/accessibility-audit.test.ts > T-22 (B-21): Automated Accessibility (WCAG 2.2 AA) Verification > verifies UI component state matrix accessibility tokens 1ms
+ ✓ tests/a11y/accessibility-audit.test.ts > T-22 (B-21): Automated Accessibility (WCAG 2.2 AA) Verification > verifies images and icons have proper accessibility attributes 1ms
+ ✓ tests/a11y/accessibility-audit.test.ts > T-22 (B-21): Automated Accessibility (WCAG 2.2 AA) Verification > verifies CSP compliance: no inline executable <script> or on* handler attributes in rendered pages (AUD-04) 11ms
+stdout | tests/security/route-guard-parity.test.ts > TSK-29: mutating-route ↔ guard parity (CA-31) > finds the mutating dispatch sites it claims to find
+[TSK-29] mutating dispatch sites 117 (API 104) · guards 75 · inline-enforced 59 · handler-scoped documented 55 · public by design 11
+
+ ✓ tests/security/route-guard-parity.test.ts > TSK-29: mutating-route ↔ guard parity (CA-31) > finds the mutating dispatch sites it claims to find 8ms
+ ✓ tests/security/route-guard-parity.test.ts > TSK-29: mutating-route ↔ guard parity (CA-31) > every mutating API route is guarded, handler-scoped, or public by design 2ms
+ ✓ tests/security/route-guard-parity.test.ts > TSK-29: mutating-route ↔ guard parity (CA-31) > pins the guard-table size so silent guard deletion fails the build 0ms
+ ✓ tests/security/route-guard-parity.test.ts > TSK-29: mutating-route ↔ guard parity (CA-31) > has no duplicate method+pathname guard entries 1ms
+ ✓ tests/security/route-guard-parity.test.ts > TSK-29: mutating-route ↔ guard parity (CA-31) > declares each guard against a route the router actually dispatches 1ms
+ ✓ tests/security/route-guard-parity.test.ts > TSK-29: mutating-route ↔ guard parity (CA-31) > documents handler-scoped routes that really do enforce inline 4ms
+
+ Test Files  11 passed (11)
+      Tests  127 passed (127)
+   Start at  17:04:42
+   Duration  34.52s (transform 4.56s, setup 0ms, import 12.42s, tests 17.61s, environment 2ms)
+

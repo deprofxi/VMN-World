@@ -1,0 +1,22 @@
+
+> vmng@1.0.0 db:seed /Users/deprof/www/vmng
+> node dist/src/db/migrate-and-seed.js
+
+[VMNL-DB-SEED] Initializing Golden Master seed process...
+[VMNL-DB-SEED] Target database: postgresql:***@localhost:5432/vmnl_enterprise?schema=public
+[VMNL-DB-SEED] Database connected (100ms). Persisting golden records via Prisma Client...
+[VMNL-DB-SEED] DAM backfill: 250 assets registered, 200 episode references persisted.
+[VMNL-DB-SEED] Prisma persistence operations completed successfully for all entity families.
+[VMNL-DB-SEED] Golden Master seed summary:
+  - channels        : 3 records generated (POSTGRESQL_PERSISTED)
+  - programmes      : 50 records generated (POSTGRESQL_PERSISTED)
+  - episodes        : 200 records generated (POSTGRESQL_PERSISTED)
+  - schedules       : 42 records generated (IN-MEMORY SCHEDULE AUTHORITY (no Postgres table))
+  - campaigns       : 10 records generated (POSTGRESQL_PERSISTED)
+  - asRunLogs       : 10 records generated (POSTGRESQL_PERSISTED)
+  - talentProfiles  : 20 records generated (POSTGRESQL_PERSISTED)
+  - afcaCourses     : 5 records generated (POSTGRESQL_PERSISTED)
+  - vcfSlates       : 10 records generated (POSTGRESQL_PERSISTED)
+  - tendDeals       : 5 records generated (POSTGRESQL_PERSISTED)
+  - damAssets       : 250 records generated (DAM REGISTRY (in-memory))
+  - episodeMediaAssets: 200 records generated (POSTGRESQL_PERSISTED)
