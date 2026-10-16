@@ -1,0 +1,422 @@
+TSK-51 rollback rehearsal — executed 2026-10-15 on the local PostgreSQL cluster
+host=Darwin 25.6.0 client=psql (PostgreSQL) 18.3 server=18.3
+scratch databases: vmnl_tsk51_rehearsal_a (source), vmnl_tsk51_rehearsal_b (restore target). Both created by this script and dropped at the end.
+prisma DATABASE_URL=postgresql://root@localhost:5432/vmnl_tsk51_rehearsal_a?schema=public / postgresql://root@localhost:5432/vmnl_tsk51_rehearsal_b?schema=public; libpq targets are the same URLs without ?schema=public.
+migration under rehearsal (newest in prisma/migrations): 20261013142927_add_composite_keyset_indexes
+
+### 01 drop any leftover scratch databases
+cmd: psql postgresql://root@localhost:5432/postgres -q -c DROP DATABASE IF EXISTS vmnl_tsk51_rehearsal_a WITH (FORCE) -c DROP DATABASE IF EXISTS vmnl_tsk51_rehearsal_b WITH (FORCE)
+NOTICE:  database "vmnl_tsk51_rehearsal_a" does not exist, skipping
+NOTICE:  database "vmnl_tsk51_rehearsal_b" does not exist, skipping
+real 1.16
+user 0.03
+sys 0.04
+step_exit=0
+
+### 02 create the scratch source database
+cmd: psql postgresql://root@localhost:5432/postgres -q -c CREATE DATABASE vmnl_tsk51_rehearsal_a
+real 2.03
+user 0.04
+sys 0.03
+step_exit=0
+
+### 03 prisma migrate deploy onto the empty source (T_apply_from_empty)
+cmd: env DATABASE_URL=postgresql://root@localhost:5432/vmnl_tsk51_rehearsal_a?schema=public CI=1 pnpm exec prisma migrate deploy
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma/schema.prisma.
+Datasource "db": PostgreSQL database "vmnl_tsk51_rehearsal_a", schema "public" at "localhost:5432"
+
+13 migrations found in prisma/migrations
+
+Applying migration `0_init`
+Applying migration `20261002140000_add_read_path_indexes`
+Applying migration `20261002150000_add_finance_event_indexes`
+Applying migration `20261006120000_add_data_subject_requests`
+Applying migration `20261007191447_add_rights_record_channel_scope`
+Applying migration `20261008213000_add_release_critical_durable_stores`
+Applying migration `20261008220000_add_remaining_release_critical_durable_stores`
+Applying migration `20261009133000_add_durable_provider_event_claims`
+Applying migration `20261009153000_add_provider_claim_ingest_phase`
+Applying migration `20261009200000_add_pii_sealed_envelope_checks`
+Applying migration `20261011220000_add_durable_sales_deal_portfolio`
+Applying migration `20261012120000_relax_audit_ledger_actor_identity`
+Applying migration `20261013142927_add_composite_keyset_indexes`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 0_init/
+    └─ migration.sql
+  └─ 20261002140000_add_read_path_indexes/
+    └─ migration.sql
+  └─ 20261002150000_add_finance_event_indexes/
+    └─ migration.sql
+  └─ 20261006120000_add_data_subject_requests/
+    └─ migration.sql
+  └─ 20261007191447_add_rights_record_channel_scope/
+    └─ migration.sql
+  └─ 20261008213000_add_release_critical_durable_stores/
+    └─ migration.sql
+  └─ 20261008220000_add_remaining_release_critical_durable_stores/
+    └─ migration.sql
+  └─ 20261009133000_add_durable_provider_event_claims/
+    └─ migration.sql
+  └─ 20261009153000_add_provider_claim_ingest_phase/
+    └─ migration.sql
+  └─ 20261009200000_add_pii_sealed_envelope_checks/
+    └─ migration.sql
+  └─ 20261011220000_add_durable_sales_deal_portfolio/
+    └─ migration.sql
+  └─ 20261012120000_relax_audit_ledger_actor_identity/
+    └─ migration.sql
+  └─ 20261013142927_add_composite_keyset_indexes/
+    └─ migration.sql
+
+All migrations have been successfully applied.
+real 27.38
+user 3.72
+sys 1.21
+step_exit=0
+
+### 04 seed the source with rehearsal rows (synthetic; dropped with the database)
+seed_exit=0
+
+### 05 source inventory (pre-snapshot)
+tables=44
+columns=470
+indexes=122
+journal_rows=13
+journal_applied=13
+journal_rolled_back=0
+seeded_rows=250
+distinct_migrations=13
+
+### 06 pg_dump -Fc --no-owner -n public (T_snapshot = the rollback restore point)
+cmd: pg_dump -Fc --no-owner -n public -f /tmp/tsk51_rehearsal.dump postgresql://root@localhost:5432/vmnl_tsk51_rehearsal_a
+real 0.51
+user 0.05
+sys 0.04
+step_exit=0
+dump_bytes=104960
+
+### 07 create the restore target and clear its default public schema
+cmd: bash -c psql 'postgresql://root@localhost:5432/postgres' -q -c 'CREATE DATABASE vmnl_tsk51_rehearsal_b TEMPLATE template0' && psql 'postgresql://root@localhost:5432/vmnl_tsk51_rehearsal_b' -q -c 'DROP SCHEMA public CASCADE'
+real 0.70
+user 0.07
+sys 0.05
+step_exit=0
+
+### 08 pg_restore --exit-on-error --single-transaction (T_restore)
+cmd: pg_restore -d postgresql://root@localhost:5432/vmnl_tsk51_rehearsal_b --no-owner --exit-on-error --single-transaction /tmp/tsk51_rehearsal.dump
+real 0.65
+user 0.03
+sys 0.04
+step_exit=0
+
+### 09 restored-target inventory
+tables=44
+columns=470
+indexes=122
+journal_rows=13
+journal_applied=13
+journal_rolled_back=0
+seeded_rows=250
+distinct_migrations=13
+
+### 10 source vs restored target — set comparisons (exit=0 and differing_lines=0 means identical)
+column_diff exit=0 differing_lines=0
+index_diff exit=0 differing_lines=0
+journal_diff exit=0 differing_lines=0
+seeded_row_diff exit=0 differing_lines=0
+
+### 11 simulate the incident: leave the newest journal row unclean, as a mid-flight failure records it
+simulate_exit=0
+
+### 12 migrate status against the failed migration (expected: the database is not clean)
+
+### 12 migrate status
+cmd: env DATABASE_URL=postgresql://root@localhost:5432/vmnl_tsk51_rehearsal_b?schema=public CI=1 pnpm exec prisma migrate status
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma/schema.prisma.
+Datasource "db": PostgreSQL database "vmnl_tsk51_rehearsal_b", schema "public" at "localhost:5432"
+
+13 migrations found in prisma/migrations
+Following migration have failed:
+20261013142927_add_composite_keyset_indexes
+
+During development if the failed migration(s) have not been deployed to a production database you can then fix the migration(s) and run prisma migrate dev.
+
+The failed migration(s) can be marked as rolled back or applied:
+
+- If you rolled back the migration(s) manually:
+prisma migrate resolve --rolled-back "20261013142927_add_composite_keyset_indexes"
+
+- If you fixed the database manually (hotfix):
+prisma migrate resolve --applied "20261013142927_add_composite_keyset_indexes"
+
+Read more about how to resolve migration issues in a production database:
+https://pris.ly/d/migrate-resolve
+real 5.41
+user 2.97
+sys 0.68
+step_exit=1
+
+### 13 migrate deploy against the failed migration (expected: blocked; this is why runbook 3.3 exists)
+
+### 13 migrate deploy while the journal is unclean
+cmd: env DATABASE_URL=postgresql://root@localhost:5432/vmnl_tsk51_rehearsal_b?schema=public CI=1 pnpm exec prisma migrate deploy
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma/schema.prisma.
+Datasource "db": PostgreSQL database "vmnl_tsk51_rehearsal_b", schema "public" at "localhost:5432"
+
+13 migrations found in prisma/migrations
+
+Error: P3009
+
+migrate found failed migrations in the target database, new migrations will not be applied. Read more about how to resolve migration issues in a production database: https://pris.ly/d/migrate-resolve
+The `20261013142927_add_composite_keyset_indexes` migration started at 2026-10-15 22:40:00.142638 UTC failed
+
+
+real 5.36
+user 2.90
+sys 0.63
+step_exit=1
+
+### 14 undo the migration DDL by hand (T_undo_ddl) — the schema half of an emergency rollback
+
+### 14 revert 20261013142927_add_composite_keyset_indexes to its pre-migration state
+cmd: psql postgresql://root@localhost:5432/vmnl_tsk51_rehearsal_b -q -f docs/audit/evidence/tsk51-rollback-rehearsal-2026-10-15/undo.sql
+real 0.17
+user 0.03
+sys 0.03
+step_exit=0
+
+### 15 the runbook 3.3 command verbatim (T_resolve)
+
+### 15 pnpm prisma migrate resolve --rolled-back 20261013142927_add_composite_keyset_indexes
+cmd: env DATABASE_URL=postgresql://root@localhost:5432/vmnl_tsk51_rehearsal_b?schema=public CI=1 pnpm exec prisma migrate resolve --rolled-back 20261013142927_add_composite_keyset_indexes
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma/schema.prisma.
+Datasource "db": PostgreSQL database "vmnl_tsk51_rehearsal_b", schema "public" at "localhost:5432"
+
+Migration 20261013142927_add_composite_keyset_indexes marked as rolled back.
+
+real 5.22
+user 2.93
+sys 0.60
+step_exit=0
+
+### 16 journal row for that migration after the resolve
+20261013142927_add_composite_keyset_indexes applied=false rolled_back=true steps=0
+journal_check_exit=0
+
+### 17 migrate status after the resolve (expected: the migration is pending again)
+
+### 17 migrate status
+cmd: env DATABASE_URL=postgresql://root@localhost:5432/vmnl_tsk51_rehearsal_b?schema=public CI=1 pnpm exec prisma migrate status
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma/schema.prisma.
+Datasource "db": PostgreSQL database "vmnl_tsk51_rehearsal_b", schema "public" at "localhost:5432"
+
+13 migrations found in prisma/migrations
+Following migration have not yet been applied:
+20261013142927_add_composite_keyset_indexes
+
+To apply migrations in development run prisma migrate dev.
+To apply migrations in production run prisma migrate deploy.
+real 5.43
+user 3.01
+sys 0.64
+step_exit=1
+
+### 18 re-apply it with migrate deploy (T_reapply) — the documented forward path
+
+### 18 migrate deploy
+cmd: env DATABASE_URL=postgresql://root@localhost:5432/vmnl_tsk51_rehearsal_b?schema=public CI=1 pnpm exec prisma migrate deploy
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma/schema.prisma.
+Datasource "db": PostgreSQL database "vmnl_tsk51_rehearsal_b", schema "public" at "localhost:5432"
+
+13 migrations found in prisma/migrations
+
+Applying migration `20261013142927_add_composite_keyset_indexes`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 20261013142927_add_composite_keyset_indexes/
+    └─ migration.sql
+
+All migrations have been successfully applied.
+real 5.84
+user 3.00
+sys 0.63
+step_exit=0
+
+### 19 post-recovery comparison against the source (must match the pre-incident state)
+tables=44
+columns=470
+indexes=122
+journal_rows=14
+journal_applied=13
+journal_rolled_back=1
+seeded_rows=250
+distinct_migrations=13
+post_recovery_column_diff exit=0 differing_lines=0
+post_recovery_seeded_row_diff exit=0 differing_lines=0
+
+### 20 one timed end-to-end drill of the recovery path (dirty journal + undo DDL + resolve + re-apply)
+
+### 20 full recovery path in one measured run
+cmd: bash docs/audit/evidence/tsk51-rollback-rehearsal-2026-10-15/drill.sh postgresql://root@localhost:5432/vmnl_tsk51_rehearsal_b postgresql://root@localhost:5432/vmnl_tsk51_rehearsal_b?schema=public 20261013142927_add_composite_keyset_indexes
+cmd: env DATABASE_URL=postgresql://root@localhost:5432/vmnl_tsk51_rehearsal_b?schema=public pnpm exec prisma migrate resolve --rolled-back 20261013142927_add_composite_keyset_indexes
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma/schema.prisma.
+Datasource "db": PostgreSQL database "vmnl_tsk51_rehearsal_b", schema "public" at "localhost:5432"
+
+Migration 20261013142927_add_composite_keyset_indexes marked as rolled back.
+
+cmd: env DATABASE_URL=postgresql://root@localhost:5432/vmnl_tsk51_rehearsal_b?schema=public pnpm exec prisma migrate deploy
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma/schema.prisma.
+Datasource "db": PostgreSQL database "vmnl_tsk51_rehearsal_b", schema "public" at "localhost:5432"
+
+13 migrations found in prisma/migrations
+
+Applying migration `20261013142927_add_composite_keyset_indexes`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 20261013142927_add_composite_keyset_indexes/
+    └─ migration.sql
+
+All migrations have been successfully applied.
+recovered_journal_rows=1
+seeded_rows=250
+real 11.44
+user 6.10
+sys 1.29
+step_exit=0
+
+### 21 counterfactual: runbook 3.3 on its own, with the DDL never reverted — measured, because the runbook reads as if one command is the whole recovery
+
+### 21 counterfactual leg
+cmd: bash docs/audit/evidence/tsk51-rollback-rehearsal-2026-10-15/counterfactual.sh postgresql://root@localhost:5432/vmnl_tsk51_rehearsal_a postgresql://root@localhost:5432/vmnl_tsk51_rehearsal_b postgresql://root@localhost:5432/vmnl_tsk51_rehearsal_b?schema=public 20261013142927_add_composite_keyset_indexes docs/audit/evidence/tsk51-rollback-rehearsal-2026-10-15
+### C1 dirty the newest journal row (simulated mid-flight failure) and deliberately leave the schema in its post-migration state
+index_state=BroadcastEpisode_programmeCode_episodeCode_idx,Programme_channelCode_code_idx
+
+### C2 runbook §3.3 command, on its own
+cmd: env DATABASE_URL=postgresql://root@localhost:5432/vmnl_tsk51_rehearsal_b?schema=public CI=1 pnpm exec prisma migrate resolve --rolled-back 20261013142927_add_composite_keyset_indexes
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma/schema.prisma.
+Datasource "db": PostgreSQL database "vmnl_tsk51_rehearsal_b", schema "public" at "localhost:5432"
+
+Migration 20261013142927_add_composite_keyset_indexes marked as rolled back.
+
+resolve_exit=0
+
+### C3 migrate deploy from that state (the schema never moved — this is what the runbook's one-liner invites)
+cmd: env DATABASE_URL=postgresql://root@localhost:5432/vmnl_tsk51_rehearsal_b?schema=public CI=1 pnpm exec prisma migrate deploy
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma/schema.prisma.
+Datasource "db": PostgreSQL database "vmnl_tsk51_rehearsal_b", schema "public" at "localhost:5432"
+
+13 migrations found in prisma/migrations
+
+Applying migration `20261013142927_add_composite_keyset_indexes`
+Error: P3018
+
+A migration failed to apply. New migrations cannot be applied before the error is recovered from. Read more about how to resolve migration issues in a production database: https://pris.ly/d/migrate-resolve
+
+Migration name: 20261013142927_add_composite_keyset_indexes
+
+Database error code: 42704
+
+Database error:
+ERROR: index "BroadcastEpisode_programmeCode_idx" does not exist
+
+DbError { severity: "ERROR", parsed_severity: Some(Error), code: SqlState(E42704), message: "index \"BroadcastEpisode_programmeCode_idx\" does not exist", detail: None, hint: None, position: None, where_: None, schema: None, table: None, column: None, datatype: None, constraint: None, file: Some("tablecmds.c"), line: Some(1493), routine: Some("DropErrorMsgNonExistent") }
+
+
+deploy_exit=1
+journal_now=20261013142927_add_composite_keyset_indexes applied=false rolled_back=false steps=0
+
+### C4 the corrected procedure from the broken state: revert the DDL, then §3.3, then deploy
+cmd: psql postgresql://root@localhost:5432/vmnl_tsk51_rehearsal_b -q -f docs/audit/evidence/tsk51-rollback-rehearsal-2026-10-15/undo.sql
+undo_exit=0
+index_state=BroadcastEpisode_programmeCode_idx,Programme_channelCode_idx
+cmd: env DATABASE_URL=postgresql://root@localhost:5432/vmnl_tsk51_rehearsal_b?schema=public CI=1 pnpm exec prisma migrate resolve --rolled-back 20261013142927_add_composite_keyset_indexes
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma/schema.prisma.
+Datasource "db": PostgreSQL database "vmnl_tsk51_rehearsal_b", schema "public" at "localhost:5432"
+
+Migration 20261013142927_add_composite_keyset_indexes marked as rolled back.
+
+resolve_exit=0
+cmd: env DATABASE_URL=postgresql://root@localhost:5432/vmnl_tsk51_rehearsal_b?schema=public CI=1 pnpm exec prisma migrate deploy
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma/schema.prisma.
+Datasource "db": PostgreSQL database "vmnl_tsk51_rehearsal_b", schema "public" at "localhost:5432"
+
+13 migrations found in prisma/migrations
+
+Applying migration `20261013142927_add_composite_keyset_indexes`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 20261013142927_add_composite_keyset_indexes/
+    └─ migration.sql
+
+All migrations have been successfully applied.
+deploy_exit=0
+
+### C5 recovery from the counterfactual leaves the target schema identical to the source
+index_diff exit=0 differing_lines=0
+seeded_rows=250
+real 23.06
+user 12.26
+sys 2.60
+step_exit=0
+
+### 22 final inventory after the counterfactual recovery
+cmd: psql postgresql://root@localhost:5432/vmnl_tsk51_rehearsal_b -tAc select (select count(*) from information_schema.tables where table_schema='public')||' tables, '||(select count(distinct migration_name) from _prisma_migrations)||' distinct migrations journaled, '||(select count(*) from "DataSubjectRequest")||' seeded rows survive'
+44 tables, 13 distinct migrations journaled, 250 seeded rows survive
+real 0.40
+user 0.03
+sys 0.02
+step_exit=0
+
+### 23 drop both scratch databases
+cmd: psql postgresql://root@localhost:5432/postgres -q -c DROP DATABASE vmnl_tsk51_rehearsal_a WITH (FORCE) -c DROP DATABASE vmnl_tsk51_rehearsal_b WITH (FORCE)
+real 1.07
+user 0.03
+sys 0.02
+step_exit=0
+
+### 24 cluster state after the rehearsal
+scratch_databases_remaining=0
+
+### 25 the gate/test database was not modified by this rehearsal (read-only check after the run)
+tables=44
+columns=470
+indexes=122
+journal_rows=12
+journal_applied=12
+journal_rolled_back=0
+seeded_rows=40
+distinct_migrations=12
+rehearsal_rows_in_gate_database=0

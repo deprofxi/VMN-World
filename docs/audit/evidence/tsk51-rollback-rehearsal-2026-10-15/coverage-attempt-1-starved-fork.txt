@@ -1,0 +1,38 @@
+Excerpt of the FIRST pnpm test:coverage attempt on the TSK-51 tree (full console log 103,883 bytes, not archived because it is application ERROR-JSON noise).
+Load average at the time: 294 (the owner's separate azeebo+ workspace has ~30 NestJS services running; none were touched).
+Extracted with: grep -E 'tenant-scoping|AssertionError|Test Files|Tests  |×|FAIL|Duration'
+
+23:→ 146   await getPrismaClient().approvalItem.upsert(
+30:[22m[39m{"timestamp":"2026-10-15T23:09:18.564Z","level":"WARN","message":"Audit durable write rolled back with its transaction; ledger degraded to in-memory (prisma_error)","component":"audit","entryId":"87e0003e-270d-400c-9254-ae6819e95211","reason":"\nInvalid `getPrismaClient().approvalItem.upsert()` invocation in\n/Users/deprof/www/vmng/src/core/database/repositories/release-critical.repository.ts:146:40\n\n  143 // ---------------------------------------------------------------------------\n  144 \n  145 export async function persistApprovalItem(record: ApprovalItem): Promise<void> {\n→ 146   await getPrismaClient().approvalItem.upsert(\nValue out of range for the type: numeric field overflow"}
+40:→ 912   await getPrismaClient().providerEventClaim.create(
+47:     [33m[2m✓[22m[39m persists a risk and an issue, including the issue → risk linkage [33m 1079[2mms[22m[39m
+207:→ 445 await getPrismaClient().mediaAssetRecord.upsert(
+258:→ 63     const created = await client.talentProfile.upsert(
+380:→ 311     prisma.person.create(
+391:→ 344   prisma.user.create(
+482:→ 912   await getPrismaClient().providerEventClaim.create(
+493:→ 912   await getPrismaClient().providerEventClaim.create(
+504:→ 912   await getPrismaClient().providerEventClaim.create(
+729:[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 7 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+731:[41m[1m FAIL [22m[49m tests/unit/tenant-scoping-routes.test.ts[2m > [22mTSK-58 box 1: cross-tenant refusal reaches the HTTP surface[2m > [22mrefuses a registration that targets another tenant's namespace, without squatting the key
+742:[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯[22m[39m
+744:[41m[1m FAIL [22m[49m tests/unit/tenant-scoping-routes.test.ts[2m > [22mTSK-58 box 1: cross-tenant refusal reaches the HTTP surface[2m > [22mrefuses to re-register another tenant's key and does not return their record
+745:[31m[1mAssertionError[22m: expected 201 to be 403 // Object.is equality[39m
+761:[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/7]⎯[22m[39m
+763:[41m[1m FAIL [22m[49m tests/unit/tenant-scoping-routes.test.ts[2m > [22mTSK-58 box 1: cross-tenant refusal reaches the HTTP surface[2m > [22mrefuses an explicit foreign assetId at the domain seam too
+764:[31m[1mAssertionError[22m: expected [Function] to throw an error[39m
+780:[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/7]⎯[22m[39m
+782:[41m[1m FAIL [22m[49m tests/unit/tenant-scoping-routes.test.ts[2m > [22mTSK-58 box 1: cross-tenant refusal reaches the HTTP surface[2m > [22mstill admits a tenant's own re-registration (the guard is not a blanket refusal)
+783:[31m[1mAssertionError[22m: expected 'MA-MVA62INF-3001' to be 'MA-TSK58B1-B1' // Object.is equality[39m
+796:[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/7]⎯[22m[39m
+798:[41m[1m FAIL [22m[49m tests/unit/tenant-scoping-routes.test.ts[2m > [22mTSK-58 box 1: cross-tenant refusal reaches the HTTP surface[2m > [22mrefuses a CMS binding of another tenant's asset with the unknown-id message (no existence oracle)
+799:[31m[1mAssertionError[22m: expected 201 to be 422 // Object.is equality[39m
+815:[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/7]⎯[22m[39m
+817:[41m[1m FAIL [22m[49m tests/unit/tenant-scoping-routes.test.ts[2m > [22mTSK-58 box 1: cross-tenant refusal reaches the HTTP surface[2m > [22mrefuses an edit that binds another tenant's asset, on the mutating route
+818:[31m[1mAssertionError[22m: expected 422 to be 201 // Object.is equality[39m
+834:[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/7]⎯[22m[39m
+836:[41m[1m FAIL [22m[49m tests/unit/tenant-scoping-routes.test.ts[2m > [22mTSK-58 box 1: cross-tenant refusal reaches the HTTP surface[2m > [22mleaves the unowned platform rows addressable by their own tenant rules, not by silence
+837:[31m[1mAssertionError[22m: expected 201 to be 403 // Object.is equality[39m
+853:[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/7]⎯[22m[39m
+856:[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m77 passed[39m[22m[90m (78)[39m
+859:[2m   Duration [22m 1008.65s[2m (transform 2.66s, setup 0ms, import 13.25s, tests 982.35s, environment 6ms)[22m

@@ -1,0 +1,256 @@
+TSK-51 gate battery — measured 2026-10-16, 01:18–02:20 WAT, on the exact tree being committed.
+
+Tree: rollback-runbook §3 rewritten from the rehearsal (30 lines added / 1 replaced) plus the
+rehearsal-status blockquote; tasks.md TSK-51 box note + evidence row + TSK-58 evidence clause
+(3 lines replaced, file still 1733 lines); LATEST.md PRC-07 clause + coverage pin row (2 lines
+replaced, still 456 lines); tests/unit/tenant-scoping-routes.test.ts +12/-2 (durable-read
+assertion + afterAll teardown of the two refusal ids); this evidence directory (10 files).
+
+The battery ran in two passes because the tree moved under it: pass A measured the code/test edits,
+then three documentation files were edited (this file, README.md, the LATEST.md pin row), so pass B
+re-ran everything the edits could plausibly affect. Both passes are reported; nothing is quoted
+from a pass that does not match the tree being committed.
+
+Every number below is copied from the command output named beside it. Commands ran serially, each
+redirected to a file rather than piped.
+
+  pass A — 01:18–01:51, before the documentation edits
+    CI=1 pnpm lint                 -> exit 0   (eslint . --max-warnings 0)
+    pnpm typecheck                 -> exit 0   (tsc --noEmit)
+    pnpm build                     -> exit 0   (tsc)
+    CI=1 pnpm test                 -> exit 0   Test Files 78 passed (78), Tests 872 passed (872),
+                                               Duration 47.72s (transform 2.83s, import 13.34s,
+                                               tests 24.42s), started 01:36:18
+    CI=1 pnpm test:coverage        -> exit 0   Test Files 78 passed (78), Tests 872 passed (872),
+                                               Duration 145.53s (transform 8.58s, import 36.66s,
+                                               tests 77.53s), started 01:42:17
+                                               All files: % Stmts 79.09 | % Branch 70.44 |
+                                                        % Funcs 82.92 | % Lines 80.43
+    node scripts/audit-check.js        -> exit 0
+    node scripts/audit-threshold.js    -> exit 0
+    node scripts/explicit-any-budget.js-> exit 0   "explicit-any occurrences in src: 137 (budget 138)"
+
+  pass B — 02:04–02:20, the final tree
+    CI=1 pnpm test                 -> exit 0   Test Files 78 passed (78), Tests 872 passed (872),
+                                               Duration 109.03s (transform 6.67s, import 31.10s,
+                                               tests 55.16s), started 02:04:21
+    CI=1 pnpm test:coverage        -> exit 0   Test Files 78 passed (78), Tests 872 passed (872),
+                                               Duration 137.28s (transform 7.22s, import 35.34s,
+                                               tests 69.63s), started 02:06:12
+                                               All files: % Stmts 79.09 | % Branch 70.44 |
+                                                        % Funcs 82.92 | % Lines 80.43
+                                               — identical to pass A, as expected from edits that
+                                               touch no src/ or tests/ file
+    node scripts/audit-check.js    -> exit 0   "Zero vulnerabilities found; 6 historical advisory
+                                               records remain in the triage register."
+    node scripts/audit-threshold.js-> exit 0   "critical: 0, high: 0, moderate: 0, low: 0 —
+                                               within vulnerability policy"
+    node scripts/explicit-any-budget.js -> exit 0  "explicit-any occurrences in src: 137 (budget 138)"
+    CI=1 pnpm lint                 -> exit 0
+    pnpm typecheck                 -> exit 0
+    pnpm build                     -> exit 0
+
+  Both test gates ran with NODE_ENV=test and
+  DATABASE_URL=postgresql://root@localhost:5432/vmnl_enterprise_gates?schema=public against the real
+  PostgreSQL 18.3 server — Postgres is a dependency of these gates, not a mocked one.
+
+  Coverage floors from vitest.config.ts (AUD-18), printed here to show they were not moved:
+  statements 73, branches 62, functions 77, lines 72. All four measured metrics clear their floor.
+
+Structure invariants on the final tree:
+
+  wc -l tasks.md docs/handoffs/LATEST.md   -> 1733 tasks.md, 456 docs/handoffs/LATEST.md (2189 total)
+  git status --porcelain, excluding the owner's untracked pages.pdf -> 5 entries:
+      M docs/handoffs/LATEST.md
+      M docs/runbooks/rollback-runbook.md
+      M tasks.md
+      M tests/unit/tenant-scoping-routes.test.ts
+      ?? docs/audit/evidence/tsk51-rollback-rehearsal-2026-10-15/
+  git remote -v                            -> 0 lines (no remote configured; nothing was pushed)
+  scratch rehearsal databases remaining    -> 0   (select count(*) from pg_database
+                                                     where datname like 'vmnl_tsk51%')
+
+State of the gate/test database the two test gates run against, read-only, after pass B:
+
+  tables=44  columns=470  indexes=122  journal=12 applied=12 rolled_back=0
+  "CNT-TSK58B1-NOPE" / "-NOPE2"      -> 0 rows in "ContentItemRecord"
+  rehearsal rows (requestRef like    -> 0
+    'TSK51-A%')
+  "DataSubjectRequest" rows          -> 47 counted at 01:57 (after pass A), 49 at 02:20 (after pass
+                                        B). Each full-suite invocation adds exactly 1, so 45
+                                        beforehand — the attribution is the stored createdAt of
+                                        each row matching a run start time, not a direct count.
+  index set                          -> still BroadcastEpisode_programmeCode_idx +
+                                        Programme_channelCode_idx (legacy_present=2),
+                                        composite_present=0
+
+The index/journal lines are the drift README.md records under "Observed while measuring": this
+database is one migration behind prisma/migrations (12 journal rows against 13 directories), and
+both full gates pass in that state. The rehearsal did not "fix" that.
+
+The one-row-per-run residue is pre-existing behaviour of the privacy suite, not something this tree
+introduced, and it is stated exactly because an earlier draft of this file had it wrong.
+`tests/security/route-authorization.test.ts:277` POSTs `/api/v1/privacy/export-request`, and
+`src/api/routes/privacy.routes.ts:64-71` deliberately persists a `DSR-EXP-<uuid>` ledger row for it
+— the test asserts that write at `:289` — and nothing deletes it afterwards. Two traps produced the
+wrong first reading: (a) those rows' `timestamp without time zone` values are written UTC-naive by
+Prisma while the server session is `Africa/Lagos`, so a run at 01:36 local records 00:36 and one at
+02:04 records 01:04; filtering on local wall clock therefore reports zero new rows. (b) Concluding
+from that filter that the runs "tore down clean". They do not: pass A added 2 rows (00:36, 00:43
+stored = 01:36, 01:43 local) and pass B added 2 (01:04, 01:07 stored = 02:04, 02:06 local). No
+cleanup was attempted —
+deleting ledger rows that the durability tests assert against would weaken a different gate, and the
+suite is required (TSK-17) to be repeatable on this residue, which four 872/872 runs here confirm.
+
+Why the test gates are reported with durations at all: this battery is the evidence that the
+rehearsal's documentation edits and the one behavioural test edit did not break anything, and the
+durations are the only part of a green run that records machine contention.
+
+Not this tree's doing, but part of the honest record: the machine carried load averages of 206–309
+for the whole session (284 runnable processes belonging to the owner's own running services — the
+`azeebo+` stack, php-fpm, Brave, Google, other node processes; none of them touched here). The
+duration spread above is that load, not the code: the same 78-file suite measured 47.72 s in pass A
+and 109.03 s in pass B. Under that load the *earlier* coverage attempts on this tree failed for
+reasons that had nothing to fail in the application:
+
+  attempt 1 — exit 1, 7 failures in tests/unit/tenant-scoping-routes.test.ts. One fork starved for
+              953,811 ms, which expired the Prisma transaction inside a CMS write, so a request that
+              should have been refused returned 201 and later fixtures collided on `[CMS-01] already
+              exists`. Archived: coverage-attempt-1-starved-fork.txt
+  attempt 2 — exit 1, `expected 'CMS-01' to be 'CMS-11'`. The starved run had persisted
+              `CNT-TSK58B1-NOPE` into `ContentItemRecord` and the fixture's afterAll did not clean
+              that id, so the next run asserted against leftover state. Captured and removed, then
+              the test was hardened rather than relaxed: archived:
+              gate-database-leftover-rows.txt
+
+The fix for both is in tests/unit/tenant-scoping-routes.test.ts: `afterAll` now also deletes
+`REFUSAL_IDS` (`CNT-TSK58B1-NOPE`, `CNT-TSK58B1-NOPE2`) from `contentItemRecord` and
+`contentRevisionRecord`, and the CMS-binding refusal test reads Postgres back after the HTTP
+refusals and asserts `expect(persisted).toEqual([])`. That is an additional assertion, not a
+weakened one — a refusal that persists is now a failure instead of a fixture leak for the next run.
+All four green runs above executed that hardened file, and the two `0 rows in ContentItemRecord`
+checks are its result.
+
+The earlier `CI=1 pnpm test:coverage -> exit 1` line in the first draft of this artifact was a stale
+record of attempt 2 and is superseded by the numbers in this file.
+
+Documentation edits after pass B, and the three attempts they required.
+
+After pass B this file, README.md and the LATEST.md coverage pin row were edited — including a
+correction of a false claim the first draft of this file published about the gate database residue
+(described above). Those are text under docs/ and docs/handoffs/: nothing in eslint's scope, tsc's
+program or the v8 coverage instrumentation reads them. The instruments that DO read documentation
+were re-run on the final tree and passed:
+
+  CI=1 pnpm vitest run tests/unit/citation-integrity.test.ts
+                      tests/unit/register-inheritance.test.ts
+                      tests/unit/a11y-claim-hygiene.test.ts
+                                  -> exit 0   Test Files 3 passed (3), Tests 16 passed (16)
+                                        (citation-integrity 5, register-inheritance 7,
+                                         a11y-claim-hygiene 4), 03:58 WAT
+  node scripts/audit-check.js            -> exit 0   (re-run 03:58, after the doc edits)
+  node scripts/audit-threshold.js        -> exit 0
+  node scripts/explicit-any-budget.js    -> exit 0
+  wc -l tasks.md docs/handoffs/LATEST.md -> 1733, 456 (unchanged by the edits)
+
+That is not the whole story, because the full battery was then re-run on the final tree anyway and
+the machine was no longer able to run it honestly.
+
+  pass C — 04:31–05:3x WAT, the fully edited tree, load average 279–348
+    CI=1 pnpm test         -> exit 1   Test Files 1 failed | 76 passed (77),
+                                        Tests 1 failed | 858 passed (859), 1 error
+      × todo-final-remediation.test.ts "memory adapter: get/set/del, TTL expiry,
+        setIfAbsent lock semantics, incrBy, keys" — Error: Test timed out in 60000ms,
+        the test recorded at 588,951 ms.
+      Errors: [vitest-pool]: Failed to start forks worker for test files
+        tests/unit/broadcast-schedule-lifecycle.test.ts — Timeout waiting for worker to
+        respond. That is why 77 files report instead of 78: one file never started.
+    CI=1 pnpm test:coverage-> exit 1   Test Files 1 failed | 77 passed (78),
+                                        Tests 2 failed | 870 passed (872),
+                                        Duration 3722.14s
+      × durability-release-critical.test.ts "keeps a session durable without ever storing
+        the raw token" and "fails closed with 503 and rolls the approval back when Postgres
+        rejects the row" — Error: spawnSync …/bin/node ETIMEDOUT at
+        tests/unit/durability-release-critical.test.ts:120. The file took 3,633,933 ms for
+        its 19 tests.
+    CI=1 pnpm lint         -> exit 0
+    pnpm typecheck         -> exit 0
+    pnpm build             -> exit 0
+
+  Pass C is red on three different files across its two test gates, and the fourth file that would
+  have been named by a fourth attempt is a coin flip. Every failure is a scheduling failure: a child
+  process that could not be spawned in time (`spawnSync … ETIMEDOUT`), a worker that could not start
+  (`Timeout waiting for worker to respond`), and a fork that took 588.951 s / 3633.933 s for work
+  that completes in seconds. None of them is an assertion about application behaviour that this tree
+  changed. The same class is already recorded in this register's 2026-10-13 pin (a 978 s fork wait
+  and a 959 s import, on a run that passed on an idle machine).
+
+  pass D — focused retries of the three files pass C named, load still ~280
+    pnpm vitest run tests/unit/todo-final-remediation.test.ts
+                                -> exit 0   1 file, 84 tests passed, Duration 34.59s
+                                     (the same file timed out at 60 s inside pass C)
+    pnpm vitest run tests/unit/broadcast-schedule-lifecycle.test.ts
+                                -> exit 0   1 file, 13 tests passed, Duration 2.85s
+                                     (the same file never started inside pass C)
+    pnpm vitest run tests/unit/durability-release-critical.test.ts
+                                -> exit 1   1 file failed, 16 passed | 3 failed,
+                                            Duration 388.59s (the file's own tests 298.52s)
+                                     × "keeps a CMS revision chain durable, including the
+                                       superseded revision" 39,679ms and
+                                     × "persists a sponsor binding with its placement counter
+                                       and fulfilment evidence" 37,856ms — both
+                                       Error: [TSK-17] restart read failed for '<entity>'
+                                       <key>: Connection terminated due to connection timeout,
+                                       i.e. the spawned child could not open its Prisma
+                                       connection in time.
+                                     × "a 201 enquiry response means the row is already in
+                                       Postgres" 283ms — AssertionError: expected 18 to be
+                                       greater than 18 at
+                                       tests/unit/durability-release-critical.test.ts:687,
+                                       i.e. durableJournalStats().persisted had not advanced
+                                       between the two samples. That one is a timing-sensitive
+                                       counter read, not a spawn failure, and it is the same
+                                       class: the drain had not been scheduled yet.
+                                     Running one file alone does not make the machine idle;
+                                     the host load was 279.
+
+  pass E — the full suite re-run on the final tree
+    CI=1 pnpm test         -> exit 0   Test Files 78 passed (78), Tests 872 passed (872),
+                                        Duration 859.14s (transform 52.30s, import 263.55s,
+                                        tests 427.14s)
+                                     (start times around 09:1x WAT, load 279–282)
+
+  So the green battery for the tree being committed is: lint, typecheck and build at pass C
+  (measured after every edit that could reach them), `pnpm test` at pass E (the final tree, 872/872),
+  and `pnpm test:coverage` at pass A/B (79.09 / 70.44 / 82.92 / 80.43, 872/872, both times, on the
+  identical src/ and tests/ state — the only delta since is documentation text, which v8 coverage
+  does not instrument). Coverage was NOT re-run after pass C's contention failure on this tree, and
+  that is stated rather than papered over: a retry was likely to fail on scheduling again, and
+  inventing a third coverage number from a starved host would make the artifact less trustworthy,
+  not more.
+
+  No threshold, floor, census, budget or assertion was moved to reach any of the exits above. The
+  one gate that came back red (pass C) is reported red with its signatures, and the passes that are
+  quoted as green are the ones whose measurements the final tree actually satisfies.
+
+  Final re-verification (09:41 WAT), after tasks.md's TSK-51 evidence row and LATEST.md's coverage
+  pin row were edited to carry the pass C / pass E record — those two files are parsed by doc guards,
+  so the guards were re-run rather than assumed:
+
+    CI=1 pnpm vitest run tests/unit/citation-integrity.test.ts
+                        tests/unit/register-inheritance.test.ts
+                        tests/unit/a11y-claim-hygiene.test.ts
+                        tests/unit/state-machine-doc-pins.test.ts
+                                -> exit 0   Test Files 4 passed (4), Tests 23 passed (23)
+                                     (citation-integrity 5, register-inheritance 7,
+                                      state-machine-doc-pins 7, a11y-claim-hygiene 4)
+    node scripts/audit-check.js         -> exit 0
+    node scripts/audit-threshold.js     -> exit 0
+    node scripts/explicit-any-budget.js -> exit 0
+    wc -l tasks.md docs/handoffs/LATEST.md -> 1733, 456
+    git diff --numstat                  -> tasks.md 3/3, docs/handoffs/LATEST.md 2/2
+                                           (replacements, not additions: the fixed-length
+                                            documents kept their line counts)
+    git status --porcelain (excl. the owner's untracked pages.pdf) -> 5 entries, listed above
+    git remote -v                       -> 0 lines; nothing was pushed, by the owner's standing
+                                           instruction that push is their decision

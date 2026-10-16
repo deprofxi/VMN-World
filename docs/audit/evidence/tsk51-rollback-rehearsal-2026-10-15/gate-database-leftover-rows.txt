@@ -1,0 +1,81 @@
+# Gate-database orphan row produced by the starved coverage attempt (2026-10-15/16)
+
+This is the row that turned attempt 2 of `pnpm test:coverage` red. It is kept here because the
+failure is not a code regression and not a flake either — it is fixture ownership, and the register's
+repeatability requirement is what caught it.
+
+## The row, captured from `vmnl_enterprise_gates` before removal (2026-10-15 23:59:57 UTC)
+
+```
+=== ContentItemRecord ===
+        id        | currentRevision | status | destinationId | publication | withdrawal |        createdAt        |        updatedAt
+------------------+-----------------+--------+---------------+-------------+------------+-------------------------+-------------------------
+ CNT-TSK58B1-NOPE |               1 | DRAFT  |               |             |            | 2026-10-15 23:25:19.688 | 2026-10-15 23:25:19.688
+
+=== ContentRevisionRecord ===
+         id         |    contentId     | revision |    title     |         slug          | summary | body | relatedUnit |   mediaAssetIds   | claimSources | alternativeText |       authorId
+-------------------+------------------+----------+--------------+-----------------------+---------+------+-------------+-------------------+--------------+-----------------+----------------------
+ CNT-TSK58B1-NOPE:1 | CNT-TSK58B1-NOPE |        1 | Foreign media | tsk58b1-foreign-media  | s       | b    | VMNL        | ["MA-TSK58B1-A1"] | []           |                 | usr-tsk58b1-tenant-b
+```
+
+`CNT-TSK58B1-NOPE` is the id `tests/unit/tenant-scoping-routes.test.ts` POSTs when it asserts that
+binding **another tenant's** asset is refused with `422 [CMS-11]`. A refused request must write
+nothing. This one wrote a DRAFT item and its revision.
+
+## Why it happened (attempt 1, `coverage-attempt-1-starved-fork.txt`)
+
+Load average 294 — the owner's separate `azeebo+` workspace was running ~30 NestJS services; none of
+them were touched. Under that contention the file's first test held its fork for **953,811 ms** and
+Prisma failed mid-write:
+
+```
+Transaction API error: A query cannot be executed on an expired transaction. The timeout for this
+transaction was 120000 ms, however 953793 ms passed since the start of the transaction.
+```
+
+The asset fixtures therefore never landed in Postgres while the in-process registry still knew them,
+so the cross-tenant refusal did not fire (the same file reported `expected 201 to be 422`), and the
+content write that should have been refused went through. 7 of the file's 8 tests then failed against
+a database that did not contain the state they were written to assert.
+
+## Why it broke attempt 2 as well
+
+After the starved run, `afterAll` cleaned the media assets and the `CNT-TSK58B1-EDIT` content row but
+**not** the two refusal-probe ids, so the orphan survived into the next run. Attempt 2, on a much
+quieter machine (60.54 s total), failed exactly one assertion:
+
+```
+AssertionError: expected 'CMS-01' to be 'CMS-11'
+```
+
+`[CMS-01]` is "Content '…' already exists" (`src/core/content/index.ts:146`), which the domain raises
+*before* media validation. So the test was no longer asserting the tenant guard at all — it was
+asserting that its own leftover row existed.
+
+## Verified: a clean run writes nothing and leaves nothing
+
+With the two rows deleted, the file alone, on the same tree:
+
+```
+Test Files  1 passed (1)
+     Tests  8 passed (8)
+leftovers_after_clean_run=0/0/0     # ContentItemRecord / ContentRevisionRecord / MediaAssetRecord matching %TSK58B1%
+```
+
+So the guard is correct on a non-starved transaction; the orphan was produced by the expired
+transaction, not by the refusal path being unsound.
+
+## Closed as fixture ownership, not as a deleted assertion
+
+`tests/unit/tenant-scoping-routes.test.ts` now (a) adds the two refusal ids to `afterAll` so a failed
+run cannot poison the next one, and (b) asserts the durable consequence directly — after both 422s it
+reads `ContentItemRecord` and requires the two ids to be absent. Under a future starved run that will
+fail *loudly in the test that owns the behaviour*, instead of surfacing as an unrelated `[CMS-01]` in
+the following run. `tasks.md` TSK-58's evidence line carries the added assertion.
+
+Removal command used on the gate database (local scratch test DB, rows created by the suite):
+
+```sql
+DELETE FROM "ContentRevisionRecord" WHERE "contentId" LIKE '%TSK58B1%';
+DELETE FROM "ContentItemRecord"     WHERE id          LIKE '%TSK58B1%';
+```
