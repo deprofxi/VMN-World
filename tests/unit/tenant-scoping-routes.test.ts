@@ -51,6 +51,8 @@ const KEY_B = `tenants/${TENANT_B}/master.mp4`;
 const KEY_PLATFORM = "enterprise/sting.mp4";
 const TITLE_A = "Tenant A master — must never surface to tenant B";
 const EDIT_CONTENT_ID = "CNT-TSK58B1-EDIT";
+// The two ids the CMS-binding refusals POST. They must never exist in Postgres.
+const REFUSAL_IDS = ["CNT-TSK58B1-NOPE", "CNT-TSK58B1-NOPE2"];
 
 function request(
   path: string,
@@ -139,8 +141,8 @@ describe("TSK-58 box 1: cross-tenant refusal reaches the HTTP surface", () => {
     if (db.connected) {
       const prisma = getPrismaClient();
       await prisma.mediaAssetRecord.deleteMany({ where: { id: { in: [ASSET_A, ASSET_B, "MA-TSK58B1-UNOWNED"] } } });
-      await prisma.contentRevisionRecord.deleteMany({ where: { contentId: { in: [EDIT_CONTENT_ID] } } });
-      await prisma.contentItemRecord.deleteMany({ where: { id: { in: [EDIT_CONTENT_ID] } } });
+      await prisma.contentRevisionRecord.deleteMany({ where: { contentId: { in: [EDIT_CONTENT_ID, ...REFUSAL_IDS] } } });
+      await prisma.contentItemRecord.deleteMany({ where: { id: { in: [EDIT_CONTENT_ID, ...REFUSAL_IDS] } } });
     }
   });
 
@@ -258,6 +260,14 @@ describe("TSK-58 box 1: cross-tenant refusal reaches the HTTP surface", () => {
     expect(f.code).toBe(u.code);
     expect(f.message).toBe(u.message.replace("MA-DOES-NOT-EXIST", ASSET_A));
     expect(foreign.body).not.toContain(TITLE_A);
+    // Neither refusal may reach persistence. A starved run on 2026-10-15 wrote one of these
+    // rows through an expired Prisma transaction, and the orphan made the next run fail on
+    // [CMS-01] "already exists" instead of on the refusal it was asserting.
+    const persisted = await getPrismaClient().contentItemRecord.findMany({
+      where: { id: { in: [...REFUSAL_IDS] } },
+      select: { id: true },
+    });
+    expect(persisted).toEqual([]);
   });
 
   it("refuses an edit that binds another tenant's asset, on the mutating route", async () => {
