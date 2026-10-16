@@ -7,6 +7,12 @@ export default defineConfig({
     hookTimeout: 60000,
     include: ["tests/**/*.test.ts"],
     exclude: ["dist/**", "node_modules/**"],
+    // TSK-61: before any test file loads, create + `prisma migrate deploy` the
+    // suite's dedicated `<db>_test` database and export it as DATABASE_URL, so
+    // the gate is green on a seeded *or* unseeded development database. Runs
+    // for `test`, `test:coverage` and focused `vitest run` alike — a `pretest`
+    // script would not cover the latter two.
+    globalSetup: ["tests/global-setup.ts"],
     // TSK-05: the DB-backed repository suites write to one shared Postgres and
     // assert on the rows they seeded, so files must not interleave. The forks
     // pool still isolates module state per file; this only removes cross-file

@@ -129,17 +129,46 @@ export function durableJournalStats(): Readonly<JournalStats> {
 }
 
 /**
- * Drains the journal. Each group's rows go into ONE Prisma transaction, so a
+ * Single-flight chain (regression caught 2026-10-16): a request's response
+ * choke point (`sendJson`) and the `finally` backstop in
+ * `serveRequestInJournalGroup` can enter `flushDurableJournal()` concurrently
+ * — both pass the `staged.size` check while one is suspended on
+ * `checkDatabaseConnection()` — and the later entrant can take the batch.
+ * Its rejection is then swallowed by the backstop's `.catch()` while the
+ * response reports 201 for rows the database has already rolled back: a
+ * caller told a write landed when it did not. Drains therefore run strictly
+ * one at a time, in registration order, so each caller observes the fate of
+ * the rows it staged.
+ */
+let flushChain: Promise<unknown> = Promise.resolve();
+
+export function flushDurableJournal(): Promise<{ written: number }> {
+  // The journal group is captured at call time: this drain may queue behind
+  // another, and once it resumes the async context is not guaranteed to still
+  // be the caller's — but the rows it selects must be this caller's group.
+  const scope = currentJournalGroup() ?? UNGROUPED;
+  const result = flushChain.then(
+    () => drainJournal(scope),
+    () => drainJournal(scope)
+  );
+  flushChain = result.then(
+    () => undefined,
+    () => undefined
+  );
+  return result;
+}
+
+/**
+ * One drain. Each group's rows go into ONE Prisma transaction, so a
  * consequential business write and the audit entries recorded for it are
  * durable together (TSK-18 box 1). Throws `RepositoryUnavailableError`
  * (→ HTTP 503) when the database is reachable and a transaction is rejected
  * while the repository is operating fail-closed.
  */
-export async function flushDurableJournal(): Promise<{ written: number }> {
+async function drainJournal(scope: string): Promise<{ written: number }> {
   if (staged.size === 0) return { written: 0 };
 
   const db = await checkDatabaseConnection();
-  const scope = currentJournalGroup() ?? UNGROUPED;
   // Outside a request everything drains; inside one, only this request's rows
   // and the ungrouped (server-side) backlog join its transactions. Another
   // in-flight request's rows stay staged: they answer through their own choke

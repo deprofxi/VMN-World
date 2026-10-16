@@ -165,7 +165,10 @@ describe("TSK-47: every durable domain has a restart/failure drill", () => {
     expect(has("sandbox"), "the sandbox-deferred census drill disappeared").toBe(true);
     expect(has("replay"), "the cross-process provider replay drill disappeared").toBe(true);
     expect(has("nobody registered"), "the unregistered-store refusal drill disappeared").toBe(true);
-    expect(labels.length, "the durability suite's declared test count drifted from its restartIt/it labels").toBe(19);
+    // TSK-61's single-flight regression: the interleaving that once let one
+    // flush take another's batch and answer 201 for a rolled-back row.
+    expect(has("serializes concurrent drains"), "the concurrent-drain serialization drill disappeared").toBe(true);
+    expect(labels.length, "the durability suite's declared test count drifted from its restartIt/it labels").toBe(20);
     // The unregistered-store case is asserted at the seam, not only by label.
     const suite = read(DURABILITY_SUITE);
     expect(suite).toContain("RepositoryUnavailableError");

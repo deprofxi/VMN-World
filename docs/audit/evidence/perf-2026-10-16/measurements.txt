@@ -1,0 +1,53 @@
+TSK-62 — frozen byte budgets measured against golden-seeded data
+Measured 2026-10-16 on the tree under test (Phase 0 enterprise-readiness remediation).
+
+Environment:
+- Database: `vmnl_enterprise_test_perfseed` — created if missing, `prisma migrate deploy`
+  (13 migrations, 44 tables), seeded through `runDatabaseSeed()` (the same idempotent
+  path `pnpm db:seed` runs): 3 channels, 50 programmes, 200 episodes, 10 campaigns,
+  10 as-run logs, 20 talent profiles, 250 DAM assets registered, 200 episode-media
+  references persisted, 251 `MediaAssetRecord` rows in the database at measurement time.
+- Server: `createApiServer(0)` boot under Vitest (NODE_ENV=test), loopback,
+  `Accept-Encoding: identity` per the frozen procedure in
+  `docs/audit/performance-budgets.md`.
+- The development database (`vmnl_enterprise`) was not connected to by this test.
+
+Command (reproduce):
+  pnpm vitest run tests/unit/performance-budget-seeded-data.test.ts
+
+Run 1 — 2026-10-16 10:31 local (DEBT-010 row not yet written; the miss assertion
+fails on purpose until the debt is recorded — Rule 0.3, recorded rather than weakened):
+
+[VMNL-DB-SEED] DAM backfill: 250 assets registered, 200 episode references persisted.
+[TSK-62] seeded DB census: episodes=200 assets=251
+[TSK-62] GET / (seeded) → 20308 B in 56 ms
+[TSK-62] GET /channels/nxtr (seeded) → 72026 B in 14 ms (budget 25600 B)
+[TSK-62] TTFB artifact: cold(first request after boot)=1841 ms, warm samples=11/35/3 ms,
+         warm median=11 ms (budget: warm ≤ 200 ms, loopback sandbox only)
+
+Comparison against the frozen targets (docs/audit/performance-budgets.md):
+
+| Surface | Target | Unseeded (2026-10-14) | Golden-seeded (2026-10-16) | Verdict on seeded data |
+|---|---|---|---|---|
+| `/` public shell | ≤ 25 KB | 20,308 B | 20,308 B | MET |
+| `/channels/nxtr` public shell | ≤ 25 KB | 17,945 B | 72,026 B | MISSED — 2.8× — DEBT-010 |
+| Server TTFB warm (loopback) | ≤ 200 ms | 11–15 ms median | 11 ms median (11/35/3) | MET (sandbox only) |
+| Server TTFB cold (first request after boot) | no frozen budget | not previously recorded | 1,841 ms this run; 2,967 ms / 7,221 ms in the 2026-10-16 deep-check probes; one probe exceeded the 15 s test-probe timeout under machine load | Recorded, not budgeted — see performance-budgets.md §7.7 note |
+
+Run 2 — 2026-10-16 10:34 local (after the DEBT-010 row was written; the same command,
+7-file focused batch also covering the original budget test and the doc guards — exit 0,
+Test Files 7 passed, Tests 31 passed):
+
+[TSK-62] seeded DB census: episodes=200 assets=251
+[TSK-62] GET / (seeded) → 20308 B in 12 ms
+[TSK-62] GET /channels/nxtr (seeded) → 72026 B in 188 ms (budget 25600 B)
+[TSK-62] TTFB artifact: cold(first request after boot)=1153 ms, warm samples=3/9/10 ms,
+         warm median=9 ms
+[TSK-63] inline style attributes in src: 56 occurrences / 52 lines / 19 files (ceiling 56)
+[citation-integrity] 1942 path citations resolved or annotated
+
+Run-to-run agreement: `/` 20,308 B and `/channels/nxtr` 72,026 B are byte-identical across
+both runs and match the independent deep-check probe of the golden-seeded development
+database taken earlier the same day (72,026 B). The DEBT-010 row in
+`docs/design-debt-register.md` carries these numbers; reproduction:
+`pnpm vitest run tests/unit/performance-budget-seeded-data.test.ts`.

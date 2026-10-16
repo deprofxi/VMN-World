@@ -19,7 +19,7 @@
     "audit:check": "node scripts/audit-check.js",
     "audit:threshold": "node scripts/audit-threshold.js",
     "any:budget": "node scripts/explicit-any-budget.js",
-    "test:a11y": "playwright test"
+    "test:a11y": "vitest run tests/a11y"
   },
   "keywords": [
     "vmnl",

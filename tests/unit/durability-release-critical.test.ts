@@ -711,7 +711,6 @@ describe.skipIf(!DURABLE)("TSK-17: the HTTP response path is what drains the jou
       financialScopeNgn: 1e13,
       objectRevision: 1,
     });
-
     expect(res.statusCode).toBe(503);
     expect(res.json.code).toBe("REPOSITORY_UNAVAILABLE");
     // Rolled back out of the read index: nothing is left claiming the write landed.
@@ -791,10 +790,17 @@ describe.skipIf(!DURABLE)("TSK-17: the journal fails closed when a durable write
     id: string;
   }
   const optimisticIndex = new Map<string, string>();
+  /** Gated persister: holds the first drain inside its transaction on purpose. */
+  let gate: Promise<void> = Promise.resolve();
+  let releaseGate: () => void = () => {};
 
   beforeAll(() => {
     registerDurableStore<NegativePayload>("durability-negative-control", async (payload) => {
       // Stands in for a constraint violation on a *reachable* database.
+      throw new Error(`[TSK-17 TEST] durable write rejected for ${payload.id}`);
+    });
+    registerDurableStore<NegativePayload>("durability-gated-control", async (payload) => {
+      await gate;
       throw new Error(`[TSK-17 TEST] durable write rejected for ${payload.id}`);
     });
   });
@@ -820,6 +826,66 @@ describe.skipIf(!DURABLE)("TSK-17: the journal fails closed when a durable write
     expect((thrown as RepositoryUnavailableError).code).toBe("REPOSITORY_UNAVAILABLE");
     expect((thrown as RepositoryUnavailableError).status).toBe(503);
     // The optimistic read-index entry is gone: nothing claims a write that failed.
+    expect(optimisticIndex.size).toBe(0);
+    expect(pendingDurableWrites()).toBe(0);
+    expect(durableJournalStats().failed).toBeGreaterThanOrEqual(1);
+  });
+
+  restartIt("serializes concurrent drains so one flush can never take another's batch", async () => {
+    // Regression (caught 2026-10-16): the response choke point's flush and the
+    // request's `finally` backstop could enter the journal at the same time —
+    // both passing the `staged.size` check while one was suspended on the
+    // connection check — so the backstop could take the batch, have its
+    // rejection swallowed by its own `.catch()`, and the response would report
+    // 201 for rows the database had just rolled back. The gate holds the first
+    // drain inside its transaction while the second arrives: the exact
+    // interleaving, made deterministic.
+    optimisticIndex.set("g-1", "gated optimistic entry");
+    gate = new Promise<void>((resolve) => {
+      releaseGate = () => resolve();
+    });
+    stageDurableWrite<NegativePayload>({
+      store: "durability-gated-control",
+      key: "g-1",
+      payload: { id: "g-1" },
+      rollback: () => optimisticIndex.delete("g-1"),
+    });
+
+    const first = flushDurableJournal();
+    const second = flushDurableJournal();
+    const firstOutcome = first.then(
+      (result) => ({ ok: true as const, written: result.written }),
+      (error) => ({ ok: false as const, error })
+    );
+    let secondSettled = false;
+    void second.then(
+      () => {
+        secondSettled = true;
+      },
+      () => {
+        secondSettled = true;
+      }
+    );
+
+    try {
+      // Give the first drain time to reach its gated transaction and the second
+      // drain every chance to run. Serialized: the second cannot start.
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      expect(secondSettled, "a queued drain must not run while another is in flight").toBe(false);
+      // The first drain took the batch — it, not a concurrent interloper, owns
+      // the outcome its caller is waiting for.
+      expect(pendingDurableWrites()).toBe(0);
+    } finally {
+      releaseGate();
+    }
+
+    // The failure reaches the caller who staged the rows (→ HTTP 503), and the
+    // queued drain finds nothing left rather than a batch it may not own.
+    const outcome = await firstOutcome;
+    expect(outcome.ok).toBe(false);
+    if (outcome.ok) throw new Error("the gated transaction unexpectedly succeeded");
+    expect(outcome.error).toBeInstanceOf(RepositoryUnavailableError);
+    await expect(second).resolves.toEqual({ written: 0 });
     expect(optimisticIndex.size).toBe(0);
     expect(pendingDurableWrites()).toBe(0);
     expect(durableJournalStats().failed).toBeGreaterThanOrEqual(1);

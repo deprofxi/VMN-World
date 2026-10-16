@@ -47,3 +47,30 @@ flipped by this record: the per-view budget is missed, and the TTFB figure is a 
 `PASSED` claim would not be evidence-backed. Note for TSK-39: this document's header cites `CCPP §7.7`, which is one
 of the sub-sections TSK-39 records as not existing in the numbered CCPP.
 
+## Measured 2026-10-16 (TSK-62 — the same budgets against golden-seeded data)
+
+The 2026-10-14 sweep measured a **migrated, unseeded** database, where `/channels/nxtr`
+renders its empty states. Production databases are not empty, so TSK-62 re-measured the two
+public-shell surfaces and TTFB against a golden-seeded database (`<testdb>_perfseed`:
+200 episode masters, 251 media assets, created and seeded by the test itself — the
+development database is never touched). Reproduce with
+`pnpm vitest run tests/unit/performance-budget-seeded-data.test.ts`; raw figures in
+`docs/audit/evidence/perf-2026-10-16/measurements.txt`.
+
+| Budget | Target | Measured (identity, seeded) | Verdict |
+|---|---|---|---|
+| Public page shell `/` | ≤ 25 KB | 20,308 B | **MET** (byte-identical to the unseeded figure — the shell is static) |
+| Public page shell `/channels/nxtr` | ≤ 25 KB | 72,026 B | **MISSED — 2.8×** → **DEBT-010** (unseeded: 17,945 B, MET) |
+| Server TTFB (warm, loopback) | ≤ 200 ms | 9–11 ms median across runs | **MET (sandbox only — not a production measurement)** |
+| Server TTFB (cold, first request after boot) | no frozen budget | 1,153 ms and 1,841 ms across runs; 2,967 ms / 7,221 ms in same-day standalone probes; one probe exceeded a 15 s test timeout under machine load | **Recorded, not budgeted** — cold-start render time has no frozen target; freezing one is a §7.7 owner decision |
+
+The seeded misses are named as **DEBT-010** (channel page) with owner and expiry in
+`docs/design-debt-register.md`; the assertion that found it
+(`tests/unit/performance-budget-seeded-data.test.ts`) fails if the page ever comes back
+inside the budget without the debt row being closed, and fails if the miss is ever
+unrecorded. G-gate §7.7 remains **unflipped** for the reasons TSK-50 records: the per-view
+and stylesheet budgets still miss (DEBT-008), the channel page now misses on realistic
+data (DEBT-010), and every TTFB figure here is a loopback sandbox number. What changed is
+that the artefacts behind the numbers now exist in the repository, which is the precondition
+this document set for leaving `NOT_RUN` — the flip itself stays with the gate owner.
+
