@@ -473,7 +473,11 @@ describe("SEC-10: KeyValueAdapter backends honour the same contract", () => {
     const redisResolved = resolveKeyValueAdapter({}, () => ({ call: async () => "PONG" }));
     expect(redisResolved.backend).toBe("redis");
 
-    process.env.REDIS_URL = previous;
+    // PR-15: `process.env.X = undefined` stores the *string* "undefined", which
+    // every later test in this file inherited — the strict REDIS_URL schema
+    // caught it, but the leak is the defect: restore by deletion.
+    if (previous === undefined) delete process.env.REDIS_URL;
+    else process.env.REDIS_URL = previous;
     _resetCacheAdapterForTesting();
   });
 });

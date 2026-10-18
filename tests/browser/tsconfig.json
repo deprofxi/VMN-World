@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["node"],
+    "noEmit": true,
+    "declaration": false,
+    "sourceMap": false
+  },
+  // `exclude` must be restated: the root config excludes `tests/browser` (to keep
+  // the DOM out of the server's lib set), and an inherited entry would exclude
+  // these very files from their own project.
+  "include": ["./**/*.spec.ts"],
+  "exclude": []
+}

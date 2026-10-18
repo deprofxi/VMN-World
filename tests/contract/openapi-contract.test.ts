@@ -7,12 +7,26 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { OPENAPI_SPEC } from "../../src/api/docs.js";
 import { createApiServer, ApiServerInstance } from "../../src/api/server.js";
 import { ROUTE_GUARDS } from "../../src/api/router.js";
+import { _resetConfigForTesting } from "../../src/core/config/index.js";
+import { _resetStorageReadinessCacheForTesting } from "../../src/core/storage/index.js";
+import { startStorageStub, type StorageStub } from "../helpers/storage-stub.js";
 
 describe("T-20 (B-17): OpenAPI Contract Verification", () => {
   let serverInstance: ApiServerInstance;
   let baseUrl: string;
+  let storageStub: StorageStub;
+  let previousStorageEndpoint: string | undefined;
 
   beforeAll(async () => {
+    // PR-08: `/readyz` now proves object storage by opening a connection, so a
+    // suite asserting the green path supplies one. Without this the contract
+    // test would assert readiness against an endpoint nothing answers.
+    storageStub = await startStorageStub();
+    previousStorageEndpoint = process.env.STORAGE_ENDPOINT;
+    process.env.STORAGE_ENDPOINT = storageStub.endpoint;
+    _resetConfigForTesting();
+    _resetStorageReadinessCacheForTesting();
+
     // Start test server on random free port
     serverInstance = createApiServer(0);
     await serverInstance.start();
@@ -22,6 +36,11 @@ describe("T-20 (B-17): OpenAPI Contract Verification", () => {
 
   afterAll(async () => {
     await serverInstance.stop();
+    await storageStub.close();
+    if (previousStorageEndpoint === undefined) delete process.env.STORAGE_ENDPOINT;
+    else process.env.STORAGE_ENDPOINT = previousStorageEndpoint;
+    _resetConfigForTesting();
+    _resetStorageReadinessCacheForTesting();
   });
 
   it("verifies OpenAPI specification integrity and path definitions", () => {
@@ -69,6 +88,14 @@ describe("T-20 (B-17): OpenAPI Contract Verification", () => {
     expect(data.checks.queueWorker).toBeDefined();
     expect(data.checks.storage).toBeDefined();
     expect(data.checks.playout).toBeDefined();
+
+    // PR-08: the readiness contract's storage half is measured, not assumed. If
+    // the database is up, storage must ALSO be up for the endpoint to answer 200
+    // — which is only true because the probe reached the stub above.
+    if (data.checks.database === "connected") {
+      expect(data.checks.storage).toBe("ready");
+      expect(data.checks.storageGating).toBe("enforced");
+    }
   });
 
   it("validates /api/v1/broadcast/channels response matches contract schema", async () => {

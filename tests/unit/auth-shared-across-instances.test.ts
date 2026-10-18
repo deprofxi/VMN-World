@@ -44,6 +44,9 @@ import {
 import { createApiServer } from "../../src/api/server.js";
 import type { ApiServerInstance } from "../../src/api/server.js";
 import { checkDatabaseConnection } from "../../src/core/database/index.js";
+import { _resetConfigForTesting } from "../../src/core/config/index.js";
+import { _resetStorageReadinessCacheForTesting } from "../../src/core/storage/index.js";
+import { startStorageStub } from "../helpers/storage-stub.js";
 
 const PASSWORD = "SharedAcrossInstances2026!";
 const TOTP_SEED = "JBSWY3DPEHPK3PXP";
@@ -280,14 +283,24 @@ if (!WITH_DB) {
 describe.skipIf(!WITH_DB)("TSK-27: an unreachable shared backend takes the pod out of rotation", () => {
   const previousRedisUrl = process.env.REDIS_URL;
   const previousGating = process.env.KV_READINESS_GATING;
+  const previousDriver = process.env.STORAGE_DRIVER;
+  const previousEndpoint = process.env.STORAGE_ENDPOINT;
   let server: ApiServerInstance | null = null;
+  let storageStub: Awaited<ReturnType<typeof startStorageStub>> | null = null;
 
   afterAll(async () => {
     if (server) await server.stop();
+    if (storageStub) await storageStub.close();
     if (previousRedisUrl === undefined) delete process.env.REDIS_URL;
     else process.env.REDIS_URL = previousRedisUrl;
     if (previousGating === undefined) delete process.env.KV_READINESS_GATING;
     else process.env.KV_READINESS_GATING = previousGating;
+    if (previousDriver === undefined) delete process.env.STORAGE_DRIVER;
+    else process.env.STORAGE_DRIVER = previousDriver;
+    if (previousEndpoint === undefined) delete process.env.STORAGE_ENDPOINT;
+    else process.env.STORAGE_ENDPOINT = previousEndpoint;
+    _resetConfigForTesting();
+    _resetStorageReadinessCacheForTesting();
     _resetCacheAdapterForTesting();
     startInstance(new MemoryKeyValueAdapter());
   });
@@ -305,6 +318,16 @@ describe.skipIf(!WITH_DB)("TSK-27: an unreachable shared backend takes the pod o
     const adapter = resolveKeyValueAdapter();
     expect(adapter.backend).toBe("redis");
     expect(await adapter.isHealthy()).toBe(false);
+
+    // PR-08: `/readyz` now really probes object storage, so this pod must have a
+    // reachable one. Without it the 503 asserted below could be produced by
+    // storage rather than by the KV gate this test is about — and the final 200
+    // would be unreachable in any environment without MinIO.
+    storageStub = await startStorageStub({ status: 200 });
+    process.env.STORAGE_DRIVER = "minio";
+    process.env.STORAGE_ENDPOINT = storageStub.endpoint;
+    _resetConfigForTesting();
+    _resetStorageReadinessCacheForTesting();
 
     server = createApiServer(0, { NODE_ENV: "test" });
     await server.start();

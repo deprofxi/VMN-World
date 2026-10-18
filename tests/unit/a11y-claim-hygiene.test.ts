@@ -65,30 +65,42 @@ describe("TSK-46: accessibility conformance claim hygiene", () => {
     }
   });
 
-  it("keeps the browser-run claim at unproven while no browser has run", () => {
-    // TSK-45 owns the real-browser run. Until its boxes close, no document may
-    // imply that Playwright/axe coverage exists; the register says unproven and
-    // the evidence row says NOT_PROVEN.
-    const register = readFileSync(path.join(ROOT, "tasks.md"), "utf8");
-    expect(register).toMatch(/unproven|NOT_PROVEN/);
+  it("keeps the browser-run claim tied to a run that exists, and one that CI has not executed", () => {
+    // TSK-45's wiring boxes closed 2026-10-17: a real browser run exists and
+    // passes. The claim is only honest while it names a suite that is present, so
+    // the guard now checks the artifact rather than the absence of one — and it
+    // still refuses the *other* overstatement: no CI run has executed the suite,
+    // because the repository has no git remote (PR-02). A local green run is not
+    // a CI-verified run, and the register must keep saying so.
+    expect(readdirSync(ROOT)).toContain("playwright.config.ts");
+    const browserSpecs = readdirSync(path.join(ROOT, "tests", "browser")).filter((n) => n.endsWith(".spec.ts"));
+    expect(browserSpecs.length, "the browser run must have specs behind it").toBeGreaterThan(0);
+
     const evidence = readFileSync(path.join(ROOT, "docs/audit/evidence-register.md"), "utf8");
     expect(evidence).toMatch(/NOT_PROVEN/);
+    const register = readFileSync(path.join(ROOT, "tasks.md"), "utf8");
+    expect(register).toMatch(/unproven|NOT_PROVEN|no CI run has/);
   });
 
-  it("does not claim axe-core or a Playwright config that the repository lacks", () => {
+  it("wires the browser run it claims, and keeps both scripts declared", () => {
     const pkg = JSON.parse(readFileSync(path.join(ROOT, "package.json"), "utf8"));
-    const hasAxe = Boolean(pkg.dependencies?.["axe-core"] || pkg.devDependencies?.["axe-core"]);
+    // The two DevTools in this repository must stay distinguishable: `test:a11y`
+    // measures bytes (Vitest), `test:browser` measures rendering (Playwright).
+    // Neither may be presented as the other, and neither may quietly disappear.
+    expect(pkg.scripts?.["test:a11y"], "the HTML-shape suite must remain declared").toBeTypeOf("string");
+    expect(pkg.scripts?.["test:a11y"]).toContain("vitest");
+    expect(pkg.scripts?.["test:browser"], "the browser suite must remain declared").toBeTypeOf("string");
+    expect(pkg.scripts?.["test:browser"]).toContain("playwright test");
+
+    const hasAxeBrowser = Boolean(pkg.devDependencies?.["@axe-core/playwright"]);
     const hasConfig =
       readdirSync(ROOT).filter((n) => /^playwright\.config\.[cm]?[jt]s$/.test(n)).length > 0;
-
-    if (!hasAxe || !hasConfig) {
-      // The register's own TSK-45 preamble described `pnpm test:a11y` as
-      // "(Playwright + axe) exists". That is only true of the npm script.
-      const register = readFileSync(path.join(ROOT, "tasks.md"), "utf8");
-      expect(register, "a browser a11y run cannot be described as available when its wiring is absent").toMatch(
-        /axe-core|no Playwright config|not wired/
-      );
+    if (hasAxeBrowser || hasConfig) {
+      // A declared browser run needs both halves. Claiming one without the other
+      // is the exact shape TSK-45 recorded, so the guard now fails on either.
+      expect(hasAxeBrowser, "a wired browser run needs @axe-core/playwright").toBe(true);
+      expect(hasConfig, "a wired browser run needs playwright.config.ts").toBe(true);
+      expect(readdirSync(path.join(ROOT, "tests", "browser")).length).toBeGreaterThan(0);
     }
-    expect(pkg.scripts?.["test:a11y"], "test:a11y must remain declared so the gap stays visible").toBeTypeOf("string");
   });
 });

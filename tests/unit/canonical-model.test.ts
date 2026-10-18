@@ -332,9 +332,20 @@ describe("data-dictionary.md §4–§7: money, time, identifiers, codes", () => 
     expect(dateTimes).toBe(110);
     expect((schema.match(/@default\(now\(\)\)/g) ?? []).length).toBe(26);
     expect((schema.match(/@updatedAt/g) ?? []).length).toBe(18);
-    expect(occurrences("new Date()")).toBe(256);
-    expect(occurrences(".toISOString()")).toBe(107);
-    expect(occurrences("Date.now()")).toBe(132);
+    // PR-08: re-measured 2026-10-16. The object-storage readiness probe signs its
+    // bucket request (SigV4), which needs an AMZ date string and a TTL clock:
+    // +1 `new Date()` line, +1 `.toISOString()` line, +2 `Date.now()` lines. The
+    // document is updated to the same numbers in the same change.
+    // PR-04: re-measured 2026-10-17. The release gate's evidence-freshness policy
+    // needs a clock to compare `evaluatedAt` against the policy window:
+    // +1 `new Date()` line (src/modules/quality/gates.ts). The document is updated
+    // to the same number in the same change.
+    expect(occurrences("new Date()")).toBe(258);
+    // PR-04: re-measured 2026-10-17 — the signed manifest payload serialises two
+    // instants (`signedAt`, `evaluatedAt`) so the signature covers the times it
+    // attests: +2 `.toISOString()` lines (src/modules/quality/artifact.ts).
+    expect(occurrences(".toISOString()")).toBe(110);
+    expect(occurrences("Date.now()")).toBe(134);
 
     expect((schema.match(/@default\(uuid\(\)\)/g) ?? []).length).toBe(27);
     const uuidSites = occurrences("randomUUID()");
@@ -390,7 +401,13 @@ describe("data-dictionary.md §4–§7: money, time, identifiers, codes", () => 
     for (const f of all) {
       for (const m of read(f).matchAll(/code:\s*"([A-Z][A-Z0-9_]{3,60})"/g)) apiCodes.add(m[1]);
     }
-    expect(apiCodes.size).toBe(112);
+    // PR-09: re-measured 2026-10-16 — the tenant-scope refusal added one
+    // machine-readable code (`TENANT_SCOPE_DENIED`, src/api/router.ts:787).
+    // PR-04: re-measured 2026-10-17 — the release gate returns four
+    // evidence-finding codes (`MISSING_EVIDENCE`, `UNRESOLVED_EVIDENCE_PATH`,
+    // `PROSE_ONLY_EVIDENCE`, `STALE_EVIDENCE`; src/modules/quality/gates.ts), so
+    // the set is 117 and the dictionary carries the same number.
+    expect(apiCodes.size).toBe(117);
     expect([...apiCodes]).toEqual(expect.arrayContaining(["NXTR", "ORIS", "IMBD"]));
 
     const versions = read("src/modules/broadcast/versions/index.ts");

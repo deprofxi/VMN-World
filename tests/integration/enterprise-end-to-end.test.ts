@@ -17,6 +17,9 @@ import crypto from "node:crypto";
 import { createApiServer, ApiServerInstance } from "../../src/api/server.js";
 import { deleteFixtureRows, ensureFixturePerson } from "../helpers/db-parents.js";
 import { signSessionToken } from "../../src/core/auth/index.js";
+import { _resetConfigForTesting } from "../../src/core/config/index.js";
+import { _resetStorageReadinessCacheForTesting } from "../../src/core/storage/index.js";
+import { startStorageStub, type StorageStub } from "../helpers/storage-stub.js";
 
 let sharedAuthToken: string | undefined;
 
@@ -82,12 +85,23 @@ function makeRequest(
 
 describe("VMNL Enterprise End-to-End Platform Integration", () => {
   let app: ApiServerInstance;
+  let storageStub: StorageStub;
+  let previousStorageEndpoint: string | undefined;
   const testPort = 49152 + Math.floor(Math.random() * 1000);
   /** TSK-60 box 3: this suite's deal is now a durable row, so it is reset on both sides. */
   const DEAL_FIXTURE_IDS = ["deal-mtn-01"];
 
   beforeAll(async () => {
     await deleteFixtureRows({ dealIds: DEAL_FIXTURE_IDS });
+    // PR-08: `/readyz` now proves object storage with a signed bucket request
+    // rather than trusting that `STORAGE_ENDPOINT` parses. This suite asserts
+    // the platform is ready, so it supplies a store that answers instead of
+    // silently disabling the storage half of the readiness gate.
+    storageStub = await startStorageStub();
+    previousStorageEndpoint = process.env.STORAGE_ENDPOINT;
+    process.env.STORAGE_ENDPOINT = storageStub.endpoint;
+    _resetConfigForTesting();
+    _resetStorageReadinessCacheForTesting();
     // TSK-35: the Azeebo+ origin is deployment configuration. The suite boots
     // with a test origin so the assertions below prove the link comes from
     // config — no partner domain may be hard-coded in the product.
@@ -121,6 +135,11 @@ describe("VMNL Enterprise End-to-End Platform Integration", () => {
     // after it — deleting first would let the drain re-write them.
     await app.stop();
     await deleteFixtureRows({ dealIds: DEAL_FIXTURE_IDS });
+    await storageStub.close();
+    if (previousStorageEndpoint === undefined) delete process.env.STORAGE_ENDPOINT;
+    else process.env.STORAGE_ENDPOINT = previousStorageEndpoint;
+    _resetConfigForTesting();
+    _resetStorageReadinessCacheForTesting();
   });
 
   describe("0. Public Web Pages & Operator Dashboard", () => {
@@ -381,6 +400,11 @@ describe("VMNL Enterprise End-to-End Platform Integration", () => {
       if (res.body.checks?.database === "connected") {
         expect(res.statusCode).toBe(200);
         expect(res.body.status).toBe("ready");
+        // PR-08: readiness is only green when the object store answered. The
+        // stub above is what makes this assertion about the probe rather than
+        // about a URL string.
+        expect(res.body.checks.storage).toBe("ready");
+        expect(res.body.checks.storageGating).toBe("enforced");
       } else {
         expect(res.statusCode).toBe(503);
         expect(res.body.status).toBe("unavailable");
@@ -394,6 +418,11 @@ describe("VMNL Enterprise End-to-End Platform Integration", () => {
       expect(res.statusCode).toBe(200);
       expect(res.rawText).toContain("# TYPE");
       expect(res.rawText).toContain("http_requests_total");
+      // TSK-36 box 3: the KV-health series the `KVBackendLoss` rule fires on is
+      // recorded by the /readyz probe above and must be visible at the scrape
+      // endpoint — an alert may never name a series nothing publishes (the
+      // PR-14 failure mode, in the monitoring layer).
+      expect(res.rawText).toContain("kv_backend_unhealthy");
     });
   });
 
