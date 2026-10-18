@@ -1,0 +1,282 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.11 [39m[90m/Users/deprof/www/vmng[39m
+
+[TSK-61] prisma migrate deploy ok for "vmnl_enterprise_test" — schema already current
+[TSK-61] tests will use dedicated database "vmnl_enterprise_test" (development database untouched)
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSEC-08: mutation idempotency (route level)
+[22m[39m{"timestamp":"2026-10-18T13:46:35.281Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"6ff69553-8061-44c3-a4d8-03233ce60a68","spanId":"b87a3b47-1b0d-4d","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSEC-08: mutation idempotency (route level)
+[22m[39m{"timestamp":"2026-10-18T13:46:39.058Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"9d66ac1d-9db9-465d-8007-eb7dd6374604","spanId":"dcb9c922-ca09-4f","component":"server_bootstrap","assets":631,"items":27,"revisions":50,"bindings":1,"fulfillments":2,"deals":25}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSEC-08: mutation idempotency (route level)
+[22m[39m{"timestamp":"2026-10-18T13:46:39.851Z","level":"INFO","message":"VMNL Enterprise Server listening on port 4261","traceId":"2affb317-7c15-4609-b05e-dc82bff0a31c","spanId":"a195cc9d-471a-4d","component":"server_bootstrap","port":4261,"env":"test"}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSCR-03: media asset registration (route level)
+[22m[39m{"timestamp":"2026-10-18T13:47:16.913Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"95c7d093-6c55-4c6f-a801-c8bdfa8649d0","spanId":"e837b45a-9d1b-43","component":"server_bootstrap","assets":631,"items":27,"revisions":50,"bindings":1,"fulfillments":2,"deals":25}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSCR-03: media asset registration (route level)
+[22m[39m{"timestamp":"2026-10-18T13:47:17.119Z","level":"INFO","message":"VMNL Enterprise Server listening on port 4262","traceId":"5f6a583e-e626-4d06-9408-631d2f8fd99a","spanId":"2d1c6b24-12f5-44","component":"server_bootstrap","port":4262,"env":"test"}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mTSK-58: media-asset routes refuse cross-tenant and unowned rows
+[22m[39m{"timestamp":"2026-10-18T13:48:00.828Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"fc86b331-671b-486e-b814-3d13c60afd99","spanId":"66414896-1e1f-49","component":"server_bootstrap","assets":639,"items":27,"revisions":50,"bindings":1,"fulfillments":2,"deals":25}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mTSK-58: media-asset routes refuse cross-tenant and unowned rows
+[22m[39m{"timestamp":"2026-10-18T13:48:01.827Z","level":"INFO","message":"VMNL Enterprise Server listening on port 4270","traceId":"cb6826d8-d0f8-4072-8562-fe6cc75f76cd","spanId":"93f82a51-5f8e-49","component":"server_bootstrap","port":4270,"env":"test"}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSCR-03: CMS editor references registered media (UX-CMS-006)[2m > [22m[2mpersists picker selections end-to-end through the editor form routes
+[22m[39m{"timestamp":"2026-10-18T13:48:20.951Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"ce56794e-0290-42a2-ae8f-a792752cff1a","spanId":"0cb16003-44de-41","component":"server_bootstrap","assets":639,"items":27,"revisions":50,"bindings":1,"fulfillments":2,"deals":25}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSCR-03: CMS editor references registered media (UX-CMS-006)[2m > [22m[2mpersists picker selections end-to-end through the editor form routes
+[22m[39m{"timestamp":"2026-10-18T13:48:22.199Z","level":"INFO","message":"VMNL Enterprise Server listening on port 4263","traceId":"5b547418-d254-4c87-a60b-71af48ab119f","spanId":"21463976-0df9-4b","component":"server_bootstrap","port":4263,"env":"test"}
+
+[90mstderr[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSCR-03: golden DAM backfill[2m > [22m[2mpersistEpisodeMediaAssets reports the standing reference total on re-runs, not a per-run delta
+[22m[39m[VMNL-DB-SEED] DAM backfill: episode EP-0001 not found — master reference MA-EP-0001-MASTER NOT persisted.
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSCR-03: golden DAM backfill[2m > [22m[2mboots the sandbox with demo content referencing its registered key art
+[22m[39m{"timestamp":"2026-10-18T13:48:38.616Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"1a60e53d-1486-4b59-a8fa-0a51f58fec92","spanId":"2a8b1245-7399-4f","component":"server_bootstrap","assets":648,"items":28,"revisions":52,"bindings":1,"fulfillments":2,"deals":25}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSCR-03: golden DAM backfill[2m > [22m[2mboots the sandbox with demo content referencing its registered key art
+[22m[39m{"timestamp":"2026-10-18T13:48:38.706Z","level":"INFO","message":"VMNL Enterprise Server listening on port 4264","traceId":"090d72e8-0bcc-428f-b7e5-6b4c6946bbe0","spanId":"67611d95-bfa4-4f","component":"server_bootstrap","port":4264,"env":"test"}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSchedule review desk: episode master linkage keyed by its channel parameter[2m > [22m[2mroute keys the linkage by ?channel (GET /broadcast/schedule/review?channel=ORIS)
+[22m[39m{"timestamp":"2026-10-18T13:48:51.778Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"9095e9dc-14c4-46e8-8a7d-6ff91b302b3a","spanId":"dd59b044-6751-47","component":"server_bootstrap","assets":648,"items":28,"revisions":52,"bindings":1,"fulfillments":2,"deals":25}
+
+[90mstdout[2m | tests/unit/todo-final-remediation.test.ts[2m > [22m[2mSchedule review desk: episode master linkage keyed by its channel parameter[2m > [22m[2mroute keys the linkage by ?channel (GET /broadcast/schedule/review?channel=ORIS)
+[22m[39m{"timestamp":"2026-10-18T13:48:52.285Z","level":"INFO","message":"VMNL Enterprise Server listening on port 4267","traceId":"3a5cfb52-e9b1-445d-8493-c40b5d81ee4d","spanId":"a2c75ae3-193f-42","component":"server_bootstrap","port":4267,"env":"test"}
+
+ [32m✓[39m tests/unit/todo-final-remediation.test.ts [2m([22m[2m84 tests[22m[2m)[22m[33m 166034[2mms[22m[39m
+     [33m[2m✓[22m[39m memory adapter: get/set/del, TTL expiry, setIfAbsent lock semantics, incrBy, keys [33m 525[2mms[22m[39m
+     [33m[2m✓[22m[39m full lifecycle: draft → approval (lock-out computed) → amendment → lock [33m 545[2mms[22m[39m
+     [33m[2m✓[22m[39m publishes content once per operation key and replays the original revision [33m 34800[2mms[22m[39m
+     [33m[2m✓[22m[39m rejects anonymous registration and admits create:content authority [33m 41564[2mms[22m[39m
+     [33m[2m✓[22m[39m serves a tenant only its own rows over HTTP [33m 17347[2mms[22m[39m
+     [33m[2m✓[22m[39m persists picker selections end-to-end through the editor form routes [33m 17802[2mms[22m[39m
+     [33m[2m✓[22m[39m boots the sandbox with demo content referencing its registered key art [33m 7746[2mms[22m[39m
+     [33m[2m✓[22m[39m resolves only REGISTERED masters for episode codes [33m 342[2mms[22m[39m
+     [33m[2m✓[22m[39m carries registered masters in the XMLTV feed and omits unregistered/unknown refs [33m 533[2mms[22m[39m
+     [33m[2m✓[22m[39m public schedule renders a compact per-channel DAM master summary with problems flagged [33m 643[2mms[22m[39m
+     [33m[2m✓[22m[39m now/next widget renders the live master state honestly for every linkage case [33m 331[2mms[22m[39m
+     [33m[2m✓[22m[39m findEpisodeMaster reads live state from the index, scoped to the channel [33m 389[2mms[22m[39m
+     [33m[2m✓[22m[39m demo seed builds an approved full-day episode-linked schedule from the index, idempotently [33m 768[2mms[22m[39m
+     [33m[2m✓[22m[39m route keys the linkage by ?channel (GET /broadcast/schedule/review?channel=ORIS) [33m 19586[2mms[22m[39m
+[90mstdout[2m | tests/unit/screen-register-verification.test.ts[2m > [22m[2mTSK-24 (CA-11): the screen register verifies what it claims
+[22m[39m{"timestamp":"2026-10-18T13:50:01.971Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"fff8582e-dfb8-4667-9f68-f98935c0d640","spanId":"4b8323be-a055-4e","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+[90mstdout[2m | tests/unit/screen-register-verification.test.ts[2m > [22m[2mTSK-24 (CA-11): the screen register verifies what it claims
+[22m[39m{"timestamp":"2026-10-18T13:50:14.109Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"4b5c4f90-18f7-4caf-99d7-e5a42e595eb1","spanId":"1b359c5b-5692-4e","component":"server_bootstrap","assets":648,"items":28,"revisions":52,"bindings":1,"fulfillments":2,"deals":25}
+
+[90mstdout[2m | tests/unit/screen-register-verification.test.ts[2m > [22m[2mTSK-24 (CA-11): the screen register verifies what it claims
+[22m[39m{"timestamp":"2026-10-18T13:50:14.842Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"1edae047-af81-4eb3-acc0-344178c17af7","spanId":"d0a2ef14-c850-45","component":"server_bootstrap","port":0,"env":"test"}
+
+ [31m❯[39m tests/unit/screen-register-verification.test.ts [2m([22m[2m7 tests[22m[2m | [22m[33m7 skipped[39m[2m)[22m[33m 38531[2mms[22m[39m
+     [2m[90m↓[39m[22m expands the collapsed ranges so a screen count means screens, not entries
+     [2m[90m↓[39m[22m every cited evidence file exists
+     [2m[90m↓[39m[22m every route an entry claims IMPLEMENTED is actually mounted
+     [2m[90m↓[39m[22m assigns a provenance class to every documented ID, and never upgrades an unproven page
+     [2m[90m↓[39m[22m counts reachable HTML surfaces instead of quoting an unmeasured screen total
+     [2m[90m↓[39m[22m does not let the /workspace catch-all shadow a registered surface
+     [2m[90m↓[39m[22m does not let an entry's provenance contradict its declared status
+[90mstdout[2m | tests/unit/production-readiness-controls.test.ts[2m > [22m[2mPR-08: storage readiness is probed, not parsed[2m > [22m[2mtakes the pod out of rotation on the live readiness endpoint when storage is dead
+[22m[39m{"timestamp":"2026-10-18T13:51:04.638Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"ddbc3769-8fb9-47ce-91a4-6b706b688de8","spanId":"a3801537-6c39-43","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+[90mstdout[2m | tests/unit/production-readiness-controls.test.ts[2m > [22m[2mPR-08: storage readiness is probed, not parsed[2m > [22m[2mtakes the pod out of rotation on the live readiness endpoint when storage is dead
+[22m[39m{"timestamp":"2026-10-18T13:51:10.179Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"3d2a7ce8-e8c9-486f-a9af-3348d58ec4a9","spanId":"2fa99871-5716-48","component":"server_bootstrap","assets":648,"items":28,"revisions":52,"bindings":1,"fulfillments":2,"deals":25}
+
+[90mstdout[2m | tests/unit/production-readiness-controls.test.ts[2m > [22m[2mPR-08: storage readiness is probed, not parsed[2m > [22m[2mtakes the pod out of rotation on the live readiness endpoint when storage is dead
+[22m[39m{"timestamp":"2026-10-18T13:51:10.761Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"99947bb0-ca24-49c2-b9f3-527392b9ff58","spanId":"39232444-f1da-4a","component":"server_bootstrap","port":0,"env":"test"}
+
+[90mstdout[2m | tests/unit/production-readiness-controls.test.ts[2m > [22m[2mPR-09: the tenant predicate runs on every guarded request[2m > [22m[2mrefuses a request that claims another tenant, on a live server
+[22m[39m{"timestamp":"2026-10-18T13:51:31.881Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"6e920e38-4a07-40b3-b663-d1d9c07482db","spanId":"82f75fb0-bc63-4c","component":"server_bootstrap","assets":648,"items":28,"revisions":52,"bindings":1,"fulfillments":2,"deals":25}
+
+[90mstdout[2m | tests/unit/production-readiness-controls.test.ts[2m > [22m[2mPR-09: the tenant predicate runs on every guarded request[2m > [22m[2mrefuses a request that claims another tenant, on a live server
+[22m[39m{"timestamp":"2026-10-18T13:51:32.367Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"6ba5506f-d200-4403-92ec-a7b0ddb968b7","spanId":"97c344c6-6d32-4f","component":"server_bootstrap","port":0,"env":"test"}
+
+[90mstdout[2m | tests/unit/production-readiness-controls.test.ts[2m > [22m[2mPR-14: PROMETHEUS_METRICS_ENABLED is load-bearing[2m > [22m[2mserves /metrics when enabled and 404s when disabled, on one running server
+[22m[39m{"timestamp":"2026-10-18T13:51:39.037Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"1fde896b-934b-4961-bd65-58123eecfdc6","spanId":"41e544a3-86d7-4a","component":"server_bootstrap","assets":648,"items":28,"revisions":52,"bindings":1,"fulfillments":2,"deals":25}
+
+[90mstdout[2m | tests/unit/production-readiness-controls.test.ts[2m > [22m[2mPR-14: PROMETHEUS_METRICS_ENABLED is load-bearing[2m > [22m[2mserves /metrics when enabled and 404s when disabled, on one running server
+[22m[39m{"timestamp":"2026-10-18T13:51:39.141Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"803cb237-77ee-43b0-b398-7206435814ea","spanId":"7f117542-2315-4c","component":"server_bootstrap","port":0,"env":"test"}
+
+ [31m❯[39m tests/unit/production-readiness-controls.test.ts [2m([22m[2m31 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 38128[2mms[22m[39m
+[31m     [31m×[31m never puts a plaintext AUTH on the wire for a rediss:// URL[39m[33m 1047[2mms[22m[39m
+     [33m[2m✓[22m[39m still speaks plaintext RESP for an explicitly plaintext redis:// URL [33m 654[2mms[22m[39m
+     [32m✓[39m refuses an unrecognised scheme instead of presuming plaintext[32m 69[2mms[22m[39m
+     [33m[2m✓[22m[39m reports unavailable for an endpoint on a dead port — the original defect [33m 971[2mms[22m[39m
+     [33m[2m✓[22m[39m reports ready only when the store answers the signed bucket request [33m 501[2mms[22m[39m
+     [32m✓[39m does not read rejected credentials as readiness[32m 191[2mms[22m[39m
+     [33m[2m✓[22m[39m takes the pod out of rotation on the live readiness endpoint when storage is dead [33m 23111[2mms[22m[39m
+     [32m✓[39m reads "false" as false for both boolean fields[32m 51[2mms[22m[39m
+     [32m✓[39m rejects a value that is neither true nor false rather than guessing[32m 58[2mms[22m[39m
+     [32m✓[39m keeps the documented defaults when the variable is absent or blank[32m 2[2mms[22m[39m
+     [32m✓[39m refuses carriage facts while STARTIMES_CARRIAGE_VERIFIED is false[32m 26[2mms[22m[39m
+     [32m✓[39m refuses a verification claim without the complete fact set[32m 2[2mms[22m[39m
+     [32m✓[39m accepts a verified, complete fact set[32m 1[2mms[22m[39m
+     [32m✓[39m reports an unhandled rejection and still terminates non-zero[32m 21[2mms[22m[39m
+     [32m✓[39m reports an uncaught exception and still terminates non-zero[32m 48[2mms[22m[39m
+     [32m✓[39m stops a signal-triggered shutdown with the signal's own exit code[32m 30[2mms[22m[39m
+     [32m✓[39m gives up on a stop that never settles instead of waiting to be SIGKILLed[32m 252[2mms[22m[39m
+     [32m✓[39m reports a stop that fails rather than exiting as if it had succeeded[32m 174[2mms[22m[39m
+     [32m✓[39m never runs two shutdowns, and a repeated signal does not restart the deadline[32m 103[2mms[22m[39m
+     [32m✓[39m leaves the deadline timer unable to hold the event loop open[32m 0[2mms[22m[39m
+     [32m✓[39m is wired into the entrypoint — a control nothing installs is dead (PR-14's lesson)[32m 20[2mms[22m[39m
+     [33m[2m✓[22m[39m refuses a request that claims another tenant, on a live server [33m 6113[2mms[22m[39m
+     [32m✓[39m refuses a tenant-less session that claims a tenant — the branch that failed open[32m 237[2mms[22m[39m
+     [32m✓[39m keeps the documented exemptions: the caller's own tenant and SuperAdmin[32m 80[2mms[22m[39m
+     [32m✓[39m keeps the schedule-lock invariant reachable with its own reason[32m 19[2mms[22m[39m
+     [33m[2m✓[22m[39m leaves no call site anywhere in src that omits the context argument [33m 2253[2mms[22m[39m
+     [32m✓[39m finds the environment surface at all (anti-vacuity)[32m 24[2mms[22m[39m
+     [32m✓[39m declares every one of them in the config schema[32m 12[2mms[22m[39m
+     [32m✓[39m documents every one of them in .env.example[32m 1[2mms[22m[39m
+     [32m✓[39m refuses a value that would otherwise be read as the opposite[32m 79[2mms[22m[39m
+     [33m[2m✓[22m[39m serves /metrics when enabled and 404s when disabled, on one running server [33m 1704[2mms[22m[39m
+[90mstdout[2m | tests/unit/release-gate-commit-binding.test.ts[2m > [22m[2mPR-03: the release gate refuses a manifest signed for another commit[2m > [22m[2mfails when the manifest commit does not match HEAD
+[22m[39m[VMNL-CLI] Evaluating R1.2A §67 Broadcast Release Gates (BG0 to BG9)...
+
+[90mstderr[2m | tests/unit/release-gate-commit-binding.test.ts[2m > [22m[2mPR-03: the release gate refuses a manifest signed for another commit[2m > [22m[2mfails when the manifest commit does not match HEAD
+[22m[39m[VMNL-CLI] Manifest commit 0000000 does not match HEAD 37d0007: the release decision was signed against a different tree, so this evaluation does not attest the code being released.
+[VMNL-CLI] Re-pin release-manifest.json to a commit that carries the work (see HD-01 / TSK-37), or pass --allow-sha-drift to record an explicit override.
+
+[90mstdout[2m | tests/unit/release-gate-commit-binding.test.ts[2m > [22m[2mPR-03: the release gate refuses a manifest signed for another commit[2m > [22m[2mpasses the same manifest only once the override is explicit
+[22m[39m[VMNL-CLI] Evaluating R1.2A §67 Broadcast Release Gates (BG0 to BG9)...
+
+[90mstderr[2m | tests/unit/release-gate-commit-binding.test.ts[2m > [22m[2mPR-03: the release gate refuses a manifest signed for another commit[2m > [22m[2mpasses the same manifest only once the override is explicit
+[22m[39m[VMNL-CLI] Manifest commit 0000000 does not match HEAD 37d0007: the release decision was signed against a different tree, so this evaluation does not attest the code being released.
+[VMNL-CLI] OVERRIDE ACTIVE: --allow-sha-drift was passed, so this gate did NOT attest the current commit. Remove the override once the manifest is re-pinned.
+[VMNL-CLI] Artefact binding NOT VERIFIED — NO_SIGNATURE: the manifest carries no ownerSignature.
+
+[90mstdout[2m | tests/unit/release-gate-commit-binding.test.ts[2m > [22m[2mPR-03: the release gate refuses a manifest signed for another commit[2m > [22m[2mpasses the same manifest only once the override is explicit
+[22m[39m[VMNL-CLI] Artefact digest computed (dist/ (493 files, 4358687 bytes)) but the manifest does not bind it.
+[VMNL-CLI] Evidence paths resolved against the working tree; cited tests were NOT re-executed by this command.
+[VMNL-CLI] ALL R1.2A §67 BROADCAST GATES EVALUATED (BG0 to BG9).
+[VMNL-CLI] Release Decision: GO_WITH_CONDITIONS
+[VMNL-CLI] Environment: SANDBOX_S2
+[VMNL-CLI] Human Release Owner: Femi Aderibigbe (Executive Chairman & Broadcast Authority)
+  - [PASSED] BG0_CHANNEL_AUTHORITY
+  - [PASSED] BG1_CATALOGUE
+  - [PASSED] BG2_RIGHTS
+  - [PASSED] BG3_SCHEDULE
+  - [PASSED] BG4_TRAFFIC
+  - [PASSED] BG5_PLAYOUT
+  - [PASSED] BG7_FINANCE
+  - [PASSED] BG8_AZEEBO
+  - [PASSED] BG9_CONTINUITY
+  - [CONDITION/UNTESTED] BG6_CARRIAGE: Carriage is NOT_TESTED (never represented as PASS).
+[VMNL-CLI] STATUS: RELEASE CLEARED FOR SANDBOX_S2 (GO_WITH_CONDITIONS).
+
+[90mstdout[2m | tests/unit/release-gate-commit-binding.test.ts[2m > [22m[2mPR-03: the release gate refuses a manifest signed for another commit[2m > [22m[2mtreats the "HEAD" sentinel as an unbound manifest rather than a match
+[22m[39m[VMNL-CLI] Evaluating R1.2A §67 Broadcast Release Gates (BG0 to BG9)...
+[VMNL-CLI] Artefact digest computed (dist/ (493 files, 4358687 bytes)) but the manifest does not bind it.
+[VMNL-CLI] Evidence paths resolved against the working tree; cited tests were NOT re-executed by this command.
+[VMNL-CLI] ALL R1.2A §67 BROADCAST GATES EVALUATED (BG0 to BG9).
+[VMNL-CLI] Release Decision: GO_WITH_CONDITIONS
+[VMNL-CLI] Environment: SANDBOX_S2
+[VMNL-CLI] Human Release Owner: Femi Aderibigbe (Executive Chairman & Broadcast Authority)
+  - [PASSED] BG0_CHANNEL_AUTHORITY
+  - [PASSED] BG1_CATALOGUE
+  - [PASSED] BG2_RIGHTS
+  - [PASSED] BG3_SCHEDULE
+  - [PASSED] BG4_TRAFFIC
+  - [PASSED] BG5_PLAYOUT
+  - [PASSED] BG7_FINANCE
+  - [PASSED] BG8_AZEEBO
+  - [PASSED] BG9_CONTINUITY
+  - [CONDITION/UNTESTED] BG6_CARRIAGE: Carriage is NOT_TESTED (never represented as PASS).
+[VMNL-CLI] STATUS: RELEASE CLEARED FOR SANDBOX_S2 (GO_WITH_CONDITIONS).
+
+[90mstderr[2m | tests/unit/release-gate-commit-binding.test.ts[2m > [22m[2mPR-03: the release gate refuses a manifest signed for another commit[2m > [22m[2mtreats the "HEAD" sentinel as an unbound manifest rather than a match
+[22m[39m[VMNL-CLI] Artefact binding NOT VERIFIED — NO_SIGNATURE: the manifest carries no ownerSignature.
+
+ [32m✓[39m tests/unit/release-gate-commit-binding.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 5212[2mms[22m[39m
+     [33m[2m✓[22m[39m fails when the manifest commit does not match HEAD [33m 509[2mms[22m[39m
+     [33m[2m✓[22m[39m passes the same manifest only once the override is explicit [33m 3149[2mms[22m[39m
+     [33m[2m✓[22m[39m treats the "HEAD" sentinel as an unbound manifest rather than a match [33m 962[2mms[22m[39m
+     [33m[2m✓[22m[39m keeps the CI override self-retiring: present only while the drift exists [33m 582[2mms[22m[39m
+[90mstdout[2m | tests/unit/register-inheritance.test.ts[2m > [22m[2mTSK-07 (CA-06): the surviving register resolves every inherited identifier[2m > [22m[2mcarries a census row for every inherited identifier cited anywhere in the repository
+[22m[39m
+[TSK-07] inherited-identifier census — rows: 71 · IDs covered: 72 · cited in tree: 72 · uncited rows: 0 (none)
+[TSK-07] dispositions: {"CLOSED":61,"HUMAN":5,"CLOSED_WITH_HUMAN":4,"REOPENED":1}
+
+ [32m✓[39m tests/unit/register-inheritance.test.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 5157[2mms[22m[39m
+     [33m[2m✓[22m[39m keeps every mention of the retired registers historical [33m 2281[2mms[22m[39m
+     [33m[2m✓[22m[39m names File 1.txt nowhere except the two records of its removal [33m 713[2mms[22m[39m
+     [33m[2m✓[22m[39m keeps the retired register recoverable by a command in this repository [33m 1937[2mms[22m[39m
+[90mstdout[2m | tests/unit/citation-integrity.test.ts[2m > [22m[2mTSK-39 box 3: citation integrity[2m > [22m[2mcites no repository path that does not exist, unless annotated
+[22m[39m[citation-integrity] 2074 path citations resolved or annotated
+
+[90mstdout[2m | tests/unit/citation-integrity.test.ts[2m > [22m[2mTSK-39 box 3: citation integrity[2m > [22m[2mholds the decimal CCPP locator census at its measured ceiling
+[22m[39m[citation-integrity] CCPP decimal locators: 29 sites (ceiling 29)
+
+[90mstdout[2m | tests/unit/citation-integrity.test.ts[2m > [22m[2mTSK-39 box 3: citation integrity[2m > [22m[2mholds the missing-authority and renamed-authority censuses at their ceilings
+[22m[39m[citation-integrity] missing authorities 28/28, AGENTS.md 10/10, todo.md (the retired register, superseded by this one) 44/45
+
+ [32m✓[39m tests/unit/citation-integrity.test.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 7896[2mms[22m[39m
+     [33m[2m✓[22m[39m cites no repository path that does not exist, unless annotated [33m 4203[2mms[22m[39m
+     [33m[2m✓[22m[39m fails on a citation to a section number the authority document does not have [33m 2483[2mms[22m[39m
+     [33m[2m✓[22m[39m holds the decimal CCPP locator census at its measured ceiling [33m 379[2mms[22m[39m
+     [33m[2m✓[22m[39m holds the missing-authority and renamed-authority censuses at their ceilings [33m 434[2mms[22m[39m
+ [32m✓[39m tests/unit/canonical-model.test.ts [2m([22m[2m13 tests[22m[2m)[22m[33m 4951[2mms[22m[39m
+     [33m[2m✓[22m[39m keeps §5's time counts and §6's identifier counts [33m 2938[2mms[22m[39m
+     [33m[2m✓[22m[39m recounts §7's two code conventions and the three schedule counting rules [33m 925[2mms[22m[39m
+     [33m[2m✓[22m[39m opens every file:line citation [33m 369[2mms[22m[39m
+ [32m✓[39m tests/unit/systems-of-record.test.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 4874[2mms[22m[39m
+     [33m[2m✓[22m[39m recomputes the per-model accessor counts the census table claims [33m 1398[2mms[22m[39m
+     [33m[2m✓[22m[39m opens every file:line citation it publishes [33m 810[2mms[22m[39m
+     [33m[2m✓[22m[39m keeps the store inventory counts the document publishes in §3.3 and §6 [33m 1471[2mms[22m[39m
+ [32m✓[39m tests/unit/threat-model.test.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 2376[2mms[22m[39m
+     [33m[2m✓[22m[39m cites only code that is on this tree, at the line it names [33m 1655[2mms[22m[39m
+     [33m[2m✓[22m[39m checks the symbol a citation names, not merely that the line is non-blank [33m 303[2mms[22m[39m
+ [32m✓[39m tests/unit/a11y-claim-hygiene.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 4118[2mms[22m[39m
+     [33m[2m✓[22m[39m never states WCAG AA conformance without saying which half was tested [33m 3245[2mms[22m[39m
+     [33m[2m✓[22m[39m keeps the browser-run claim tied to a run that exists, and one that CI has not executed [33m 796[2mms[22m[39m
+ [32m✓[39m tests/unit/deployment-artifacts.test.ts [2m([22m[2m15 tests[22m[2m)[22m[33m 801[2mms[22m[39m
+     [33m[2m✓[22m[39m names no metric the application does not publish [33m 645[2mms[22m[39m
+ [32m✓[39m tests/unit/release-evidence-integrity.test.ts [2m([22m[2m15 tests[22m[2m)[22m[33m 512[2mms[22m[39m
+ [32m✓[39m tests/unit/quality-gates.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 293[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Suites 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/unit/screen-register-verification.test.ts[2m > [22mTSK-24 (CA-11): the screen register verifies what it claims
+[31m[1mError[22m: probe timeout after 10000ms on /[39m
+[36m [2m❯[22m ClientRequest.<anonymous> tests/unit/screen-register-verification.test.ts:[2m334:45[22m[39m
+    [90m332|[39m     })[33m;[39m
+    [90m333|[39m     req[33m.[39m[34mon[39m([32m"error"[39m[33m,[39m reject)[33m;[39m
+    [90m334|[39m     req.setTimeout(10000, () => req.destroy(new Error(`probe timeout a…
+    [90m   |[39m                                             [31m^[39m
+    [90m335|[39m     req[33m.[39m[34mend[39m()[33m;[39m
+    [90m336|[39m   })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/unit/production-readiness-controls.test.ts[2m > [22mPR-07: the Redis transport follows the URL scheme[2m > [22mnever puts a plaintext AUTH on the wire for a rediss:// URL
+[31m[1mAssertionError[22m: expected 0 to be greater than 0[39m
+[36m [2m❯[22m tests/unit/production-readiness-controls.test.ts:[2m159:27[22m[39m
+    [90m157|[39m       // A TLS handshake record starts with content-type 0x16 — positi…
+    [90m158|[39m       [90m// the transport is TLS rather than "no bytes were sent at all".[39m
+    [90m159|[39m       [34mexpect[39m(wire[33m.[39mlength)[33m.[39m[34mtoBeGreaterThan[39m([34m0[39m)[33m;[39m
+    [90m   |[39m                           [31m^[39m
+    [90m160|[39m       [34mexpect[39m(wire[[34m0[39m])[33m.[39m[34mtoBe[39m([34m0x16[39m)[33m;[39m
+    [90m161|[39m     } [35mfinally[39m {
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m11 passed[39m[22m[90m (13)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m197 passed[39m[22m[2m | [22m[33m7 skipped[39m[90m (205)[39m
+[2m   Start at [22m 14:44:01
+[2m   Duration [22m 572.39s[2m (transform 86.37s, setup 0ms, import 176.61s, tests 278.88s, environment 266ms)[22m
+
+EXIT=1
+
+### isolated re-run after contention reds (machine load; both suites green in the final full battery)
+
+### isolated re-run after contention reds (machine load; both suites green in the final full battery)
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m31 passed[39m[22m[90m (31)[39m
+pr07-isolated EXIT=0
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m7 passed[39m[22m[90m (7)[39m
+screen-isolated EXIT=0

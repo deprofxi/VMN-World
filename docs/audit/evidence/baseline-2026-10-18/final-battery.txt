@@ -1,0 +1,4 @@
+$ pnpm test
+exit=0 elapsed=192s
+$ pnpm test:coverage
+exit=0 elapsed=274s

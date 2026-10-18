@@ -1,0 +1,8 @@
+$ pnpm run audit:threshold
+
+> vmng@1.0.0 audit:threshold /Users/deprof/www/vmng
+> node scripts/audit-threshold.js
+
+Dependency advisories — critical: 0, high: 0, moderate: 0, low: 0
+audit-threshold: OK — within vulnerability policy
+EXIT_CODE=0

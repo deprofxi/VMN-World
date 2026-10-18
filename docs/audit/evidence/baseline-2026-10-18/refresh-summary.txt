@@ -1,0 +1,15 @@
+refresh started 2026-10-18T09:53:36Z
+typecheck.txt :: EXIT_CODE=0
+lint.txt :: EXIT_CODE=0
+audit-check.txt :: EXIT_CODE=0
+audit-threshold.txt :: EXIT_CODE=0
+any-budget.txt :: EXIT_CODE=0
+build.txt :: EXIT_CODE=0
+gates-check.txt :: EXIT_CODE=1
+test.txt :: EXIT_CODE=0
+test-coverage.txt :: EXIT_CODE=0
+test-browser.txt :: EXIT_CODE=0
+dirty entries (excl. this dir):       54
+histogram:   17 ??   37 M 
+refresh finished 2026-10-18T10:09:50Z
+REFRESH_COMPLETE

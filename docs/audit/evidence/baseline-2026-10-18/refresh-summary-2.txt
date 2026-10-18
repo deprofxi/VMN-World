@@ -1,0 +1,13 @@
+refresh2 started 2026-10-18T11:43:08Z
+typecheck.txt :: EXIT_CODE=0
+lint.txt :: EXIT_CODE=0
+audit-check.txt :: EXIT_CODE=0
+audit-threshold.txt :: EXIT_CODE=0
+any-budget.txt :: EXIT_CODE=0
+build.txt :: EXIT_CODE=0
+gates-check.txt :: EXIT_CODE=1
+test.txt :: EXIT_CODE=1
+test-coverage.txt :: EXIT_CODE=1
+test-browser.txt :: EXIT_CODE=0
+refresh2 finished 2026-10-18T12:20:45Z
+REFRESH2_COMPLETE

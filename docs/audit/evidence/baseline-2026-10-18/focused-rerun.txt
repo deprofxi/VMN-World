@@ -1,0 +1,10 @@
+### threat-model after citation re-pin
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m6 passed[39m[22m[90m (6)[39m
+threat EXIT=0
+### screen-register isolated rerun
+ [32m✓[39m tests/unit/screen-register-verification.test.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 23220[2mms[22m[39m
+     [33m[2m✓[22m[39m does not let the /workspace catch-all shadow a registered surface [33m 320[2mms[22m[39m
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m7 passed[39m[22m[90m (7)[39m
+screen EXIT=0

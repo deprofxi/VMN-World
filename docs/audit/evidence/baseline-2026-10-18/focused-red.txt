@@ -1,0 +1,106 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.11 [39m[90m/Users/deprof/www/vmng[39m
+
+[TSK-61] prisma migrate deploy ok for "vmnl_enterprise_test" — schema already current
+[TSK-61] tests will use dedicated database "vmnl_enterprise_test" (development database untouched)
+ [31m❯[39m tests/unit/threat-model.test.ts [2m([22m[2m6 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[33m 2358[2mms[22m[39m
+     [32m✓[39m covers every scope area §16 names[32m 25[2mms[22m[39m
+     [32m✓[39m identifies all ten §16 fields for every threat[32m 50[2mms[22m[39m
+     [32m✓[39m states a status for every one of §16's explicit test vectors, and earns EXERCISED[32m 283[2mms[22m[39m
+[31m     [31m×[31m cites only code that is on this tree, at the line it names[39m[33m 1632[2mms[22m[39m
+[31m     [31m×[31m checks the symbol a citation names, not merely that the line is non-blank[39m[33m 304[2mms[22m[39m
+     [32m✓[39m enforces server-side: no finding is closed by hiding the surface[32m 10[2mms[22m[39m
+[90mstdout[2m | tests/unit/screen-register-verification.test.ts[2m > [22m[2mTSK-24 (CA-11): the screen register verifies what it claims
+[22m[39m{"timestamp":"2026-10-18T13:10:00.729Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"5db881d6-6c46-4f1f-b805-55addf16de5c","spanId":"1684d0a4-fcf8-4e","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+[90mstdout[2m | tests/unit/screen-register-verification.test.ts[2m > [22m[2mTSK-24 (CA-11): the screen register verifies what it claims
+[22m[39m{"timestamp":"2026-10-18T13:10:11.167Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"fc008ea9-065e-4c44-82c7-516ad29272f1","spanId":"a3241494-64f6-44","component":"server_bootstrap","assets":597,"items":25,"revisions":46,"bindings":1,"fulfillments":2,"deals":23}
+
+[90mstdout[2m | tests/unit/screen-register-verification.test.ts[2m > [22m[2mTSK-24 (CA-11): the screen register verifies what it claims
+[22m[39m{"timestamp":"2026-10-18T13:10:12.110Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"b31aa2ad-42b9-4d0e-8a66-9a9c25f377f4","spanId":"0cf35102-41db-4f","component":"server_bootstrap","port":0,"env":"test"}
+
+ [31m❯[39m tests/unit/screen-register-verification.test.ts [2m([22m[2m7 tests[22m[2m | [22m[33m7 skipped[39m[2m)[22m[33m 21993[2mms[22m[39m
+     [2m[90m↓[39m[22m expands the collapsed ranges so a screen count means screens, not entries
+     [2m[90m↓[39m[22m every cited evidence file exists
+     [2m[90m↓[39m[22m every route an entry claims IMPLEMENTED is actually mounted
+     [2m[90m↓[39m[22m assigns a provenance class to every documented ID, and never upgrades an unproven page
+     [2m[90m↓[39m[22m counts reachable HTML surfaces instead of quoting an unmeasured screen total
+     [2m[90m↓[39m[22m does not let the /workspace catch-all shadow a registered surface
+     [2m[90m↓[39m[22m does not let an entry's provenance contradict its declared status
+
+[31m⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Suites 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/unit/screen-register-verification.test.ts[2m > [22mTSK-24 (CA-11): the screen register verifies what it claims
+[31m[1mError[22m: probe timeout after 10000ms on /[39m
+[36m [2m❯[22m ClientRequest.<anonymous> tests/unit/screen-register-verification.test.ts:[2m334:45[22m[39m
+    [90m332|[39m     })[33m;[39m
+    [90m333|[39m     req[33m.[39m[34mon[39m([32m"error"[39m[33m,[39m reject)[33m;[39m
+    [90m334|[39m     req.setTimeout(10000, () => req.destroy(new Error(`probe timeout a…
+    [90m   |[39m                                             [31m^[39m
+    [90m335|[39m     req[33m.[39m[34mend[39m()[33m;[39m
+    [90m336|[39m   })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯[22m[39m
+
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 2 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/unit/threat-model.test.ts[2m > [22mTSK-41 box 1: the CCPP §16 threat model[2m > [22mcites only code that is on this tree, at the line it names
+[31m[1mAssertionError[22m: citations that do not resolve:
+src/api/router.ts:7863 — cited span is blank
+src/api/router.ts:7863 — cited span is blank: expected [ …(2) ] to deeply equal [][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- [][39m
+[31m+ [[39m
+[31m+   "src/api/router.ts:7863 — cited span is blank",[39m
+[31m+   "src/api/router.ts:7863 — cited span is blank",[39m
+[31m+ ][39m
+
+[36m [2m❯[22m tests/unit/threat-model.test.ts:[2m212:70[22m[39m
+    [90m210|[39m       }
+    [90m211|[39m     }
+    [90m212|[39m     expect(bad, `citations that do not resolve:\n${bad.join("\n")}`).t…
+    [90m   |[39m                                                                      [31m^[39m
+    [90m213|[39m   })[33m;[39m
+    [90m214|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/unit/threat-model.test.ts[2m > [22mTSK-41 box 1: the CCPP §16 threat model[2m > [22mchecks the symbol a citation names, not merely that the line is non-blank
+[31m[1mAssertionError[22m: citation drift:
+src/api/router.ts:3714 no longer holds checkSharedRateLimit
+src/api/router.ts:7863 no longer holds verifyPaystackSignature
+src/api/router.ts:7962 no longer holds verifyFlutterwaveSignature
+src/api/router.ts:8111 no longer holds validateMediaBuffer: expected [ …(4) ] to deeply equal [][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- [][39m
+[31m+ [[39m
+[31m+   "src/api/router.ts:3714 no longer holds checkSharedRateLimit",[39m
+[31m+   "src/api/router.ts:7863 no longer holds verifyPaystackSignature",[39m
+[31m+   "src/api/router.ts:7962 no longer holds verifyFlutterwaveSignature",[39m
+[31m+   "src/api/router.ts:8111 no longer holds validateMediaBuffer",[39m
+[31m+ ][39m
+
+[36m [2m❯[22m tests/unit/threat-model.test.ts:[2m227:63[22m[39m
+    [90m225|[39m       if (!window.includes(symbol)) drifted.push(`${file}:${line} no l…
+    [90m226|[39m     }
+    [90m227|[39m     expect(drifted, `citation drift:\n${drifted.join("\n")}`).toEqual(…
+    [90m   |[39m                                                               [31m^[39m
+    [90m228|[39m   })[33m;[39m
+    [90m229|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m2 failed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m4 passed[39m[22m[2m | [22m[33m7 skipped[39m[90m (13)[39m
+[2m   Start at [22m 14:06:21
+[2m   Duration [22m 241.01s[2m (transform 93.71s, setup 0ms, import 129.81s, tests 24.35s, environment 0ms)[22m
+
+EXIT=1

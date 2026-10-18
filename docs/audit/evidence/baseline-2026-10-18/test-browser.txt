@@ -1,0 +1,28 @@
+$ pnpm test:browser
+
+> vmng@1.0.0 test:browser /Users/deprof/www/vmng
+> playwright test
+
+[WebServer] {"timestamp":"2026-10-18T12:17:45.687Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"e7c5ed2c-3233-46a2-9ed4-dd4b9ec99bc4","spanId":"1126c885-35f9-48","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+[WebServer] {"timestamp":"2026-10-18T12:17:46.199Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"57d0539a-c222-4f3d-93b2-3063c36abbea","spanId":"101e3940-a64c-41","component":"server_bootstrap","assets":409,"items":14,"revisions":24,"bindings":1,"fulfillments":2,"deals":10}
+[WebServer] {"timestamp":"2026-10-18T12:17:46.359Z","level":"INFO","message":"VMNL Enterprise Server listening on port 5611","traceId":"6f08822a-b620-4d86-8d5f-624c0a9ed0ce","spanId":"bd225a66-a9ea-4d","component":"server_bootstrap","port":5611,"env":"test"}
+[WebServer] [VMNL-BOOT] VMNL Enterprise Platform successfully started on port 5611
+
+Running 13 tests using 1 worker
+
+  ✓   1 [chromium] › tests/browser/a11y.spec.ts:43:3 › axe: Public overview (/) has no WCAG 2.2 A/AA violations at any target viewport (9.0s)
+  ✓   2 [chromium] › tests/browser/a11y.spec.ts:43:3 › axe: Linear channels (/channels) has no WCAG 2.2 A/AA violations at any target viewport (8.0s)
+  ✓   3 [chromium] › tests/browser/a11y.spec.ts:43:3 › axe: Creative economy hub (/hub) has no WCAG 2.2 A/AA violations at any target viewport (8.1s)
+  ✓   4 [chromium] › tests/browser/a11y.spec.ts:43:3 › axe: Broadcast screens catalog (/broadcast/screens) has no WCAG 2.2 A/AA violations at any target viewport (15.6s)
+  ✓   5 [chromium] › tests/browser/a11y.spec.ts:43:3 › axe: Workspace directory (/workspace) has no WCAG 2.2 A/AA violations at any target viewport (6.5s)
+  ✓   6 [chromium] › tests/browser/a11y.spec.ts:43:3 › axe: Prototype viewer (/prototypes) has no WCAG 2.2 A/AA violations at any target viewport (6.9s)
+  ✓   7 [chromium] › tests/browser/a11y.spec.ts:43:3 › axe: Design system styleguide (/styleguide) has no WCAG 2.2 A/AA violations at any target viewport (1.9m)
+  ✓   8 [chromium] › tests/browser/keyboard.spec.ts:17:3 › keyboard path › the skip link is the first tab stop and moves focus into the main region (1.0s)
+  ✓   9 [chromium] › tests/browser/keyboard.spec.ts:38:3 › keyboard path › shows a visible focus indicator on the active navigation link (930ms)
+  ✓  10 [chromium] › tests/browser/keyboard.spec.ts:56:3 › keyboard path › opens the command palette from the keyboard, traps focus, and restores it on Escape (1.4s)
+  ✓  11 [chromium] › tests/browser/keyboard.spec.ts:123:3 › keyboard path › keeps the closed command palette out of the tab order (866ms)
+  ✓  12 [chromium] › tests/browser/rendering.spec.ts:16:3 › the browser run measures styled pages › serves the canonical stylesheet and the client bundle (1.0s)
+  ✓  13 [chromium] › tests/browser/rendering.spec.ts:50:3 › the browser run measures styled pages › renders the chrome controls at the target size the design system declares (924ms)
+
+  13 passed (3.0m)
+EXIT_CODE=0

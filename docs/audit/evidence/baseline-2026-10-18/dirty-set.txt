@@ -1,0 +1,62 @@
+ M .env.example
+ M .github/workflows/ci.yml
+ M Dockerfile
+ M docker-compose.yml
+ M docs/audit/evidence-register.md
+ M docs/domain/canonical-model.md
+ M docs/domain/data-dictionary.md
+ M docs/domain/systems-of-record.md
+ M docs/handoffs/LATEST.md
+ M docs/runbooks/observability.md
+ M docs/security/route-authorization-coverage.md
+ M docs/security/threat-model.md
+ M package.json
+ M prometheus.yml
+ M scripts/explicit-any-budget.js
+ M src/api/docs.ts
+ M src/api/router.ts
+ M src/api/routes/enquiry.routes.ts
+ M src/api/server.ts
+ M src/cli/index.ts
+ M src/core/config/index.ts
+ M src/core/database/index.ts
+ M src/core/database/repositories/campaign.repository.ts
+ M src/core/database/repositories/invoice.repository.ts
+ M src/core/database/repositories/schedule.repository.ts
+ M src/core/database/repositories/talent.repository.ts
+ M src/core/notifications/index.ts
+ M src/core/rbac/index.ts
+ M src/core/storage/index.ts
+ M src/index.ts
+ M src/modules/quality/gates.ts
+ M src/web/public/dashboard.ts
+ M src/web/styles/generated-utilities.ts
+ M tasks.md
+ M tests/contract/openapi-contract.test.ts
+ M tests/integration/enterprise-end-to-end.test.ts
+ M tests/unit/a11y-claim-hygiene.test.ts
+ M tests/unit/auth-shared-across-instances.test.ts
+ M tests/unit/canonical-model.test.ts
+ M tests/unit/quality-gates.test.ts
+ M tests/unit/todo-final-remediation.test.ts
+ M tsconfig.json
+ M vitest.config.ts
+?? .github/CODEOWNERS
+?? .github/dependabot.yml
+?? .nvmrc
+?? SECURITY.md
+?? docs/README.md
+?? docs/audit/evidence/browser-run-2026-10-18/
+?? docs/audit/production-readiness-deepcheck-2026-10-16.md
+?? docs/runbooks/release-gate.md
+?? playwright.config.ts
+?? prometheus.rules.yml
+?? scripts/repin-manifest.mjs
+?? src/core/runtime/
+?? src/modules/quality/artifact.ts
+?? tests/browser/
+?? tests/helpers/storage-stub.ts
+?? tests/unit/deployment-artifacts.test.ts
+?? tests/unit/production-readiness-controls.test.ts
+?? tests/unit/release-evidence-integrity.test.ts
+?? tests/unit/release-gate-commit-binding.test.ts

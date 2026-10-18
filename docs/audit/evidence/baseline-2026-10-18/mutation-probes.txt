@@ -1,0 +1,493 @@
+Mutation probes (plan 0.7) — run 2026-10-18T10:40:37Z
+
+=== PROBE PR13-boolean-coercion — break the control in src/core/config/index.ts, expect the suite RED ===
+shasum before: 8221a2205c7b7f71e01f2dddd267571e5360b539847362bd4b88c9fa0c9c9380
+$ npx vitest run tests/unit/production-readiness-controls.test.ts   (on the mutated tree)
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.11 [39m[90m/Users/deprof/www/vmng[39m
+
+[TSK-61] prisma migrate deploy ok for "vmnl_enterprise_test" — schema already current
+[TSK-61] tests will use dedicated database "vmnl_enterprise_test" (development database untouched)
+[90mstdout[2m | tests/unit/production-readiness-controls.test.ts[2m > [22m[2mPR-08: storage readiness is probed, not parsed[2m > [22m[2mtakes the pod out of rotation on the live readiness endpoint when storage is dead
+[22m[39m{"timestamp":"2026-10-18T10:42:27.518Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"7ab8d210-96b1-4a54-b210-55f156916be0","spanId":"8bf6795a-b102-43","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+[90mstdout[2m | tests/unit/production-readiness-controls.test.ts[2m > [22m[2mPR-08: storage readiness is probed, not parsed[2m > [22m[2mtakes the pod out of rotation on the live readiness endpoint when storage is dead
+[22m[39m{"timestamp":"2026-10-18T10:42:33.684Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"18f46887-548b-47be-a155-a6cf070f263d","spanId":"8824d01b-4c56-42","component":"server_bootstrap","assets":546,"items":22,"revisions":40,"bindings":1,"fulfillments":2,"deals":21}
+
+[90mstdout[2m | tests/unit/production-readiness-controls.test.ts[2m > [22m[2mPR-08: storage readiness is probed, not parsed[2m > [22m[2mtakes the pod out of rotation on the live readiness endpoint when storage is dead
+[22m[39m{"timestamp":"2026-10-18T10:42:34.132Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"ce44252b-419f-457c-bc6b-8fee0ebab0a7","spanId":"ec97a92f-24eb-4e","component":"server_bootstrap","port":0,"env":"test"}
+
+[90mstdout[2m | tests/unit/production-readiness-controls.test.ts[2m > [22m[2mPR-09: the tenant predicate runs on every guarded request[2m > [22m[2mrefuses a request that claims another tenant, on a live server
+[22m[39m{"timestamp":"2026-10-18T10:42:51.659Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"2e0b3178-e0eb-460e-96e8-e22d6d298150","spanId":"20435538-0fc2-44","component":"server_bootstrap","assets":546,"items":22,"revisions":40,"bindings":1,"fulfillments":2,"deals":21}
+
+[90mstdout[2m | tests/unit/production-readiness-controls.test.ts[2m > [22m[2mPR-09: the tenant predicate runs on every guarded request[2m > [22m[2mrefuses a request that claims another tenant, on a live server
+[22m[39m{"timestamp":"2026-10-18T10:42:51.871Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"27b7b047-1965-48ef-ba25-aa804a3cbb24","spanId":"55aa3f12-821f-40","component":"server_bootstrap","port":0,"env":"test"}
+
+[90mstdout[2m | tests/unit/production-readiness-controls.test.ts[2m > [22m[2mPR-14: PROMETHEUS_METRICS_ENABLED is load-bearing[2m > [22m[2mserves /metrics when enabled and 404s when disabled, on one running server
+[22m[39m{"timestamp":"2026-10-18T10:42:54.270Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"22129d32-2976-4ead-a6bd-dbf26ae78b30","spanId":"bc1ba08b-af8b-40","component":"server_bootstrap","assets":546,"items":22,"revisions":40,"bindings":1,"fulfillments":2,"deals":21}
+
+[90mstdout[2m | tests/unit/production-readiness-controls.test.ts[2m > [22m[2mPR-14: PROMETHEUS_METRICS_ENABLED is load-bearing[2m > [22m[2mserves /metrics when enabled and 404s when disabled, on one running server
+[22m[39m{"timestamp":"2026-10-18T10:42:54.336Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"15007aae-98a6-42d3-b21b-2d1e58069b55","spanId":"99e79dab-1536-44","component":"server_bootstrap","port":0,"env":"test"}
+
+ [31m❯[39m tests/unit/production-readiness-controls.test.ts [2m([22m[2m31 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[33m 28516[2mms[22m[39m
+     [33m[2m✓[22m[39m never puts a plaintext AUTH on the wire for a rediss:// URL [33m 530[2mms[22m[39m
+     [33m[2m✓[22m[39m still speaks plaintext RESP for an explicitly plaintext redis:// URL [33m 482[2mms[22m[39m
+     [32m✓[39m refuses an unrecognised scheme instead of presuming plaintext[32m 14[2mms[22m[39m
+     [32m✓[39m reports unavailable for an endpoint on a dead port — the original defect[32m 259[2mms[22m[39m
+     [32m✓[39m reports ready only when the store answers the signed bucket request[32m 215[2mms[22m[39m
+     [32m✓[39m does not read rejected credentials as readiness[32m 67[2mms[22m[39m
+     [33m[2m✓[22m[39m takes the pod out of rotation on the live readiness endpoint when storage is dead [33m 20084[2mms[22m[39m
+[31m     [31m×[31m reads "false" as false for both boolean fields[39m[32m 246[2mms[22m[39m
+     [32m✓[39m rejects a value that is neither true nor false rather than guessing[32m 70[2mms[22m[39m
+     [32m✓[39m keeps the documented defaults when the variable is absent or blank[32m 45[2mms[22m[39m
+     [32m✓[39m refuses carriage facts while STARTIMES_CARRIAGE_VERIFIED is false[32m 73[2mms[22m[39m
+     [32m✓[39m refuses a verification claim without the complete fact set[32m 5[2mms[22m[39m
+     [32m✓[39m accepts a verified, complete fact set[32m 4[2mms[22m[39m
+     [32m✓[39m reports an unhandled rejection and still terminates non-zero[32m 126[2mms[22m[39m
+     [33m[2m✓[22m[39m reports an uncaught exception and still terminates non-zero [33m 663[2mms[22m[39m
+     [32m✓[39m stops a signal-triggered shutdown with the signal's own exit code[32m 9[2mms[22m[39m
+     [32m✓[39m gives up on a stop that never settles instead of waiting to be SIGKILLed[32m 78[2mms[22m[39m
+     [32m✓[39m reports a stop that fails rather than exiting as if it had succeeded[32m 10[2mms[22m[39m
+     [32m✓[39m never runs two shutdowns, and a repeated signal does not restart the deadline[32m 116[2mms[22m[39m
+     [32m✓[39m leaves the deadline timer unable to hold the event loop open[32m 1[2mms[22m[39m
+     [32m✓[39m is wired into the entrypoint — a control nothing installs is dead (PR-14's lesson)[32m 1[2mms[22m[39m
+     [33m[2m✓[22m[39m refuses a request that claims another tenant, on a live server [33m 3033[2mms[22m[39m
+     [32m✓[39m refuses a tenant-less session that claims a tenant — the branch that failed open[32m 1[2mms[22m[39m
+     [32m✓[39m keeps the documented exemptions: the caller's own tenant and SuperAdmin[32m 2[2mms[22m[39m
+     [32m✓[39m keeps the schedule-lock invariant reachable with its own reason[32m 1[2mms[22m[39m
+     [33m[2m✓[22m[39m leaves no call site anywhere in src that omits the context argument [33m 813[2mms[22m[39m
+     [32m✓[39m finds the environment surface at all (anti-vacuity)[32m 0[2mms[22m[39m
+     [32m✓[39m declares every one of them in the config schema[32m 4[2mms[22m[39m
+     [32m✓[39m documents every one of them in .env.example[32m 0[2mms[22m[39m
+     [32m✓[39m refuses a value that would otherwise be read as the opposite[32m 166[2mms[22m[39m
+[31m     [31m×[31m serves /metrics when enabled and 404s when disabled, on one running server[39m[33m 1336[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 2 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/unit/production-readiness-controls.test.ts[2m > [22mPR-13: a boolean env value cannot read as its opposite[2m > [22mreads "false" as false for both boolean fields
+[31m[1mError[22m: [VMNL-CONFIG-ERROR] Invalid environment configuration:
+  - [STARTIMES_CARRIAGE_VERIFIED]: STARTIMES_CARRIAGE_VERIFIED=true requires the complete carriage fact set; missing: NXTR_DTT_CHANNEL, NXTR_DTH_CHANNEL, NXTR_SERVICE_PID, ORIS_DTT_CHANNEL, ORIS_DTH_CHANNEL, ORIS_SERVICE_PID, IMBD_DTT_CHANNEL, IMBD_DTH_CHANNEL, IMBD_SERVICE_PID.[39m
+[36m [2m❯[22m loadConfig src/core/config/index.ts:[2m309:11[22m[39m
+    [90m307|[39m   [35mif[39m ([33m![39mresult[33m.[39msuccess) {
+    [90m308|[39m     const errorDetails = result.error.errors.map(err => `  - [${err.pa…
+    [90m309|[39m     throw new Error(`[VMNL-CONFIG-ERROR] Invalid environment configura…
+    [90m   |[39m           [31m^[39m
+    [90m310|[39m   }
+    [90m311|[39m   [35mreturn[39m result[33m.[39mdata[33m;[39m
+[90m [2m❯[22m tests/unit/production-readiness-controls.test.ts:[2m296:20[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/unit/production-readiness-controls.test.ts[2m > [22mPR-14: PROMETHEUS_METRICS_ENABLED is load-bearing[2m > [22mserves /metrics when enabled and 404s when disabled, on one running server
+[31m[1mAssertionError[22m: expected 200 to be 404 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 404[39m
+[31m+ 200[39m
+
+[36m [2m❯[22m tests/unit/production-readiness-controls.test.ts:[2m723:31[22m[39m
+    [90m721|[39m       [90m// Pre-fix the endpoint was served regardless of the flag.[39m
+    [90m722|[39m       [35mconst[39m disabled [33m=[39m [35mawait[39m [34mfetch[39m(url)[33m;[39m
+    [90m723|[39m       [34mexpect[39m(disabled[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m404[39m)[33m;[39m
+    [90m   |[39m                               [31m^[39m
+    [90m724|[39m
+    [90m725|[39m       // The route reads the resolved config per request, so flipping …
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m29 passed[39m[22m[90m (31)[39m
+[2m   Start at [22m 11:41:01
+[2m   Duration [22m 113.02s[2m (transform 41.79s, setup 0ms, import 53.61s, tests 28.52s, environment 0ms)[22m
+
+MUTATED_EXIT=1  (non-zero = the control caught the break)
+restored: YES (shasum 8221a2205c7b7f71e01f2dddd267571e5360b539847362bd4b88c9fa0c9c9380)
+
+=== PROBE PR21-rule-files — break the control in prometheus.yml, expect the suite RED ===
+shasum before: 7dc7a92b7b8a23d909d9d4c53b77b3c4b85ce25eb43bfa3aa99bfd111c7006e1
+$ npx vitest run tests/unit/deployment-artifacts.test.ts   (on the mutated tree)
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.11 [39m[90m/Users/deprof/www/vmng[39m
+
+[TSK-61] prisma migrate deploy ok for "vmnl_enterprise_test" — schema already current
+[TSK-61] tests will use dedicated database "vmnl_enterprise_test" (development database untouched)
+ [32m✓[39m tests/unit/deployment-artifacts.test.ts [2m([22m[2m15 tests[22m[2m)[22m[33m 1250[2mms[22m[39m
+     [33m[2m✓[22m[39m names no metric the application does not publish [33m 1081[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m15 passed[39m[22m[90m (15)[39m
+[2m   Start at [22m 11:43:32
+[2m   Duration [22m 46.02s[2m (transform 1.17s, setup 0ms, import 1.82s, tests 1.25s, environment 0ms)[22m
+
+MUTATED_EXIT=0  (non-zero = the control caught the break)
+restored: YES (shasum 7dc7a92b7b8a23d909d9d4c53b77b3c4b85ce25eb43bfa3aa99bfd111c7006e1)
+
+=== PROBE PR04-evidence-path — break the control in release-manifest.json, expect the suite RED ===
+shasum before: ecb0cf71455a0ed24af565639619bddb24b0ea8d82c832fb181cbaa3b3d9cde7
+$ npx vitest run tests/unit/release-evidence-integrity.test.ts   (on the mutated tree)
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.11 [39m[90m/Users/deprof/www/vmng[39m
+
+[TSK-61] prisma migrate deploy ok for "vmnl_enterprise_test" — schema already current
+[TSK-61] tests will use dedicated database "vmnl_enterprise_test" (development database untouched)
+ [31m❯[39m tests/unit/release-evidence-integrity.test.ts [2m([22m[2m15 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 483[2mms[22m[39m
+     [32m✓[39m refuses a PASS gate whose cited evidence path does not exist[32m 54[2mms[22m[39m
+     [32m✓[39m refuses a PASS gate that cites no evidence at all[32m 2[2mms[22m[39m
+     [32m✓[39m refuses narrative evidence, because a contract name cannot be re-checked[32m 3[2mms[22m[39m
+     [32m✓[39m refuses an evaluation older than the policy window[32m 25[2mms[22m[39m
+     [32m✓[39m honours an explicit freshness policy rather than a fixed window[32m 1[2mms[22m[39m
+     [32m✓[39m does not punish a NOT_TESTED gate for lacking resolvable evidence[32m 8[2mms[22m[39m
+     [32m✓[39m parses the composite evidenceRefs the shipped manifest actually uses[32m 1[2mms[22m[39m
+[31m     [31m×[31m resolves every cited path in the shipped release manifest[39m[32m 66[2mms[22m[39m
+     [32m✓[39m deletes a cited test file and watches the gate refuse[32m 19[2mms[22m[39m
+     [32m✓[39m requires an artefact digest in PRODUCTION_S5 and accepts a matching one[32m 7[2mms[22m[39m
+     [32m✓[39m refuses a decision signed against a different build[32m 3[2mms[22m[39m
+     [32m✓[39m computes a digest that changes when the build changes[32m 33[2mms[22m[39m
+     [32m✓[39m verifies an owner signature and refuses a manifest altered after signing[32m 219[2mms[22m[39m
+     [32m✓[39m distinguishes a missing key from a forged signature[32m 1[2mms[22m[39m
+     [32m✓[39m binds the digest and every gate status into the signed payload[32m 1[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/unit/release-evidence-integrity.test.ts[2m > [22mPR-04: release gates resolve the evidence they cite[2m > [22mresolves every cited path in the shipped release manifest
+[31m[1mAssertionError[22m: expected [ { …(3) } ] to deeply equal [][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- [][39m
+[31m+ [[39m
+[31m+   {[39m
+[31m+     "code": "UNRESOLVED_EVIDENCE_PATH",[39m
+[31m+     "detail": "Cited evidence 'src/modules/broadcast/this-file-does-not-exist.ts' does not exist in the release tree.",[39m
+[31m+     "gateId": "BG0_CHANNEL_AUTHORITY",[39m
+[31m+   },[39m
+[31m+ ][39m
+
+[36m [2m❯[22m tests/unit/release-evidence-integrity.test.ts:[2m189:37[22m[39m
+    [90m187|[39m     )[33m;[39m
+    [90m188|[39m
+    [90m189|[39m     [34mexpect[39m(result[33m.[39mevidenceFindings)[33m.[39m[34mtoEqual[39m([])[33m;[39m
+    [90m   |[39m                                     [31m^[39m
+    [90m190|[39m   })[33m;[39m
+    [90m191|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m14 passed[39m[22m[90m (15)[39m
+[2m   Start at [22m 11:44:47
+[2m   Duration [22m 67.30s[2m (transform 2.01s, setup 0ms, import 2.63s, tests 483ms, environment 0ms)[22m
+
+MUTATED_EXIT=1  (non-zero = the control caught the break)
+restored: YES (shasum ecb0cf71455a0ed24af565639619bddb24b0ea8d82c832fb181cbaa3b3d9cde7)
+
+=== PROBE PR03-ci-override — break the control in .github/workflows/ci.yml, expect the suite RED ===
+shasum before: b114ed1f1919ec79b3a22e81e105bf36da9d618ce8db6e6e9c439b1e2f5d22f8
+$ npx vitest run tests/unit/release-gate-commit-binding.test.ts   (on the mutated tree)
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.11 [39m[90m/Users/deprof/www/vmng[39m
+
+[TSK-61] prisma migrate deploy ok for "vmnl_enterprise_test" — schema already current
+[TSK-61] tests will use dedicated database "vmnl_enterprise_test" (development database untouched)
+[90mstdout[2m | tests/unit/release-gate-commit-binding.test.ts[2m > [22m[2mPR-03: the release gate refuses a manifest signed for another commit[2m > [22m[2mfails when the manifest commit does not match HEAD
+[22m[39m[VMNL-CLI] Evaluating R1.2A §67 Broadcast Release Gates (BG0 to BG9)...
+
+[90mstderr[2m | tests/unit/release-gate-commit-binding.test.ts[2m > [22m[2mPR-03: the release gate refuses a manifest signed for another commit[2m > [22m[2mfails when the manifest commit does not match HEAD
+[22m[39m[VMNL-CLI] Manifest commit 0000000 does not match HEAD 37d0007: the release decision was signed against a different tree, so this evaluation does not attest the code being released.
+[VMNL-CLI] Re-pin release-manifest.json to a commit that carries the work (see HD-01 / TSK-37), or pass --allow-sha-drift to record an explicit override.
+
+[90mstdout[2m | tests/unit/release-gate-commit-binding.test.ts[2m > [22m[2mPR-03: the release gate refuses a manifest signed for another commit[2m > [22m[2mpasses the same manifest only once the override is explicit
+[22m[39m[VMNL-CLI] Evaluating R1.2A §67 Broadcast Release Gates (BG0 to BG9)...
+
+[90mstderr[2m | tests/unit/release-gate-commit-binding.test.ts[2m > [22m[2mPR-03: the release gate refuses a manifest signed for another commit[2m > [22m[2mpasses the same manifest only once the override is explicit
+[22m[39m[VMNL-CLI] Manifest commit 0000000 does not match HEAD 37d0007: the release decision was signed against a different tree, so this evaluation does not attest the code being released.
+[VMNL-CLI] OVERRIDE ACTIVE: --allow-sha-drift was passed, so this gate did NOT attest the current commit. Remove the override once the manifest is re-pinned.
+[VMNL-CLI] Artefact binding NOT VERIFIED — NO_SIGNATURE: the manifest carries no ownerSignature.
+
+[90mstdout[2m | tests/unit/release-gate-commit-binding.test.ts[2m > [22m[2mPR-03: the release gate refuses a manifest signed for another commit[2m > [22m[2mpasses the same manifest only once the override is explicit
+[22m[39m[VMNL-CLI] Artefact digest computed (dist/ (493 files, 4357384 bytes)) but the manifest does not bind it.
+[VMNL-CLI] Evidence paths resolved against the working tree; cited tests were NOT re-executed by this command.
+[VMNL-CLI] ALL R1.2A §67 BROADCAST GATES EVALUATED (BG0 to BG9).
+[VMNL-CLI] Release Decision: GO_WITH_CONDITIONS
+[VMNL-CLI] Environment: SANDBOX_S2
+[VMNL-CLI] Human Release Owner: Femi Aderibigbe (Executive Chairman & Broadcast Authority)
+  - [PASSED] BG0_CHANNEL_AUTHORITY
+  - [PASSED] BG1_CATALOGUE
+  - [PASSED] BG2_RIGHTS
+  - [PASSED] BG3_SCHEDULE
+  - [PASSED] BG4_TRAFFIC
+  - [PASSED] BG5_PLAYOUT
+  - [PASSED] BG7_FINANCE
+  - [PASSED] BG8_AZEEBO
+  - [PASSED] BG9_CONTINUITY
+  - [CONDITION/UNTESTED] BG6_CARRIAGE: Carriage is NOT_TESTED (never represented as PASS).
+[VMNL-CLI] STATUS: RELEASE CLEARED FOR SANDBOX_S2 (GO_WITH_CONDITIONS).
+
+[90mstdout[2m | tests/unit/release-gate-commit-binding.test.ts[2m > [22m[2mPR-03: the release gate refuses a manifest signed for another commit[2m > [22m[2mtreats the "HEAD" sentinel as an unbound manifest rather than a match
+[22m[39m[VMNL-CLI] Evaluating R1.2A §67 Broadcast Release Gates (BG0 to BG9)...
+[VMNL-CLI] Artefact digest computed (dist/ (493 files, 4357384 bytes)) but the manifest does not bind it.
+[VMNL-CLI] Evidence paths resolved against the working tree; cited tests were NOT re-executed by this command.
+[VMNL-CLI] ALL R1.2A §67 BROADCAST GATES EVALUATED (BG0 to BG9).
+[VMNL-CLI] Release Decision: GO_WITH_CONDITIONS
+[VMNL-CLI] Environment: SANDBOX_S2
+[VMNL-CLI] Human Release Owner: Femi Aderibigbe (Executive Chairman & Broadcast Authority)
+  - [PASSED] BG0_CHANNEL_AUTHORITY
+  - [PASSED] BG1_CATALOGUE
+  - [PASSED] BG2_RIGHTS
+  - [PASSED] BG3_SCHEDULE
+  - [PASSED] BG4_TRAFFIC
+  - [PASSED] BG5_PLAYOUT
+  - [PASSED] BG7_FINANCE
+  - [PASSED] BG8_AZEEBO
+  - [PASSED] BG9_CONTINUITY
+  - [CONDITION/UNTESTED] BG6_CARRIAGE: Carriage is NOT_TESTED (never represented as PASS).
+[VMNL-CLI] STATUS: RELEASE CLEARED FOR SANDBOX_S2 (GO_WITH_CONDITIONS).
+
+[90mstderr[2m | tests/unit/release-gate-commit-binding.test.ts[2m > [22m[2mPR-03: the release gate refuses a manifest signed for another commit[2m > [22m[2mtreats the "HEAD" sentinel as an unbound manifest rather than a match
+[22m[39m[VMNL-CLI] Artefact binding NOT VERIFIED — NO_SIGNATURE: the manifest carries no ownerSignature.
+
+ [31m❯[39m tests/unit/release-gate-commit-binding.test.ts [2m([22m[2m4 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 1820[2mms[22m[39m
+     [32m✓[39m fails when the manifest commit does not match HEAD[32m 231[2mms[22m[39m
+     [33m[2m✓[22m[39m passes the same manifest only once the override is explicit [33m 1276[2mms[22m[39m
+     [32m✓[39m treats the "HEAD" sentinel as an unbound manifest rather than a match[32m 159[2mms[22m[39m
+[31m     [31m×[31m keeps the CI override self-retiring: present only while the drift exists[39m[32m 151[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/unit/release-gate-commit-binding.test.ts[2m > [22mPR-03: the release gate refuses a manifest signed for another commit[2m > [22mkeeps the CI override self-retiring: present only while the drift exists
+[31m[1mAssertionError[22m: release-manifest.json is pinned to a commit that is not HEAD, so .github/workflows/ci.yml must pass --allow-sha-drift explicitly (and say why) rather than letting the gate refuse with no recorded remedy.: expected false to be true // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m tests/unit/release-gate-commit-binding.test.ts:[2m84:9[22m[39m
+
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m3 passed[39m[22m[90m (4)[39m
+[2m   Start at [22m 11:46:26
+[2m   Duration [22m 35.34s[2m (transform 6.85s, setup 0ms, import 10.61s, tests 1.82s, environment 0ms)[22m
+
+MUTATED_EXIT=1  (non-zero = the control caught the break)
+restored: YES (shasum b114ed1f1919ec79b3a22e81e105bf36da9d618ce8db6e6e9c439b1e2f5d22f8)
+
+=== RESTORE VERIFY — all four suites on the restored tree ===
+$ npx vitest run tests/unit/production-readiness-controls.test.ts tests/unit/deployment-artifacts.test.ts tests/unit/release-evidence-integrity.test.ts tests/unit/release-gate-commit-binding.test.ts
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.11 [39m[90m/Users/deprof/www/vmng[39m
+
+[TSK-61] prisma migrate deploy ok for "vmnl_enterprise_test" — schema already current
+[TSK-61] tests will use dedicated database "vmnl_enterprise_test" (development database untouched)
+[90mstdout[2m | tests/unit/production-readiness-controls.test.ts[2m > [22m[2mPR-08: storage readiness is probed, not parsed[2m > [22m[2mtakes the pod out of rotation on the live readiness endpoint when storage is dead
+[22m[39m{"timestamp":"2026-10-18T10:48:22.272Z","level":"INFO","message":"Distributed cache adapter: in-memory fallback (REDIS_URL not set)","traceId":"8b2b79bc-ce12-4abe-83b8-1113c0be6dcb","spanId":"499ef440-1046-42","component":"server_bootstrap","backend":"memory","telemetryFlag":"CACHE_BACKEND=memory","reason":"REDIS_URL not set"}
+
+[90mstdout[2m | tests/unit/production-readiness-controls.test.ts[2m > [22m[2mPR-08: storage readiness is probed, not parsed[2m > [22m[2mtakes the pod out of rotation on the live readiness endpoint when storage is dead
+[22m[39m{"timestamp":"2026-10-18T10:48:25.638Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"f2927f85-9909-475a-b29a-0f75636dc018","spanId":"8b515af0-bc90-41","component":"server_bootstrap","assets":546,"items":22,"revisions":40,"bindings":1,"fulfillments":2,"deals":21}
+
+[90mstdout[2m | tests/unit/production-readiness-controls.test.ts[2m > [22m[2mPR-08: storage readiness is probed, not parsed[2m > [22m[2mtakes the pod out of rotation on the live readiness endpoint when storage is dead
+[22m[39m{"timestamp":"2026-10-18T10:48:25.913Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"03fc315b-5ca0-4967-acc3-dc7e341e46eb","spanId":"5fddf9be-f7db-42","component":"server_bootstrap","port":0,"env":"test"}
+
+[90mstdout[2m | tests/unit/production-readiness-controls.test.ts[2m > [22m[2mPR-09: the tenant predicate runs on every guarded request[2m > [22m[2mrefuses a request that claims another tenant, on a live server
+[22m[39m{"timestamp":"2026-10-18T10:48:38.363Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"90adf4ef-c657-4f69-b508-3883daeb4be7","spanId":"08651726-08c3-48","component":"server_bootstrap","assets":546,"items":22,"revisions":40,"bindings":1,"fulfillments":2,"deals":21}
+
+[90mstdout[2m | tests/unit/production-readiness-controls.test.ts[2m > [22m[2mPR-09: the tenant predicate runs on every guarded request[2m > [22m[2mrefuses a request that claims another tenant, on a live server
+[22m[39m{"timestamp":"2026-10-18T10:48:38.635Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"ee92ba6f-2f00-449e-9933-5ecbe8128568","spanId":"1fd68b5f-97d8-40","component":"server_bootstrap","port":0,"env":"test"}
+
+[90mstdout[2m | tests/unit/production-readiness-controls.test.ts[2m > [22m[2mPR-14: PROMETHEUS_METRICS_ENABLED is load-bearing[2m > [22m[2mserves /metrics when enabled and 404s when disabled, on one running server
+[22m[39m{"timestamp":"2026-10-18T10:48:41.437Z","level":"INFO","message":"Release-critical durable stores hydrated at boot","traceId":"a368fcd3-0b6a-48b6-ac21-e09a7248135f","spanId":"913559cb-b490-40","component":"server_bootstrap","assets":546,"items":22,"revisions":40,"bindings":1,"fulfillments":2,"deals":21}
+
+[90mstdout[2m | tests/unit/production-readiness-controls.test.ts[2m > [22m[2mPR-14: PROMETHEUS_METRICS_ENABLED is load-bearing[2m > [22m[2mserves /metrics when enabled and 404s when disabled, on one running server
+[22m[39m{"timestamp":"2026-10-18T10:48:41.539Z","level":"INFO","message":"VMNL Enterprise Server listening on port 0","traceId":"e85d63bb-4e01-4581-9cad-c671720aeebf","spanId":"b804573f-dc2b-47","component":"server_bootstrap","port":0,"env":"test"}
+
+ [32m✓[39m tests/unit/production-readiness-controls.test.ts [2m([22m[2m31 tests[22m[2m)[22m[33m 21638[2mms[22m[39m
+     [33m[2m✓[22m[39m never puts a plaintext AUTH on the wire for a rediss:// URL [33m 590[2mms[22m[39m
+     [33m[2m✓[22m[39m still speaks plaintext RESP for an explicitly plaintext redis:// URL [33m 614[2mms[22m[39m
+     [33m[2m✓[22m[39m takes the pod out of rotation on the live readiness endpoint when storage is dead [33m 14759[2mms[22m[39m
+     [33m[2m✓[22m[39m refuses a request that claims another tenant, on a live server [33m 1801[2mms[22m[39m
+     [33m[2m✓[22m[39m leaves no call site anywhere in src that omits the context argument [33m 767[2mms[22m[39m
+     [33m[2m✓[22m[39m serves /metrics when enabled and 404s when disabled, on one running server [33m 1646[2mms[22m[39m
+[90mstdout[2m | tests/unit/release-gate-commit-binding.test.ts[2m > [22m[2mPR-03: the release gate refuses a manifest signed for another commit[2m > [22m[2mfails when the manifest commit does not match HEAD
+[22m[39m[VMNL-CLI] Evaluating R1.2A §67 Broadcast Release Gates (BG0 to BG9)...
+
+[90mstderr[2m | tests/unit/release-gate-commit-binding.test.ts[2m > [22m[2mPR-03: the release gate refuses a manifest signed for another commit[2m > [22m[2mfails when the manifest commit does not match HEAD
+[22m[39m[VMNL-CLI] Manifest commit 0000000 does not match HEAD 37d0007: the release decision was signed against a different tree, so this evaluation does not attest the code being released.
+[VMNL-CLI] Re-pin release-manifest.json to a commit that carries the work (see HD-01 / TSK-37), or pass --allow-sha-drift to record an explicit override.
+
+[90mstdout[2m | tests/unit/release-gate-commit-binding.test.ts[2m > [22m[2mPR-03: the release gate refuses a manifest signed for another commit[2m > [22m[2mpasses the same manifest only once the override is explicit
+[22m[39m[VMNL-CLI] Evaluating R1.2A §67 Broadcast Release Gates (BG0 to BG9)...
+
+[90mstderr[2m | tests/unit/release-gate-commit-binding.test.ts[2m > [22m[2mPR-03: the release gate refuses a manifest signed for another commit[2m > [22m[2mpasses the same manifest only once the override is explicit
+[22m[39m[VMNL-CLI] Manifest commit 0000000 does not match HEAD 37d0007: the release decision was signed against a different tree, so this evaluation does not attest the code being released.
+[VMNL-CLI] OVERRIDE ACTIVE: --allow-sha-drift was passed, so this gate did NOT attest the current commit. Remove the override once the manifest is re-pinned.
+[VMNL-CLI] Artefact binding NOT VERIFIED — NO_SIGNATURE: the manifest carries no ownerSignature.
+
+[90mstdout[2m | tests/unit/release-gate-commit-binding.test.ts[2m > [22m[2mPR-03: the release gate refuses a manifest signed for another commit[2m > [22m[2mpasses the same manifest only once the override is explicit
+[22m[39m[VMNL-CLI] Artefact digest computed (dist/ (493 files, 4357384 bytes)) but the manifest does not bind it.
+[VMNL-CLI] Evidence paths resolved against the working tree; cited tests were NOT re-executed by this command.
+[VMNL-CLI] ALL R1.2A §67 BROADCAST GATES EVALUATED (BG0 to BG9).
+[VMNL-CLI] Release Decision: GO_WITH_CONDITIONS
+[VMNL-CLI] Environment: SANDBOX_S2
+[VMNL-CLI] Human Release Owner: Femi Aderibigbe (Executive Chairman & Broadcast Authority)
+  - [PASSED] BG0_CHANNEL_AUTHORITY
+  - [PASSED] BG1_CATALOGUE
+  - [PASSED] BG2_RIGHTS
+  - [PASSED] BG3_SCHEDULE
+  - [PASSED] BG4_TRAFFIC
+  - [PASSED] BG5_PLAYOUT
+  - [PASSED] BG7_FINANCE
+  - [PASSED] BG8_AZEEBO
+  - [PASSED] BG9_CONTINUITY
+  - [CONDITION/UNTESTED] BG6_CARRIAGE: Carriage is NOT_TESTED (never represented as PASS).
+[VMNL-CLI] STATUS: RELEASE CLEARED FOR SANDBOX_S2 (GO_WITH_CONDITIONS).
+
+[90mstdout[2m | tests/unit/release-gate-commit-binding.test.ts[2m > [22m[2mPR-03: the release gate refuses a manifest signed for another commit[2m > [22m[2mtreats the "HEAD" sentinel as an unbound manifest rather than a match
+[22m[39m[VMNL-CLI] Evaluating R1.2A §67 Broadcast Release Gates (BG0 to BG9)...
+[VMNL-CLI] Artefact digest computed (dist/ (493 files, 4357384 bytes)) but the manifest does not bind it.
+[VMNL-CLI] Evidence paths resolved against the working tree; cited tests were NOT re-executed by this command.
+[VMNL-CLI] ALL R1.2A §67 BROADCAST GATES EVALUATED (BG0 to BG9).
+[VMNL-CLI] Release Decision: GO_WITH_CONDITIONS
+[VMNL-CLI] Environment: SANDBOX_S2
+[VMNL-CLI] Human Release Owner: Femi Aderibigbe (Executive Chairman & Broadcast Authority)
+  - [PASSED] BG0_CHANNEL_AUTHORITY
+  - [PASSED] BG1_CATALOGUE
+  - [PASSED] BG2_RIGHTS
+  - [PASSED] BG3_SCHEDULE
+  - [PASSED] BG4_TRAFFIC
+  - [PASSED] BG5_PLAYOUT
+  - [PASSED] BG7_FINANCE
+  - [PASSED] BG8_AZEEBO
+  - [PASSED] BG9_CONTINUITY
+  - [CONDITION/UNTESTED] BG6_CARRIAGE: Carriage is NOT_TESTED (never represented as PASS).
+[VMNL-CLI] STATUS: RELEASE CLEARED FOR SANDBOX_S2 (GO_WITH_CONDITIONS).
+
+[90mstderr[2m | tests/unit/release-gate-commit-binding.test.ts[2m > [22m[2mPR-03: the release gate refuses a manifest signed for another commit[2m > [22m[2mtreats the "HEAD" sentinel as an unbound manifest rather than a match
+[22m[39m[VMNL-CLI] Artefact binding NOT VERIFIED — NO_SIGNATURE: the manifest carries no ownerSignature.
+
+ [32m✓[39m tests/unit/release-gate-commit-binding.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 3520[2mms[22m[39m
+     [33m[2m✓[22m[39m fails when the manifest commit does not match HEAD [33m 892[2mms[22m[39m
+     [33m[2m✓[22m[39m passes the same manifest only once the override is explicit [33m 2045[2mms[22m[39m
+ [32m✓[39m tests/unit/release-evidence-integrity.test.ts [2m([22m[2m15 tests[22m[2m)[22m[33m 394[2mms[22m[39m
+ [32m✓[39m tests/unit/deployment-artifacts.test.ts [2m([22m[2m15 tests[22m[2m)[22m[33m 572[2mms[22m[39m
+     [33m[2m✓[22m[39m names no metric the application does not publish [33m 498[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m4 passed[39m[22m[90m (4)[39m
+[2m      Tests [22m [1m[32m65 passed[39m[22m[90m (65)[39m
+[2m   Start at [22m 11:47:17
+[2m   Duration [22m 105.51s[2m (transform 26.48s, setup 0ms, import 36.49s, tests 26.12s, environment 7ms)[22m
+
+RESTORE_VERIFY_EXIT=0
+no leftover backups
+PROBES_COMPLETE
+
+=== RE-RUN PROBE PR21-rule-files, attempt 2 — after strengthening the assertion ===
+Why: attempt 1 commented the key, and the previous unanchored /rule_files:/ still matched
+the commented literal, so the mutation was invisible to the gate (a real weakness, found by
+the probe). tests/unit/deployment-artifacts.test.ts now anchors /^rule_files:/m — a stronger
+assertion over the same mechanism (tasks.md rule 0.3: never weaker).
+shasum before: 7dc7a92b7b8a23d909d9d4c53b77b3c4b85ce25eb43bfa3aa99bfd111c7006e1
+$ npx vitest run tests/unit/deployment-artifacts.test.ts   (on the mutated tree)
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.11 [39m[90m/Users/deprof/www/vmng[39m
+
+[TSK-61] prisma migrate deploy ok for "vmnl_enterprise_test" — schema already current
+[TSK-61] tests will use dedicated database "vmnl_enterprise_test" (development database untouched)
+ [31m❯[39m tests/unit/deployment-artifacts.test.ts [2m([22m[2m15 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 2324[2mms[22m[39m
+[31m     [31m×[31m is loaded and mounted rather than documented[39m[32m 79[2mms[22m[39m
+     [32m✓[39m does not label the local sandbox stack as production[32m 1[2mms[22m[39m
+     [33m[2m✓[22m[39m names no metric the application does not publish [33m 1964[2mms[22m[39m
+     [32m✓[39m keeps the runbook and the shipped file from drifting apart[32m 4[2mms[22m[39m
+     [32m✓[39m parses every expected service (anti-vacuity for the scans below)[32m 113[2mms[22m[39m
+     [32m✓[39m merges a hardening anchor into every service[32m 15[2mms[22m[39m
+     [32m✓[39m drops all capabilities where the image needs none[32m 14[2mms[22m[39m
+     [32m✓[39m gives every service a CPU and memory limit[32m 1[2mms[22m[39m
+     [32m✓[39m holds no literal object-store credential[32m 20[2mms[22m[39m
+     [32m✓[39m keeps the sandbox credentials documented in .env.example[32m 13[2mms[22m[39m
+     [32m✓[39m generates the Prisma client during the build[32m 4[2mms[22m[39m
+     [32m✓[39m installs from a hard lockfile copy, never a glob[32m 6[2mms[22m[39m
+     [32m✓[39m carries the generated client into the runtime stage[32m 0[2mms[22m[39m
+     [32m✓[39m probes readiness, not liveness[32m 0[2mms[22m[39m
+     [32m✓[39m pins the same major in all four places[32m 4[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/unit/deployment-artifacts.test.ts[2m > [22mPR-21: the shipped alert rules are real, mounted and readable[2m > [22mis loaded and mounted rather than documented
+[31m[1mAssertionError[22m: expected 'global:\n  scrape_interval: 15s\n  ev…' to match /^rule_files:/m[39m
+
+[32m- Expected:[39m
+/^rule_files:/m
+
+[31m+ Received:[39m
+"global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+# PR-21: without this the rules in prometheus.rules.yml were never loaded, so the
+# alerting the runbook documents did not exist. The file is mounted read-only by
+# docker-compose.yml at the same path.
+# rule_files:
+  - /etc/prometheus/prometheus.rules.yml
+
+# NOTE (PR-21, still open): no Alertmanager is configured, so firing alerts are
+# evaluated and visible in the Prometheus UI but are not routed to a receiver.
+# The product's own rule engine dispatches to ALERT_WEBHOOK_URL
+# (src/core/observability), which is what the sandbox actually uses. Routing
+# this file's alerts requires the deployment's receiver, which this repository
+# does not hold — recorded as open in the PR-21 register entry.
+
+scrape_configs:
+  - job_name: \"vmnl-app\"
+    metrics_path: \"/metrics\"
+    static_configs:
+      - targets: [\"app:5500\"]
+        labels:
+          # PR-21: this file describes the LOCAL compose stack, which is a
+          # sandbox. Labelling it \"production\" made every dashboard and alert
+          # filter that keys on the environment label silently wrong.
+          environment: \"sandbox\"
+          service: \"vmnl-enterprise-orchestrator\"
+"
+
+[36m [2m❯[22m tests/unit/deployment-artifacts.test.ts:[2m131:24[22m[39m
+    [90m129|[39m     // literal, so a disabled rule mount passed this gate. A key that …
+    [90m130|[39m     [90m// not read must not satisfy an assertion about what YAML reads.[39m
+    [90m131|[39m     [34mexpect[39m(prometheus)[33m.[39m[34mtoMatch[39m([36m/^rule_files:/m[39m)[33m;[39m
+    [90m   |[39m                        [31m^[39m
+    [90m132|[39m     expect(prometheus).toMatch(/^\s*-\s*\/etc\/prometheus\/prometheus\…
+    [90m133|[39m     const prometheusService = composeServices().find((s) => s.name ===…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m14 passed[39m[22m[90m (15)[39m
+[2m   Start at [22m 11:50:23
+[2m   Duration [22m 58.39s[2m (transform 1.29s, setup 0ms, import 2.29s, tests 2.32s, environment 0ms)[22m
+
+MUTATED_EXIT=1  (non-zero = the control caught the break)
+restored: YES (shasum 7dc7a92b7b8a23d909d9d4c53b77b3c4b85ce25eb43bfa3aa99bfd111c7006e1)
+$ npx vitest run tests/unit/deployment-artifacts.test.ts   (restored tree)
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.11 [39m[90m/Users/deprof/www/vmng[39m
+
+[TSK-61] prisma migrate deploy ok for "vmnl_enterprise_test" — schema already current
+[TSK-61] tests will use dedicated database "vmnl_enterprise_test" (development database untouched)
+ [32m✓[39m tests/unit/deployment-artifacts.test.ts [2m([22m[2m15 tests[22m[2m)[22m[33m 1152[2mms[22m[39m
+     [33m[2m✓[22m[39m names no metric the application does not publish [33m 985[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m15 passed[39m[22m[90m (15)[39m
+[2m   Start at [22m 11:52:00
+[2m   Duration [22m 55.28s[2m (transform 603ms, setup 0ms, import 883ms, tests 1.15s, environment 0ms)[22m
+
+RESTORED_EXIT=0

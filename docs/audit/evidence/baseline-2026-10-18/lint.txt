@@ -1,0 +1,6 @@
+$ pnpm lint
+
+> vmng@1.0.0 lint /Users/deprof/www/vmng
+> eslint . --max-warnings 0
+
+EXIT_CODE=0

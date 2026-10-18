@@ -1,0 +1,5 @@
+$ node dist/src/cli/index.js gates:check
+[VMNL-CLI] Evaluating R1.2A §67 Broadcast Release Gates (BG0 to BG9)...
+[VMNL-CLI] Manifest commit ca303f0 does not match HEAD 37d0007: the release decision was signed against a different tree, so this evaluation does not attest the code being released.
+[VMNL-CLI] Re-pin release-manifest.json to a commit that carries the work (see HD-01 / TSK-37), or pass --allow-sha-drift to record an explicit override.
+EXIT_CODE=1

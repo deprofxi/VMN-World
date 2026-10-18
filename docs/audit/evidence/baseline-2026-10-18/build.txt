@@ -1,0 +1,6 @@
+$ pnpm build
+
+> vmng@1.0.0 build /Users/deprof/www/vmng
+> tsc
+
+EXIT_CODE=0

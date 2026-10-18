@@ -1,0 +1,8 @@
+$ pnpm run any:budget
+
+> vmng@1.0.0 any:budget /Users/deprof/www/vmng
+> node scripts/explicit-any-budget.js
+
+[any-budget] explicit-any occurrences in src: 108 (budget 108)
+[any-budget] OK.
+EXIT_CODE=0
