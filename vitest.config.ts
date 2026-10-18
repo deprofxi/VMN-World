@@ -27,9 +27,13 @@ export default defineConfig({
       // 78.7 functions / 74.43 statements). Floors sit just below the
       // measured baseline so coverage cannot silently regress — ratchet
       // upward as the debt burns down.
+      // 2026-10-18 (PR-27, plan phase 4.2): branch floor 62 → 70. `pnpm
+      // test:coverage` has measured 70.16 / 70.34 / 70.43 / 70.79 branches
+      // across the 2026-10-15 → 2026-10-18 pins, so 70 clears every observed
+      // run with margin while making a ~1-point regression fatal.
       thresholds: {
         lines: 72,
-        branches: 62,
+        branches: 70,
         functions: 77,
         statements: 73,
       },

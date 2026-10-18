@@ -10,8 +10,23 @@
  */
 import { execSync } from "node:child_process";
 
-// Ratchet floor — measured 2026-10-06 at 138. Only ever decrease this number.
-const BUDGET = 138;
+// Ratchet floor. Only ever decrease this number.
+//   2026-10-06: measured 138 (AUD-12/AUD-18 baseline).
+//   2026-10-17 (PR-27): measured 135. The release-gate commands in
+//   `src/cli/index.ts` were typed — a `ManifestJson` boundary interface plus
+//   `err instanceof Error` narrowing — instead of annotated `any`, so the four
+//   annotations that block carried are gone and the floor moves with them.
+//   2026-10-18 (PR-27 increment, plan phase 4.2): measured 108. The 28 removed
+//   annotations were `catch (err: any)` in the four write-behind repositories
+//   (26 sites — `handleRepoError` already takes `err: unknown`, so the
+//   annotation was noise) and the two notification provider catches (typed
+//   with `err instanceof Error` narrowing instead). The remainder is dominated
+//   by `src/api/router.ts` (73) and `src/modules/hub/enquiry/index.ts` (11),
+//   which move with the TSK-54/55/56 extraction, not with spot edits.
+//   The audit asked for the budget to ratchet down in fixed increments rather
+//   than sit at its ceiling: this is the next such step, recorded here because
+//   the number is only meaningful next to the measurement it came from.
+const BUDGET = 108;
 
 let count = 0;
 try {

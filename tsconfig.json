@@ -15,5 +15,11 @@
     "resolveJsonModule": true
   },
   "include": ["src/**/*", "tests/**/*"],
-  "exclude": ["node_modules", "dist", "archive"]
+  // PR-26: the browser specs are TypeScript for a *browser*, not for this
+  // Node-only lib set — their `page.evaluate` callbacks reference `document` and
+  // `getComputedStyle`. Excluding them here rather than adding "dom" to `lib`
+  // keeps the server code unable to reach for a DOM that does not exist at
+  // runtime, and `tests/browser/tsconfig.json` typechecks them under the gate
+  // (`pnpm run typecheck` runs both projects).
+  "exclude": ["node_modules", "dist", "archive", "tests/browser"]
 }
