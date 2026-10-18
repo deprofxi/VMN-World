@@ -37,25 +37,35 @@ export * from "./db/seeds/golden/index.js";
 
 // Self-executing server when run directly
 import { createApiServer } from "./api/server.js";
+import { getConfig } from "./core/config/index.js";
+import { installLifecycleGuards } from "./core/runtime/lifecycle.js";
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const app = createApiServer();
-  app.start()
+
+  // PR-16: the guards are installed BEFORE the port is bound, so an
+  // `unhandledRejection` or `uncaughtException` during bootstrap takes the same
+  // bounded stop as one under load, and a SIGTERM arriving mid-boot cannot race
+  // a handler that is not registered yet. `app.stop()` is now also the boot
+  // failure path, which is why it is safe to call on a server that never
+  // listened.
+  const lifecycle = installLifecycleGuards({
+    target: process,
+    stop: () => app.stop(),
+    exit: (code) => process.exit(code),
+    deadlineMs: getConfig().VMNL_SHUTDOWN_DEADLINE_MS,
+  });
+
+  app
+    .start()
     .then(() => {
+      // A signal that arrived while the port was still binding has already
+      // begun shutting down; announcing a successful start would be false.
+      if (lifecycle.started()) return;
       console.log(`[VMNL-BOOT] VMNL Enterprise Platform successfully started on port ${app.port}`);
     })
     .catch((err) => {
       console.error("[VMNL-BOOT-FATAL] Failed to start VMNL Enterprise Platform:", err);
-      process.exit(1);
+      void lifecycle.shutdown("boot-failure", 1);
     });
-
-  const shutdown = async (signal: string) => {
-    console.log(`[VMNL-SHUTDOWN] Received ${signal}. Gracefully stopping server...`);
-    await app.stop();
-    console.log("[VMNL-SHUTDOWN] Server stopped. Exiting process.");
-    process.exit(0);
-  };
-
-  process.on("SIGTERM", () => shutdown("SIGTERM"));
-  process.on("SIGINT", () => shutdown("SIGINT"));
 }

@@ -6,7 +6,49 @@ dotenv.config();
 
 // A blank assignment in a deployment env file means "not configured", not
 // "invalid URL" — an unset optional must not block boot.
-const optionalUrl = z.preprocess((v) => (typeof v === "string" && v.trim() === "" ? undefined : v), z.string().url().optional());
+const blankToUndefined = (v: unknown) => (typeof v === "string" && v.trim() === "" ? undefined : v);
+const optionalUrl = z.preprocess(blankToUndefined, z.string().url().optional());
+const optionalTrimmed = z.preprocess(blankToUndefined, z.string().optional());
+
+/**
+ * PR-13: an env file can only express a boolean as a string, and
+ * `z.coerce.boolean()` is the obvious-looking choice that is actively wrong —
+ * `Boolean("false")`, `Boolean("0")` and `Boolean("no")` are all `true`, so an
+ * operator who writes `FLAG=false` silently gets the opposite of what they
+ * asked for on a fail-open path. This accepts exactly the two spellings (and a
+ * blank assignment, which means "not configured" and takes the caller's
+ * fallback); any other value is a boot error rather than a silent flip.
+ */
+const booleanish = (fallback: boolean) =>
+  z.preprocess(
+    (raw) => {
+      if (raw === undefined || (typeof raw === "string" && raw.trim() === "")) return fallback;
+      if (raw === true || raw === "true") return true;
+      if (raw === false || raw === "false") return false;
+      return raw; // falls through to z.boolean() and fails the load
+    },
+    z.boolean({
+      invalid_type_error: 'must be exactly "true" or "false" (a blank value takes the default)',
+    })
+  );
+
+/**
+ * The carriage facts CLAUDE.md <broadcast> forbids inventing. They are
+ * deployment inputs, never code defaults, and PR-14 makes
+ * `STARTIMES_CARRIAGE_VERIFIED` the control that governs their admissibility
+ * instead of a flag nothing reads.
+ */
+const CARRIAGE_FACT_KEYS = [
+  "NXTR_DTT_CHANNEL",
+  "NXTR_DTH_CHANNEL",
+  "NXTR_SERVICE_PID",
+  "ORIS_DTT_CHANNEL",
+  "ORIS_DTH_CHANNEL",
+  "ORIS_SERVICE_PID",
+  "IMBD_DTT_CHANNEL",
+  "IMBD_DTH_CHANNEL",
+  "IMBD_SERVICE_PID",
+] as const;
 
 const configSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "staging", "production"]).default("development"),
@@ -18,6 +60,15 @@ const configSchema = z.object({
   DATABASE_URL: z.string({ required_error: "DATABASE_URL is required" }).min(1, "DATABASE_URL is required"),
   DATABASE_POOL_MIN: z.coerce.number().default(2),
   DATABASE_POOL_MAX: z.coerce.number().default(20),
+  // PR-18: a lock wait or a pathological query used to pin a request and its
+  // pool connection indefinitely — the pool set only `connectionTimeoutMillis`,
+  // so acquiring a connection was bounded while *using* one was not. This bounds
+  // both sides of the round trip: `statement_timeout` is enforced by Postgres
+  // (the query is cancelled server-side and the connection returns to the pool)
+  // and `query_timeout` bounds the client wait even when the server never
+  // answers. Keep it below the request deadline so a slow query surfaces as a
+  // query error rather than as a hung request.
+  DATABASE_STATEMENT_TIMEOUT_MS: z.coerce.number().int().positive().default(15000),
 
   // Redis / Message Bus
   REDIS_HOST: z.string().default("localhost"),
@@ -68,7 +119,7 @@ const configSchema = z.object({
   // verified carriage record, not code defaults — CLAUDE.md forbids hard-coding
   // unverified channel numbers. Values are optional and unset unless the
   // operator explicitly configures them alongside STARTIMES_CARRIAGE_VERIFIED.
-  STARTIMES_CARRIAGE_VERIFIED: z.coerce.boolean().default(false),
+  STARTIMES_CARRIAGE_VERIFIED: booleanish(false),
   NXTR_DTT_CHANNEL: z.coerce.number().optional(),
   NXTR_DTH_CHANNEL: z.coerce.number().optional(),
   NXTR_SERVICE_PID: z.coerce.number().optional(),
@@ -80,11 +131,105 @@ const configSchema = z.object({
   IMBD_SERVICE_PID: z.coerce.number().optional(),
   COMPANY_RC_NUMBER: z.string().default(""),
 
+  // PR-04 / PR-15: the release-gate commands are the only readers of these two,
+  // and they belong in this inventory rather than beside them: `tests/unit/production-readiness-controls.test.ts`
+  // fails when `src/` reads a variable the schema does not declare, and the
+  // release path is exactly where an unchecked typo is least affordable.
+  //   RELEASE_ARTIFACT_DIGEST — digest of the build under evaluation.
+  //   RELEASE_SIGNING_KEY     — the release owner's key; never committed, never
+  //                             logged, and never required by the server itself.
+  RELEASE_ARTIFACT_DIGEST: z.string().regex(/^[0-9a-fA-F]{64}$/, "must be a SHA-256 hex digest").optional(),
+  RELEASE_SIGNING_KEY: z.string().min(16, "a release signing key must be at least 16 characters").optional(),
+
   // Observability
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
   OTEL_EXPORTER_OTLP_ENDPOINT: z.string().default("http://localhost:4318"),
-  PROMETHEUS_METRICS_ENABLED: z.coerce.boolean().default(true),
+  PROMETHEUS_METRICS_ENABLED: booleanish(true),
+
+  // PR-16: how long a graceful stop may take before the process exits rather
+  // than waiting to be SIGKILLed. Must stay below the orchestrator's grace
+  // period (Docker's default `stop_grace_period` is 10s).
+  VMNL_SHUTDOWN_DEADLINE_MS: z.coerce.number().int().min(0).max(60000).default(8000),
+
+  // ---------------------------------------------------------------------------
+  // PR-15: variables the process reads directly from `process.env`.
+  //
+  // Before this block, 27 of the 37 variables the code consults bypassed the
+  // schema entirely, so a typo produced `undefined` at the read site — which on
+  // a `=== "true"` comparison fails open, and on a `!== "false"` comparison
+  // silently changes which half of a gate is enforced. This block does not
+  // change any default (each mirrors the fallback at the read site, and the
+  // read sites still read `process.env`); it changes what happens when the
+  // value is *wrong*, from a silent falsy to a refused boot.
+  // `tests/unit/production-readiness-controls.test.ts` fails if a single
+  // environment read in `src/` is missing from this object, which is what keeps
+  // the coverage from decaying back.
+  REDIS_URL: z.preprocess(
+    blankToUndefined,
+    z
+      .string()
+      .regex(/^rediss?:\/\//, "REDIS_URL must start with redis:// or rediss:// (see PR-07: an unknown scheme is refused, not downgraded)")
+      .optional()
+  ),
+  ALLOW_MEMORY_KV_IN_PRODUCTION: booleanish(false),
+  STORAGE_READINESS_GATING: booleanish(true),
+  KV_READINESS_GATING: booleanish(true),
+  TRUST_PROXY_HEADERS: booleanish(false),
+  TRUSTED_PROXY_HOPS: z.preprocess(blankToUndefined, z.coerce.number().int().min(0).max(10).optional()),
+  METRICS_TOKEN: z.preprocess(
+    blankToUndefined,
+    z.string().min(16, "METRICS_TOKEN must be at least 16 characters").optional()
+  ),
+  ALERT_WEBHOOK_URL: optionalUrl,
+  ALERT_WEBHOOK_ALLOWED_HOSTS: optionalTrimmed,
+  OTEL_ALLOWED_HOSTS: optionalTrimmed,
+  AUTH_BYPASS_ENABLED: booleanish(false),
+  ALLOW_SANDBOX_FALLBACK: booleanish(false),
+  ALLOW_SHA_DRIFT: booleanish(false),
+  PAYSTACK_SECRET_KEY: optionalTrimmed,
+  FLUTTERWAVE_SECRET_HASH: optionalTrimmed,
+  TERMII_API_KEY: optionalTrimmed,
+  TERMII_BASE_URL: optionalUrl,
+  TERMII_SENDER_ID: optionalTrimmed,
+  SMTP_HOST: optionalTrimmed,
+  SMTP_PORT: z.preprocess(blankToUndefined, z.coerce.number().int().min(1).max(65535).optional()),
+  EMAIL_FROM: optionalTrimmed,
+  AWS_REGION: optionalTrimmed,
+  SES_REGION: optionalTrimmed,
+  // Sandbox seeding is opt-in and development/test-only; the value is read as a
+  // string by `sandboxSeedOptIn`, so it is typed as one here rather than
+  // coerced into a boolean the reader would not agree with.
+  VMNL_ENABLE_SANDBOX_SEEDS: optionalTrimmed,
+  VMNL_SEED_USERS_JSON: optionalTrimmed,
+  DEV_SEED_PASSWORD: optionalTrimmed,
+  DEV_SEED_PASSWORD_HASH: optionalTrimmed,
 }).superRefine((data, ctx) => {
+  // PR-14: carriage is verified as a COMPLETE fact set or not at all. Without
+  // this the flag is decorative: an operator could inject provisional StarTimes
+  // numbers with the flag left false and nothing would object, which is exactly
+  // the failure CLAUDE.md <broadcast> names.
+  const configuredCarriageFacts = CARRIAGE_FACT_KEYS.filter((key) => data[key] !== undefined);
+  if (!data.STARTIMES_CARRIAGE_VERIFIED && configuredCarriageFacts.length > 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["STARTIMES_CARRIAGE_VERIFIED"],
+      message: `Carriage facts may not be configured while STARTIMES_CARRIAGE_VERIFIED is false (received: ${configuredCarriageFacts.join(
+        ", "
+      )}). Unverified carriage data must not enter the process (CLAUDE.md <broadcast>).`,
+    });
+  }
+  if (data.STARTIMES_CARRIAGE_VERIFIED) {
+    const missingCarriageFacts = CARRIAGE_FACT_KEYS.filter((key) => data[key] === undefined);
+    if (missingCarriageFacts.length > 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["STARTIMES_CARRIAGE_VERIFIED"],
+        message: `STARTIMES_CARRIAGE_VERIFIED=true requires the complete carriage fact set; missing: ${missingCarriageFacts.join(
+          ", "
+        )}.`,
+      });
+    }
+  }
   if (data.NODE_ENV === "production" || data.NODE_ENV === "staging") {
     if (
       data.JWT_SECRET.startsWith("CHANGE_ME") ||

@@ -5,6 +5,7 @@
 
 import http, { IncomingMessage, Server, ServerResponse } from "node:http";
 import net from "node:net";
+import tls from "node:tls";
 import { TelemetryService } from "../core/observability/index.js";
 import { AzeeboFederationBridge } from "../modules/federation/azeebo/bridge.js";
 import { AzeeboLinkGateway } from "../modules/federation/azeebo/links.js";
@@ -410,12 +411,18 @@ export function createApiServer(port?: number, envOverrides: Record<string, stri
     },
     stop: async () => {
       queueWorker.stop();
-      await new Promise<void>((resolve, reject) => {
-        server.close((err) => {
-          if (err) return reject(err);
-          resolve();
+      // PR-16: a server that never bound its port has nothing to close, and
+      // `close()` rejects with ERR_SERVER_NOT_RUNNING. Without this guard the
+      // bounded shutdown after a failed boot would record "shutdown failed"
+      // for a stop that in fact released everything it had taken.
+      if (server.listening) {
+        await new Promise<void>((resolve, reject) => {
+          server.close((err) => {
+            if (err) return reject(err);
+            resolve();
+          });
         });
-      });
+      }
       // TSK-17: graceful shutdown drains the write-behind journal. Anything still
       // staged after this never reached the database, which the journal reports
       // as sandbox-deferred rather than durable (Rule 0.4a).
@@ -439,10 +446,33 @@ export function createApiServer(port?: number, envOverrides: Record<string, stri
  */
 export function createMinimalRespRedisClient(urlString: string): MinimalRedisClient {
   const url = new URL(urlString);
-  const socket = net.connect({
-    host: url.hostname,
-    port: Number(url.port || 6379),
-  });
+  const port = Number(url.port || 6379);
+  // PR-07: `rediss://` means TLS. This client previously used node:net
+  // unconditionally and never read `url.protocol`, so a managed Redis with
+  // in-transit encryption (ElastiCache, Upstash, Redis Cloud) received the AUTH
+  // password and every session id, lockout counter and MFA challenge claim in
+  // cleartext over the wire while the operator believed the hop was private.
+  // The scheme now selects the transport, and an unrecognised scheme refuses at
+  // construction rather than silently presuming plaintext.
+  let socket: net.Socket;
+  if (url.protocol === "redis:") {
+    socket = net.connect({ host: url.hostname, port });
+  } else if (url.protocol === "rediss:") {
+    // `servername` carries SNI, which TLS-terminating managed Redis needs to
+    // select the right certificate — but RFC 6066 forbids an IP literal there,
+    // so it is only sent for a genuine hostname. Certificate verification stays
+    // at the Node default (rejectUnauthorized: true), so a bad certificate is a
+    // boot failure rather than a silent downgrade.
+    socket = tls.connect({
+      host: url.hostname,
+      port,
+      servername: net.isIP(url.hostname) ? undefined : url.hostname,
+    });
+  } else {
+    throw new Error(
+      `[VMNL-CACHE] Unsupported REDIS_URL scheme '${url.protocol}': use redis:// for plaintext or rediss:// for TLS`
+    );
+  }
   socket.setNoDelay(true);
 
   type Pending = { resolve: (value: unknown) => void; reject: (err: Error) => void };

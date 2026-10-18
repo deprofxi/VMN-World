@@ -99,7 +99,7 @@ export class TalentRepository {
           createdAt: created.createdAt,
           updatedAt: created.updatedAt,
         };
-      } catch (err: any) {
+      } catch (err) {
         await handleRepoError("talentProfile", "write", err);
       }
     }
@@ -135,7 +135,7 @@ export class TalentRepository {
             updatedAt: found.updatedAt,
           };
         }
-      } catch (err: any) {
+      } catch (err) {
         await handleRepoError("talentProfile", "read", err);
       }
     }
@@ -169,7 +169,7 @@ export class TalentRepository {
             updatedAt: found.updatedAt,
           };
         }
-      } catch (err: any) {
+      } catch (err) {
         await handleRepoError("talentProfile", "read", err);
       }
     }
@@ -217,7 +217,7 @@ export class TalentRepository {
             updatedAt: r.updatedAt,
           })), (talent) => talent.id, paging.limit);
         }
-      } catch (err: any) {
+      } catch (err) {
         await handleRepoError("talentProfile", "list", err);
       }
     }
@@ -262,7 +262,7 @@ export class TalentRepository {
           createdAt: updated.createdAt,
           updatedAt: updated.updatedAt,
         };
-      } catch (err: any) {
+      } catch (err) {
         await handleRepoError("talentProfile", "update", err);
       }
     }
@@ -288,7 +288,7 @@ export class TalentRepository {
         const client = getPrismaClient();
         await client.talentProfile.delete({ where: { id } });
         dbDeleted = true;
-      } catch (err: any) {
+      } catch (err) {
         await handleRepoError("talentProfile", "delete-failed", err);
       }
     }

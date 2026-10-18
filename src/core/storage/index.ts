@@ -9,7 +9,7 @@
  */
 
 import crypto from "crypto";
-import { getConfig } from "../config/index.js";
+import { getConfig, type AppConfig } from "../config/index.js";
 import { registerDurableStore, stageDurableWrite } from "../database/durable-journal.js";
 import { loadMediaAssetRecords, persistMediaAssetRecord } from "../database/repositories/release-critical.repository.js";
 
@@ -242,24 +242,150 @@ export function validateMediaBuffer(buffer: Buffer, declaredMimeType: string): F
   };
 }
 
+export interface StorageReadiness {
+  ready: boolean;
+  status: "ready" | "unavailable" | "not_probed";
+  driver: string;
+  endpoint: string;
+  error?: string;
+}
+
+/** PR-08: bound the probe so a black-holed endpoint cannot stall a readiness call. */
+const STORAGE_PROBE_TIMEOUT_MS = 2000;
+/** A readiness endpoint is polled continuously — a short TTL keeps it cheap. */
+const STORAGE_READINESS_TTL_MS = 10_000;
+let storageReadinessCache: { at: number; value: StorageReadiness } | null = null;
+
+/** Test seam: drop the readiness cache so the next probe re-opens a connection. */
+export function _resetStorageReadinessCacheForTesting(): void {
+  storageReadinessCache = null;
+}
+
 /**
- * Probes object storage readiness based on driver configuration and endpoint validity.
- * Authority: T9-02 (F-9-02)
+ * Signed `HEAD /<bucket>` against an S3/MinIO endpoint — the cheapest request
+ * that proves the store is both reachable and willing to accept the configured
+ * credentials. Reuses the module's own SigV4 signer; adds no dependency.
  */
-export async function checkStorageReady(): Promise<{ ready: boolean; status: "ready" | "unavailable" | "not_probed"; driver: string; endpoint: string; error?: string }> {
+async function probeObjectStorage(config: AppConfig): Promise<{ ok: boolean; error?: string }> {
+  const base = new URL(config.STORAGE_ENDPOINT);
+  const host = base.host;
+  const objectPath = `${base.pathname.replace(/\/$/, "")}/${config.STORAGE_BUCKET}`;
+  const target = new URL(`${base.origin}${objectPath}`);
+
+  const amzDate = new Date().toISOString().replace(/[:-]|\.\d{3}/g, "");
+  const dateStamp = amzDate.slice(0, 8);
+  const emptyPayloadHash = crypto.createHash("sha256").update("").digest("hex");
+  const canonicalHeaders =
+    `host:${host}\n` +
+    `x-amz-content-sha256:${emptyPayloadHash}\n` +
+    `x-amz-date:${amzDate}\n`;
+  const signedHeaders = "host;x-amz-content-sha256;x-amz-date";
+  // The query string is empty and the URI is signed unencoded, matching the
+  // canonical form S3 expects for a bucket-level HEAD.
+  const canonicalRequest = ["HEAD", objectPath, "", canonicalHeaders, signedHeaders, emptyPayloadHash].join("\n");
+  const credentialScope = `${dateStamp}/${config.STORAGE_REGION}/s3/aws4_request`;
+  const stringToSign = [
+    "AWS4-HMAC-SHA256",
+    amzDate,
+    credentialScope,
+    crypto.createHash("sha256").update(canonicalRequest).digest("hex"),
+  ].join("\n");
+  const signature = crypto
+    .createHmac("sha256", getSignatureKey(config.STORAGE_SECRET_KEY, dateStamp, config.STORAGE_REGION, "s3"))
+    .update(stringToSign)
+    .digest("hex");
+
+  // `host` is deliberately absent: fetch sets it from the URL, and an explicit
+  // Host header is forbidden by the fetch spec. It is signed above, so the
+  // value the store receives is the value that was signed.
+  const headers = {
+    "x-amz-content-sha256": emptyPayloadHash,
+    "x-amz-date": amzDate,
+    authorization: `AWS4-HMAC-SHA256 Credential=${config.STORAGE_ACCESS_KEY}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`,
+  };
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), STORAGE_PROBE_TIMEOUT_MS);
+  try {
+    const response = await fetch(target, { method: "HEAD", headers, signal: controller.signal });
+    if (response.status >= 200 && response.status < 400) return { ok: true };
+    if (response.status === 401 || response.status === 403) {
+      return { ok: false, error: `STORAGE_CREDENTIALS_REJECTED (HTTP ${response.status})` };
+    }
+    if (response.status === 404) {
+      return { ok: false, error: `STORAGE_BUCKET_NOT_FOUND (HTTP ${response.status})` };
+    }
+    return { ok: false, error: `STORAGE_PROBE_FAILED (HTTP ${response.status})` };
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { ok: false, error: `STORAGE_PROBE_TIMEOUT (>${STORAGE_PROBE_TIMEOUT_MS}ms)` };
+    }
+    return {
+      ok: false,
+      error: `STORAGE_UNREACHABLE (${err instanceof Error ? err.message : String(err)})`,
+    };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
+ * Probes object storage readiness.
+ * Authority: T9-02 (F-9-02) / PR-08.
+ *
+ * PR-08: this used to parse `STORAGE_ENDPOINT` into a URL, assert it had a
+ * hostname and return `ready` — it never opened a connection, so `/readyz`
+ * reported healthy for an endpoint on a dead port and the storage readiness
+ * gate could never fire. Since `STORAGE_READINESS_GATING` defaults to enforced,
+ * a pod would take upload traffic against an unreachable DAM. The probe now
+ * performs a signed bucket request and maps the outcome; network failure,
+ * timeout, rejected credentials and a missing bucket are all `unavailable`.
+ */
+export async function checkStorageReady(forceRefresh = false): Promise<StorageReadiness> {
+  if (!forceRefresh && storageReadinessCache && Date.now() - storageReadinessCache.at < STORAGE_READINESS_TTL_MS) {
+    return storageReadinessCache.value;
+  }
+
+  let value: StorageReadiness;
   try {
     const config = getConfig();
     if (config.STORAGE_DRIVER === "local") {
-      return { ready: true, status: "ready", driver: "local", endpoint: "local_filesystem" };
+      value = { ready: true, status: "ready", driver: "local", endpoint: "local_filesystem" };
+    } else {
+      const url = new URL(config.STORAGE_ENDPOINT);
+      if (!url.hostname) {
+        value = {
+          ready: false,
+          status: "unavailable",
+          driver: config.STORAGE_DRIVER,
+          endpoint: config.STORAGE_ENDPOINT,
+          error: "Invalid storage endpoint host",
+        };
+      } else {
+        const probe = await probeObjectStorage(config);
+        value = probe.ok
+          ? { ready: true, status: "ready", driver: config.STORAGE_DRIVER, endpoint: config.STORAGE_ENDPOINT }
+          : {
+              ready: false,
+              status: "unavailable",
+              driver: config.STORAGE_DRIVER,
+              endpoint: config.STORAGE_ENDPOINT,
+              error: probe.error,
+            };
+      }
     }
-    const url = new URL(config.STORAGE_ENDPOINT);
-    if (!url.hostname) {
-      return { ready: false, status: "unavailable", driver: config.STORAGE_DRIVER, endpoint: config.STORAGE_ENDPOINT, error: "Invalid storage endpoint host" };
-    }
-    return { ready: true, status: "ready", driver: config.STORAGE_DRIVER, endpoint: config.STORAGE_ENDPOINT };
   } catch (err) {
-    return { ready: false, status: "unavailable", driver: "unknown", endpoint: "", error: err instanceof Error ? err.message : String(err) };
+    value = {
+      ready: false,
+      status: "unavailable",
+      driver: "unknown",
+      endpoint: "",
+      error: err instanceof Error ? err.message : String(err),
+    };
   }
+
+  storageReadinessCache = { at: Date.now(), value };
+  return value;
 }
 
 // ---------------------------------------------------------------------------

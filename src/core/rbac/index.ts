@@ -515,30 +515,112 @@ export function assertSeedRolesConformToRbac(seedRoles: string[]): boolean {
 }
 
 /**
- * Evaluates whether a user with given roles can perform an action on a resource.
- * Supports multi-tenant scoping and attribute-based contextual constraints.
+ * PR-09: the request-scoped attribute context the central authorization helper
+ * is meant to consume. Before this, every `canPerform` call site passed three
+ * arguments, so the tenant predicate and the schedule-lock invariant in the
+ * policy engine were unreachable and the two dead branches read like controls.
+ *
+ * `AccessContext.tenantId` is the tenant a request *claims* to be acting in. A
+ * claim can only ever deny: `evaluateAccess` refuses it unless it is the
+ * caller's own tenant (or the caller is a SuperAdmin), so supplying it from an
+ * untrusted header cannot grant anything a session did not already have.
  */
-export function canPerform(
+export const TENANT_SCOPE_HEADER = "x-tenant-id";
+
+export type AccessDenialReason = "TENANT_SCOPE" | "SCHEDULE_LOCK" | "NO_ROLE_PERMISSION";
+
+export interface AccessDecision {
+  allowed: boolean;
+  /** Present whenever `allowed` is false, so a refusal can say why. */
+  reason?: AccessDenialReason;
+}
+
+/** Thrown by `assertPermission`; carries the failing predicate for the caller. */
+export class AuthorizationError extends Error {
+  public readonly reason: AccessDenialReason;
+  public readonly action: EnterpriseAction;
+  public readonly resource: EnterpriseResource;
+  public readonly tenantId?: string;
+
+  constructor(params: {
+    user: SessionUser;
+    action: EnterpriseAction;
+    resource: EnterpriseResource;
+    reason: AccessDenialReason;
+    tenantId?: string;
+  }) {
+    super(
+      `[VMNL-FORBIDDEN] User '${params.user.userId}' with roles [${params.user.roles.join(
+        ", "
+      )}] is not authorized to '${params.action}' on resource '${params.resource}'`
+    );
+    this.name = "AuthorizationError";
+    this.reason = params.reason;
+    this.action = params.action;
+    this.resource = params.resource;
+    this.tenantId = params.tenantId;
+  }
+}
+
+/**
+ * Builds the attribute context for one request from a single resolver, so every
+ * authorization decision on that request is made against the same claims.
+ *
+ * Precedence for the tenant claim: an explicit tenant named by the route, then
+ * the request's `x-tenant-id` claim, then the session's own tenant. The final
+ * fallback is what makes the predicate run *by construction* — a context is
+ * always supplied — while a claim that names someone else's tenant is refused by
+ * `evaluateAccess` rather than quietly narrowing the caller's scope.
+ *
+ * Isolation itself remains handler-level (`tenantId` filters on the queries the
+ * handler runs, plus the domain guards in `core/storage` and `core/content`),
+ * which `tests/unit/tenant-scoping-routes.test.ts` proves end to end. This
+ * context adds the central refusal; it does not replace those.
+ */
+export function accessContextFor(
+  user: SessionUser | null | undefined,
+  headers: Record<string, string | string[] | undefined> = {},
+  options: { requestedTenantId?: string; isScheduleLocked?: boolean } = {}
+): AccessContext {
+  const raw = headers[TENANT_SCOPE_HEADER];
+  const claimed = (Array.isArray(raw) ? raw[0] : raw)?.trim();
+  const tenantId = options.requestedTenantId || (claimed ? claimed : user?.tenantId);
+  return {
+    ...(tenantId ? { tenantId } : {}),
+    ...(options.isScheduleLocked === undefined ? {} : { isScheduleLocked: options.isScheduleLocked }),
+  };
+}
+
+/**
+ * The policy engine: returns the decision *and* the predicate that produced it,
+ * so a caller (the HTTP layer) can answer with the real reason instead of a
+ * generic refusal.
+ */
+export function evaluateAccess(
   user: SessionUser,
   action: EnterpriseAction,
   resource: EnterpriseResource,
   context?: AccessContext
-): boolean {
+): AccessDecision {
   if (!user || !user.roles || user.roles.length === 0) {
-    return false;
+    return { allowed: false, reason: "NO_ROLE_PERMISSION" };
   }
 
-  // Tenant Boundary Check: If context specifies tenant, user must belong to tenant or be SuperAdmin
-  if (context?.tenantId && user.tenantId && user.tenantId !== context.tenantId) {
-    if (!user.roles.includes("SuperAdmin")) {
-      return false;
-    }
+  const isSuperAdmin = user.roles.includes("SuperAdmin");
+
+  // Tenant Boundary Check: the tenant a request claims must be the caller's own.
+  // The pre-fix form — `context?.tenantId && user.tenantId && user.tenantId !==
+  // context.tenantId` — failed OPEN for a session carrying no tenant at all, so
+  // the one shape that most needs the boundary (an unscoped credential) was the
+  // one shape the boundary never applied to.
+  if (context?.tenantId && context.tenantId !== user.tenantId && !isSuperAdmin) {
+    return { allowed: false, reason: "TENANT_SCOPE" };
   }
 
   // Schedule Lock Invariant: When schedule is locked, only BroadcastDirector or SuperAdmin can update
-  if (resource === "schedule" && action === "update" && context?.isScheduleLocked) {
-    if (!user.roles.includes("BroadcastDirector") && !user.roles.includes("SuperAdmin")) {
-      return false;
+  if (resource === "schedule" && action === "update" && context?.isScheduleLocked && !isSuperAdmin) {
+    if (!user.roles.includes("BroadcastDirector")) {
+      return { allowed: false, reason: "SCHEDULE_LOCK" };
     }
   }
 
@@ -552,15 +634,30 @@ export function canPerform(
     );
 
     if (hasMatch) {
-      return true;
+      return { allowed: true };
     }
   }
 
-  return false;
+  return { allowed: false, reason: "NO_ROLE_PERMISSION" };
 }
 
 /**
- * Asserts permission, throwing an authorization error if denied.
+ * Evaluates whether a user with given roles can perform an action on a resource.
+ * Supports multi-tenant scoping and attribute-based contextual constraints.
+ */
+export function canPerform(
+  user: SessionUser,
+  action: EnterpriseAction,
+  resource: EnterpriseResource,
+  context?: AccessContext
+): boolean {
+  return evaluateAccess(user, action, resource, context).allowed;
+}
+
+/**
+ * Asserts permission, throwing an authorization error if denied. Used by the
+ * HTTP layer (`assertRoutePermission`), which shapes the throw into the
+ * protocol answer and keeps the reason.
  */
 export function assertPermission(
   user: SessionUser,
@@ -568,11 +665,14 @@ export function assertPermission(
   resource: EnterpriseResource,
   context?: AccessContext
 ): void {
-  if (!canPerform(user, action, resource, context)) {
-    throw new Error(
-      `[VMNL-FORBIDDEN] User '${user.userId}' with roles [${user.roles.join(
-        ", "
-      )}] is not authorized to '${action}' on resource '${resource}'`
-    );
+  const decision = evaluateAccess(user, action, resource, context);
+  if (!decision.allowed) {
+    throw new AuthorizationError({
+      user,
+      action,
+      resource,
+      reason: decision.reason ?? "NO_ROLE_PERMISSION",
+      tenantId: context?.tenantId,
+    });
   }
 }

@@ -42,6 +42,10 @@ export function getPrismaClient(): PrismaClient {
       min: config.DATABASE_POOL_MIN,
       max: config.DATABASE_POOL_MAX,
       connectionTimeoutMillis: 3000,
+      // PR-18: bound query execution, not just connection acquisition. Without
+      // these, a lock wait held the connection and the request indefinitely.
+      statement_timeout: config.DATABASE_STATEMENT_TIMEOUT_MS,
+      query_timeout: config.DATABASE_STATEMENT_TIMEOUT_MS,
     });
     const adapter = new PrismaPg(poolInstance);
     prismaInstance = new PrismaClient({

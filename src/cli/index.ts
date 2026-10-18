@@ -7,11 +7,33 @@
 import fs from "node:fs";
 import path from "node:path";
 import { generateGoldenDataset } from "../db/seeds/golden/index.js";
-import { ReleaseGatePipeline } from "../modules/quality/gates.js";
+import { ReleaseGatePipeline, type BroadcastReleaseManifest } from "../modules/quality/gates.js";
 import { getChannelByCode } from "../modules/broadcast/channels/index.js";
 import { generateXmltvFeed } from "../modules/broadcast/epg/index.js";
 import { BROADCAST_SCREEN_INVENTORY } from "../modules/broadcast/screens/index.js";
 import { loadConfig } from "../core/config/index.js";
+import { computeArtifactDigest, signCanonicalManifest, verifyManifestSignature } from "../modules/quality/artifact.js";
+
+/**
+ * A release manifest as it exists on disk: `signedAt`/`evaluatedAt` are JSON
+ * strings until this module converts them, and unknown fields are preserved so a
+ * re-serialized manifest is not silently narrowed. Typing it removes the four
+ * `any` annotations the gates commands used to carry (AUD-12 / PR-27).
+ */
+interface ManifestJson {
+  version?: string;
+  environment?: string;
+  gitCommitSha?: string;
+  artifactDigest?: string;
+  humanReleaseOwner: {
+    name?: string;
+    role?: string;
+    employeeId?: string;
+    signedAt: string;
+  } & Record<string, unknown>;
+  gates: Record<string, { evaluatedAt: string } & Record<string, unknown>>;
+  [field: string]: unknown;
+}
 
 export async function runCli(args: string[] = process.argv.slice(2)): Promise<number> {
   const command = args[0] || "--help";
@@ -49,12 +71,13 @@ export async function runCli(args: string[] = process.argv.slice(2)): Promise<nu
         return 1;
       }
 
-      let parsedJson: any;
+      let parsedJson: ManifestJson;
       try {
         const fileContent = fs.readFileSync(resolvedPath, "utf-8");
-        parsedJson = JSON.parse(fileContent);
-      } catch (err: any) {
-        console.error(`[VMNL-CLI] Failed to read or parse release manifest: ${err.message}`);
+        parsedJson = JSON.parse(fileContent) as ManifestJson;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.error(`[VMNL-CLI] Failed to read or parse release manifest: ${message}`);
         return 1;
       }
 
@@ -66,7 +89,7 @@ export async function runCli(args: string[] = process.argv.slice(2)): Promise<nu
           signedAt: new Date(parsedJson.humanReleaseOwner.signedAt),
         },
         gates: Object.fromEntries(
-          Object.entries(parsedJson.gates).map(([id, gate]: [string, any]) => [
+          Object.entries(parsedJson.gates).map(([id, gate]) => [
             id,
             { ...gate, evaluatedAt: new Date(gate.evaluatedAt) },
           ])
@@ -74,26 +97,120 @@ export async function runCli(args: string[] = process.argv.slice(2)): Promise<nu
       };
 
 
+      // PR-03: a signed release decision is bound to the commit it was signed
+      // against. This block used to print a "Notice" and carry on, so a manifest
+      // signed for one tree could clear an entirely different one — and
+      // `--allow-sha-drift` was computed and then never read, so there was no
+      // way to make the check bite at all. Divergence is now fatal unless the
+      // override is explicit, and an active override announces itself rather
+      // than passing silently.
       const allowDrift = args.includes("--allow-sha-drift") || process.env.ALLOW_SHA_DRIFT === "true";
-      if (!allowDrift && broadcastManifest.gitCommitSha && broadcastManifest.gitCommitSha !== "HEAD") {
+      const manifestSha = broadcastManifest.gitCommitSha;
+      if (manifestSha && manifestSha !== "HEAD") {
+        let currentSha: string | null;
         try {
           const { execSync } = await import("node:child_process");
-          const currentSha = execSync("git rev-parse HEAD", { encoding: "utf-8" }).trim();
-          if (
-            currentSha &&
-            !currentSha.startsWith(broadcastManifest.gitCommitSha) &&
-            !broadcastManifest.gitCommitSha.startsWith(currentSha)
-          ) {
-            console.warn(
-              `[VMNL-CLI] Notice: Manifest SHA (${broadcastManifest.gitCommitSha.substring(0, 7)}) diverges from current HEAD (${currentSha.substring(0, 7)}).`
-            );
-          }
+          currentSha = execSync("git rev-parse HEAD", {
+            encoding: "utf-8",
+            stdio: ["ignore", "pipe", "ignore"],
+          }).trim();
         } catch {
-          // Non-blocking in non-git environments
+          currentSha = null; // no git, or not a repository: drift cannot be tested here
+        }
+
+        if (currentSha === null) {
+          console.warn(
+            "[VMNL-CLI] Notice: the current commit could not be resolved (no git available), so the manifest's commit binding was NOT verified."
+          );
+        } else if (!currentSha.startsWith(manifestSha) && !manifestSha.startsWith(currentSha)) {
+          const divergence =
+            `[VMNL-CLI] Manifest commit ${manifestSha.substring(0, 7)} does not match HEAD ${currentSha.substring(0, 7)}: ` +
+            "the release decision was signed against a different tree, so this evaluation does not attest the code being released.";
+          if (!allowDrift) {
+            console.error(divergence);
+            console.error(
+              "[VMNL-CLI] Re-pin release-manifest.json to a commit that carries the work (see HD-01 / TSK-37), or pass --allow-sha-drift to record an explicit override."
+            );
+            return 1;
+          }
+          console.warn(divergence);
+          console.warn(
+            "[VMNL-CLI] OVERRIDE ACTIVE: --allow-sha-drift was passed, so this gate did NOT attest the current commit. Remove the override once the manifest is re-pinned."
+          );
         }
       }
 
-      const result = ReleaseGatePipeline.evaluateBroadcastRelease(broadcastManifest);
+      // PR-04: resolve the evidence each gate names, refuse stale evaluations,
+      // and bind the decision to the artefact it decides on. Before this, the
+      // gate was self-attestation: it read the manifest's own status strings and
+      // never opened a cited file.
+      const maxAgeIndex = args.indexOf("--max-evidence-age-days");
+      const maxEvidenceAgeDays = maxAgeIndex !== -1 && args[maxAgeIndex + 1]
+        ? Number.parseInt(args[maxAgeIndex + 1], 10)
+        : 30;
+      if (!Number.isFinite(maxEvidenceAgeDays) || maxEvidenceAgeDays <= 0) {
+        console.error("[VMNL-CLI] --max-evidence-age-days must be a positive integer number of days.");
+        return 1;
+      }
+
+      const digestIndex = args.indexOf("--artifact-digest");
+      const declaredDigest = digestIndex !== -1 && args[digestIndex + 1] ? args[digestIndex + 1] : undefined;
+      // Prefer an explicit digest, then a digest the release job computed, then
+      // the local build output. An absent build is reported, never invented.
+      let computedDigest = declaredDigest ?? process.env.RELEASE_ARTIFACT_DIGEST ?? undefined;
+      let digestSource = declaredDigest ? "--artifact-digest" : computedDigest ? "RELEASE_ARTIFACT_DIGEST" : "";
+      if (!computedDigest) {
+        const build = computeArtifactDigest(path.resolve(process.cwd(), "dist"));
+        if (build) {
+          computedDigest = build.digest;
+          digestSource = `dist/ (${build.fileCount} files, ${build.totalBytes} bytes)`;
+        }
+      }
+
+      // Boundary cast: the shape above is what the file claims to be, not what has
+      // been validated. `evaluateBroadcastRelease` is where it is validated — it
+      // refuses a missing owner, an unknown environment and an unresolvable gate.
+      const result = ReleaseGatePipeline.evaluateBroadcastRelease(
+        broadcastManifest as unknown as BroadcastReleaseManifest,
+        {
+        evidenceRoot: process.cwd(),
+        maxEvidenceAgeDays,
+        artifactDigest: computedDigest,
+        requireArtifactBinding: broadcastManifest.environment === "PRODUCTION_S5",
+      });
+
+      if (result.evidenceFindings.length > 0) {
+        console.error(`[VMNL-CLI] EVIDENCE NOT RESOLVED (${result.evidenceFindings.length}):`);
+        result.evidenceFindings.forEach((finding) =>
+          console.error(`  - [${finding.code}] ${finding.gateId}: ${finding.detail}`)
+        );
+      }
+
+      const signature = verifyManifestSignature(
+        broadcastManifest as unknown as BroadcastReleaseManifest,
+        process.env.RELEASE_SIGNING_KEY
+      );
+      if (signature.verified) {
+        console.log(`[VMNL-CLI] Artefact binding: owner signature verified over digest ${broadcastManifest.artifactDigest?.substring(0, 12)}…`);
+      } else {
+        console.warn(`[VMNL-CLI] Artefact binding NOT VERIFIED — ${signature.reason}`);
+        if (broadcastManifest.environment === "PRODUCTION_S5") {
+          console.error("[VMNL-CLI] PRODUCTION_S5 requires a signed artefact binding (PR-04 / §5.2).");
+          return 1;
+        }
+      }
+      if (result.artifactAttested) {
+        console.log(`[VMNL-CLI] Artefact digest matched (source: ${digestSource}).`);
+      } else if (computedDigest) {
+        console.log(`[VMNL-CLI] Artefact digest computed (${digestSource}) but the manifest does not bind it.`);
+      } else {
+        console.log("[VMNL-CLI] No artefact digest was available and the manifest binds none: this evaluation attests gate statuses and evidence paths only.");
+      }
+
+      // Honesty clause: the command resolves evidence paths; it does not re-run
+      // the tests they name. Say so, rather than implying more than it did.
+      console.log("[VMNL-CLI] Evidence paths resolved against the working tree; cited tests were NOT re-executed by this command.");
+
       if (result.canDeploy) {
         console.log("[VMNL-CLI] ALL R1.2A §67 BROADCAST GATES EVALUATED (BG0 to BG9).");
         console.log(`[VMNL-CLI] Release Decision: ${result.decision}`);
@@ -105,13 +222,67 @@ export async function runCli(args: string[] = process.argv.slice(2)): Promise<nu
         if (result.untestedGates.length > 0) {
           result.untestedGates.forEach((g) => console.log(`  - [CONDITION/UNTESTED] ${g}`));
         }
-        console.log(`[VMNL-CLI] STATUS: RELEASE CLEARED FOR SANDBOX S2 TARGET (${result.decision}).`);
+        console.log(`[VMNL-CLI] STATUS: RELEASE CLEARED FOR ${broadcastManifest.environment} (${result.decision}).`);
         return 0;
       } else {
         console.error("[VMNL-CLI] BROADCAST RELEASE GATES FAILED:");
         result.failingGates.forEach((g) => console.error(`  - ${g}`));
         return 1;
       }
+    }
+
+    // PR-04/§5.2: signing is a release-owner act. This command produces the
+    // signature the owner commits; it never reads a key from the repository and
+    // never writes the manifest itself, so signing stays an explicit human step.
+    case "gates:sign": {
+      const signingKey = process.env.RELEASE_SIGNING_KEY;
+      if (!signingKey || signingKey.trim().length === 0) {
+        console.error("[VMNL-CLI] RELEASE_SIGNING_KEY is not set, so no signature can be produced.");
+        console.error("[VMNL-CLI] The key belongs to the release owner's secure environment and must never be committed.");
+        return 1;
+      }
+      const signManifestIndex = args.indexOf("--manifest");
+      const signPath = signManifestIndex !== -1 && args[signManifestIndex + 1] ? args[signManifestIndex + 1] : "release-manifest.json";
+      const resolvedSignPath = path.resolve(process.cwd(), signPath);
+      if (!fs.existsSync(resolvedSignPath)) {
+        console.error(`[VMNL-CLI] Manifest file not found at: ${resolvedSignPath}`);
+        return 1;
+      }
+      const signDigestIndex = args.indexOf("--artifact-digest");
+      const signDigest = signDigestIndex !== -1 && args[signDigestIndex + 1]
+        ? args[signDigestIndex + 1]
+        : computeArtifactDigest(path.resolve(process.cwd(), "dist"))?.digest;
+      if (!signDigest) {
+        console.error("[VMNL-CLI] No artefact digest available: pass --artifact-digest <sha256> or build to dist/ first.");
+        return 1;
+      }
+      let signTarget: ManifestJson;
+      try {
+        signTarget = JSON.parse(fs.readFileSync(resolvedSignPath, "utf-8")) as ManifestJson;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.error(`[VMNL-CLI] Failed to read or parse release manifest: ${message}`);
+        return 1;
+      }
+      const signable = {
+        ...signTarget,
+        artifactDigest: signDigest,
+        humanReleaseOwner: {
+          ...signTarget.humanReleaseOwner,
+          signedAt: new Date(signTarget.humanReleaseOwner.signedAt),
+        },
+        gates: Object.fromEntries(
+          Object.entries(signTarget.gates).map(([id, gate]) => [
+            id,
+            { ...gate, evaluatedAt: new Date(gate.evaluatedAt) },
+          ])
+        ),
+      };
+      const signatureHex = signCanonicalManifest(signable as unknown as BroadcastReleaseManifest, signingKey);
+      console.log(`[VMNL-CLI] Artifact digest: ${signDigest}`);
+      console.log(`[VMNL-CLI] ownerSignature: ${signatureHex}`);
+      console.log("[VMNL-CLI] Add both fields to the manifest yourself after review; this command writes nothing.");
+      return 0;
     }
 
     case "epg:export": {
@@ -172,7 +343,9 @@ Usage: vmnl <command> [options]
 
 Commands:
   seed                   Generate deterministic golden master datasets
-  gates:check            Evaluate broadcast release gates (BG0–BG9) and sign-off manifests
+  gates:check            Evaluate broadcast release gates (BG0–BG9), resolving cited evidence
+  gates:sign             Produce an owner signature binding the manifest to the built artefact
+                         (requires RELEASE_SIGNING_KEY; prints, never writes)
   epg:export --channel   Export standard XMLTV EPG feed (e.g. NXTR, ORIS, IMBD)
   screens:list           List all 33 broadcast operational screen descriptors
   config:verify          Validate active environment variables against schema

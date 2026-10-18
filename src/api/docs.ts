@@ -837,6 +837,16 @@ export const OPENAPI_SPEC = {
                   },
                   decision: { type: "string", enum: ["GO", "GO_WITH_CONDITIONS", "HOLD", "NO_GO"] },
                   conditionsAcceptance: { type: "object" },
+                  artifactDigest: {
+                    type: "string",
+                    description:
+                      "PR-04: SHA-256 of the build this decision was signed against. Required in PRODUCTION_S5.",
+                  },
+                  ownerSignature: {
+                    type: "string",
+                    description:
+                      "PR-04: HMAC-SHA256 over the canonical manifest payload, produced with the release owner's signing key.",
+                  },
                   gates: { type: "object" },
                 },
               },
@@ -844,7 +854,52 @@ export const OPENAPI_SPEC = {
           },
         },
         responses: {
-          "200": { description: "Release gates evaluation result." },
+          "200": {
+            description:
+              "Release gates evaluation result. Each gate recorded as verified must cite an evidenceRef that resolves in the release tree and an evaluatedAt inside the freshness window (PR-04).",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  // Two shapes answer on this path: the BG0–BG9 evaluator (with
+                  // `decision`, `evidenceFindings`, `artifactAttested`) and the
+                  // legacy four-tier evaluator (canDeploy + failingGates only).
+                  // Only the fields both always return are required here.
+                  required: ["canDeploy", "failingGates"],
+                  properties: {
+                    canDeploy: { type: "boolean" },
+                    decision: { type: "string", enum: ["GO", "GO_WITH_CONDITIONS", "HOLD", "NO_GO"] },
+                    failingGates: { type: "array", items: { type: "string" } },
+                    blockedGates: { type: "array", items: { type: "string" } },
+                    untestedGates: { type: "array", items: { type: "string" } },
+                    passedGates: { type: "array", items: { type: "string" } },
+                    artifactAttested: { type: "boolean" },
+                    evidenceFindings: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        required: ["gateId", "code", "detail"],
+                        properties: {
+                          gateId: { type: "string" },
+                          code: {
+                            type: "string",
+                            enum: [
+                              "MISSING_EVIDENCE",
+                              "UNRESOLVED_EVIDENCE_PATH",
+                              "PROSE_ONLY_EVIDENCE",
+                              "STALE_EVIDENCE",
+                            ],
+                          },
+                          detail: { type: "string" },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          "422": { description: "One or more release gates refused the manifest." },
         },
       },
     },

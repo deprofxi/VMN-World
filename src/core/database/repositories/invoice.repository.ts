@@ -147,7 +147,7 @@ export class InvoiceRepository {
           createdAt: created.createdAt,
           updatedAt: created.updatedAt,
         };
-      } catch (err: any) {
+      } catch (err) {
         await handleRepoError("contract", "write", err);
       }
     }
@@ -183,7 +183,7 @@ export class InvoiceRepository {
             updatedAt: found.updatedAt,
           };
         }
-      } catch (err: any) {
+      } catch (err) {
         await handleRepoError("contract", "read", err);
       }
     }
@@ -223,7 +223,7 @@ export class InvoiceRepository {
             updatedAt: c.updatedAt,
           })), (contract) => contract.contractNumber, paging.limit);
         }
-      } catch (err: any) {
+      } catch (err) {
         await handleRepoError("contract", "list", err);
       }
     }
@@ -323,7 +323,7 @@ export class InvoiceRepository {
           createdAt: created.createdAt,
           updatedAt: created.updatedAt,
         };
-      } catch (err: any) {
+      } catch (err) {
         await handleRepoError("settlement", "write", err);
       }
     }
@@ -361,7 +361,7 @@ export class InvoiceRepository {
             updatedAt: found.updatedAt,
           };
         }
-      } catch (err: any) {
+      } catch (err) {
         await handleRepoError("settlement", "read", err);
       }
     }
@@ -409,7 +409,7 @@ export class InvoiceRepository {
           createdAt: updated.createdAt,
           updatedAt: updated.updatedAt,
         };
-      } catch (err: any) {
+      } catch (err) {
         await handleRepoError("settlement", "update", err);
       }
     }
@@ -462,7 +462,7 @@ export class InvoiceRepository {
             updatedAt: s.updatedAt,
           })), (settlement) => settlement.settlementNumber, paging.limit);
         }
-      } catch (err: any) {
+      } catch (err) {
         await handleRepoError("settlement", "list", err);
       }
     }

@@ -946,7 +946,13 @@ export const GENERATED_UTILITY_CSS = `
 .s-lrZwJ-ejsm { font-size:1.05rem; }
 .s-spUOT7_p0i { display:flex; flex-direction:column; justify-content:space-between; transition:transform 0.15s ease, box-shadow 0.15s ease; border-top: 4px solid var(--vmn-secondary); }
 .s-NUy8-yU6ON { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; }
-.s-t92pYwkrKO { font-family:monospace; font-weight:700; font-size:0.85rem; color:#0284C7; background:#E0F2FE; padding:3px 8px; border-radius:4px; }
+/* PR-26: this class was minted from an inline color:#0284C7; background:#E0F2FE
+   pair, which a real browser run measured at 3.56:1 — below the 4.5:1 that 13.6px
+   bold text needs. The hue is unchanged; the foreground now uses the design
+   system's own info-text token (#075985, 6.58:1 on this background). The
+   generator only mints classes from inline styles, so this correction cannot be
+   reverted by re-running it. */
+.s-t92pYwkrKO { font-family:monospace; font-weight:700; font-size:0.85rem; color:var(--vmn-color-info-text); background:var(--vmn-color-info-bg); padding:3px 8px; border-radius:4px; }
 .s-54HfO3lJ9A { font-size:0.8rem; font-weight:700; color:var(--vmn-text-muted); }
 .s-XSOc80whyS { font-size:1.15rem; margin-bottom:8px; line-height:1.3; }
 .s-AYvAbpc3-l { text-decoration:none; color:var(--vmn-text-main); font-weight:700; }

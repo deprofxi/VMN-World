@@ -68,6 +68,9 @@ import { RepositoryUnavailableError, getRepositoryMode } from "../core/database/
 import { durableJournalStats, flushDurableJournal, pendingDurableWrites } from "../core/database/durable-journal.js";
 import { getConfig } from "../core/config/index.js";
 import {
+  accessContextFor,
+  assertPermission,
+  AuthorizationError,
   canPerform,
   EnterpriseAction,
   EnterpriseResource,
@@ -766,8 +769,25 @@ export function assertRoutePermission(
     return null;
   }
 
-  const allowed = canPerform(user, action, resource);
-  if (!allowed) {
+  // PR-09: the decision is taken through the throwing variant with this
+  // request's own attribute context, so the tenant predicate in the policy
+  // engine actually runs (it was unreachable while every call omitted the
+  // fourth argument) and a refused tenant claim is answered with the real
+  // reason rather than a generic permission message.
+  try {
+    assertPermission(user, action, resource, accessContextFor(user, req.headers));
+  } catch (err) {
+    if (!(err instanceof AuthorizationError)) throw err;
+    if (err.reason === "TENANT_SCOPE") {
+      sendJson(res, 403, {
+        error: "Forbidden",
+        message: `Access denied: this session belongs to tenant '${
+          user.tenantId ?? "<none>"
+        }' and may not act in tenant '${err.tenantId}'.`,
+        code: "TENANT_SCOPE_DENIED",
+      });
+      return null;
+    }
     sendJson(res, 403, {
       error: "Forbidden",
       message: `Access denied: lacks required permission '${action}:${resource}'`,
@@ -3609,6 +3629,12 @@ ${publicRoutes
         isDbConnected && (!storageGatingEnabled || isStorageReady) && (!kvGatingEnabled || kvHealthy);
       const httpStatus = isReady ? 200 : 503;
 
+      // TSK-36 box 3 / PR-21: publish KV backend health as a series the shipped
+      // alert rules can fire on (`KVBackendLoss` in prometheus.rules.yml).
+      // Without this the alert would name a metric nothing records — the PR-14
+      // failure mode (a control nothing reads) in the monitoring layer, which
+      // tests/unit/deployment-artifacts.test.ts refuses for every other rule.
+      context.telemetry.recordMetric("kv_backend_unhealthy", kvHealthy ? 0 : 1);
       context.telemetry.recordMetric("http_requests_total", 1, { path: "/readyz", status: String(httpStatus) });
       sendJson(res, httpStatus, {
         status: isReady ? "ready" : "unavailable",
@@ -3643,8 +3669,17 @@ ${publicRoutes
       return;
     }
 
-    // 2. Prometheus Metrics Endpoint (AUD-06)
+    // 2. Prometheus Metrics Endpoint (AUD-06, PR-14)
     if (pathname === "/metrics" && method === "GET") {
+      // PR-14: PROMETHEUS_METRICS_ENABLED was declared, documented in
+      // `.env.example` and set in `docker-compose.yml`, but nothing read it, so
+      // an operator who disabled metric exposure still got the endpoint. The
+      // switch is now load-bearing. A disabled endpoint answers 404 rather than
+      // 403 so it is not advertised as existing-but-forbidden.
+      if (!getConfig().PROMETHEUS_METRICS_ENABLED) {
+        sendJson(res, 404, { error: "Not Found" });
+        return;
+      }
       const metricsToken = process.env.METRICS_TOKEN;
       const authHeader = (req.headers["authorization"] || "").toString();
       const bearer = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : "";
@@ -8090,7 +8125,7 @@ ${publicRoutes
     // get the guard table's read:storage admission.
     if (pathname === "/api/v1/cms/media-assets" && method === "POST") {
       const user = resolveSessionUser(req);
-      if (!user || !canPerform(user, "create", "content")) {
+      if (!user || !canPerform(user, "create", "content", accessContextFor(user, req.headers))) {
         sendJson(res, user ? 403 : 401, {
           error: user ? "Forbidden" : "Unauthorized",
           message: "Media asset registration requires create:content authority.",

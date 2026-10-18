@@ -93,7 +93,7 @@ export class NotificationService {
           recipient: options.to,
           timestamp: now,
         };
-      } catch (err: any) {
+      } catch (err) {
         this.telemetry?.recordMetric("notification_email_failed_total", 1, { provider: "SMTP" });
         return {
           success: false,
@@ -101,7 +101,7 @@ export class NotificationService {
           channel: "EMAIL",
           provider: "SMTP",
           recipient: options.to,
-          error: err.message,
+          error: err instanceof Error ? err.message : String(err),
           timestamp: now,
         };
       }
@@ -166,7 +166,7 @@ export class NotificationService {
           recipient: formattedPhone,
           timestamp: now,
         };
-      } catch (err: any) {
+      } catch (err) {
         this.telemetry?.recordMetric("notification_sms_failed_total", 1, { provider: "TERMII" });
         return {
           success: false,
@@ -174,7 +174,7 @@ export class NotificationService {
           channel: "SMS",
           provider: "TERMII",
           recipient: formattedPhone,
-          error: err.message,
+          error: err instanceof Error ? err.message : String(err),
           timestamp: now,
         };
       }

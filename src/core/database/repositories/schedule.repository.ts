@@ -123,7 +123,7 @@ export class ScheduleRepository {
           createdAt: created.createdAt,
           updatedAt: created.updatedAt,
         };
-      } catch (err: any) {
+      } catch (err) {
         await handleRepoError("programme", "write", err);
       }
     }
@@ -156,7 +156,7 @@ export class ScheduleRepository {
             updatedAt: found.updatedAt,
           };
         }
-      } catch (err: any) {
+      } catch (err) {
         await handleRepoError("programme", "read", err);
       }
     }
@@ -193,7 +193,7 @@ export class ScheduleRepository {
             updatedAt: p.updatedAt,
           })), (programme) => programme.code, paging.limit);
         }
-      } catch (err: any) {
+      } catch (err) {
         await handleRepoError("programme", "list", err);
       }
     }
@@ -271,7 +271,7 @@ export class ScheduleRepository {
           createdAt: created.createdAt,
           updatedAt: created.updatedAt,
         };
-      } catch (err: any) {
+      } catch (err) {
         await handleRepoError("broadcastEpisode", "write", err);
       }
     }
@@ -311,7 +311,7 @@ export class ScheduleRepository {
             updatedAt: e.updatedAt,
           })), (episode) => episode.episodeCode, paging.limit);
         }
-      } catch (err: any) {
+      } catch (err) {
         await handleRepoError("broadcastEpisode", "list", err);
       }
     }
@@ -382,7 +382,7 @@ export class ScheduleRepository {
           source: "DB",
           createdAt: created.createdAt,
         };
-      } catch (err: any) {
+      } catch (err) {
         await handleRepoError("asRunLogRecord", "write", err);
       }
     }
@@ -421,7 +421,7 @@ export class ScheduleRepository {
             createdAt: a.createdAt,
           })), (record) => record.id, paging.limit);
         }
-      } catch (err: any) {
+      } catch (err) {
         await handleRepoError("asRunLogRecord", "list", err);
       }
     }

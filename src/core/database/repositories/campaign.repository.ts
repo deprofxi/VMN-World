@@ -98,7 +98,7 @@ export class CampaignRepository {
           createdAt: created.createdAt,
           updatedAt: created.updatedAt,
         };
-      } catch (err: any) {
+      } catch (err) {
         await handleRepoError("commercialCampaign", "write", err);
       }
     }
@@ -132,7 +132,7 @@ export class CampaignRepository {
             updatedAt: found.updatedAt,
           };
         }
-      } catch (err: any) {
+      } catch (err) {
         await handleRepoError("commercialCampaign", "read", err);
       }
     }
@@ -171,7 +171,7 @@ export class CampaignRepository {
             updatedAt: r.updatedAt,
           })), (campaign) => campaign.campaignCode, paging.limit);
         }
-      } catch (err: any) {
+      } catch (err) {
         await handleRepoError("commercialCampaign", "list", err);
       }
     }
@@ -209,7 +209,7 @@ export class CampaignRepository {
           createdAt: updated.createdAt,
           updatedAt: updated.updatedAt,
         };
-      } catch (err: any) {
+      } catch (err) {
         await handleRepoError("commercialCampaign", "update", err);
       }
     }
@@ -232,7 +232,7 @@ export class CampaignRepository {
       try {
         const client = getPrismaClient();
         await client.commercialCampaign.delete({ where: { campaignCode } });
-      } catch (err: any) {
+      } catch (err) {
         await handleRepoError("commercialCampaign", "delete", err);
       }
     }

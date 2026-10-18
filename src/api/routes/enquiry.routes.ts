@@ -6,7 +6,7 @@ import { DomainRoute, RouteContext } from "./types.js";
 import { ListEnquiriesQuerySchema } from "../schemas/index.js";
 import { listEnquiries, retryDownstreamRouting } from "../../modules/hub/enquiry/index.js";
 import { sendJson } from "../router.js";
-import { canPerform } from "../../core/rbac/index.js";
+import { accessContextFor, canPerform } from "../../core/rbac/index.js";
 
 function sendProblem(res: RouteContext["res"], status: number, title: string, detail: string, type: string, extensions: Record<string, unknown> = {}): void {
   res.writeHead(status, { "Content-Type": "application/problem+json; charset=utf-8" });
@@ -17,12 +17,14 @@ export const enquiryRoutes: DomainRoute[] = [
   {
     method: "GET",
     pathname: "/api/v1/enquiries",
-    handle: ({ res, parsedUrl, user }: RouteContext) => {
+    handle: ({ req, res, parsedUrl, user }: RouteContext) => {
       if (!user) {
         sendProblem(res, 401, "Unauthorized", "Authentication is required.", "unauthorized");
         return true;
       }
-      if (!canPerform(user, "read", "enquiry")) {
+      // PR-09: the enquiry listing is tenant-bearing, so it is decided with the
+      // request's own attribute context rather than a bare role lookup.
+      if (!canPerform(user, "read", "enquiry", accessContextFor(user, req.headers))) {
         sendProblem(res, 403, "Forbidden", "Enquiry read permission is required.", "forbidden");
         return true;
       }
@@ -41,12 +43,12 @@ export const enquiryRoutes: DomainRoute[] = [
   {
     method: "POST",
     pathname: /^\/api\/v1\/enquiries\/[^/]+\/retry-routing$/,
-    handle: async ({ res, pathname, user }: RouteContext) => {
+    handle: async ({ req, res, pathname, user }: RouteContext) => {
       if (!user) {
         sendProblem(res, 401, "Unauthorized", "Authentication is required.", "unauthorized");
         return true;
       }
-      if (!canPerform(user, "update", "enquiry")) {
+      if (!canPerform(user, "update", "enquiry", accessContextFor(user, req.headers))) {
         sendProblem(res, 403, "Forbidden", "Enquiry routing permission is required.", "forbidden");
         return true;
       }

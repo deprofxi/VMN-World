@@ -375,7 +375,13 @@ export function renderMasterLayout(
   </nav>
 
   <!-- Upgrade 1: Universal Command Palette (Cmd+K) Modal -->
-  <div id="vmn-cmd-backdrop" class="vmn-cmd-backdrop" aria-hidden="true">
+  <!-- The inert attribute makes the initial state identical to the closed state
+       the client engine produces: the command backdrop is display:none while
+       closed and the engine also sets inert on close. Without it the palette's
+       text input and close button are tabbable in the window before the
+       stylesheet applies, which a browser-run check reports as
+       aria-hidden-focus (serious). -->
+  <div id="vmn-cmd-backdrop" class="vmn-cmd-backdrop" aria-hidden="true" inert>
     <div class="vmn-cmd-dialog">
       <div class="vmn-cmd-header">
         ${renderIcon("search", { size: 20 })}
@@ -539,7 +545,12 @@ export function renderChannelsPageHtml(): string {
           <span class="vmn-badge badge-info">Channel profile</span>
  <span class="s-sMs-d-vDCO">Carriage details unverified</span>
         </div>
- <h2 style="color: ${pub?.accentColor || "inherit"}">${c.name} (${c.code})</h2>
+        <!-- The channel accent is a graphic accent, not a text colour: the
+             design tokens document #FFB800 as "Gold graphic accent (non-text
+             fills & rules)" and it measures 1.73:1 on white, well under the
+             4.5:1 a heading needs. Carrying the channel identity as a rule
+             keeps the brand cue and passes contrast. -->
+ <h2 style="border-left: 6px solid ${pub?.accentColor || "var(--vmn-color-border)"}; padding-left: 12px;">${c.name} (${c.code})</h2>
  <p role="note" class="s-PohgnhBczo">Channel profile details, audience, and programming are illustrative and have not been independently verified.</p>
  <p role="note" class="s-PohgnhBczo">Live transmission status is not available from a verified source.</p>
  <p role="note" class="s-wNcgL978zj">Technical transmission specifications are not independently verified in this environment.</p>
