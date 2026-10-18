@@ -5,6 +5,31 @@
 # fails fast on missing required secrets (CR-6) instead of booting with
 # publicly-known values. Sandbox infrastructure passwords (postgres/minio) are
 # explicitly non-production and documented as such.
+# PR-20: the deployed hardening baseline, as a merge anchor so it cannot be
+# applied to one service and forgotten on the next.
+#
+#   hardening-full — for images that need no privilege at all: the application
+#     (non-root uid 1001, binds 5500, writes nothing outside /tmp) and
+#     Prometheus (runs as nobody, writes only its own volume).
+#   hardening-init — for the stateful images whose entrypoints legitimately need
+#     capabilities while initialising a FRESH volume (postgres chowns/`chmod`s
+#     its data directory, MinIO and Redis write as their image user). Dropping
+#     all capabilities there would break first-run initialisation, and this host
+#     has no Docker to rehearse it, so those two are deferred and recorded as
+#     still open in the PR-20 register entry rather than asserted.
+#
+# `no-new-privileges` is safe on every service: it does not remove a capability
+# the process already holds, it blocks gaining more through a setuid binary.
+x-hardening-full: &hardening-full
+  cap_drop:
+    - ALL
+  security_opt:
+    - no-new-privileges:true
+
+x-hardening-init: &hardening-init
+  security_opt:
+    - no-new-privileges:true
+
 services:
   app:
     build:
@@ -12,6 +37,19 @@ services:
       dockerfile: Dockerfile
     container_name: vmnl-enterprise-app
     restart: unless-stopped
+    <<: *hardening-full
+    # PR-20: nothing the application writes needs to survive the container, so
+    # the root filesystem can be read-only with a scratch /tmp. Revert to a
+    # writable filesystem by deleting these three lines if a future dependency
+    # needs one — the reverse is not true, which is why it is the default here.
+    read_only: true
+    tmpfs:
+      - /tmp
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2g
     ports:
       - "127.0.0.1:5500:5500"
     environment:
@@ -39,8 +77,13 @@ services:
       - STORAGE_DRIVER=minio
       - STORAGE_ENDPOINT=${STORAGE_ENDPOINT:-http://minio:9000}
       - STORAGE_BUCKET=vmnl-assets
-      - STORAGE_ACCESS_KEY=${STORAGE_ACCESS_KEY:-minioadmin}
-      - STORAGE_SECRET_KEY=${STORAGE_SECRET_KEY:-minioadmin_secure_key}
+      # PR-20: required, not defaulted, and the same variables the MinIO service
+      # below reads. The pre-fix state had the app default to
+      # `minioadmin_secure_key` while MinIO hard-coded that same literal and
+      # `.env.example` shipped `minioadmin` — so the documented sandbox path
+      # authenticated against nothing. One required source removes the class.
+      - STORAGE_ACCESS_KEY=${STORAGE_ACCESS_KEY:?STORAGE_ACCESS_KEY is required (see .env.example)}
+      - STORAGE_SECRET_KEY=${STORAGE_SECRET_KEY:?STORAGE_SECRET_KEY is required (see .env.example)}
       - PROMETHEUS_METRICS_ENABLED=true
     depends_on:
       postgres:
@@ -56,6 +99,12 @@ services:
     image: postgres:18-alpine
     container_name: vmnl-postgres
     restart: unless-stopped
+    <<: *hardening-init
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2g
     environment:
       # Sandbox-local credentials; NEVER mirror production values here.
       - POSTGRES_USER=vmn_user
@@ -84,6 +133,12 @@ services:
     image: redis:7-alpine
     container_name: vmnl-redis
     restart: unless-stopped
+    <<: *hardening-init
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512m
     command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD:?REDIS_PASSWORD is required (see .env.example)}"]
     environment:
       - REDIS_PASSWORD=${REDIS_PASSWORD:?REDIS_PASSWORD is required (see .env.example)}
@@ -103,10 +158,19 @@ services:
     image: minio/minio:RELEASE.2025-09-07T16-19-51Z
     container_name: vmnl-minio
     restart: unless-stopped
+    <<: *hardening-init
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1g
     command: server /data --console-address ":9001"
     environment:
-      - MINIO_ROOT_USER=minioadmin
-      - MINIO_ROOT_PASSWORD=minioadmin_secure_key
+      # PR-20: no literal fallbacks. These are the same two variables the app
+      # service is given, so the sandbox cannot end up with the store expecting
+      # one credential and the client sending another.
+      - MINIO_ROOT_USER=${STORAGE_ACCESS_KEY:?STORAGE_ACCESS_KEY is required (see .env.example)}
+      - MINIO_ROOT_PASSWORD=${STORAGE_SECRET_KEY:?STORAGE_SECRET_KEY is required (see .env.example)}
     ports:
       - "127.0.0.1:9000:9000"
       - "127.0.0.1:9001:9001"
@@ -128,6 +192,12 @@ services:
     image: postgres:18-alpine
     container_name: vmnl-postgres-backup
     restart: unless-stopped
+    <<: *hardening-init
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512m
     # AUD-22: run the backup job as the image's non-root postgres user (uid 70).
     # The backup volume mounts at /var/lib/postgresql/backups — a directory that
     # exists in the image owned by uid 70 — so the named volume initialises
@@ -166,8 +236,17 @@ services:
     image: prom/prometheus:v2.53.0
     container_name: vmnl-prometheus
     restart: unless-stopped
+    <<: *hardening-full
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512m
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      # PR-21: the alert rules are shipped as a real file and mounted, so the
+      # rules the runbook documents are the rules Prometheus evaluates.
+      - ./prometheus.rules.yml:/etc/prometheus/prometheus.rules.yml:ro
       - promdata:/prometheus
     ports:
       - "127.0.0.1:9090:9090"

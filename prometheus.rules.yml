@@ -1,0 +1,92 @@
+# VMNL Enterprise Platform — Prometheus alerting rules
+# Authority: VMNL-AZP-VMN-CCPP-001 §19 / ADR-011
+# Findings: docs/audit/production-readiness-deepcheck-2026-10-16.md PR-21
+#
+# PR-21: before this file the alert rules lived only as a YAML snippet inside
+# docs/runbooks/observability.md §2 and `prometheus.yml` declared no
+# `rule_files`, so nothing was ever evaluated. The rules below are mounted by
+# docker-compose.yml and referenced from prometheus.yml.
+#
+# Every expression names a series the application actually publishes:
+# `tests/unit/prometheus-rules.test.ts` extracts the metric name from each
+# `expr` and requires it to appear in the `recordMetric(...)` vocabulary of
+# `src/`. A rule for a metric nothing emits is worse than no rule — it reads as
+# monitoring while being inert, which is the same defect PR-14 recorded for the
+# dead `PROMETHEUS_METRICS_ENABLED` switch.
+#
+# Two rules in the runbook's original snippet were dropped for that reason and
+# are recorded as TARGET state in the runbook instead:
+#   • `playout_server_connected` — no playout integration is connected in this
+#     codebase, so the series does not exist.
+#   • `carrier_uptime_percent` / `traffic_break_fill_ratio` — same.
+#
+# Note on functions: the exporter in src/core/observability/index.ts publishes
+# every series as a gauge (`# TYPE <name> gauge`), so monotonic counters are
+# compared with `delta()` rather than `increase()`. A counter reset yields a
+# negative delta and therefore cannot fire an alert.
+groups:
+  - name: vmnl_platform_critical
+    rules:
+      - alert: High5xxErrorRate
+        # Threshold and window are the 0.1% SLA the runbook states; the series is
+        # recorded in src/api/router.ts at the response choke point.
+        expr: http_5xx_error_rate_percent > 0.1
+        for: 60s
+        labels:
+          severity: critical
+        annotations:
+          summary: "HTTP 5xx error rate exceeded the 0.1% SLA threshold"
+          runbook: "docs/runbooks/observability.md#3-incident-response--pager-escalation"
+
+      - alert: AuditDurabilityDegraded
+        # TSK-18: an audit entry that rolled back with its transaction is a
+        # break in the evidence graph, not a performance problem. Canonical law
+        # 20 (Evidence before claims) makes this page-grade.
+        expr: delta(audit_durable_degraded_total[10m]) > 0
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: "An audit-ledger write failed to reach durable storage"
+          runbook: "docs/runbooks/observability.md"
+
+      - alert: KVBackendLoss
+        # TSK-36 box 3: an unreachable shared KV backend means this pod cannot
+        # read session revocations, lockout counters or MFA claims (TSK-27),
+        # and /readyz takes it out of rotation. The series is recorded on every
+        # /readyz probe; the exporter publishes gauges, so no delta() is needed.
+        expr: kv_backend_unhealthy > 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Shared KV backend unreachable — revocations and lockouts are not readable"
+          runbook: "docs/runbooks/observability.md"
+
+      - alert: FederationDeadLetterGrowth
+        # The federation DLQ backlog: new dead letters in the last 15 minutes.
+        expr: delta(queue_total_dead_letter[15m]) > 0
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Azeebo+ federation queue dead letters are accumulating"
+          runbook: "docs/runbooks/observability.md"
+
+      - alert: NotificationDeliveryFailing
+        expr: delta(notification_email_failed_total[15m]) + delta(notification_sms_failed_total[15m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Outbound email/SMS delivery is failing"
+
+      - alert: WebhookDurabilityDegraded
+        # A webhook claim that could not be made durable means an inbound
+        # partner event may be lost — money-bearing for payment webhooks.
+        expr: delta(webhook_durable_claim_degraded_total[15m]) > 0
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: "An inbound webhook could not be recorded durably"

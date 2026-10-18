@@ -25,34 +25,39 @@ VMN employs a distributed observability architecture conforming to OpenTelemetry
 
 ## 2. Prometheus Alerting Rules
 
-```yaml
-groups:
-  - name: vmn_broadcast_critical
-    rules:
-      - alert: PlayoutDisconnect
-        expr: playout_server_connected == 0
-        for: 15s
-        labels:
-          severity: critical
-        annotations:
-          summary: "Playout automation server disconnected for channel {{ $labels.channel }}"
+The rules are shipped as a real file — [`prometheus.rules.yml`](../../prometheus.rules.yml)
+— mounted read-only into the `prometheus` compose service and loaded through
+`rule_files` in [`prometheus.yml`](../../prometheus.yml). Change the rules there,
+not in this document.
 
-      - alert: High5xxErrorRate
-        expr: http_5xx_error_rate_percent > 0.1
-        for: 60s
-        labels:
-          severity: critical
-        annotations:
-          summary: "HTTP 5xx error rate exceeded 0.1% SLA threshold"
+| Alert | Expression | Severity |
+|:---|:---|:---|
+| `High5xxErrorRate` | `http_5xx_error_rate_percent > 0.1`, for 60s | critical |
+| `AuditDurabilityDegraded` | `delta(audit_durable_degraded_total[10m]) > 0` | critical |
+| `KVBackendLoss` | `kv_backend_unhealthy > 0`, for 2m (series recorded on every `/readyz` probe) | critical |
+| `FederationDeadLetterGrowth` | `delta(queue_total_dead_letter[15m]) > 0` | warning |
+| `NotificationDeliveryFailing` | `delta(notification_email_failed_total[15m]) + delta(notification_sms_failed_total[15m]) > 0`, for 5m | warning |
+| `WebhookDurabilityDegraded` | `delta(webhook_durable_claim_degraded_total[15m]) > 0` | critical |
 
-      - alert: ElevatedDlqBacklog
-        expr: dlq_queue_depth > 10
-        for: 2m
-        labels:
-          severity: warning
-        annotations:
-          summary: "Azeebo+ federation DLQ backlog exceeded 10 items"
-```
+`tests/unit/deployment-artifacts.test.ts` keeps the properties above true: every
+alert named here exists in the shipped file, every metric named in an `expr` is
+published by `src/` through `recordMetric(...)`, and the `prometheus` compose
+service mounts the file.
+
+**Recorded as TARGET (PR-21):** this section previously specified
+`PlayoutDisconnect` on `playout_server_connected`, `ElevatedDlqBacklog` on
+`dlq_queue_depth`, plus `carrier_uptime_percent` and `traffic_break_fill_ratio`
+in §1.3. No code publishes any of those series — playout, carriage and the DLQ
+have no integrated telemetry source — so the rules could never fire. They are
+removed rather than restated, because an alert that cannot fire reads as
+monitoring while providing none. Wiring them belongs with the same integration
+work that owns playout/carriage telemetry (CLAUDE.md `<broadcast>`: inspect and
+integrate the actual broadcast systems before representing them).
+
+**Also TARGET:** no Alertmanager is configured, so these rules evaluate and are
+visible in the Prometheus UI but are not routed to a receiver. The platform's
+own rule engine dispatches to `ALERT_WEBHOOK_URL` (§1.5); deployment-side
+routing needs the target's receiver, which this repository does not hold.
 
 ---
 

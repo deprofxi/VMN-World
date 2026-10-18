@@ -2,11 +2,27 @@ global:
   scrape_interval: 15s
   evaluation_interval: 15s
 
+# PR-21: without this the rules in prometheus.rules.yml were never loaded, so the
+# alerting the runbook documents did not exist. The file is mounted read-only by
+# docker-compose.yml at the same path.
+rule_files:
+  - /etc/prometheus/prometheus.rules.yml
+
+# NOTE (PR-21, still open): no Alertmanager is configured, so firing alerts are
+# evaluated and visible in the Prometheus UI but are not routed to a receiver.
+# The product's own rule engine dispatches to ALERT_WEBHOOK_URL
+# (src/core/observability), which is what the sandbox actually uses. Routing
+# this file's alerts requires the deployment's receiver, which this repository
+# does not hold — recorded as open in the PR-21 register entry.
+
 scrape_configs:
   - job_name: "vmnl-app"
     metrics_path: "/metrics"
     static_configs:
       - targets: ["app:5500"]
         labels:
-          environment: "production"
+          # PR-21: this file describes the LOCAL compose stack, which is a
+          # sandbox. Labelling it "production" made every dashboard and alert
+          # filter that keys on the environment label silently wrong.
+          environment: "sandbox"
           service: "vmnl-enterprise-orchestrator"
