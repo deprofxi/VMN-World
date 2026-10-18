@@ -8,8 +8,9 @@ completion register is `tasks.md` — `VMNL-AZP-VMN-TODO-002` — which inherits
 **Audit Reference:** `VMNL-REPO-AUDIT-DEEPCHECK-001` · `VMNL-REPO-COMPLETION-AUDIT-001` (`report.md`)
 **Current Evaluated Maturity Tier:** **Tier S2 claim WITHDRAWN pending Track A** (`tasks.md` §1.2) —
 S2 presumes a reproducible verification baseline, and the tree failed to compile until 2026-10-07.
-**Audited Date:** 2026-09-28 · **Re-pinned:** 2026-10-07 (TSK-08), 2026-10-08 (TSK-12 close-out, TSK-17)
-and 2026-10-13 (TSK-18, TSK-20) — see §1  
+**Audited Date:** 2026-09-28 · **Re-pinned:** 2026-10-07 (TSK-08), 2026-10-08 (TSK-12 close-out, TSK-17),
+2026-10-13 (TSK-18, TSK-20) and 2026-10-18 (whole-battery working-tree re-pin, §1 pin
+`VMNL-EV-PIN-2026-10-18`) — see §1  
 
 ---
 
@@ -160,6 +161,41 @@ Virtual Media Network Limited enforces continuous evidence progression from conc
    happened, which remains the owner's decision; that the 872 include a browser run — no browser has run,
    so `HD-10` and manual §7.5 coverage remain NOT_RUN.
 
+   [Pin VMNL-EV-PIN-2026-10-18 — whole-battery working-tree re-pin; supersedes the gate figures of the
+   2026-10-15 pin, which stays above with its logs archived verbatim]
+   Measured on `37d0007` + a dirty working set: **54** entries under `git status --porcelain`
+   (37 `M` / 17 `??`, excluding this pin's own directory; `git ls-files --others --exclude-standard`
+   expands to 20 untracked files) — **uncommitted**, so this is a working-tree pin, not a commit pin
+   and not a commit-pinned green. Reproduce the set and its SHA-256 with the commands printed in
+   `docs/audit/evidence/baseline-2026-10-18/README.md`; `git rev-parse HEAD` names the commit beneath
+   it. Database: Postgres reachable on `localhost:5432` (Vitest provisions its own `<db>_test` per
+   run), `.env` never sourced, no Redis, no MinIO, `docker info` exits 127. Nothing pushed —
+   `git remote -v` prints nothing. Every figure below is printed by the verbatim log beside it in
+   `docs/audit/evidence/baseline-2026-10-18/`, and each command in the battery table regenerates it:
+     `pnpm typecheck`    -> exit 0 (`tsc --noEmit` and `tsc --noEmit -p tests/browser`, 0 errors)
+     `pnpm lint`         -> exit 0 (eslint --max-warnings 0)
+     `pnpm build`        -> exit 0
+     `pnpm test`         -> exit 0, **85 test files / 951 tests passed, 0 failed, 0 skipped** (343.87 s)
+     `pnpm test:coverage`-> exit 0, **79.47 statements / 70.79 branches / 83.39 functions / 80.76 lines**
+       against the pinned floors 73 / 62 / 77 / 72 — the floors did not move
+     `node scripts/audit-check.js`, `node scripts/audit-threshold.js`, `node scripts/explicit-any-budget.js`
+       -> each exit 0 (explicit-`any` **135 of budget 135** — zero headroom; reproduce with
+       `pnpm run any:budget`, which prints the count rather than trusting this line)
+     `pnpm test:browser` -> exit 0, **13 passed / 0 failed** (3 specs, axe-core 4.13.0 WCAG 2.2 A/AA
+       over 7 routes × 6 viewports, 2.9 m — the automated half only)
+     `node dist/src/cli/index.js gates:check` -> **exit 1 by design**: the manifest's pin `ca303f0`
+       ≠ `HEAD 37d0007`. That is the PR-03 fail-closed drift check working, not a regression; it
+       clears only when `release-manifest.json` is re-pinned to a commit that carries this work —
+       `tasks.md` HD-01 / TSK-37 own that post-commit step — or under the explicit, recorded
+       `--allow-sha-drift` override CI deliberately does not use.
+   What this pin does **not** claim: it is not a commit pin (the work is uncommitted), not a CI green
+   (no remote has seen this code, so PR-02 / `TSK-57` remain open and the release posture stays
+   BLOCKED, `tasks.md` §2), and no Docker-dependent step ran — image build, Trivy scan, SBOM and
+   `docker compose up` are blocked on the missing Docker binary, recorded as BLOCKED_ENV rather than
+   passed. Racy figures (test count, explicit-`any` count, coverage hundredths, wall times) carry the
+   command that regenerates them and may not be quoted as standing constants (`tasks.md` rule 0.2).
+   Manual §7.5 coverage: NOT_RUN (PRC-06 / HD-09).
+
 [Tier S3: Operational Staging] 
    └── Live staging deployment with Postgres container, playout integration,
        and multi-party operator rehearsal. (IN PROGRESS / TARGET)
@@ -185,7 +221,7 @@ Virtual Media Network Limited enforces continuous evidence progression from conc
 | `EVD-07-PROD` | VCF, ONE Studios, TEND | S2 | **S2** | `tests/unit/hub-production.test.ts` (waterfalls, avails, tickets, POA `/verify/poa/:id`) | **VERIFIED (Sandbox)** |
 | `EVD-08-INTL` | HeadspaceNG, Cr8Tech, AOS | S2 | **S2** | `tests/unit/intelligence.test.ts` (kill switch, WebVTT, policy gates) | **VERIFIED (Sandbox)** |
 | `EVD-09-FEDR` | Azeebo+ Federation L1-L4 | S3 | **S2** | `tests/unit/federation.test.ts` (circuit breaker, deep links, webhooks) | **VERIFIED (Sandbox)** |
-| `EVD-10-A11Y` | Web Surfaces & Contrast | S4 | **S2** | `tests/a11y/accessibility-audit.test.ts`, `tests/unit/public-surfaces.test.ts` (automated token contrast + 44px target + HTML-shape checks) | **VERIFIED (Sandbox) — automated checks only. Manual §7.5 coverage: NOT_RUN (PRC-06/HD-09). Browser run via `pnpm test:a11y`: NOT_PROVEN — see TSK-45/TSK-46** |
+| `EVD-10-A11Y` | Web Surfaces & Contrast | S4 | **S2** | `tests/a11y/accessibility-audit.test.ts`, `tests/unit/public-surfaces.test.ts` (automated token contrast + 44px target + HTML-shape checks, no browser) **+** `tests/browser/a11y.spec.ts`, `tests/browser/keyboard.spec.ts`, `tests/browser/rendering.spec.ts` (axe-core 4.13.0 WCAG 2.2 A/AA over 7 routes × 6 viewports against the built server; keyboard path, focus visibility, focus restoration and focus trap; styled-rendering guard) — run 2026-10-17, **13/13 passed, zero axe violations** | **VERIFIED (Sandbox) — automated checks only, browser run now PROVEN (`pnpm run test:browser`, TSK-45 wiring land 2026-10-17). Manual §7.5 coverage: NOT_RUN (PRC-06/HD-09). Two real defects were found by the first browser run and fixed: `color-contrast` 1.73:1 (gold graphic accent used as heading text) and 3.56:1 (info chip), and the closed command palette was tabbable before the stylesheet applied** |
 | `EVD-11-FINC` | 7-Way Finance & MT940 | S5 | **S2** | `tests/unit/reconciliation-mt940.test.ts`, `tests/unit/finance.test.ts`, `BankReconciliationEngine` replay safety | **VERIFIED (Algorithmic Prototype)** |
 | `EVD-12-GATE` | R1.2A §67 Release Gates | S4 | **S2** | `tests/unit/quality-gates.test.ts`, `release-manifest.json` (BG0–BG9 gates evaluator, BG6: NOT_TESTED, GO_WITH_CONDITIONS) | **VERIFIED (Sandbox S2 Cleared)** |
 | `EVD-13-REPO` | Repositories & Invariants | S2 | **S2** | `src/core/database/repositories/*.ts`, `tests/unit/production-core-and-infrastructure.test.ts` (Database-authoritative, DB/MEMORY flag) | **VERIFIED (Library/Sandbox)** |
@@ -198,6 +234,7 @@ Virtual Media Network Limited enforces continuous evidence progression from conc
 | `EVD-20-SECD` | Dependency Triage & CVEs | S4 | **S2** | `docs/audit/dependency-triage.md`, `package.json` (`audit:check` script) | **VERIFIED** |
 | `EVD-21-WORKSPACES` | Extended Workspaces & Desks | S2 | **S2** | `src/web/workspace/*.ts`, `tests/unit/extended-workspaces.test.ts` (28 tests: Proposal Builder, Term Sheets, LMS Rubrics, Video Submissions, Gear Locker, Call Sheets, AOS Killswitch) | **VERIFIED (Sandbox)** |
 | `EVD-22-SCREENS` | Unified Surface Matrix (verified instrument) | S2 | **S2** | `docs/decisions/screen-register.json` (VMNL-REG-SCREENS-001 **R1.2**: 60 entries = **226 documented IDs**, 55 IMPLEMENTED / 4 MOCK / 0 MISSING / 0 DEFERRED / 1 ALIAS by entry), `tests/unit/screen-register-verification.test.ts` (range expansion, evidence-file resolution, route-mount and provenance assertions), `docs/audit/screen-register-verification.md` | **VERIFIED (instrument)** — the former "225 canonical screen IDs active and mounted" row stays withdrawn, and so does the row that called 60 entries "totalScreens". Measured provenance is **75 DOMAIN_ENGINE / 4 NOT_CONNECTED / 147 NOT_VERIFIED by documented ID**; NOT_VERIFIED is an honest class, not a pass. The broadcast group was probed through `/broadcast/screens/SCR-BCST-01` (200, no provenance marker), which is the gap TSK-11 must close (`report.md` CA-08). |
+| `EVD-10b-A11Y-CI` | Browser accessibility run executed by CI | S4 | **S2** | `.github/workflows/ci.yml` installs chromium and runs `pnpm run test:browser` | **NOT_PROVEN — the suite passes locally (13/13, 2026-10-17) but no CI run has ever executed it: the repository still has no git remote (PR-02). Local green is not CI green** |
 | `EVD-23-DESIGN-TOKEN` | Zero-Emoji & WCAG Token Discipline | S4 | **S2** | `tests/unit/token-discipline.test.ts`, `tests/unit/tokens-contrast.test.ts`, `tests/unit/styleguide.test.ts` (Zero raw OS emojis, strictly SVG icons, 4.5:1 text contrast) | **VERIFIED (Sandbox)** |
 | `EVD-24-ADMISSIONS` | AFCA Multi-Step Intake Flow | S2 | **S2** | `src/modules/hub/afca/admissions.ts`, `src/web/public/admissions.ts`, `tests/unit/admissions.test.ts` (Multi-step validation, portfolio submission, audit trails) | **VERIFIED (Sandbox)** |
 | `EVD-25-DATASTATE` | Data-state labelling: durable stores vs `sandbox-state` | S2 | **S2 (instrument)** | `docs/domain/systems-of-record.md` §3.1/§3.3 (**15** durable stores, **30** `sandbox-state` families), `docs/decisions/screen-register.json` `sandboxState.families`, `docs/audit/journey-readiness-matrix.md` family → journey parity table, `tests/unit/systems-of-record.test.ts` (9 tests), `docs/audit/evidence/tsk20-sandbox-state-labelling-2026-10-13/` | **VERIFIED (instrument)** — three independent inventories of the same measured fact must agree or CI fails, and every Persistence cell that describes process memory must name its family. This row certifies the *labelling*, not the persistence: **147** documented IDs are now openly labelled as having no durable copy, and no gate moved because of it. |

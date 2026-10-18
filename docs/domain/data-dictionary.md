@@ -26,7 +26,7 @@ and every `file:line` citation in this file and in `canonical-model.md`.
 | Prisma `enum` | Database-enforced member sets | **10 enums / 44 members / 12 fields** | `grep -c "^enum " prisma/schema.prisma` |
 | TypeScript string unions | The vocabulary the running code type-checks against | **48 distinct state-shaped union names / 224 members** | §7 |
 | Bare `String` columns with an uppercase default | State carried with no enumeration at all | **11 columns** | §7 |
-| `code:` response literals | Machine-readable codes returned to clients | **112 distinct** | §7 |
+| `code:` response literals | Machine-readable codes returned to clients | **113 distinct** | §7 |
 | Bracketed traceability tags `[FAMILY-CODE-nn]` | Register/audit identifiers embedded in code and messages | **184 distinct across 24 families** (194 occurrences) | §7 |
 
 Only 12 of the schema's fields are enum-typed while 11 state-shaped fields are plain `String`: the
@@ -154,13 +154,13 @@ registered as TSK-59.
 | `DateTime` columns | **110** | `prisma/schema.prisma` |
 | …with `@default(now())` | 26 | `grep -c "@default(now())" prisma/schema.prisma` |
 | …with `@updatedAt` | 18 | `grep -c "@updatedAt" prisma/schema.prisma` |
-| `new Date()` lines in `src/` | 256 | `grep -rn "new Date()" --include='*.ts' src/ \| wc -l` — re-measured 2026-10-12 (254 when `tests/unit/canonical-model.test.ts` last pinned it; the register's closed tasks move this number on every increment, so it is a measurement, not a constant) |
-| `.toISOString()` lines | 107 | §7 — re-measured 2026-10-12 (106 at the 2026-10-09 pin) |
-| `Date.now()` lines | 132 | §7 — re-measured 2026-10-10 (+4: the shared account-lockout counters and the one-time MFA challenge claims stamp their TTLs from the process clock) |
+| `new Date()` lines in `src/` | 258 | `grep -rn "new Date()" --include='*.ts' src/ \| wc -l` — re-measured 2026-10-17 (+1: the release gate's evidence-freshness policy needs a clock, `src/modules/quality/gates.ts`; 257 after PR-08's SigV4 AMZ date and 254 at the 2026-10-12 pin). The register's closed tasks move this number on every increment, so it is a measurement, not a constant |
+| `.toISOString()` lines | 110 | §7 — re-measured 2026-10-17 (+2: the signed release manifest serialises `signedAt` and `evaluatedAt` so the signature covers the instants it attests, `src/modules/quality/artifact.ts`; 108 after PR-08's SigV4 date string, 107 at the 2026-10-12 pin) |
+| `Date.now()` lines | 134 | §7 — re-measured 2026-10-16 (132 at the 2026-10-10 pin, +2: the readiness probe's cache TTL and its probe deadline) |
 
 Counts are **matching lines**, the rule `grep -rn … | wc -l` applies, not total occurrences.
 
-There is no clock abstraction: timestamps are taken from the process clock at 256 `new Date()` lines,
+There is no clock abstraction: timestamps are taken from the process clock at 258 `new Date()` lines,
 which is why
 every lifecycle test in `tests/` that needs a window boundary injects explicit ISO dates into the
 fixture rather than relying on wall time (`tests/unit/broadcast-schedule-lifecycle.test.ts`,
@@ -208,13 +208,18 @@ schedule family three ways and all three are reproducible: 48 distinct bare `SCH
 `[SCHED-VAL-05]` / `[SCHED-REC-03]` numbers absent because the transitions they would have numbered
 were removed rather than renamed. A code identifies an implemented refusal, not a row in a spec table.
 
-**Machine-readable API codes** — `UPPER_SNAKE` values returned as `code`. **112 distinct** in `src/`,
+**Machine-readable API codes** — `UPPER_SNAKE` values returned as `code`. **117 distinct** in `src/`,
 emitted as object literals (`code: "RIGHTS_NOT_CLEARED_AT_EXPORT"`
 `src/modules/broadcast/export/epg.ts:96`, `code: "CANONICAL_CONTRACT_WORKFLOW_UNAVAILABLE"`
-`src/api/router.ts:4156`, `code: "AUTH_TOKEN_REQUIRED"`). This set includes three values that are
+`src/api/router.ts:4185`, `code: "AUTH_TOKEN_REQUIRED"`). This set includes three values that are
 channel codes rather than errors (`NXTR`, `ORIS`, `IMBD`, `src/web/public/channels.ts:10`) — the same
 `code` field name is used for both, which is a naming collision worth knowing before a client tries to
 branch on it.
+
+*113 until 2026-10-17. The increment is the release gate's four evidence-finding codes —
+`MISSING_EVIDENCE`, `UNRESOLVED_EVIDENCE_PATH`, `PROSE_ONLY_EVIDENCE`, `STALE_EVIDENCE`, all in
+`src/modules/quality/gates.ts` — which are returned to the caller as part of the gate's answer rather
+than written as log prose, so they belong in this set.*
 
 **The two conventions do not intersect:** no bracketed tag is also a returned `code`, and no returned
 code carries a bracketed register id. A message may cite both
@@ -235,7 +240,7 @@ grep -rhoE '\[[A-Z]{2,12}-[A-Z0-9]{2,12}-[0-9]{2,4}\]' --include='*.ts' src/ \
 grep -rhoE '\[[A-Z]{2,12}-[A-Z0-9]{2,12}-[0-9]{2,4}\]' --include='*.ts' src/ \
   | tr -d '[]' | sed 's/-.*//' | sort -u | wc -l                          # → 24
 grep -rhoE 'code:\s*"[A-Z][A-Z0-9_]{3,60}"' --include='*.ts' src/ \
-  | grep -oE '"[A-Z][A-Z0-9_]+"' | tr -d '"' | sort -u | wc -l            # → 112
+  | grep -oE '"[A-Z][A-Z0-9_]+"' | tr -d '"' | sort -u | wc -l            # → 113
 
 # §2 enum mirror identity (member sets equal per enum) — the test asserts this per enum, not as a count
 grep -n "^enum " prisma/schema.prisma

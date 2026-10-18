@@ -19,14 +19,24 @@ Latest run: `3 passed (3)` files, **27 passed (27)** tests, zero skips.
 
 Two independent points consult authority before any handler body runs:
 
-1. `ROUTE_GUARDS` (`src/api/router.ts:789`) — the declarative table, matched by
+1. `ROUTE_GUARDS` (`src/api/router.ts:809`) — the declarative table, matched by
    the compiled predicate `COMPILED_ROUTE_GUARDS` on `method` + path-segment
    pattern, `:param` segments compiled to `[^/]+`.
-2. `assertRoutePermission(req, res, action, resource)` (`src/api/router.ts`) —
+2. `assertRoutePermission(req, res, action, resource)` (`src/api/router.ts:756`) —
    inline RBAC inside a handler, used where the action depends on data in the
    request body or on a role the central table cannot express.
 
-`resolveSessionUser` (`src/api/router.ts:719`) accepts `Authorization: Bearer`
+   **PR-09 (2026-10-16):** this helper now decides through
+   `assertPermission(user, action, resource, accessContextFor(user, req.headers))`
+   (`src/api/router.ts:778`), so the policy engine's tenant predicate runs on
+   every guarded request instead of never — and a request claiming a tenant that
+   is not the session's own is refused `403 TENANT_SCOPE_DENIED` rather than
+   falling through to a generic permission answer. `assertPermission`, which had
+   no caller in `src/` before, is now load-bearing. Pinned by
+   `tests/unit/production-readiness-controls.test.ts` (live route + source scan
+   that no call site omits the context argument).
+
+`resolveSessionUser` (`src/api/router.ts:722`) accepts `Authorization: Bearer`
 and the `vmnl_session` cookie; the `x-test-role` shortcut is reachable **only**
 when `NODE_ENV === "test"` (`:619`).
 
@@ -95,14 +105,14 @@ The parity test requires each to remain a real dispatch site.
 ## 5. HTML desk surfaces (`WORKSPACE_HTML_GUARDS`, TSK-26)
 
 `GET /workspace*`, `/admin*` and `/broadcast/dashboard` are operator desks
-(`src/api/router.ts:933`). Previously the suite accepted `[302, 401, 403]` for a
+(`src/api/router.ts:953`). Previously the suite accepted `[302, 401, 403]` for a
 hand-picked path list, which would still pass if the sign-in redirect degraded
 into a bare 403. The suite now iterates the guard table itself and asserts each
 branch: anonymous → `302` **with `Location: /sign-in?returnUrl={path}` preserved**;
 a role outside that prefix's `roles` → `403` carrying forbidden markup; SuperAdmin,
 who is inside every prefix → neither 302 nor 403. All five prefixes pass, and the
 `/admin` alias is exercised through `/admin/feature-flags`, which `ADMIN_ALIASES`
-(`src/api/router.ts:1207`) canonicalises onto `/workspace/admin/feature-flags`
+(`src/api/router.ts:1227`) canonicalises onto `/workspace/admin/feature-flags`
 before the table is consulted — so the alias cannot be used to walk around the
 guard.
 
@@ -128,7 +138,7 @@ Foreign key constraint violated on the constraint: `AuditLog_userId_fkey`
 ```
 
 Cause: `resolveSessionUser`'s test-role branch returns the synthetic identity
-`test-user-id` (`src/api/router.ts:733`), which has no `User` row, while the
+`test-user-id` (`src/api/router.ts:736`), which has no `User` row, while the
 ledger write put the actor into `AuditLog` under a real FK. It fired on routes
 this document's task never touched, and it was correctly observable rather than
 silent — the writer flipped `persistenceMode` to `prisma_error` and WARNed.
