@@ -1,0 +1,59 @@
+# PR-22: dependency automation. Without this, patching a transitive advisory is
+# a manual act that depends on someone noticing, which for a repository with one
+# human contributor means it is not scheduled at all.
+version: 2
+
+updates:
+  # The pnpm workspace: package.json + pnpm-lock.yaml. `directory: /` because the
+  # repository is a single package (no workspace globs in package.json).
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Africa/Lagos"
+    open-pull-requests-limit: 5
+    versioning-strategy: "increase"
+    groups:
+      # Security updates are not batched and not delayed: they are the point.
+      dev-minor-and-patch:
+        dependency-type: "development"
+        update-types: ["minor", "patch"]
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "chore(deps)"
+
+  # The pinned action SHAs in .github/workflows must be refreshed too — a frozen
+  # action SHA is a frozen vulnerability window.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Africa/Lagos"
+    labels:
+      - "dependencies"
+      - "ci"
+    commit-message:
+      prefix: "chore(ci)"
+
+  # Base images: node:22-alpine in the Dockerfile and every image in
+  # docker-compose.yml. This is the layer Trivy scans, so it is the layer that
+  # most needs a scheduled bump.
+  - package-ecosystem: "docker"
+    directories:
+      - "/"
+      - "/docker"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Africa/Lagos"
+    labels:
+      - "dependencies"
+      - "container"
+    commit-message:
+      prefix: "chore(container)"

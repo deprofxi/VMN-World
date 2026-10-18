@@ -1,0 +1,41 @@
+# CODEOWNERS — VMNL Enterprise Platform
+#
+# Review routing. With a single human contributor today, this file's purpose is
+# to make the *accountable* reviewer explicit per area rather than to distribute
+# load: a change to a governed surface must be approved by the owner of that
+# surface, not merely by whoever is available.
+#
+# Authority: VMNL-AZP-VMN-CCPP-001 — R1.1 · CLAUDE.md <git_and_repository_safety>
+# Replace the handle below when additional maintainers are added.
+
+# Default — every path.
+*                                   @deprof
+
+# Domain authority and canonical model: changes here alter locked architecture.
+/docs/domain/                       @deprof
+/docs/authorities/                  @deprof
+/docs/decisions/                    @deprof
+/docs/adrs/                         @deprof
+
+# Security, privacy and authorization.
+/docs/security/                     @deprof
+/src/core/rbac/                     @deprof
+/src/core/auth/                     @deprof
+/src/core/websecurity/              @deprof
+SECURITY.md                         @deprof
+
+# Release integrity: manifests, gates, CI and deployment artefacts.
+/.github/                           @deprof
+release-manifest.json               @deprof
+/src/modules/quality/               @deprof
+/src/cli/                           @deprof
+Dockerfile                          @deprof
+docker-compose.yml                  @deprof
+prometheus.yml                      @deprof
+prometheus.rules.yml                @deprof
+
+# Durability and data.
+/prisma/                            @deprof
+/src/core/database/                 @deprof
+/src/core/storage/                  @deprof
+/src/core/cache/                    @deprof

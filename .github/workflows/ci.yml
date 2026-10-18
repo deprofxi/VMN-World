@@ -39,10 +39,16 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - name: Setup Node.js 22
+      - name: Setup Node.js (pinned by .nvmrc)
+        # PR-23: one source of truth for the runtime version. Previously local
+        # (v22.23.2), CI (`node-version: 22`) and the image (`node:22-alpine`)
+        # each stated the major independently and drifted by patch at will;
+        # `package.json` had no `engines` field at all. `node-version-file`
+        # reads the same `.nvmrc` a developer's shell and tooling read, and
+        # tests/unit/runtime-version-parity.test.ts fails if the three drift.
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: 22
+          node-version-file: .nvmrc
 
       - name: Setup pnpm
         uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
@@ -97,20 +103,88 @@ jobs:
       - name: Compile Production Build
         run: pnpm run build
 
+      - name: Install Playwright Browser (chromium) (PR-26 / TSK-45)
+        # PR-26: `@playwright/test` and `@axe-core/playwright` were installed but
+        # never wired — no config, no spec, no browser. The WCAG 2.2 AA claim
+        # rested on HTML-string assertions until tests/browser/ existed.
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Real-Browser Accessibility & Keyboard Run (PR-26 / TSK-45)
+        # Starts the built server itself (playwright.config.ts webServer) over the
+        # six target viewports, then runs axe-core (WCAG 2.2 A/AA), the keyboard
+        # path and the focus-restoration checks. Fails on any violation.
+        env:
+          VMNL_BROWSER_PORT: "5611"
+        run: pnpm run test:browser
+
+      - name: Upload Browser Run Report (PR-26)
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: vmnl-browser-report
+          path: coverage/browser-report
+          if-no-files-found: ignore
+          retention-days: 30
+
       - name: Evaluate BG0-BG9 Broadcast Release Gates (R1.2A §67)
-        run: node dist/src/cli/index.js gates:check
+        # PR-03: manifest/HEAD divergence is a hard failure unless this explicit
+        # override is recorded here — the silent warning this step used to emit
+        # is gone: divergence now exits 1.
+        #
+        # Plan phase 0.4 (2026-10-18) asked for this flag to be deleted. It is
+        # deliberately NOT deleted, and the reason is measured, not assumed:
+        # tests/unit/release-gate-commit-binding.test.ts enforces
+        # `drift <=> flag present` — it fails if the flag outlives the drift AND
+        # fails if the drift exists without the flag. A committed
+        # release-manifest.json can never equal the hash of the commit that
+        # contains it (the file's bytes are inside that hash), so at every
+        # commit `manifest != HEAD` and the flag is required for this step and
+        # the suite to stay green. Deleting it here would make the suite red to
+        # satisfy a plan bullet — forbidden by tasks.md rule 0.3.
+        #
+        # The remedy the flag exists for HAS landed: the post-commit re-pin is
+        # `node scripts/repin-manifest.mjs` (gitCommitSha from `git rev-parse
+        # HEAD`, evaluatedAt refreshed, every evidenceRef verified through the
+        # same pipeline this step runs; owned by HD-01 / TSK-37), which shrinks
+        # the drift to the re-pin commit itself. This flag and this comment die
+        # together the moment a manifest can equal the checked-out HEAD — the
+        # binding test above is the signal for when that becomes true.
+        run: node dist/src/cli/index.js gates:check --allow-sha-drift
 
       - name: Build Production Container Image
         run: docker build -t vmnl-platform:ci-test .
 
-      - name: Container Security Scan (Trivy) (AUD-19 / AUD-33)
+      - name: Generate SBOM (SPDX-JSON) (PR-22)
+        # PR-22: the release had no inventory of what it ships. The SBOM is
+        # produced from the built image and uploaded with the run.
+        uses: anchore/sbom-action@df80a981bc6edbc4e220a492d3cbe9f5547a6e75 # v0.17.9
+        with:
+          image: 'vmnl-platform:ci-test'
+          format: 'spdx-json'
+          output-file: 'vmnl-platform.spdx.json'
+          artifact-name: 'vmnl-platform-sbom'
+
+      - name: Container Security Scan (Trivy) (AUD-19 / AUD-33 / PR-22)
+        # PR-22: `ignore-unfixed: true` was removed. It silently permitted every
+        # unfixable CRITICAL/HIGH finding — which is exactly the class an image
+        # with no workaround for cannot be shipped past — so the scan reported
+        # success for images it had found unacceptable. The escape hatch is now
+        # explicit: an unfixable finding gets a dated, justified entry in
+        # .trivyignore naming an owner (see the file's own rules), and the
+        # quarterly review removes it. Findings with a fix must be fixed.
         uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0 (post-2026-03 compromise)
         with:
           image-ref: 'vmnl-platform:ci-test'
           format: 'table'
           exit-code: '1'
-          ignore-unfixed: true
           trivyignores: '.trivyignore'
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: vmnl-platform-sbom
+          path: vmnl-platform.spdx.json
+          retention-days: 90
 
