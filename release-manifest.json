@@ -1,7 +1,7 @@
 {
   "version": "1.0.0-rc1",
   "environment": "SANDBOX_S2",
-  "gitCommitSha": "ca303f0dea650ace92e8e0e0d331b0bbd9734ce2",
+  "gitCommitSha": "dcb0ebb0c370fa0071b5d42aee935e015cde79cc",
   "humanReleaseOwner": {
     "name": "Femi Aderibigbe",
     "role": "Executive Chairman & Broadcast Authority",
@@ -27,7 +27,7 @@
       "description": "Channel identity and ownership configured",
       "status": "PASS",
       "evidenceRef": "src/modules/broadcast/channels/index.ts",
-      "evaluatedAt": "2026-09-28T12:00:00.000Z",
+      "evaluatedAt": "2026-11-13T10:32:16.252Z",
       "verifiedBy": "LeadArchitect"
     },
     "BG1_CATALOGUE": {
@@ -36,7 +36,7 @@
       "description": "Programme and master records imported",
       "status": "PASS",
       "evidenceRef": "src/db/seeds/golden/index.ts",
-      "evaluatedAt": "2026-09-28T12:00:00.000Z",
+      "evaluatedAt": "2026-11-13T10:32:16.252Z",
       "verifiedBy": "LeadArchitect"
     },
     "BG2_RIGHTS": {
@@ -45,7 +45,7 @@
       "description": "Broadcast rights linked and cleared",
       "status": "PASS",
       "evidenceRef": "tests/unit/broadcast.test.ts",
-      "evaluatedAt": "2026-09-28T12:00:00.000Z",
+      "evaluatedAt": "2026-11-13T10:32:16.252Z",
       "verifiedBy": "QAAutomation"
     },
     "BG3_SCHEDULE": {
@@ -54,7 +54,7 @@
       "description": "Schedule workflow passes",
       "status": "PASS",
       "evidenceRef": "tests/unit/broadcast.test.ts",
-      "evaluatedAt": "2026-09-28T12:00:00.000Z",
+      "evaluatedAt": "2026-11-13T10:32:16.252Z",
       "verifiedBy": "QAAutomation"
     },
     "BG4_TRAFFIC": {
@@ -63,7 +63,7 @@
       "description": "Advertising inventory and commercial workflow pass",
       "status": "PASS",
       "evidenceRef": "tests/unit/broadcast.test.ts",
-      "evaluatedAt": "2026-09-28T12:00:00.000Z",
+      "evaluatedAt": "2026-11-13T10:32:16.252Z",
       "verifiedBy": "QAAutomation"
     },
     "BG5_PLAYOUT": {
@@ -72,7 +72,7 @@
       "description": "Playlist/as-run integration passes",
       "status": "PASS",
       "evidenceRef": "src/core/queue/index.ts (configureRollingEpgScheduler) & tests/unit/production-core-and-infrastructure.test.ts & tests/unit/uat-broadcast-failure-drills.test.ts",
-      "evaluatedAt": "2026-09-28T12:00:00.000Z",
+      "evaluatedAt": "2026-11-13T10:32:16.252Z",
       "verifiedBy": "BroadcastEngineer"
     },
     "BG6_CARRIAGE": {
@@ -82,7 +82,7 @@
       "status": "NOT_TESTED",
       "reason": "No machine interface or control evidence exists post-adapter-removal; StarTimes carriage data remains unverified/provisional.",
       "evidenceRef": "StarTimes DTT Carriage Agreement (Provisional / Configurable). Reason: No machine interface or control evidence exists post-adapter-removal; StarTimes carriage data remains unverified/provisional.",
-      "evaluatedAt": "2026-09-28T12:00:00.000Z",
+      "evaluatedAt": "2026-11-13T10:32:16.252Z",
       "verifiedBy": "PlatformRelationshipLead"
     },
     "BG7_FINANCE": {
@@ -91,7 +91,7 @@
       "description": "Commercial proof-to-invoice reconciliation works",
       "status": "PASS",
       "evidenceRef": "src/modules/finance/sales/index.ts",
-      "evaluatedAt": "2026-09-28T12:00:00.000Z",
+      "evaluatedAt": "2026-11-13T10:32:16.252Z",
       "verifiedBy": "FinanceController"
     },
     "BG8_AZEEBO": {
@@ -100,7 +100,7 @@
       "description": "Linear-to-digital link works",
       "status": "PASS",
       "evidenceRef": "src/modules/federation/azeebo/links.ts",
-      "evaluatedAt": "2026-09-28T12:00:00.000Z",
+      "evaluatedAt": "2026-11-13T10:32:16.252Z",
       "verifiedBy": "DigitalLead"
     },
     "BG9_CONTINUITY": {
@@ -109,7 +109,7 @@
       "description": "Broadcast failure drills pass (20/20 failure drills green)",
       "status": "PASS",
       "evidenceRef": "tests/unit/uat-broadcast-failure-drills.test.ts",
-      "evaluatedAt": "2026-09-28T12:00:00.000Z",
+      "evaluatedAt": "2026-11-13T10:32:16.252Z",
       "verifiedBy": "QAAutomation"
     }
   }
