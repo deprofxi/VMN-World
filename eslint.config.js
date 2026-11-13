@@ -16,6 +16,9 @@ export default tseslint.config(
       "*.config.ts",
       "docs/audit/evidence/**/*.mjs",
       "docs/audit/evidence/**/*.js",
+      // Machine-generated from the IA inventory; editing it by hand is already
+      // forbidden by `pnpm ia:generate --check`, so lint has nothing to add.
+      "src/web/ia/registry.generated.ts",
     ],
   },
   {

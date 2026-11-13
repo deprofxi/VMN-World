@@ -24,7 +24,7 @@ and every `file:line` citation in this file and in `canonical-model.md`.
 | Layer | What it is | Count | Command (§7) |
 |:---|:---|--:|:---|
 | Prisma `enum` | Database-enforced member sets | **10 enums / 44 members / 12 fields** | `grep -c "^enum " prisma/schema.prisma` |
-| TypeScript string unions | The vocabulary the running code type-checks against | **48 distinct state-shaped union names / 224 members** | §7 |
+| TypeScript string unions | The vocabulary the running code type-checks against | **49 distinct state-shaped union names / 227 members** | §7 |
 | Bare `String` columns with an uppercase default | State carried with no enumeration at all | **11 columns** | §7 |
 | `code:` response literals | Machine-readable codes returned to clients | **113 distinct** | §7 |
 | Bracketed traceability tags `[FAMILY-CODE-nn]` | Register/audit identifiers embedded in code and messages | **184 distinct across 24 families** (194 occurrences) | §7 |
@@ -211,7 +211,7 @@ were removed rather than renamed. A code identifies an implemented refusal, not 
 **Machine-readable API codes** — `UPPER_SNAKE` values returned as `code`. **117 distinct** in `src/`,
 emitted as object literals (`code: "RIGHTS_NOT_CLEARED_AT_EXPORT"`
 `src/modules/broadcast/export/epg.ts:96`, `code: "CANONICAL_CONTRACT_WORKFLOW_UNAVAILABLE"`
-`src/api/router.ts:4185`, `code: "AUTH_TOKEN_REQUIRED"`). This set includes three values that are
+`src/api/router.ts:4200`, `code: "AUTH_TOKEN_REQUIRED"`). This set includes three values that are
 channel codes rather than errors (`NXTR`, `ORIS`, `IMBD`, `src/web/public/channels.ts:10`) — the same
 `code` field name is used for both, which is a naming collision worth knowing before a client tries to
 branch on it.

@@ -25,6 +25,7 @@ import {
   FlutterwaveWebhookSchema,
 } from "./schemas/index.js";
 import { dispatchDomainRoute } from "./routes/index.js";
+import { dispatchIARoute } from "./routes/ia.routes.js";
 import { PUBLIC_INDEXABLE_ROUTES } from "../web/public/public-route-registry.js";
 import { TelemetryService } from "../core/observability/index.js";
 import { getAllActiveChannels, getChannelByCode } from "../modules/broadcast/channels/index.js";
@@ -1262,6 +1263,20 @@ export async function handleApiRequest(
         }
       }
     }
+
+    // VMN World IA R1.1 — inventory routes. Runs after session resolution and
+    // the mutation guards, so an inventory route can never bypass authorization.
+    // It declines unknown paths and the platform-owned identity routes, leaving
+    // the existing chain (and its 404) unchanged for everything else.
+    const iaDispatched = await dispatchIARoute({
+      req,
+      res,
+      pathname,
+      method,
+      parsedUrl,
+      user: sessionUser,
+    });
+    if (iaDispatched) return;
 
     // Modular Domain Route Dispatcher (AUD-24)
     const domainDispatched = await dispatchDomainRoute({

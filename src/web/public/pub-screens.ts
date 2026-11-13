@@ -221,7 +221,7 @@ export function renderEnquiryContactHtml(preselectedVertical: string = "COMMERCI
             <option value="AFCA_LEARNING" ${preselectedVertical === "AFCA_LEARNING" ? "selected" : ""}>AFCA Academy & Corporate Training</option>
             <option value="TALENT_ACCELERATOR" ${preselectedVertical === "TALENT_ACCELERATOR" ? "selected" : ""}>Talent Accelerator Partner Network</option>
             <option value="ONE_STUDIOS" ${preselectedVertical === "ONE_STUDIOS" ? "selected" : ""}>Studio Facility Booking & Production</option>
-            <option value="GENERAL_ENQUIRY">General Inquiry</option>
+            <option value="GENERAL_ENQUIRY" ${preselectedVertical === "GENERAL_ENQUIRY" ? "selected" : ""}>General Inquiry</option>
           </select>
         </div>
 

@@ -22,6 +22,7 @@
     "audit:check": "node scripts/audit-check.js",
     "audit:threshold": "node scripts/audit-threshold.js",
     "any:budget": "node scripts/explicit-any-budget.js",
+    "ia:generate": "node scripts/ia/generate-ia-registry.mjs && node scripts/ia/generate-ia-registry.mjs --check",
     "test:a11y": "vitest run tests/a11y",
     "test:browser": "playwright test"
   },

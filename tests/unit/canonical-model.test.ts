@@ -278,9 +278,9 @@ describe("data-dictionary.md §1–§3: the five vocabularies", () => {
         members += lits;
       }
     }
-    expect(names.size).toBe(48);
-    expect(members).toBe(224);
-    expect(dict).toContain("**48 distinct state-shaped union names / 224 members**");
+    expect(names.size).toBe(49);
+    expect(members).toBe(227);
+    expect(dict).toContain("**49 distinct state-shaped union names / 227 members**");
   });
 });
 
