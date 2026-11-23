@@ -240,5 +240,7 @@ export class PlayoutAutomationEngine {
 
 export * from "./adapters.js";
 export * from "./asrun-daemon.js";
+export * from "./network-connector.js";
+
 
 

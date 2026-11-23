@@ -303,4 +303,6 @@ export class TalentPayoutEngine {
 }
 
 export * from "./banking-gateway.js";
+export * from "./nip-crypto.js";
+
 

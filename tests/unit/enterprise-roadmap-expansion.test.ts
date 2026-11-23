@@ -25,12 +25,17 @@ import {
   openSealedField,
   rotateSealedEnvelopeKey,
 } from "../../src/core/websecurity/index.js";
-import { CorporateTaxEngine } from "../../src/modules/finance/index.js";
+import { CorporateTaxEngine, NipSecurityModule } from "../../src/modules/finance/index.js";
 import {
   Cr8TechSafetyArmor,
   AgentAutonomyLevel,
   ToolDefinition,
 } from "../../src/modules/intelligence/cr8tech/index.js";
+import {
+  PlayoutNetworkCoordinator,
+  PlaylistItem,
+} from "../../src/modules/broadcast/playout/index.js";
+import { SyndicationDaemon } from "../../src/modules/broadcast/export/index.js";
 
 describe("Enterprise Strategic Roadmap & Architecture Expansion", () => {
   const baseUser: SessionUser = {
@@ -635,6 +640,178 @@ CHN-IMBD,SPOT-303,COMMERCIAL,14:30:00,14:30:00,60,0,SRV-PLAYBOX-01,ERROR,Decoder
       expect(result.executionSealSha256).toBeDefined();
       expect(result.executionSealSha256).toMatch(/^[a-f0-9]{64}$/);
       expect(result.complianceNotes[0]).toContain("CAMA 2020 §102");
+    });
+  });
+
+  describe("Track 4 (Tail): NIBSS NIP Payment Mandate Security & Session Validation", () => {
+    it("validates standard 30-digit NIP Session IDs and rejects non-compliant formats", () => {
+      const validSessionId = "999001261123120000000000000042"; // 6 inst + 12 timestamp + 12 seq
+      const validation = NipSecurityModule.validateNipSessionId(validSessionId);
+
+      expect(validation.valid).toBe(true);
+      expect(validation.details?.institutionCode).toBe("999001");
+      expect(validation.details?.timestampSegment).toBe("261123120000");
+
+      const invalidLength = "99900126112312"; // too short
+      expect(NipSecurityModule.validateNipSessionId(invalidLength).valid).toBe(false);
+
+      const nonNumeric = "99900126112312000000000000004X";
+      expect(NipSecurityModule.validateNipSessionId(nonNumeric).valid).toBe(false);
+    });
+
+    it("encrypts and decrypts NIP payment mandates with AES-256-CBC and HMAC authentication", () => {
+      const aesKeyHex = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"; // 32 bytes
+      const hmacKeyHex = "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"; // 32 bytes
+
+      const mandatePayload = JSON.stringify({
+        nipSessionId: "999001261123120000000000000042",
+        sourceAccount: "0123456789",
+        destAccount: "9876543210",
+        destBankCode: "058",
+        amountKobo: "50000000",
+        narration: "Talent Payout Disbursement",
+      });
+
+      const encrypted = NipSecurityModule.encryptMandate(mandatePayload, aesKeyHex, hmacKeyHex);
+      expect(encrypted.cipherTextB64).toBeDefined();
+      expect(encrypted.ivHex).toHaveLength(32); // 16 bytes = 32 hex chars
+      expect(encrypted.authSignatureHex).toHaveLength(64); // 32 bytes = 64 hex chars
+
+      const decrypted = NipSecurityModule.decryptMandate(encrypted, aesKeyHex, hmacKeyHex);
+      expect(decrypted.success).toBe(true);
+      expect(decrypted.plainTextJson).toBe(mandatePayload);
+
+      // Tampered ciphertext fails HMAC verification
+      const tampered = { ...encrypted, cipherTextB64: encrypted.cipherTextB64.slice(0, -4) + "AAAA" };
+      expect(NipSecurityModule.decryptMandate(tampered, aesKeyHex, hmacKeyHex).success).toBe(false);
+    });
+
+    it("resolves statutory NIP response codes correctly", () => {
+      const approved = NipSecurityModule.resolveResponseCode("00");
+      expect(approved.successful).toBe(true);
+      expect(approved.description).toContain("Approved");
+
+      const insufficient = NipSecurityModule.resolveResponseCode("51");
+      expect(insufficient.successful).toBe(false);
+      expect(insufficient.description).toContain("Insufficient funds");
+    });
+  });
+
+  describe("Track 4 (Tail): MCR Playout Socket Health & PTP Timecode Alignment", () => {
+    it("monitors playout socket health and triggers failover when packet loss exceeds threshold", () => {
+      // Nominal socket health
+      const nominal = PlayoutNetworkCoordinator.evaluateSocketHealth({
+        channelId: "CHN-NXTR",
+        serverAddress: "10.0.1.10",
+        activePort: 5001,
+        ptpClockOffsetUs: 120, // 120µs drift
+        networkJitterMs: 1.2,
+        packetLossPct: 0.1, // 0.1% loss
+        streamBitrateKbps: 6500,
+        primaryNodeId: "NODE-AMP-01",
+        backupNodeId: "NODE-AMP-02",
+      });
+
+      expect(nominal.healthy).toBe(true);
+      expect(nominal.failoverTriggered).toBe(false);
+      expect(nominal.activePlayoutNode).toBe("NODE-AMP-01");
+
+      // Degraded socket with 4.5% packet loss (threshold is 2.5%)
+      const degraded = PlayoutNetworkCoordinator.evaluateSocketHealth({
+        channelId: "CHN-NXTR",
+        serverAddress: "10.0.1.10",
+        activePort: 5001,
+        ptpClockOffsetUs: 120,
+        networkJitterMs: 14.5,
+        packetLossPct: 4.5,
+        streamBitrateKbps: 6500,
+        primaryNodeId: "NODE-AMP-01",
+        backupNodeId: "NODE-AMP-02",
+      });
+
+      expect(degraded.healthy).toBe(false);
+      expect(degraded.failoverTriggered).toBe(true);
+      expect(degraded.activePlayoutNode).toBe("NODE-AMP-02"); // Switched to backup!
+      expect(degraded.incidentNotes[0]).toContain("Autonomous failover executed");
+    });
+
+    it("aligns SCTE-35 splice cues with PTP clock and checks tolerance", () => {
+      const aligned = PlayoutNetworkCoordinator.alignScte35CueWithPtp(
+        1001,
+        "14:30:00:00",
+        4_500 // 4.5ms drift (within 50ms tolerance)
+      );
+
+      expect(aligned.admissibleForInjection).toBe(true);
+      expect(aligned.ptpSynchronized).toBe(true);
+
+      const outOfSync = PlayoutNetworkCoordinator.alignScte35CueWithPtp(
+        1002,
+        "14:30:00:00",
+        85_000 // 85ms drift (> 50ms tolerance)
+      );
+
+      expect(outOfSync.admissibleForInjection).toBe(false);
+      expect(outOfSync.ptpSynchronized).toBe(false);
+    });
+  });
+
+  describe("Track 4 (Tail): Automated StarTimes DVB / BXF Syndication Daemon", () => {
+    const sampleItems: PlaylistItem[] = [
+      {
+        id: "item-01",
+        title: "Nigezie Morning Live",
+        durationSeconds: 3600,
+        itemType: "PROGRAMME",
+        mediaAssetId: "AST-NIG-001",
+        assetUrl: "https://cdn.vmnl.ng/media/item-01.mp4",
+        expectedStartTime: new Date("2026-11-23T06:00:00Z"),
+        isFiller: false,
+      },
+      {
+        id: "item-02",
+        title: "Coca Cola Commercial Spot",
+        durationSeconds: 30,
+        itemType: "COMMERCIAL_SPOT",
+        mediaAssetId: "AST-COM-042",
+        assetUrl: "https://cdn.vmnl.ng/media/item-02.mp4",
+        expectedStartTime: new Date("2026-11-23T07:00:00Z"),
+        isFiller: false,
+      },
+    ];
+
+    it("packages approved playlist items into sealed SMPTE-2021 BXF XML bundle", () => {
+      const bundle = SyndicationDaemon.packageSchedule({
+        channelCode: "CHN-NXTR",
+        scheduleDateWat: "2026-11-23",
+        items: sampleItems,
+        format: "SMPTE_2021_BXF",
+        destinationEndpoint: "sftp://startimes.mux01.vmnl.ng/bxf/inbox",
+        rightsCleared: true,
+      });
+
+      expect(bundle.admissibleForAir).toBe(true);
+      expect(bundle.header.formatStandard).toBe("SMPTE_2021_BXF");
+      expect(bundle.header.itemCount).toBe(2);
+      expect(bundle.header.totalDurationSeconds).toBe(3630);
+      expect(bundle.header.sha256Checksum).toHaveLength(64);
+      expect(bundle.serializedPayload).toContain("<BxfMessage");
+      expect(bundle.serializedPayload).toContain("Coca Cola Commercial Spot");
+    });
+
+    it("blocks syndication bundle when rights clearance is false (TSK-10)", () => {
+      const blockedBundle = SyndicationDaemon.packageSchedule({
+        channelCode: "CHN-NXTR",
+        scheduleDateWat: "2026-11-23",
+        items: sampleItems,
+        format: "SMPTE_2021_BXF",
+        destinationEndpoint: "sftp://startimes.mux01.vmnl.ng/bxf/inbox",
+        rightsCleared: false, // Uncleared rights!
+      });
+
+      expect(blockedBundle.admissibleForAir).toBe(false);
+      expect(blockedBundle.clearanceGatePassed).toBe(false);
+      expect(blockedBundle.warnings[0]).toContain("Clearance Lock");
     });
   });
 });

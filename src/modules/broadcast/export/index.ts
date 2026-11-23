@@ -113,3 +113,6 @@ ${elements}
 </GrassValleyPlaylist>`;
   }
 }
+
+export * from "./syndication-daemon.js";
+
