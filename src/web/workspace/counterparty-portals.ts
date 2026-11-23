@@ -23,7 +23,7 @@ import { SessionUser } from "../../core/auth/index.js";
 function renderEmptyRecords(note: string): string {
   return `
  <div class="vmn-card s-jBAg6JRnQZ" >
- <p class="s-s8QClmJr6r">${note}</p>
+ <p class="s-s8QClmJr6r">${escapeHtml(note)}</p>
     </div>
   `;
 }
@@ -351,7 +351,7 @@ export function renderManagementOverviewHtml(snapshot: ManagementOverviewSnapsho
         </div>
  <div class="vmn-card s-OAPQ4AS9-O" >
  <div class="s-cU3Cr5m8eq">Commercial Pipeline (Deals)</div>
- <div class="s-sT-g5nwPta">${pipeline.deals}</div>
+ <div class="s-sT-g5nwPta">${escapeHtml(pipeline.deals)}</div>
  <div class="s-_tdYXnR5PA">Contract value NGN ${pipeline.contractValueNgn.toLocaleString("en-NG")}</div>
         </div>
  <div class="vmn-card s-OAPQ4AS9-O" >
@@ -361,8 +361,8 @@ export function renderManagementOverviewHtml(snapshot: ManagementOverviewSnapsho
         </div>
  <div class="vmn-card s-OAPQ4AS9-O" >
  <div class="s-cU3Cr5m8eq">Talent Registry</div>
- <div class="s-iJYiVmvrV7">${totalTalent}</div>
- <div class="s-_tdYXnR5PA">${verifiedTalent} verified via accelerator gates</div>
+ <div class="s-iJYiVmvrV7">${escapeHtml(totalTalent)}</div>
+ <div class="s-_tdYXnR5PA">${escapeHtml(verifiedTalent)} verified via accelerator gates</div>
         </div>
  <div class="vmn-card s-OAPQ4AS9-O" >
  <div class="s-cU3Cr5m8eq">AFCA Certificates Issued</div>
@@ -460,7 +460,7 @@ export function renderRiskRegisterHtml(snapshot: RiskRegisterSnapshot | undefine
  <td class="s-p_p4UYzKzj">${escapeHtml(r.id)}</td>
  <td class="s-8i5j_3VdTg">${escapeHtml(r.title)}</td>
  <td class="s-6FCnPHXEyo"><span class="vmn-badge badge-neutral">${escapeHtml(r.category.replace(/_/g, " "))}</span></td>
- <td class="s-5fSyfN0kQ1"><span class="vmn-badge ${score >= 15 ? "badge-danger" : score >= 8 ? "badge-warning" : "badge-info"}">${r.likelihood}×${r.impact}=${score}</span></td>
+ <td class="s-5fSyfN0kQ1"><span class="vmn-badge ${score >= 15 ? "badge-danger" : score >= 8 ? "badge-warning" : "badge-info"}">${escapeHtml(r.likelihood)}×${escapeHtml(r.impact)}=${escapeHtml(score)}</span></td>
  <td class="s-gvP_yDU8_J">${escapeHtml(r.mitigation)}</td>
  <td class="s-6FCnPHXEyo">${escapeHtml(r.owner)}</td>
  <td class="s-jlCyZLbEPQ">${escapeHtml(r.reviewDueAt)}</td>
@@ -611,7 +611,7 @@ export function renderIssueTrackerHtml(snapshot: IssueTrackerSnapshot | undefine
                     ${
                       action
  ? `<form method="POST" action="/api/v1/workspace/governance/issues/${escapeHtml(i.id)}/transition" class="s-Q0_DLsKcmN">
-                      <input type="hidden" name="target" value="${action}" />
+                      <input type="hidden" name="target" value="${escapeHtml(action)}" />
  <button type="submit" class="btn btn-secondary s-Y-2hYlGyI-" >→ ${action.replace(/_/g, " ")}</button>
                     </form>`
                         : `<span class="vmn-badge badge-ready">Closed</span>`

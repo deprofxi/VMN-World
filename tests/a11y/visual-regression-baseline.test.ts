@@ -27,6 +27,7 @@ import {
   renderStyleguideHtml,
 } from "../../src/web/index.js";
 import { renderBroadcastScreenHtml } from "../../src/web/broadcast/index.js";
+import { escapeHtml } from "../../src/web/components/escape.js";
 import { _resetConfigForTesting } from "../../src/core/config/index.js";
 
 // TSK-35: the Azeebo+ origin is deployment configuration. Pin it so these
@@ -119,7 +120,10 @@ describe("DT-1001: Visual Regression Baseline & Contract Snapshots", () => {
     for (const screen of BROADCAST_SCREEN_INVENTORY) {
       const screenHtml = renderBroadcastScreenHtml(screen, {}, "ExecutiveLeader");
       expect(screenHtml).toContain(screen.screenId);
-      expect(screenHtml).toContain(screen.name);
+      // The stored name is interpolated through the escape helper (a name such as
+      // 'Channel Profile & Settings' must not be able to open an entity), so the
+      // baseline compares against the escaped form the page is allowed to print.
+      expect(screenHtml).toContain(escapeHtml(screen.name));
       expect(screenHtml).toContain("Duty Stations (§4.2)");
       expect(screenHtml).toContain("Registered Channels &amp; Carriage State");
       expect(screenHtml).toContain("vmn-kpi-strip");

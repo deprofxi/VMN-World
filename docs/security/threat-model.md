@@ -16,25 +16,25 @@ Two conventions that keep this document honest:
 
 | # | Control | Implementation | Enforcement point | Instrument |
 |:--|:---|:---|:---|:---|
-| C1 | Default-deny route guards | `src/api/router.ts:810` (`ROUTE_GUARDS`), `src/api/router.ts:757` (`assertRoutePermission`) | central dispatch before handler body | `tests/security/route-authorization.test.ts`, `tests/security/route-guard-parity.test.ts` |
+| C1 | Default-deny route guards | `src/api/router.ts:819` (`ROUTE_GUARDS`), `src/api/router.ts:769` (`assertRoutePermission`) | central dispatch before handler body | `tests/security/route-authorization.test.ts`, `tests/security/route-guard-parity.test.ts` |
 | C2 | Role/permission matrix | `src/core/rbac/index.ts:80` (`ROLE_PERMISSIONS`), `:648` (`canPerform`), `:662` (`assertPermission`), `:599` (`evaluateAccess` — the decision plus its failing predicate) | handler-scoped calls, and every guarded route since PR-09 | `tests/unit/identity-and-rbac.test.ts`, `tests/unit/security-auth-rbac.test.ts` |
-| C3 | CSRF: double-submit token + Origin allow-list | `src/core/websecurity/index.ts:73` (`verifyFormCsrf`), `:46` (`issueCsrfToken`), `:53` (`verifyCsrfToken`), `:101` (`extractCsrfFromForm`) | `src/api/router.ts:1194-1217` (`requiresCsrf`) — required for unsafe methods carrying a session or MFA-challenge cookie | `tests/security/route-authorization.test.ts` |
+| C3 | CSRF: double-submit token + Origin allow-list | `src/core/websecurity/index.ts:73` (`verifyFormCsrf`), `:46` (`issueCsrfToken`), `:53` (`verifyCsrfToken`), `:101` (`extractCsrfFromForm`) | `src/api/router.ts:1205-1228` (`requiresCsrf`) — required for unsafe methods carrying a session or MFA-challenge cookie | `tests/security/route-authorization.test.ts` |
 | C4 | Session tokens, revocation, adapter-first reads | `src/core/auth/index.ts:148` (`signSessionToken`), `:390` (`verifySessionToken`), `:179` (`InMemoryRevocationStore`), `:191` (`setTokenRevocationStore`), `:200` (`revokeToken`), `:205` (`isTokenRevoked`), `:227` (`useKeyValueAdapterForAuthStores`), `:434` (`primeSessionRevocation`) | every authenticated route via cookie parse | `tests/unit/auth-shared-across-instances.test.ts` |
-| C5 | MFA one-time challenge, sealed seed | `src/core/auth/index.ts:34` (`signMfaLoginChallenge`), `:67` (`verifyMfaLoginChallenge`), `:79` (`consumeMfaLoginChallenge`), `:261` (`sealSensitiveField`), `:300` (`openSealedField`), `:268` (`assertSealedForStorage`) | `src/api/router.ts:1636` (`checkSharedRateLimit`), login completion path | `tests/unit/security-auth-rbac.test.ts` |
+| C5 | MFA one-time challenge, sealed seed | `src/core/auth/index.ts:34` (`signMfaLoginChallenge`), `:67` (`verifyMfaLoginChallenge`), `:79` (`consumeMfaLoginChallenge`), `:261` (`sealSensitiveField`), `:300` (`openSealedField`), `:268` (`assertSealedForStorage`) | `src/api/router.ts:1704` (`checkSharedRateLimit`), login completion path | `tests/unit/security-auth-rbac.test.ts` |
 | C6 | Password hashing (bcrypt) | `src/core/auth/index.ts:131` (`hashPassword`), `:141` (`verifyPassword`), `:458` (`isBcryptPasswordHash`) | credential write/read | `tests/unit/auth.test.ts` |
-| C7 | Rate limiting | `src/core/auth/index.ts:308` (`checkRateLimit`), `:350` (`checkSharedRateLimit`) | five endpoints: `src/api/router.ts:3735` (`checkSharedRateLimit`) login, `:1621` mfa, `:1710` recovery, `:1811` access request, `:1874` invitation | `tests/unit/security-auth-rbac.test.ts` |
-| C8 | Inbound payment-webhook signature + durable replay claim | `src/api/router.ts:7884` (`verifyPaystackSignature`), `:7983` (`verifyFlutterwaveSignature`); `src/core/websecurity/index.ts:157` (`claimProviderEventOnce`), `:201` (`confirmProviderEventIngested`), `:226` (`releaseProviderEventClaim`) | webhook routes only | `tests/unit/durability-release-critical.test.ts`, `tests/unit/audit-remediation-regressions.test.ts` |
-| C9 | Idempotency keys | `src/core/websecurity/index.ts:289` (`recordIdempotentOutcome`), `:303` (`checkIdempotency`) | `src/api/router.ts:4238`/`:4239` (enquiry), `:4322`/`:4363` (rights request) | `tests/unit/production-core-and-infrastructure.test.ts` |
+| C7 | Rate limiting | `src/core/auth/index.ts:308` (`checkRateLimit`), `:350` (`checkSharedRateLimit`) | five endpoints: `src/api/router.ts:3825` (`checkSharedRateLimit`) login, `:1680` mfa, `:1769` recovery, `:1870` access request, `:1933` invitation | `tests/unit/security-auth-rbac.test.ts` |
+| C8 | Inbound payment-webhook signature + durable replay claim | `src/api/router.ts:7979` (`verifyPaystackSignature`), `:8078` (`verifyFlutterwaveSignature`); `src/core/websecurity/index.ts:157` (`claimProviderEventOnce`), `:201` (`confirmProviderEventIngested`), `:226` (`releaseProviderEventClaim`) | webhook routes only | `tests/unit/durability-release-critical.test.ts`, `tests/unit/audit-remediation-regressions.test.ts` |
+| C9 | Idempotency keys | `src/core/websecurity/index.ts:289` (`recordIdempotentOutcome`), `:303` (`checkIdempotency`) | `src/api/router.ts:4297`/`:4298` (enquiry), `:4381`/`:4422` (rights request) | `tests/unit/production-core-and-infrastructure.test.ts` |
 | C10 | PII sealing at the write boundary | `src/core/websecurity/index.ts:383` (`SEALED_FIELD_ENVELOPE`), `:396` (`sealSensitiveField`), `:413` (`assertSealedForStorage`), `:432` (`openSealedField`) | `src/core/auth/index.ts:268` (`assertSealedForStorage`); DB-side `Person_nationalId_sealed_envelope` / `User_mfaSecret_sealed_envelope` (`prisma/schema.prisma:95`, `:119`) | `tests/unit/todo-final-remediation.test.ts`, `tests/unit/todo-remediation.test.ts` |
 | C11 | Tamper-evident audit chain | `src/core/audit/index.ts:139` (`computeAuditEntryHash`), `:154` (`buildAuditHashPayload`), `:185` (`recordAuditLog`), `:275` (`verifyAuditLogChainIntegrity`), `:75` (`restoreAuditChainFromKv`), `:97` (`getAuditHealth`) | every consequential write; durable row in `AuditLog` | `tests/unit/audit.test.ts:254-257`, `tests/helpers/durable-restart-reader.mjs` |
-| C12 | Bounded bodies + field narrowing | `src/api/router.ts:443` (`DEFAULT_MAX_BODY_BYTES`), `:501` (`parseJsonBody`), `:521` (`jsonTextField`), `:533` (`jsonObjectField`) | every JSON/FORM route | `tests/unit/production-core-and-infrastructure.test.ts` |
-| C13 | Upload validation + threat scan | `src/core/storage/index.ts:206` (`validateMediaBuffer`), scans at `:227` → `:84` (`scanBufferForThreats`), `:126` (`generatePresignedUploadUrl`) with a MIME allow-list, `:65` (`MAX_SCAN_BUFFER_BYTES`), `:73` (`computeSha256`) | `src/api/router.ts:8132` (`validateMediaBuffer`) | `tests/unit/production-core-and-infrastructure.test.ts`, `tests/unit/public-provenance.test.ts` |
+| C12 | Bounded bodies + field narrowing | `src/api/router.ts:445` (`DEFAULT_MAX_BODY_BYTES`), `:512` (`parseJsonBody`), `:532` (`jsonTextField`), `:544` (`jsonObjectField`) | every JSON/FORM route | `tests/unit/production-core-and-infrastructure.test.ts` |
+| C13 | Upload validation + threat scan | `src/core/storage/index.ts:206` (`validateMediaBuffer`), scans at `:227` → `:84` (`scanBufferForThreats`), `:126` (`generatePresignedUploadUrl`) with a MIME allow-list, `:65` (`MAX_SCAN_BUFFER_BYTES`), `:73` (`computeSha256`) | `src/api/router.ts:8227` (`validateMediaBuffer`) | `tests/unit/production-core-and-infrastructure.test.ts`, `tests/unit/public-provenance.test.ts` |
 | C14 | Server-side rights gate for carriage/export | `src/modules/broadcast/rights/clearance.ts:53` (`validateScheduleRights`), `:169` (`checkRightsReadiness` on `BroadcastRightsGate`) | schedule/EGP export and clearance paths | `tests/unit/broadcast-rights-gate.test.ts`, `tests/integration/rights-clearance-e2e.test.ts` |
 | C15 | Federation fails closed on unconfigured endpoints | `src/core/federation/destinations.ts:159` (`resolveNavigationUrl`), `:178` (`getConfiguredFederationOrigin`), `:183` (`approvedFallback`), `:186` — the `[DEST-07]` throw; `src/modules/federation/azeebo/links.ts:68` (`isConfigured`), `:75` — the `[LINK-01]` throw | navigation/link resolution | `tests/unit/federation-destination-registry.test.ts`, `tests/unit/public-provenance.test.ts` |
 | C16 | Outbound webhook HMAC-SHA256 signing, circuit breaker, DLQ | `src/modules/federation/azeebo/bridge.ts:100` (`dispatchWebhook`) | federation dispatch only | `tests/unit/federation.test.ts:181-206` |
 | C17 | Output escaping | `escapeHtml` (400 call sites across `src/web/`, re-measured 2026-10-15) | render functions | `tests/unit/html-escape-census.test.ts` (ceiling 299 unescaped interpolations), `tests/unit/rendered-html-invariants.test.ts` |
-| C18 | Test-only identity harness gated by env | `src/api/router.ts:734` (`NODE_ENV === "test"` before `x-test-role` is read) | request-context resolution | `tests/security/route-guard-parity.test.ts` |
-| C19 | Production/staging refusal of the auth bypass | `src/api/server.ts:74-80` (`createApiServer`) | boot | `tests/unit/config.test.ts` |
+| C18 | Test-only identity harness gated by env | `src/api/router.ts:740` (`NODE_ENV === "test"` before `x-test-role` is read) | request-context resolution | `tests/security/route-guard-parity.test.ts` |
+| C19 | Production/staging refusal of the auth bypass | `src/api/server.ts:78-85` (`createApiServer`) | boot | `tests/unit/config.test.ts` |
 
 ---
 
@@ -49,7 +49,7 @@ Severity is the exposure **after** the current control, not before it. `Owner` u
 - **Attacker:** authenticated operator with person-directory access; external applicant re-registering.
 - **Attack path:** create or merge a second person for an existing human; each copy carries its own roles.
 - **Impact:** canonical-law-1 breach (one person → one identity); duplicated consent, duplicated payout, split audit trail.
-- **Current control:** `src/api/auth`-side normalisation is not the control; the control is the single-email lookup `src/core/auth/index.ts:578` (`findUserByEmail`, adapter-first) plus `assertRoutePermission` (`src/api/router.ts:757`) on the directory desk.
+- **Current control:** `src/api/auth`-side normalisation is not the control; the control is the single-email lookup `src/core/auth/index.ts:578` (`findUserByEmail`, adapter-first) plus `assertRoutePermission` (`src/api/router.ts:763`) on the directory desk.
 - **Control gap:** no measured uniqueness invariant at the write boundary for `Person` beyond the email index; merging is not exercised through a route.
 - **Severity:** Medium.
 - **Mitigation:** add a route-level duplicate/merge refusal test before any merge desk is wired; keep the guard in C1 rather than hiding the desk.
@@ -75,7 +75,7 @@ Severity is the exposure **after** the current control, not before it. `Owner` u
 - **Attacker:** anonymous internet client.
 - **Attack path:** replay leaked password lists.
 - **Impact:** full account takeover for any role, including SuperAdmin.
-- **Current control:** bcrypt verification (`:132`/`:142`), lockout counter (`:309`, shared variant `:351`), `checkSharedRateLimit` at `src/api/router.ts:3735`, MFA challenge (`:35`/`:68`/`:80`).
+- **Current control:** bcrypt verification (`:132`/`:142`), lockout counter (`:309`, shared variant `:351`), `checkSharedRateLimit` at `src/api/router.ts:3825`, MFA challenge (`src/core/auth/index.ts:35`/`:68`/`:80`).
 - **Control gap:** rate/lockout state is shared only through the KV adapter; a deployment without Redis falls back to the in-process map, so limits are per-instance (recorded honestly under TSK-27 / TSK-20 sandbox-state labelling).
 - **Severity:** Medium.
 - **Mitigation:** require the KV adapter for production deploys rather than degrading silently; label the degraded mode in `/readyz`.
@@ -88,7 +88,7 @@ Severity is the exposure **after** the current control, not before it. `Owner` u
 - **Attack path:** strip TLS; read the cookie.
 - **Impact:** session theft.
 - **Current control:** `HttpOnly; SameSite=Lax` and `Secure` (`src/core/auth/index.ts:382-385`).
-- **Control gap:** the `Secure` flag is emitted only when `NODE_ENV` is exactly `production`; a misspelled or unset value ships a session cookie without `Secure`. The same exact-string dependency governs the test-role harness at `src/api/router.ts:734` and the dev fallback secrets (`audit.md` AUD-11, `src/api/server.ts:74-80`).
+- **Control gap:** the `Secure` flag is emitted only when `NODE_ENV` is exactly `production`; a misspelled or unset value ships a session cookie without `Secure`. The same exact-string dependency governs the test-role harness at `src/api/router.ts:740` and the dev fallback secrets (`audit.md` AUD-11, `src/api/server.ts:78-85`).
 - **Severity:** High.
 - **Mitigation:** treat any `NODE_ENV` other than `development`/`test` as production for cookie flags, secret fallback and the `x-test-role` read; fail boot on a default secret outside an explicit opt-in.
 - **Test:** not asserted today; `tests/unit/config.test.ts` covers boot validation only.
@@ -101,7 +101,7 @@ Severity is the exposure **after** the current control, not before it. `Owner` u
 - **Attacker:** authenticated low-privilege user.
 - **Attack path:** call a newly added mutating endpoint that no guard row covers.
 - **Impact:** write access outside the role matrix.
-- **Current control:** default-deny table (`src/api/router.ts:810`) with central `assertRoutePermission` (`:756`) and `assertPermission` (`src/core/rbac/index.ts:662`).
+- **Current control:** default-deny table (`src/api/router.ts:816`) with central `assertRoutePermission` (`:762`) and `assertPermission` (`src/core/rbac/index.ts:662`).
 - **Control gap:** 55 routes are handler-scoped and self-declared; parity is enforced by `tests/security/route-guard-parity.test.ts`, which fails when a handler stops calling `assertRoutePermission` — the residual risk is a route that no test enumerates, not a silent guard removal.
 - **Severity:** Medium.
 - **Mitigation:** keep the parity suite a gate (TSK-29 / TSK-44) and never relax an exemption row to make it pass.
@@ -113,7 +113,7 @@ Severity is the exposure **after** the current control, not before it. `Owner` u
 - **Attacker:** authenticated user of a different tenant.
 - **Attack path:** enumerate identifiers on a reading or mutating route.
 - **Impact:** multi-tenant isolation claim (`docs/domain/master-data-model.md` §1) is false in practice.
-- **Current control:** the central tenant predicate is `src/core/rbac/index.ts:612-616`, and **PR-09 closed the gap that made it unreachable (2026-10-16)**: every external `canPerform` call now passes a context (`src/api/router.ts:779`, `src/api/routes/enquiry.routes.ts:27`/`:51`) built by one request-scoped resolver, `src/core/rbac/index.ts:580` `accessContextFor`, and a request claiming a tenant other than the session's own is refused `403 TENANT_SCOPE_DENIED` at `src/api/router.ts:788`. The storage read path fails closed on unowned assets (`src/core/storage/index.ts:564-568`, closed by TSK-58 box 2).
+- **Current control:** the central tenant predicate is `src/core/rbac/index.ts:612-616`, and **PR-09 closed the gap that made it unreachable (2026-10-16)**: every external `canPerform` call now passes a context (`src/api/router.ts:785`, `src/api/routes/enquiry.routes.ts:27`/`:51`) built by one request-scoped resolver, `src/core/rbac/index.ts:580` `accessContextFor`, and a request claiming a tenant other than the session's own is refused `403 TENANT_SCOPE_DENIED` at `src/api/router.ts:794`. The storage read path fails closed on unowned assets (`src/core/storage/index.ts:564-568`, closed by TSK-58 box 2).
 - **Control gap:** `tenantId` still exists on only **3 of 43** Prisma models, so the claim is enforced where it is expressible, not everywhere: the predicate refuses a *conflicting* tenant claim, while row-level isolation stays per-handler for the domains that carry no tenant column at all. TSK-58 box 1's mutating-route cross-tenant refusal test exists (`tests/unit/tenant-scoping-routes.test.ts`); what is absent is a tenant column on the models where a leak would matter most (`Contract`, `RightsRecord`, `Settlement`).
 - **Severity:** High.
 - **Mitigation:** keep the PR-09 resolver on every new call site (the source scan in `tests/unit/production-readiness-controls.test.ts` fails if one omits it), and treat "add `tenantId` to `Contract`/`RightsRecord`/`Settlement`" as the owner decision it is (TSK-58 box 3).
@@ -141,7 +141,7 @@ Severity is the exposure **after** the current control, not before it. `Owner` u
 - **Attacker:** any authenticated enterprise role.
 - **Attack path:** traverse the LMS desks or an API surface by identifier.
 - **Impact:** exposure of education records; privacy-review obligation (law 12) unmet.
-- **Current control:** dedicated guard rows for the AFCA desks in `src/api/router.ts:810`; LMS surfaces are permission-checked in `src/web/workspace/afca-lms.ts`.
+- **Current control:** dedicated guard rows for the AFCA desks in `src/api/router.ts:816`; LMS surfaces are permission-checked in `src/web/workspace/afca-lms.ts`.
 - **Control gap:** data-subject-request fulfilment is TSK-31 (`BLOCKED_HUMAN`, HD-06); export exists as a route, not as a verified delivery path, so a DSRefusal cannot be proven either way.
 - **Severity:** Medium.
 - **Mitigation:** keep the DSR item open with its human owner rather than marking export "delivered".
@@ -183,7 +183,7 @@ Severity is the exposure **after** the current control, not before it. `Owner` u
 - **Attacker:** external party able to POST to the webhook route.
 - **Attack path:** craft a body with a valid-looking reference and no signature.
 - **Impact:** false settlement, revenue misstatement (canonical law 5).
-- **Current control:** signature verification at `src/api/router.ts:7884` (Paystack) and `:7983` (Flutterwave), durable single-claim at `src/core/websecurity/index.ts:157` with confirm/release (`:201`, `:226`), kobo-exact arithmetic (`src/core/domain/types.ts`, asserted by `tests/unit/finance-minor-units.test.ts`).- **Control gap:** if the durable claim store is unreachable the handler records `webhook_durable_claim_degraded_total` and proceeds on the KV mirror (TSK-19), so a Redis loss plus restart converts a re-delivery into a first sighting; the metric is the notice, not the fix.
+- **Current control:** signature verification at `src/api/router.ts:7979` (Paystack) and `:8078` (Flutterwave), durable single-claim at `src/core/websecurity/index.ts:157` with confirm/release (`:201`, `:226`), kobo-exact arithmetic (`src/core/domain/types.ts`, asserted by `tests/unit/finance-minor-units.test.ts`).- **Control gap:** if the durable claim store is unreachable the handler records `webhook_durable_claim_degraded_total` and proceeds on the KV mirror (TSK-19), so a Redis loss plus restart converts a re-delivery into a first sighting; the metric is the notice, not the fix.
 - **Severity:** High.
 - **Mitigation:** keep the degradation metric scrapeable and treat a sustained degraded period as an incident, not a fallback mode.
 - **Test:** `tests/unit/durability-release-critical.test.ts` (real HTTP + second process), `tests/unit/audit-remediation-regressions.test.ts` (crash between phases).
@@ -236,7 +236,7 @@ Severity is the exposure **after** the current control, not before it. `Owner` u
 - **Attacker:** authenticated operations user.
 - **Attack path:** submit oversized or repeated generation requests.
 - **Impact:** schedule outage; the 48-hour cache contract is the only buffer.
-- **Current control:** bounded request bodies (`src/api/router.ts:443`, `:501`), queue-based EPG generation (`src/core/queue/index.ts`), MCR filler budget measured in `tests/unit/performance-budget-measurement.test.ts`.
+- **Current control:** bounded request bodies (`src/api/router.ts:445`, `:512`), queue-based EPG generation (`src/core/queue/index.ts`), MCR filler budget measured in `tests/unit/performance-budget-measurement.test.ts`.
 - **Control gap:** the queue is an in-process `Map` with a 1 h terminal TTL (`docs/events/catalogue.md` §1) — a restart loses pending work, and ADR-006's durable substrate is unimplemented (TSK-17 remainder / TSK-21's recorded decision). Rate limiting is not applied to generation routes.
 - **Severity:** Medium (sandbox), High (production).
 - **Mitigation:** implement or formally supersede ADR-006; that decision carries an `Approver: EAB` line and is not the engineer's to take.
@@ -260,7 +260,7 @@ Severity is the exposure **after** the current control, not before it. `Owner` u
 #### TM-FED-02 · Repudiation · outbound event reported as delivered without leaving the process
 - **Asset:** the partner's belief that VMN syndicated content, and VMN's own delivery record.
 - **Attacker:** none required — the defect is self-inflicted.
-- **Attack path:** `dispatchWebhook` called without a transport: `const success = mockTransport ? mockTransport(webhook) : true;` (`src/modules/federation/azeebo/bridge.ts:134`) — no HTTP request is made, yet the status becomes `DELIVERED`. Reached from HTTP at `src/api/router.ts:6997`, whose reply is the ternary at `:6958` (`webhook.status === "DELIVERED" ? 200 : 503`), so the 503 branch is unreachable without a transport and every unconfigured call answers **200** with that webhook body.
+- **Attack path:** `dispatchWebhook` called without a transport: `const success = mockTransport ? mockTransport(webhook) : true;` (`src/modules/federation/azeebo/bridge.ts:134`) — no HTTP request is made, yet the status becomes `DELIVERED`. Reached from HTTP at `src/api/router.ts:7056`, whose reply is the ternary at `:7017` (`webhook.status === "DELIVERED" ? 200 : 503`), so the 503 branch is unreachable without a transport and every unconfigured call answers **200** with that webhook body.
 - **Impact:** a delivery claim with no artifact — canonical law 20 violated in production code, not in a document.
 - **Current control:** HMAC signing of the payload and a circuit breaker with DLQ (`src/modules/federation/azeebo/bridge.ts:100`ff) exist, but neither performs the call.
 - **Control gap:** no transport is wired at all; §16's "webhook spoofing" has an inverse here — *delivery spoofing*. Recorded as a defect rather than silently patched (TSK-21 closure note, `docs/events/catalogue.md` §3).
@@ -290,7 +290,7 @@ Severity is the exposure **after** the current control, not before it. `Owner` u
 - **Attacker:** authenticated user with upload rights.
 - **Attack path:** POST a payload whose declared type differs from its bytes, or one large enough to skip scanning.
 - **Impact:** stored-content attack against every renderer, or an unscanned object served to partners.
-- **Current control:** `validateMediaBuffer` (`src/core/storage/index.ts:206`) invoked at `src/api/router.ts:8132`, calling `scanBufferForThreats` (`:84`) at `:227`; sha256 fingerprinting (`:73`); MIME allow-list and size ceiling at presign (`:126`); 1 MB body bound on JSON routes (`src/api/router.ts:443`).
+- **Current control:** `validateMediaBuffer` (`src/core/storage/index.ts:206`) invoked at `src/api/router.ts:8227`, calling `scanBufferForThreats` (`src/core/storage/index.ts:84`) at `:227`; sha256 fingerprinting (`:73`); MIME allow-list and size ceiling at presign (`:126`); 1 MB body bound on JSON routes (`src/api/router.ts:445`).
 - **Control gap:** the scanner reads at most `MAX_SCAN_BUFFER_BYTES` = 20 MB (`src/core/storage/index.ts:65`) while presign permits up to 50 GB, so any object above the scan cap is accepted unscanned; the signature is `scanBufferForThreats`'s own heuristic, not an external engine (`docs/audit/dependency-triage.md`).
 - **Severity:** Medium.
 - **Mitigation:** make the cap explicit at the boundary — refuse, or quarantine pending scan, rather than accept silently.
@@ -304,7 +304,7 @@ Severity is the exposure **after** the current control, not before it. `Owner` u
 - **Attacker:** any HTTP client.
 - **Attack path:** send `x-test-role: SuperAdmin` to a deployment whose `NODE_ENV` is `test` by mistake.
 - **Impact:** instant full privilege, no credentials.
-- **Current control:** the header is read only under `NODE_ENV === "test"` (`src/api/router.ts:734`), and the harness user carries **no** `tenantId` (`:732-736`), which is why TSK-58's tenant cases had to mint signed sessions instead.
+- **Current control:** the header is read only under `NODE_ENV === "test"` (`src/api/router.ts:740`), and the harness user carries **no** `tenantId` (`:738-742`), which is why TSK-58's tenant cases had to mint signed sessions instead.
 - **Control gap:** the guard is a single exact-string comparison, the same class as TM-ATH-02 and AUD-11: an unset or typo'd `NODE_ENV` yields both no `Secure` cookie and a role-minting backdoor.
 - **Severity:** High (conditional on deployment hygiene).
 - **Mitigation:** fail boot when `NODE_ENV` is not one of the three recognised values, or gate the harness on an explicit opt-in flag rather than an absence.
@@ -332,8 +332,8 @@ Severity is the exposure **after** the current control, not before it. `Owner` u
 - **Attacker:** party able to re-send a previously valid request.
 - **Attack path:** replay within the replay window.
 - **Impact:** double credit or reversed settlement.
-- **Current control:** durable `ProviderEventClaim` with a unique `(provider, eventId)` index (`prisma/schema.prisma:868`), claim/confirm/release at `src/core/websecurity/index.ts:157`/`:201`/`:226` with a 7-day window supplied by the callers (`7 * 24 * 60 * 60 * 1000` at `src/api/router.ts:7891`, `:7983`), signature verification per provider (C8), and a 7-day replay window on the ingestion path.
-- **Control gap:** signature secrets come from configuration; with `NODE_ENV` unset, `src/api/server.ts:74`-adjacent dev fallbacks inject known defaults (`audit.md` AUD-11), so a mislabelled deployment verifies against a public secret.
+- **Current control:** durable `ProviderEventClaim` with a unique `(provider, eventId)` index (`prisma/schema.prisma:868`), claim/confirm/release at `src/core/websecurity/index.ts:157`/`:201`/`:226` with a 7-day window supplied by the callers (`7 * 24 * 60 * 60 * 1000` at `src/api/router.ts:7950`, `:8042`), signature verification per provider (C8), and a 7-day replay window on the ingestion path.
+- **Control gap:** signature secrets come from configuration; with `NODE_ENV` unset, `src/api/server.ts:78`-adjacent dev fallbacks inject known defaults (`audit.md` AUD-11), so a mislabelled deployment verifies against a public secret.
 - **Severity:** High (deployment-dependent), Low with correct env.
 - **Mitigation:** refuse boot on a placeholder secret outside an explicit development opt-in.
 - **Test:** `tests/unit/durability-release-critical.test.ts` proves refusal across a real restart; the secret-fallback refusal is not asserted.
@@ -385,7 +385,7 @@ Severity is the exposure **after** the current control, not before it. `Owner` u
 | 8 | CSRF | `EXERCISED` | `tests/security/route-authorization.test.ts` over the C3 gate |
 | 9 | XSS | `PARTIAL` | `escapeHtml` proven on break-out characters (`tests/unit/html-escape-census.test.ts`); the 299-site interpolation ceiling is untriaged (DEBT-009) |
 | 10 | Injection | `PARTIAL` | Prisma parameterisation by construction; no dedicated injection suite exists |
-| 11 | Mass assignment | `PARTIAL` | field narrowing helpers (`src/api/router.ts:521`, `:533`) are asserted indirectly; `jsonObjectField` still forwards provider payloads verbatim |
+| 11 | Mass assignment | `PARTIAL` | field narrowing helpers (`src/api/router.ts:532`, `:544`) are asserted indirectly; `jsonObjectField` still forwards provider payloads verbatim |
 | 12 | Rate abuse | `PARTIAL` | five endpoints (`C7`); generation and list routes unthrottled (TM-BCS-01) |
 | 13 | Credential stuffing | `EXERCISED` | lockout + shared-limit cases, `tests/unit/auth-shared-across-instances.test.ts` |
 | 14 | Session theft | `PARTIAL` | revocation exercised (`C4`); cookie-flag/env dependency unasserted (TM-ATH-02) |

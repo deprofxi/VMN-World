@@ -338,8 +338,7 @@ export function renderClientProjectDetailHtml(project: ClientProject, successNot
                 id="q-topic"
                 name="topic"
                 required
-                class="vmn-input"
- class="s-npZXKSAIoi"
+                class="vmn-input s-npZXKSAIoi"
               >
                 <option value="PROOF_VERIFICATION">Proof-of-Air Verification Query</option>
                 <option value="MAKE_GOOD_DISCREPANCY">Discrepancy / Make-Good Scheduling</option>
@@ -357,8 +356,7 @@ export function renderClientProjectDetailHtml(project: ClientProject, successNot
                 id="q-priority"
                 name="priority"
                 required
-                class="vmn-input"
- class="s-npZXKSAIoi"
+                class="vmn-input s-npZXKSAIoi"
               >
                 <option value="NORMAL">Standard Review (Within 24 Hours)</option>
                 <option value="URGENT">High Priority (Active Flight Issue)</option>
@@ -377,8 +375,7 @@ export function renderClientProjectDetailHtml(project: ClientProject, successNot
               type="email"
               required
               placeholder="e.g. media-audit@dangote.com"
-              class="vmn-input"
- class="s-npZXKSAIoi"
+              class="vmn-input s-npZXKSAIoi"
             />
           </div>
 
@@ -392,8 +389,7 @@ export function renderClientProjectDetailHtml(project: ClientProject, successNot
               required
               rows="4"
               placeholder="Reference the certificate number, airtime stamp, or make-good spot requirement..."
-              class="vmn-input"
- class="s-USa2UeMSTs"
+              class="vmn-input s-USa2UeMSTs"
             ></textarea>
           </div>
 

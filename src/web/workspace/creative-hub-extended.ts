@@ -26,7 +26,7 @@ import { SessionUser } from "../../core/auth/index.js";
 function renderEmptyRecords(note: string): string {
   return `
  <div class="vmn-card s-jBAg6JRnQZ" >
- <p class="s-s8QClmJr6r">${note}</p>
+ <p class="s-s8QClmJr6r">${escapeHtml(note)}</p>
     </div>
   `;
 }
@@ -88,17 +88,17 @@ export function renderTalentAcceleratorDeskHtml(snapshot: AcceleratorDeskSnapsho
  <div class="s-LKssrCZ4j1">
  <div class="vmn-card s-OAPQ4AS9-O" >
  <div class="s-cU3Cr5m8eq">Registered Partner Hubs</div>
- <div class="s-ykrP-ZIQ8m">${hubs.length} Hubs</div>
+ <div class="s-ykrP-ZIQ8m">${escapeHtml(hubs.length)} Hubs</div>
  <div class="s-_tdYXnR5PA">${hubs.filter((h) => h.isAccredited).length} accredited</div>
         </div>
  <div class="vmn-card s-OAPQ4AS9-O" >
  <div class="s-cU3Cr5m8eq">Talent in Registry</div>
- <div class="s-5bXu9tLBIv">${totalTalent} Profiles</div>
- <div class="s-_tdYXnR5PA">${verified} verified &bull; ${pipeline} in pipeline</div>
+ <div class="s-5bXu9tLBIv">${escapeHtml(totalTalent)} Profiles</div>
+ <div class="s-_tdYXnR5PA">${escapeHtml(verified)} verified &bull; ${escapeHtml(pipeline)} in pipeline</div>
         </div>
  <div class="vmn-card s-OAPQ4AS9-O" >
  <div class="s-cU3Cr5m8eq">Verification Gate BG1</div>
- <div class="s-Am3eRxce65">${readinessPercent}% Verified</div>
+ <div class="s-Am3eRxce65">${escapeHtml(readinessPercent)}% Verified</div>
  <div class="s-_tdYXnR5PA">Share of registry holding VERIFIED status</div>
         </div>
       </div>
@@ -138,7 +138,7 @@ export function renderTalentAcceleratorDeskHtml(snapshot: AcceleratorDeskSnapsho
  ${h.facilitiesAvailable.slice(0, 3).map((f) => `<span class="vmn-badge badge-neutral s-y4qO95-ZKm" >${escapeHtml(f)}</span>`).join("")}
                     </div>
                   </td>
- <td class="s-5fSyfN0kQ1">${h.activeTalentCount}</td>
+ <td class="s-5fSyfN0kQ1">${escapeHtml(h.activeTalentCount)}</td>
  <td class="s-6FCnPHXEyo"><span class="vmn-badge ${h.isAccredited ? "badge-ready" : "badge-warning"}">${h.isAccredited ? "ACCREDITED" : "PENDING"}</span></td>
                 </tr>
               `
@@ -242,12 +242,12 @@ export function renderCommunityGuildsDeskHtml(snapshot: CommunityDeskSnapshot | 
  <div class="s-LKssrCZ4j1">
  <div class="vmn-card s-OAPQ4AS9-O" >
  <div class="s-cU3Cr5m8eq">Hub Locations</div>
- <div class="s-ykrP-ZIQ8m">${locations.length}</div>
+ <div class="s-ykrP-ZIQ8m">${escapeHtml(locations.length)}</div>
         </div>
  <div class="vmn-card s-OAPQ4AS9-O" >
  <div class="s-cU3Cr5m8eq">Members Registered</div>
- <div class="s-5bXu9tLBIv">${members.length}</div>
- <div class="s-_tdYXnR5PA">${activeMembers} ACTIVE</div>
+ <div class="s-5bXu9tLBIv">${escapeHtml(members.length)}</div>
+ <div class="s-_tdYXnR5PA">${escapeHtml(activeMembers)} ACTIVE</div>
         </div>
  <div class="vmn-card s-OAPQ4AS9-O" >
  <div class="s-cU3Cr5m8eq">Bookable Resources</div>
@@ -255,7 +255,7 @@ export function renderCommunityGuildsDeskHtml(snapshot: CommunityDeskSnapshot | 
         </div>
  <div class="vmn-card s-OAPQ4AS9-O" >
  <div class="s-cU3Cr5m8eq">Resource Bookings</div>
- <div class="s-vu7vwqr--r">${bookings.length}</div>
+ <div class="s-vu7vwqr--r">${escapeHtml(bookings.length)}</div>
         </div>
       </div>
 
@@ -468,7 +468,7 @@ export function renderVtmMatchingWorkbenchHtml(snapshot: VtmWorkbenchSnapshot | 
                   </td>
  <td class="s-6FCnPHXEyo"><span class="vmn-badge badge-info">${escapeHtml(c.tier)}</span></td>
  <td class="s-6FCnPHXEyo">
- <span class="vmn-badge badge-ready s-axrwUtMWNR" >${c.matchScorePercent}% Match</span>
+ <span class="vmn-badge badge-ready s-axrwUtMWNR" >${escapeHtml(c.matchScorePercent)}% Match</span>
                   </td>
  <td class="s-_19bh8jnKf">NGN ${(c.dayRateNgn ?? 0).toLocaleString("en-NG")} / day</td>
  <td class="s-6FCnPHXEyo">
@@ -599,7 +599,7 @@ export function renderOneStudiosProductionDeskHtml(snapshot: OneStudiosDeskSnaps
  <tr class="s-EK6K8Vq5tY">
  <td class="s-TlsG8972c3">${escapeHtml(b.id)}</td>
  <td class="s-sXJ_a8BSrJ">${escapeHtml(b.productionName)}</td>
- <td class="s-JKTsUAJmov">${b.assetIds.length} asset(s)</td>
+ <td class="s-JKTsUAJmov">${escapeHtml(b.assetIds.length)} asset(s)</td>
  <td class="s-JKTsUAJmov"><span class="vmn-badge badge-info">${escapeHtml(b.status)}</span></td>
                 </tr>`
                 )
@@ -623,7 +623,7 @@ export function renderOneStudiosProductionDeskHtml(snapshot: OneStudiosDeskSnaps
  <td class="s-sXJ_a8BSrJ">${escapeHtml(c.productionName)}</td>
  <td class="s-JKTsUAJmov">${escapeHtml(c.shootDate)}</td>
  <td class="s-JKTsUAJmov">${escapeHtml(c.generalCallTime)}</td>
- <td class="s-JKTsUAJmov">${c.scenesCount} scene(s)</td>
+ <td class="s-JKTsUAJmov">${escapeHtml(c.scenesCount)} scene(s)</td>
                 </tr>`
                 )
                 .join("")}
@@ -747,7 +747,7 @@ export function renderVcfCreatorMissionsHtml(snapshot: VcfMissionsSnapshot | und
  <strong class="s-qTUXcN3Iww">NGN ${m.budgetEstimateNgn.toLocaleString("en-NG")}</strong>
               </div>
             </div>
- ${m.compositeScore !== undefined ? `<div class="s-5lRpk1R_hM">Evaluation composite: <strong>${m.compositeScore}/100</strong></div>` : ""}
+ ${m.compositeScore !== undefined ? `<div class="s-5lRpk1R_hM">Evaluation composite: <strong>${escapeHtml(m.compositeScore)}/100</strong></div>` : ""}
  <div class="s-hLHhA2FLqE">Submitted: <strong>${escapeHtml(m.submittedAt)}</strong></div>
           </div>
         `
@@ -892,14 +892,14 @@ export function renderFusionEventsDeskHtml(snapshot: FusionEventsDeskSnapshot | 
  <div class="s-FWmtsKvycn">
               <div>
  <span class="s-cebWBtjHHK">Gate Scans Verified</span>
- <strong class="s-mTg8mhX6j2">${e.totalCheckedIn} / ${e.totalSold}</strong>
+ <strong class="s-mTg8mhX6j2">${escapeHtml(e.totalCheckedIn)} / ${escapeHtml(e.totalSold)}</strong>
               </div>
  <div class="s-E8vgO5r8HT">
  <span class="s-cebWBtjHHK">Venue Capacity</span>
-                <strong>${e.capacity}</strong>
+                <strong>${escapeHtml(e.capacity)}</strong>
               </div>
             </div>
- <div class="s-5lRpk1R_hM">${scanRate}% of sold tickets checked in</div>
+ <div class="s-5lRpk1R_hM">${escapeHtml(scanRate)}% of sold tickets checked in</div>
           </div>
         `;
           })
@@ -1015,7 +1015,7 @@ export function renderTendRightsDistributionHtml(snapshot: TendCatalogueSnapshot
  <td class="s-p_p4UYzKzj">${escapeHtml(t.id)}</td>
  <td class="s-8i5j_3VdTg">${escapeHtml(t.title)}</td>
  <td class="s-gvP_yDU8_J">${escapeHtml(t.genre)}</td>
- <td class="s-5fSyfN0kQ1">${t.runningTimeMinutes}</td>
+ <td class="s-5fSyfN0kQ1">${escapeHtml(t.runningTimeMinutes)}</td>
  <td class="s-I8HUUerhjm">$${t.minimumLicenseFeeUsd.toLocaleString("en-US")}</td>
  <td class="s-6FCnPHXEyo"><span class="vmn-badge ${t.masterDeliveryStatus === "QC_APPROVED" || t.masterDeliveryStatus === "READY_FOR_DELIVERY" ? "badge-ready" : "badge-warning"}">${escapeHtml(t.masterDeliveryStatus.replace(/_/g, " "))}</span></td>
                 </tr>

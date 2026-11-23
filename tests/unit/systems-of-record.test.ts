@@ -101,7 +101,7 @@ function resolveCitedFile(file: string): string | null {
  * family can continue the same file with `` `:NN` `` — both forms become `file.ts:NN` tokens.
  */
 function sandboxRows(doc: string): Array<{ entity: string; stores: string[] }> {
-  const section = doc.split("### 3.3 Process memory — not persistence")[1].split("**Rows 19-30")[0];
+  const section = doc.split("### 3.3 Process memory — not persistence")[1].split("**Rows 19-29")[0];
   const rows: Array<{ entity: string; stores: string[] }> = [];
   for (const line of section.split("\n")) {
     if (!line.startsWith("|")) continue;
@@ -139,7 +139,7 @@ describe("systems-of-record.md census", () => {
     const docCount = read(DOC).match(/grep -c "\^model " prisma\/schema\.prisma\/?\n# → (\d+)/);
 
     expect(missing, `models with no CREATE TABLE under ${MIGRATION_DIR}`).toEqual([]);
-    expect(models).toHaveLength(43);
+    expect(models).toHaveLength(45);
     expect(Number(docCount?.[1])).toBe(models.length);
   });
 
@@ -148,7 +148,7 @@ describe("systems-of-record.md census", () => {
     const rows = censusRows(read(DOC));
     const mismatches = rows.filter((row) => (counts.get(lowerFirst(row.model)) ?? 0) !== row.claimed);
 
-    expect(rows.length, "census table should carry all 30 touched models as individual rows").toBe(30);
+    expect(rows.length, "census table should carry all 32 touched models as individual rows").toBe(32);
     expect(mismatches, "accessor counts that do not match src/").toEqual([]);
   });
 

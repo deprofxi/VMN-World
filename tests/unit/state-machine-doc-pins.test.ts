@@ -265,8 +265,9 @@ describe("state-machines.md is written from the real code", () => {
     expect([...stores].sort()).toEqual(
       [
         "approvalItem", "auditLog", "azeeboDestination", "commercialEnquiry", "contentItem",
-        "idempotencyRecord", "issueRecord", "journalEntry", "mediaAssetRecord", "privacySecurityCase",
-        "riskRecord", "salesDeal", "sessionRecord", "sponsorBinding", "sponsorFulfillment",
+        "idempotencyRecord", "inAppNotification", "issueRecord", "journalEntry", "mediaAssetRecord",
+        "notificationPreference", "privacySecurityCase", "riskRecord", "salesDeal", "sessionRecord",
+        "sponsorBinding", "sponsorFulfillment",
       ].sort()
     );
   });

@@ -52,7 +52,7 @@
         { "id": "UX-SYS-004", "name": "Invitation Acceptance", "status": "IMPLEMENTED", "route": "/auth/invitation", "evidence": "src/core/auth/invitations.ts full validation chain wired in router", "dataState": "sandbox-state", "sandboxFamilies": ["invitations"] },
         { "id": "UX-SYS-005", "name": "First-Use Profile", "status": "IMPLEMENTED", "route": "/auth/profile-setup", "evidence": "SEC-04 remainder (2026-10-01): saveFirstUseProfile persists validated displayName/phone/timezone (src/core/auth/sessions.ts); router POST /auth/profile-setup audits and redirects on success/error (tests/unit/todo-final-remediation.test.ts)", "dataState": "sandbox-state", "sandboxFamilies": ["session-side-stores"] },
         { "id": "UX-SYS-006..011", "name": "Workspace selection, session expired, access denied/request, sign-out, settings", "status": "IMPLEMENTED", "route": "/select-workspace, /auth/session-expired, /access-denied, /access-request, /sign-out, /account/profile", "evidence": "src/web/public/auth-screens.ts + router; sign-out revokes real tokens" },
-        { "id": "UX-SYS-012", "name": "Notification Preferences", "status": "IMPLEMENTED", "route": "/account/notifications", "evidence": "src/core/auth/sessions.ts saveNotificationPreferences wired to form POST", "dataState": "sandbox-state", "sandboxFamilies": ["session-side-stores"] },
+        { "id": "UX-SYS-012", "name": "Notification Preferences", "status": "IMPLEMENTED", "route": "/account/notifications", "evidence": "Notification preferences are a NotificationPreferenceRecord row (src/core/auth/sessions.ts), staged through the journal and hydrated at boot before any dispatch runs; the dispatcher consults them before delivering, so an opt-out survives a restart (tests/unit/durability-in-app-notifications.test.ts)" },
         { "id": "UX-SYS-013", "name": "Active Sessions", "status": "IMPLEMENTED", "route": "/account/sessions", "evidence": "src/core/auth/sessions.ts registry; revoke endpoints revoke real tokens" },
         { "id": "UX-SYS-014", "name": "Contextual Help", "status": "IMPLEMENTED", "route": "/help/operator", "evidence": "src/web/public/auth-screens.ts renderContextualHelpHtml" }
       ]
@@ -63,7 +63,7 @@
       "entries": [
         { "id": "UX-HUB-001", "name": "My Work", "status": "IMPLEMENTED", "route": "/workspace/my-work", "evidence": "src/web/workspace/work-hub.ts over src/core/work/index.ts task graph (2026-09-30)" },
         { "id": "UX-HUB-002", "name": "Authorised Search", "status": "IMPLEMENTED", "route": "/workspace/search + GET /api/v1/search", "evidence": "authorisedSearch in src/core/work/index.ts; role+tenant scoped" },
-        { "id": "UX-HUB-003", "name": "Notifications", "status": "IMPLEMENTED", "route": "/workspace/notifications", "evidence": "deliverInAppNotification + listInAppNotifications in src/core/auth/sessions.ts; preference-aware", "dataState": "sandbox-state", "sandboxFamilies": ["session-side-stores"] },
+        { "id": "UX-HUB-003", "name": "Notifications", "status": "IMPLEMENTED", "route": "/workspace/notifications", "evidence": "InAppNotificationRecord row per delivery plus a hydrated per-user index (src/core/auth/sessions.ts); readAt is stored, so an opened item stays read after a restart, and a category switched off is still refused (tests/unit/durability-in-app-notifications.test.ts)" },
         { "id": "UX-HUB-004", "name": "Management Overview", "status": "IMPLEMENTED", "route": "/workspace/management/overview", "evidence": "SCR-19 (2026-09-30): computed live from canonical engines (channels, carriage, Quote-to-Cash pipeline, talent registry); recognised revenue kept distinct from cash (FIN-01). Executive metric dictionary breadth remains pending DEC D-10. Handler src/api/router.ts; engines src/modules/broadcast/channels/index.ts, src/modules/finance/sales/index.ts, src/modules/hub/talent/index.ts", "dataState": "sandbox-state", "sandboxFamilies": ["talent-registry"] },
         { "id": "UX-HUB-005", "name": "Workspace Directory", "status": "IMPLEMENTED", "route": "/workspace", "evidence": "ENTERPRISE_WORKSPACES directory rendered by router — src/web/workspace/surface-bc.ts, handler src/api/router.ts" }
       ]
@@ -73,7 +73,7 @@
       "docSource": "UIUX-001 §5.3",
       "entries": [
         { "id": "UX-COM-001..003", "name": "Commercial overview / org directory / org detail", "status": "MOCK", "route": "surface-bc desk", "evidence": "src/web/workspace/surface-bc.ts presentation shell; CRM projection pending" },
-        { "id": "UX-COM-004", "name": "Lead Intake", "status": "IMPLEMENTED", "route": "/enquiry + GET /api/v1/enquiries", "evidence": "src/modules/hub/enquiry/index.ts durable store with idempotency" },
+        { "id": "UX-COM-004", "name": "Lead Intake", "status": "IMPLEMENTED", "route": "/contact + GET /api/v1/enquiries", "evidence": "src/modules/hub/enquiry/index.ts durable store with idempotency. The legacy /enquiry shell was RETIRED 2026-11-16 under IA Phase 7 (overlapping route retirement): /enquiry answers 301 to /contact, where the intent selector posts to the same enquiry contract. Route re-pinned by TSK-24, not by editing a classifier." },
         { "id": "UX-COM-005..009", "name": "Opportunity / proposal / quote / contract / campaign", "status": "MOCK", "route": "/workspace/commercial/*", "evidence": "SCR-17 closed for UX-COM-006/007 (2026-09-30): canonical CommercialProposalStore + QuoteToCashSalesEngine handoff with dual-authorisation acceptance (tests/unit/scr-desk-rewiring.test.ts). COM-005/008/009 remain presentation shell" },
         { "id": "UX-COM-010", "name": "Delivery Overview", "status": "IMPLEMENTED", "route": "/portal/client/:orgId/projects/:projectId", "evidence": "TSK-13 (2026-10-09): src/web/portal/client-portal.ts projects canonical QuoteToCashSalesEngine deals scoped by clientOrgId — the deleted MOCK_CLIENT_PROJECTS delivery rows are gone. The money/identity half is bound; the per-deliverable channel/daypart/run table renders an explicit NOT CONNECTED notice because no canonical record joins a booked deliverable to a deal. Registered residual: TSK-60" },
         { "id": "UX-PRJ-001", "name": "Project Portfolio", "status": "MOCK", "route": "surface-bc desk", "evidence": "src/web/workspace/surface-bc.ts presentation shell" },
@@ -84,7 +84,7 @@
       "group": "Broadcast operations (UX-BR / SCR-BCST)",
       "docSource": "UIUX-001 §4.3; R1.2A §46",
       "entries": [
-        { "id": "UX-BR-001..033", "name": "Broadcast 33 operational screens", "status": "MOCK", "route": "/broadcast/*", "evidence": "src/web/broadcast/index.ts:839 sources every screen's KPI strip from src/modules/broadcast/screens/data.ts getScreenData (fabricated per-screen kpis literals deleted, TSK-11 2026-10-11); status stays MOCK because 33/33 screens still render NOT_CONNECTED / PROVISIONAL badges, RBAC 401/403 enforced, DG-RL1-06 OPEN. The schedule and version panels read listSchedules()/getApprovedRevision() over the schedule-day Map at src/modules/broadcast/versions/index.ts:318 and the version Map at src/modules/broadcast/versions/index.ts:46 (imported at src/web/broadcast/index.ts:29). The billing panels project BroadcastBillingEngine schedules through buildScreenEngineSnapshot (src/api/router.ts:411), which holds only what this process booked.", "dataState": "sandbox-state", "sandboxFamilies": ["schedule-day", "broadcast-versions", "broadcast-billing"] },
+        { "id": "UX-BR-001..033", "name": "Broadcast 33 operational screens", "status": "MOCK", "route": "/broadcast/*", "evidence": "src/web/broadcast/index.ts:839 sources every screen's KPI strip from src/modules/broadcast/screens/data.ts getScreenData (fabricated per-screen kpis literals deleted, TSK-11 2026-10-11); status stays MOCK because 33/33 screens still render NOT_CONNECTED / PROVISIONAL badges, RBAC 401/403 enforced, DG-RL1-06 OPEN. The schedule and version panels read listSchedules()/getApprovedRevision() over the schedule-day Map at src/modules/broadcast/versions/index.ts:318 and the version Map at src/modules/broadcast/versions/index.ts:46 (imported at src/web/broadcast/index.ts:29). The billing panels project BroadcastBillingEngine schedules through buildScreenEngineSnapshot (src/api/router.ts:417), which holds only what this process booked.", "dataState": "sandbox-state", "sandboxFamilies": ["schedule-day", "broadcast-versions", "broadcast-billing"] },
         { "id": "UX-BR-012", "name": "Schedule Review", "status": "IMPLEMENTED", "route": "/broadcast/schedule/review", "evidence": "src/web/workspace/governance-and-operations.ts read-only review with blocker explanations" },
         { "id": "UX-BR-030", "name": "POA Exceptions Workbench", "status": "IMPLEMENTED", "route": "/broadcast/asrun/exceptions", "evidence": "src/web/workspace/governance-and-operations.ts + asrun reconcile engine. The exception desk rows are listPoaExceptions() over src/modules/broadcast/asrun/exceptions.ts (imported at src/web/workspace/governance-and-operations.ts:21).", "dataState": "sandbox-state", "sandboxFamilies": ["poa-delivery-exceptions"] }
       ]
@@ -492,17 +492,12 @@
       },
       {
         "id": "session-side-stores",
-        "entity": "Notification preferences, first-use profile, in-app inbox",
+        "entity": "First-use operator profile",
         "stores": [
-          "core/auth/sessions.ts:245",
-          "core/auth/sessions.ts:295",
-          "core/auth/sessions.ts:347"
+          "core/auth/sessions.ts:340"
         ],
         "anchors": [
-          "saveNotificationPreferences",
-          "saveFirstUseProfile",
-          "deliverInAppNotification",
-          "listInAppNotifications"
+          "saveFirstUseProfile"
         ]
       },
       {

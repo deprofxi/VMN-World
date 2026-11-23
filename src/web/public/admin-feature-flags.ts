@@ -10,6 +10,7 @@
  */
 
 import { getAllFeatureFlags } from "../../core/feature-flags/index.js";
+import { escapeHtml } from "../components/escape.js";
 
 export function renderAdminFeatureFlagsHtml(filterDomain?: string): string {
   const allFlags = Object.values(getAllFeatureFlags());
@@ -24,11 +25,11 @@ export function renderAdminFeatureFlagsHtml(filterDomain?: string): string {
   const undeferredCount = allFlags.filter((f) => f.isUndeferred).length;
 
   const domainFilterButtons = [
- `<a href="/admin/feature-flags" class="btn s--wJWanX93Y ${!filterDomain ? "btn-primary" : "btn-outline"}" >All (${totalCount})</a>`,
+ `<a href="/admin/feature-flags" class="btn s--wJWanX93Y ${!filterDomain ? "btn-primary" : "btn-outline"}" >All (${escapeHtml(totalCount)})</a>`,
     ...domains.map((dom) => {
       const count = allFlags.filter((f) => f.domain === dom).length;
       const isSelected = filterDomain?.toLowerCase() === dom.toLowerCase();
- return `<a href="/admin/feature-flags?domain=${encodeURIComponent(dom)}" class="btn s--wJWanX93Y ${isSelected ? "btn-primary" : "btn-outline"}" >${dom} (${count})</a>`;
+ return `<a href="/admin/feature-flags?domain=${encodeURIComponent(dom)}" class="btn s--wJWanX93Y ${isSelected ? "btn-primary" : "btn-outline"}" >${escapeHtml(dom)} (${escapeHtml(count)})</a>`;
     }),
   ].join("\n");
 
@@ -43,14 +44,14 @@ export function renderAdminFeatureFlagsHtml(filterDomain?: string): string {
  ? `<span class="s-GKQ3TuEbjX">UN-DEFERRED</span>`
         : "";
 
- const sourceBadge = `<span class="s-X260Zgjd7H">SOURCE: ${f.source}</span>`;
+ const sourceBadge = `<span class="s-X260Zgjd7H">SOURCE: ${escapeHtml(f.source)}</span>`;
 
       return `
  <article class="card flag-card" style="display:flex; flex-direction:column; justify-content:space-between; border-left: 4px solid ${isEnabled ? "#10B981" : "#EF4444"}; padding: var(--vmn-space-6); background: var(--vmn-surface-card); border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
         <div>
  <div class="s-f6KsCxtDCT">
             <div>
- <span class="s-uviTeNx8lj">${f.key}</span>
+ <span class="s-uviTeNx8lj">${escapeHtml(f.key)}</span>
               ${undeferredBadge}
             </div>
             <div>
@@ -58,20 +59,20 @@ export function renderAdminFeatureFlagsHtml(filterDomain?: string): string {
             </div>
           </div>
  <h3 class="s-Bj2mxlMnFu">
- ${f.domain} &mdash; <span class="s-Pq9NylktB7">${f.targetScreens}</span>
+ ${escapeHtml(f.domain)} &mdash; <span class="s-Pq9NylktB7">${escapeHtml(f.targetScreens)}</span>
           </h3>
  <p class="s-nXHzvt9vO4">
-            ${f.description}
+            ${escapeHtml(f.description)}
           </p>
  <div class="s-RM2bHg2o5a">
  <div class="s--MU1SKnBqO">Kill-Switch & Fallback Policy</div>
- <div class="s-9Md5lCyriM">${f.killSwitchPolicy}</div>
+ <div class="s-9Md5lCyriM">${escapeHtml(f.killSwitchPolicy)}</div>
           </div>
         </div>
 
  <div class="s-vek8O9ioPs">
-          <div>${sourceBadge}</div>
- <form method="POST" action="/api/v1/feature-flags/${f.key}/toggle" class="s-Han6y01weT">
+          <div>${escapeHtml(sourceBadge)}</div>
+ <form method="POST" action="/api/v1/feature-flags/${escapeHtml(f.key)}/toggle" class="s-Han6y01weT">
             <input type="hidden" name="enabled" value="${isEnabled ? "false" : "true"}" />
             <input type="hidden" name="redirect" value="/admin/feature-flags${filterDomain ? `?domain=${encodeURIComponent(filterDomain)}` : ""}" />
  <button type="submit" class="btn s-KVW2aekM_D ${isEnabled ? "btn-secondary button button--secondary" : "btn-primary button button--primary"}" >
@@ -101,15 +102,15 @@ export function renderAdminFeatureFlagsHtml(filterDomain?: string): string {
  <div class="s-5WiPFCGzxg">
  <div class="card s-0NKVVV4K-j" >
  <div class="s-YYDY41b3FZ">Total Registered Flags</div>
- <div class="s-0RS6BY6Y_w">${totalCount}</div>
+ <div class="s-0RS6BY6Y_w">${escapeHtml(totalCount)}</div>
           </div>
  <div class="card s-rw39Qa-Zj7" >
  <div class="s-YYDY41b3FZ">Currently Active (Enabled)</div>
- <div class="s-pVX5qU5GSi">${activeCount}</div>
+ <div class="s-pVX5qU5GSi">${escapeHtml(activeCount)}</div>
           </div>
  <div class="card s-Du059TkFFH" >
  <div class="s-YYDY41b3FZ">Un-Deferred Capabilities</div>
- <div class="s-cadi_EoZ4m">${undeferredCount}</div>
+ <div class="s-cadi_EoZ4m">${escapeHtml(undeferredCount)}</div>
           </div>
         </div>
       </header>

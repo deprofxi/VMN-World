@@ -71,6 +71,42 @@ const READERS = {
       record: m.listAllSessions().find((s) => s.tokenId === key),
     };
   },
+  // UX-HUB-003 / UX-SYS-012: keyed by userId, because both stores are read per
+  // account — the inbox list and the preference gate. The preference reader
+  // returns the whole record, so a caller can prove the *stored* value came back
+  // rather than the module defaults (`updatedAt` differs; defaults are minted at
+  // module load in the child).
+  inAppNotification: async (key) => {
+    const m = await imp("core/auth/sessions.js");
+    return {
+      hydrated: await m.refreshInAppNotificationIndex(),
+      record: m.listInAppNotifications(key),
+    };
+  },
+  notificationPreference: async (key) => {
+    const m = await imp("core/auth/sessions.js");
+    const hydrated = await m.refreshNotificationPreferenceIndex();
+    return { hydrated, record: m.getNotificationPreferences(key) };
+  },
+  // The dispatch gate itself, measured after a restart: the child hydrates, then
+  // tries to deliver a suppressed category. `delivered: false` is the claim — a
+  // restored opt-out still refuses, so the inbox cannot fill up with categories
+  // the user switched off just because the process restarted. The child stages
+  // the write in its own journal and exits without flushing, so nothing lands.
+  inAppDispatchAfterRestart: async (key) => {
+    const m = await imp("core/auth/sessions.js");
+    const hydrated = await m.refreshNotificationPreferenceIndex();
+    const separator = key.indexOf(":");
+    const userId = key.slice(0, separator);
+    const category = key.slice(separator + 1);
+    const delivered = m.deliverInAppNotification({
+      userId,
+      category,
+      title: "Restart dispatch probe",
+      body: "This delivery attempt exists to prove the restored gate still refuses.",
+    });
+    return { hydrated, record: { delivered: delivered !== null } };
+  },
   idempotency: async (key) => {
     const m = await imp("core/websecurity/index.js");
     const hydrated = await m.refreshIdempotencyIndex();

@@ -9,3 +9,8 @@ export * from "./campaign.repository.js";
 export * from "./schedule.repository.js";
 export * from "./invoice.repository.js";
 export * from "./rights.repository.js";
+export * from "./hub.repository.js";
+export * from "./broadcast.repository.js";
+export * from "./intelligence.repository.js";
+export * from "./finance.repository.js";
+export * from "./security.repository.js";

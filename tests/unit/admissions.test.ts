@@ -182,7 +182,8 @@ describe("Phase 5: AFCA Admissions Service & Learner Workspaces", () => {
     it("renders application form (UX-APP-001 to 005) with accessible inputs and track cards", () => {
       const html = renderAdmissionsApplicationHtml("DIRECTING");
       expect(html).toContain("Learner Application & Creative Portfolio");
-      expect(html).toContain("Film Directing & Storytelling");
+      // Escaped in the HTML source, rendered as `&` to the reader.
+      expect(html).toContain("Film Directing &amp; Storytelling");
       expect(html).toContain('name="creativeTrack"');
       expect(html).toContain('name="statementOfIntent"');
       expect(html).toContain('name="ndprConsent"');

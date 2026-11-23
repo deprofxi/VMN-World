@@ -5,10 +5,21 @@
 import { randomUUID } from "node:crypto";
 import { DomainRoute, RouteContext } from "./types.js";
 import { PrivacyExportRequestSchema } from "../schemas/index.js";
-import { recordAuditLog } from "../../core/audit/index.js";
+import { recordAuditLog, getAuditLogs, verifyAuditLogChainIntegrity } from "../../core/audit/index.js";
 import { getPrismaClient } from "../../core/database/index.js";
 import { checkSharedRateLimit } from "../../core/auth/index.js";
-import { parseJsonBody, sendJson, resolveClientIp } from "../router.js";
+import { parseJsonBody, sendJson, resolveClientIp, sendHtml, readFormBodyStash } from "../router.js";
+import { renderMasterLayout } from "../../web/public/dashboard.js";
+import { renderAuditDeskHtml } from "../../web/workspace/audit-desk.js";
+import { renderGovernanceGrcDeskHtml } from "../../web/workspace/governance-grc-desk.js";
+import { renderClientProjectsListHtml } from "../../web/portal/client-portal.js";
+import { renderVtmMarketplaceHtml } from "../../web/portal/vtm-portal.js";
+import {
+  renderLearningPlanHtml,
+  renderAssignmentSubmissionHtml,
+  renderFacultyGradingRubricHtml,
+} from "../../web/workspace/afca-extended-lms.js";
+import { issueCsrfToken } from "../../core/websecurity/index.js";
 
 /**
  * AUD-08: a data-subject request must not claim a processing lifecycle that
@@ -158,6 +169,206 @@ export const privacyRoutes: DomainRoute[] = [
         request: request || null,
         message: request ? "Request recorded; archive generation is not implemented and the request does not progress through any queue." : "No export request exists for this account.",
       });
+      return true;
+    },
+  },
+
+  // --------------------------------------------------------------------------
+  // Wave 4: Cryptographic Audit Trail Explorer Desk
+  // --------------------------------------------------------------------------
+  {
+    method: "GET",
+    pathname: "/workspace/admin/audit",
+    handle: async ({ res, user, parsedUrl }: RouteContext) => {
+      const csrfToken = issueCsrfToken();
+      const message = parsedUrl.searchParams.get("msg") || undefined;
+      const logs = (await getAuditLogs()).slice(-50).reverse();
+      const verification = verifyAuditLogChainIntegrity();
+
+      const body = renderAuditDeskHtml({
+        logs,
+        verification,
+        csrfToken,
+        user,
+        message,
+      });
+
+      const html = renderMasterLayout("Cryptographic Audit Trail | VMN Enterprise", body, "/workspace/admin/audit", {
+        sessionUser: user || null,
+        shell: "work",
+      });
+
+      await sendHtml(res, 200, html);
+      return true;
+    },
+  },
+
+  // --------------------------------------------------------------------------
+  // Wave 4: GRC Risk & Privacy Governance Desk
+  // --------------------------------------------------------------------------
+  {
+    method: "GET",
+    pathname: "/workspace/governance/registers",
+    handle: async ({ res, user, parsedUrl }: RouteContext) => {
+      const csrfToken = issueCsrfToken();
+      const message = parsedUrl.searchParams.get("msg") || undefined;
+
+      const body = renderGovernanceGrcDeskHtml({
+        csrfToken,
+        user,
+        message,
+      });
+
+      const html = renderMasterLayout("Enterprise Risk & Governance Registers | VMN Enterprise", body, "/workspace/governance/registers", {
+        sessionUser: user || null,
+        shell: "work",
+      });
+
+      await sendHtml(res, 200, html);
+      return true;
+    },
+  },
+  {
+    method: "POST",
+    pathname: "/api/v1/governance/risks",
+    handle: async ({ req, res, user }: RouteContext) => {
+      const raw = await readFormBodyStash(req);
+      const params = new URLSearchParams(raw);
+      const title = params.get("title") || "Untitled Risk";
+      const category = params.get("category") || "BROADCAST_OPERATIONS";
+      const impact = params.get("impact") || "MEDIUM";
+      const mitigation = params.get("mitigation") || "Standard Runbook Control";
+
+      recordAuditLog({
+        action: "create",
+        resource: "risk",
+        userId: user?.userId || "usr_risk_officer",
+        changes: { title, category, impact, mitigation },
+      });
+
+      res.writeHead(303, { Location: "/workspace/governance/registers?msg=Enterprise+Risk+Logged+Successfully" });
+      res.end();
+      return true;
+    },
+  },
+
+  // --------------------------------------------------------------------------
+  // Wave 3: Client & Counterparty Portal
+  // --------------------------------------------------------------------------
+  {
+    method: "GET",
+    pathname: "/portal/client",
+    handle: async ({ res, user }: RouteContext) => {
+      const orgId = user?.tenantId || "org_demo_client";
+      const body = renderClientProjectsListHtml(orgId, [
+        {
+          id: "prj_festive_2026",
+          orgId,
+          title: "Festive Season Multi-Channel Campaign 2026",
+          commercialRef: "DEAL-2026-44",
+          stage: "CONTRACT_SIGNED",
+          status: "ACTIVE",
+          contractValueNgn: 45000000,
+          depositAmountNgn: 15000000,
+          invoicedAmountNgn: 45000000,
+          cashCollectedAmountNgn: 15000000,
+          recognizedRevenueNgn: 31500000,
+          proofOfPerformanceVerified: true,
+          proofDocumentUrl: "/api/v1/commercial/deals/DEAL-2026-44/proof-certificate",
+          openedOn: "2026-11-01",
+        },
+      ]);
+
+      const html = renderMasterLayout("Client & Advertiser Portal | VMN Enterprise", body, "/portal/client", {
+        sessionUser: user || null,
+        shell: "portal",
+      });
+
+      await sendHtml(res, 200, html);
+      return true;
+    },
+  },
+
+  // --------------------------------------------------------------------------
+  // Wave 3: VTM Talent Marketplace Portal
+  // --------------------------------------------------------------------------
+  {
+    method: "GET",
+    pathname: "/portal/vtm",
+    handle: async ({ res, user }: RouteContext) => {
+      const body = renderVtmMarketplaceHtml([
+        {
+          id: "opp_lead_actress",
+          title: "Lead Actress - Lagos Rush Season 3",
+          production: "VMN OneStudios",
+          category: "Lead Dramatic Role",
+          matchScore: 98,
+          budgetPerDayNgn: 450000,
+          buyoutTier: "REGIONAL_PAYTV",
+        },
+        {
+          id: "opp_voiceover_telecom",
+          title: "Voice-over Artist (Hausa/English) - 5G National Campaign",
+          production: "MTN Commercial Productions",
+          category: "Voice Talent",
+          matchScore: 94,
+          budgetPerDayNgn: 250000,
+          buyoutTier: "GLOBAL_ALL_MEDIA",
+        },
+      ]);
+
+      const html = renderMasterLayout("VTM Talent Marketplace | VMN Enterprise", body, "/portal/vtm", {
+        sessionUser: user || null,
+        shell: "portal",
+      });
+
+      await sendHtml(res, 200, html);
+      return true;
+    },
+  },
+
+  // --------------------------------------------------------------------------
+  // Wave 3: AFCA Academy LMS Portal
+  // --------------------------------------------------------------------------
+  {
+    method: "GET",
+    pathname: "/workspace/afca",
+    handle: async ({ res, user }: RouteContext) => {
+      const body = renderLearningPlanHtml("AFCA-CRS-101");
+      const html = renderMasterLayout("AFCA Learning Plan & Curriculum | VMN Enterprise", body, "/workspace/afca", {
+        sessionUser: user || null,
+        shell: "work",
+      });
+
+      await sendHtml(res, 200, html);
+      return true;
+    },
+  },
+  {
+    method: "GET",
+    pathname: "/workspace/afca/assignments",
+    handle: async ({ res, user }: RouteContext) => {
+      const body = renderAssignmentSubmissionHtml("ASN-CINEMA-01");
+      const html = renderMasterLayout("Submit Assignment | AFCA Academy", body, "/workspace/afca/assignments", {
+        sessionUser: user || null,
+        shell: "work",
+      });
+
+      await sendHtml(res, 200, html);
+      return true;
+    },
+  },
+  {
+    method: "GET",
+    pathname: "/workspace/afca/grading",
+    handle: async ({ res, user }: RouteContext) => {
+      const body = renderFacultyGradingRubricHtml("SUB-2026-001");
+      const html = renderMasterLayout("Faculty Grading Rubric | AFCA Academy", body, "/workspace/afca/grading", {
+        sessionUser: user || null,
+        shell: "work",
+      });
+
+      await sendHtml(res, 200, html);
       return true;
     },
   },

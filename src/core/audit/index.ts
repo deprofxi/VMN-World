@@ -54,6 +54,7 @@ let latestBlockHash = GENESIS_HASH;
 // when Redis is configured. Entries themselves remain individually hashed and
 // independently verifiable.
 let chainSequence = 0;
+let initialChainAnchor: string = GENESIS_HASH;
 const CHAIN_TAIL_KEY = "audit:chain:tail";
 
 function persistChainTail(): void {
@@ -84,6 +85,7 @@ export async function restoreAuditChainFromKv(): Promise<{ restored: boolean; se
       latestBlockHash === GENESIS_HASH
     ) {
       latestBlockHash = tail.hash;
+      initialChainAnchor = tail.hash;
       chainSequence = typeof tail.seq === "number" ? tail.seq : 0;
       return { restored: true, sequence: chainSequence };
     }
@@ -274,7 +276,7 @@ function reportDurableFailure(entryId: string, cause: unknown): void {
  */
 export function verifyAuditLogChainIntegrity(): { valid: boolean; verifiedCount: number; errors: string[] } {
   const errors: string[] = [];
-  let expectedPrev = GENESIS_HASH;
+  let expectedPrev = initialChainAnchor;
 
   for (let i = 0; i < auditLogStore.length; i++) {
     const entry = auditLogStore[i];

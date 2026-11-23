@@ -61,17 +61,17 @@ export function renderFederationGatewayHtml(): string {
       <div>
  <div class="s-JyMdrv2Xyh">
  <span class="s-6zeBjoMOQG">
-            /${u.key}/:id
+            /${escapeHtml(u.key)}/:id
           </span>
- <strong class="s-cbs63uz04T">${u.name}</strong>
+ <strong class="s-cbs63uz04T">${escapeHtml(u.name)}</strong>
  <span class="s-ocla0JHzg-">
             Azeebo+ Universe
           </span>
         </div>
- <p class="s-XrEOTi_06Q">${u.description}</p>
+ <p class="s-XrEOTi_06Q">${escapeHtml(u.description)}</p>
       </div>
  <div class="s-UK2dEq5_xu">
- <a href="/azeebo/${u.key}/sample-item-123" class="btn btn-outline s-H6xRltjStm" >
+ <a href="/azeebo/${escapeHtml(u.key)}/sample-item-123" class="btn btn-outline s-H6xRltjStm" >
           Test Resolver &rarr;
         </a>
       </div>
@@ -202,6 +202,13 @@ export function renderUniverseResolverHtml(universeKey: string, itemId: string):
   const fallbackUrl = universe?.fallbackUrl ? `${universe.fallbackUrl}/${itemId}` : undefined;
   const safeItem = escapeHtml(itemId);
   const safeFallback = fallbackUrl ? escapeHtml(fallbackUrl) : undefined;
+  // DEBT-009: both callers pass a literal from `universePrefixes`, so this key is
+  // internal today — but the parameter is typed `string`, and it is echoed into a
+  // breadcrumb and a heading (through the `universeName` fallback, which keeps the
+  // raw key in upper case). Escaping here is a no-op for the current callers and
+  // stops a future path-derived key from being reflected.
+  const safeUniverseKey = escapeHtml(universeKey);
+  const safeUniverseName = escapeHtml(universeName);
   const deepLink = `azeebo://${escapeHtml(universeKey)}/${safeItem}?utm_source=linear_broadcast&utm_medium=qr&utm_campaign=vmnl_attribution`;
 
   return `
@@ -209,7 +216,7 @@ export function renderUniverseResolverHtml(universeKey: string, itemId: string):
  <nav aria-label="Breadcrumb" class="s-37h9gF_4Xa">
  <a href="/" class="s-eyM313VDpb">Home</a> &gt; 
  <a href="/azeebo/gateway" class="s-eyM313VDpb">Azeebo+ Gateway</a> &gt; 
- <span class="s-Sug_DIv7G8">${universeKey}</span>
+ <span class="s-Sug_DIv7G8">${safeUniverseKey}</span>
     </nav>
 
  <article class="card s-jK_o8Tlc_8" >
@@ -218,7 +225,7 @@ export function renderUniverseResolverHtml(universeKey: string, itemId: string):
         <span class="vmn-badge badge-info">External Federation</span>
       </div>
  <h1 class="s-AB_wCtDT5L">
-        Resolving to ${universeName}
+        Resolving to ${safeUniverseName}
       </h1>
  <p class="s-CRVi_6ajNw">
         Resolving destination item <code>${safeItem}</code> across Azeebo+ mobile app, smart TV, or fallback web streaming.
@@ -268,10 +275,10 @@ export function renderAttributionConsoleHtml(): string {
     .map(
       (c) => `
  <tr class="s-luRfE-TINB">
- <td class="s-kMGvZT4TKF">${c.channel}</td>
+ <td class="s-kMGvZT4TKF">${escapeHtml(c.channel)}</td>
  <td class="s-HjDnslDSIb">${c.qrScans.toLocaleString()}</td>
  <td class="s-Hk14tinEEa">${c.appInstalls.toLocaleString()}</td>
- <td class="s-HjDnslDSIb"><span class="vmn-badge badge-ready">${c.conversionRate}</span></td>
+ <td class="s-HjDnslDSIb"><span class="vmn-badge badge-ready">${escapeHtml(c.conversionRate)}</span></td>
     </tr>
   `
     )

@@ -23,7 +23,9 @@ export const VMN_ENTERPRISE_PILLARS: CorporatePillar[] = [
     description:
       "Nigezie Xtreme, Orisun, and Isi Mbido channel profiles. Carriage and transmission details require independent verification.",
     keyAssets: ["Nigezie Xtreme (NXTR)", "Orisun (ORIS)", "Isi Mbido (IMBD)"],
-    route: "/channels",
+    // The channel profiles render inline on the IA overview; `/channels` is retired
+    // to it (decision D1), so the pillar links at the page that serves them.
+    route: "/media-and-audience-overview",
   },
   {
     name: "Creative Economy Hub",
@@ -40,7 +42,7 @@ export const VMN_ENTERPRISE_PILLARS: CorporatePillar[] = [
       "Fusion Events",
       "TEND Distribution",
     ],
-    route: "/hub",
+    route: "/creative-economy-hub-overview",
   },
   {
     name: "Azeebo+ Federated Service",

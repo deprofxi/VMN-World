@@ -1,0 +1,37 @@
+{
+  "doc": "VMNL-AZP-VMN-IA-001",
+  "edition": "R1.1-CONTROLLED CANDIDATE",
+  "current_date": "2026-11-04",
+  "prior_rows": 570,
+  "retained_ids": 570,
+  "added_rows": 49,
+  "total_rows": 619,
+  "original_13_fields_unchanged": true,
+  "journeys": 24,
+  "roles_ui_personas": 51,
+  "types": {
+    "PAGE": 243,
+    "STATE": 118,
+    "DIALOG": 96,
+    "TAB": 12,
+    "DASHBOARD": 71,
+    "WIZARD": 44,
+    "CONTENT_INSTANCE": 35
+  },
+  "brands_checked": 35,
+  "sops_checked": 161,
+  "playbooks_checked": 16,
+  "original_S01_S30_mappings_checked": 30,
+  "components": 48,
+  "golden_flows": 18,
+  "source_domains": 16,
+  "xlsx_sheets": 21,
+  "tests_run": "DATA/STRUCTURE ONLY; USER/PRODUCT UAT NOT RUN",
+  "artifact_sha256": {
+    "VMN_World_Role_Based_IA_R1.1_Master.xlsx": "6c5d9660f118dd992772e33385e85ca8a968f0549eadd4bb978665d4cdbfa6f9",
+    "VMN_World_IA_R1.1_Complete_Screen_Architecture.md": "10719eb1fdb73d748d025b721b895060fa3b83926a12493dfd1ed2a5af4bbeb9",
+    "VMN_World_IA_R1.1_Full_Engineering_Inventory.csv": "1e8a217f8cd6ff61117e2aeea5c7fb00fa9a7251521658f5f25c5877753df895",
+    "VMN_World_IA_R1.1_Developer_Handoff.json": "b6f2d8efc9cd4cc4f05a9f3b8843c211cad82699a05487e2191f45e1dbbb1bbc",
+    "VMN_World_IA_R1.1_Architectural_Review.md": "68e60ea4ce0c6b8410f30b78842002cbb077e75dd2075f714fd36ae27f5b9b0a"
+  }
+}

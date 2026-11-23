@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+@layer base {
+  /* VMN Enterprise Theme Foundations */
+  :root {
+    --vmn-primary: #174C3C;
+    --vmn-primary-hover: #0E2B20;
+    --vmn-brand-red: #E50914;
+    --vmn-accent-gold: #FFB800;
+  }
+}

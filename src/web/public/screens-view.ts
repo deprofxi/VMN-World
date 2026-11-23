@@ -10,7 +10,7 @@
  */
 
 import { BROADCAST_SCREEN_INVENTORY, getScreenDescriptorById } from "../../modules/broadcast/screens/index.js";
-import { renderIcon } from "../components/index.js";
+import { escapeHtml, renderIcon } from "../components/index.js";
 
 const ROLE_COLORS: Record<string, { bg: string; text: string; border: string }> = {
   ExecutiveLeader: { bg: "#EEF2FF", text: "#4338CA", border: "#C7D2FE" },
@@ -23,7 +23,9 @@ const ROLE_COLORS: Record<string, { bg: string; text: string; border: string }> 
 
 function getRoleBadge(role: string): string {
   const style = ROLE_COLORS[role] || { bg: "#F1F5F9", text: "#334155", border: "#CBD5E1" };
-  return `<span class="vmn-role-badge" style="background:${style.bg}; color:${style.text}; border:1px solid ${style.border}; padding:4px 10px; border-radius:9999px; font-size:0.75rem; font-weight:700;">${role}</span>`;
+  // DEBT-009: callers pass inventory roles today, but the helper takes a string
+  // and a future caller may hand it a request-derived role.
+  return `<span class="vmn-role-badge" style="background:${escapeHtml(style.bg)}; color:${escapeHtml(style.text)}; border:1px solid ${escapeHtml(style.border)}; padding:4px 10px; border-radius:9999px; font-size:0.75rem; font-weight:700;">${escapeHtml(role)}</span>`;
 }
 
 export function renderScreensCatalogHtml(selectedRole?: string): string {
@@ -33,36 +35,36 @@ export function renderScreensCatalogHtml(selectedRole?: string): string {
     : BROADCAST_SCREEN_INVENTORY;
 
   const roleFilterButtons = [
-    `<a href="/broadcast/screens" class="btn ${!selectedRole ? "btn-primary" : "btn-outline"}" style="min-height:44px; padding:8px 16px; font-size:0.85rem; display:inline-flex; align-items:center;">All (${BROADCAST_SCREEN_INVENTORY.length})</a>`,
+    `<a href="/broadcast/screens" class="btn ${!selectedRole ? "btn-primary" : "btn-outline"}" style="min-height:44px; padding:8px 16px; font-size:0.85rem; display:inline-flex; align-items:center;">All (${escapeHtml(BROADCAST_SCREEN_INVENTORY.length)})</a>`,
     ...allRoles.map((role) => {
       const count = BROADCAST_SCREEN_INVENTORY.filter((s) => s.primaryRole === role).length;
       const isSelected = selectedRole?.toLowerCase() === role.toLowerCase();
-      return `<a href="/broadcast/screens?role=${encodeURIComponent(role)}" class="btn ${isSelected ? "btn-primary" : "btn-outline"}" style="min-height:44px; padding:8px 16px; font-size:0.85rem; display:inline-flex; align-items:center;">${role} (${count})</a>`;
+      return `<a href="/broadcast/screens?role=${encodeURIComponent(role)}" class="btn ${isSelected ? "btn-primary" : "btn-outline"}" style="min-height:44px; padding:8px 16px; font-size:0.85rem; display:inline-flex; align-items:center;">${escapeHtml(role)} (${escapeHtml(count)})</a>`;
     }),
   ].join("\n");
 
   const cardsHtml = filtered
     .map((s) => {
       const actions = s.permittedActions
-        .map((a) => `<span class="s-X260Zgjd7H">${a}</span>`)
+        .map((a) => `<span class="s-X260Zgjd7H">${escapeHtml(a)}</span>`)
         .join(" ");
 
       return `
       <article class="card screen-card s-spUOT7_p0i">
         <div>
           <div class="s-NUy8-yU6ON">
-            <span class="s-t92pYwkrKO">${s.screenId}</span>
-            <span class="s-54HfO3lJ9A">#${s.screenNumber}</span>
+            <span class="s-t92pYwkrKO">${escapeHtml(s.screenId)}</span>
+            <span class="s-54HfO3lJ9A">#${escapeHtml(s.screenNumber)}</span>
           </div>
           <h3 class="s-XSOc80whyS">
-            <a href="/broadcast/screens/${s.screenId}" style="text-decoration:none; color:var(--vmn-text-main); font-weight:700;">${s.name}</a>
+            <a href="/broadcast/screens/${escapeHtml(s.screenId)}" style="text-decoration:none; color:var(--vmn-text-main); font-weight:700;">${escapeHtml(s.name)}</a>
           </h3>
-          <p class="s-q7pcEDpDO4">${s.description}</p>
+          <p class="s-q7pcEDpDO4">${escapeHtml(s.description)}</p>
         </div>
         
         <div>
           <div class="s-PvH6GqES8f">
-            <code class="s-X2rkPCg1Qw">${s.route}</code>
+            <code class="s-X2rkPCg1Qw">${escapeHtml(s.route)}</code>
           </div>
           <div class="s-wUW2k9hp6I">
             ${getRoleBadge(s.primaryRole)}
@@ -71,8 +73,8 @@ export function renderScreensCatalogHtml(selectedRole?: string): string {
             ${actions}
           </div>
           <div class="s-UK2dEq5_xu">
-            <a href="/broadcast/screens/${s.screenId}" class="btn btn-outline" style="flex:1; min-height:44px; text-align:center; font-size:0.875rem;">View Spec</a>
-            <a href="${s.route.includes(":") ? `/broadcast/screens/${s.screenId}` : s.route}" class="btn btn-primary" style="flex:1; min-height:44px; text-align:center; font-size:0.875rem;">Launch &rarr;</a>
+            <a href="/broadcast/screens/${escapeHtml(s.screenId)}" class="btn btn-outline" style="flex:1; min-height:44px; text-align:center; font-size:0.875rem;">View Spec</a>
+            <a href="${s.route.includes(":") ? `/broadcast/screens/${escapeHtml(s.screenId)}` : s.route}" class="btn btn-primary" style="flex:1; min-height:44px; text-align:center; font-size:0.875rem;">Launch &rarr;</a>
           </div>
         </div>
       </article>
@@ -143,7 +145,7 @@ export function renderScreenDetailHtml(screenId: string): string {
       <div class="s-2zt_VCDZro">${renderIcon("alert", { size: 48 })}</div>
       <h1 class="s-ZUjcf9NYmn">Screen Surface Not Found</h1>
       <p class="s-PID--WkAe7">
-        No operational screen was found matching identifier "<strong>${screenId}</strong>" in the VMNL R1.2A (§46) inventory.
+        No operational screen was found matching identifier "<strong>${escapeHtml(screenId)}</strong>" in the VMNL R1.2A (§46) inventory.
       </p>
       <a href="/broadcast/screens" class="btn btn-primary s-YWPkqV3VsB">Return to Screen Inventory</a>
     </section>
@@ -156,7 +158,7 @@ export function renderScreenDetailHtml(screenId: string): string {
       (a) => `
       <li class="s-5Pe8l22-rN">
         <span class="s-Vj9aNyBJeO">&bull;</span>
-        <code class="s-MO_TsUeSK7">${a}</code>
+        <code class="s-MO_TsUeSK7">${escapeHtml(a)}</code>
       </li>
     `
     )
@@ -166,11 +168,11 @@ export function renderScreenDetailHtml(screenId: string): string {
   const nextScreenNum = descriptor.screenNumber < 33 ? descriptor.screenNumber + 1 : null;
 
   const prevLink = prevScreenNum
-    ? `<a href="/broadcast/screens/SCR-BCST-${String(prevScreenNum).padStart(2, "0")}" class="btn btn-outline" style="font-size:0.875rem;">&larr; Prev (#${prevScreenNum})</a>`
+    ? `<a href="/broadcast/screens/SCR-BCST-${String(prevScreenNum).padStart(2, "0")}" class="btn btn-outline" style="font-size:0.875rem;">&larr; Prev (#${escapeHtml(prevScreenNum)})</a>`
     : `<span class="btn btn-outline s-fUoqNgXNkS">&larr; Prev</span>`;
 
   const nextLink = nextScreenNum
-    ? `<a href="/broadcast/screens/SCR-BCST-${String(nextScreenNum).padStart(2, "0")}" class="btn btn-outline" style="font-size:0.875rem;">Next (#${nextScreenNum}) &rarr;</a>`
+    ? `<a href="/broadcast/screens/SCR-BCST-${String(nextScreenNum).padStart(2, "0")}" class="btn btn-outline" style="font-size:0.875rem;">Next (#${escapeHtml(nextScreenNum)}) &rarr;</a>`
     : `<span class="btn btn-outline s-fUoqNgXNkS">Next &rarr;</span>`;
 
   return `
@@ -181,7 +183,7 @@ export function renderScreenDetailHtml(screenId: string): string {
         <a class="s-v8cyEOQoqd" href="/">Home</a> &gt; 
         <a class="s-v8cyEOQoqd" href="/broadcast/dashboard">Broadcast</a> &gt; 
         <a class="s-v8cyEOQoqd" href="/broadcast/screens">Screens</a> &gt; 
-        <span>${descriptor.screenId}</span>
+        <span>${escapeHtml(descriptor.screenId)}</span>
       </nav>
       <div class="s-UK2dEq5_xu">
         ${prevLink}
@@ -196,17 +198,17 @@ export function renderScreenDetailHtml(screenId: string): string {
         <div>
           <div class="s-8BhWLFy0Sw">
             <span class="s-kgjsJK4ewZ">
-              ${descriptor.screenId}
+              ${escapeHtml(descriptor.screenId)}
             </span>
             <span class="s-vRbL09if9G">
-              Screen #${descriptor.screenNumber} of 33
+              Screen #${escapeHtml(descriptor.screenNumber)} of 33
             </span>
           </div>
           <h1 class="s-AB_wCtDT5L">
-            ${descriptor.name}
+            ${escapeHtml(descriptor.name)}
           </h1>
           <p class="s-EdjnyvpuOU">
-            ${descriptor.description}
+            ${escapeHtml(descriptor.description)}
           </p>
         </div>
         <div class="s-numIUTWRO1">
@@ -224,15 +226,15 @@ export function renderScreenDetailHtml(screenId: string): string {
             Operational Route / URI
           </h2>
           <code class="s-M4HT1j7Y4a">
-            ${descriptor.route}
+            ${escapeHtml(descriptor.route)}
           </code>
         </div>
         <div>
           <h2 class="s-htKo0vsOr5">
             Primary Responsible Role
           </h2>
-          <div style="padding:10px 14px; background:${roleStyle.bg}; border:1px solid ${roleStyle.border}; border-radius:6px; color:${roleStyle.text}; font-weight:700; font-size:0.95rem;">
-            ${descriptor.primaryRole}
+          <div style="padding:10px 14px; background:${escapeHtml(roleStyle.bg)}; border:1px solid ${escapeHtml(roleStyle.border)}; border-radius:6px; color:${escapeHtml(roleStyle.text)}; font-weight:700; font-size:0.95rem;">
+            ${escapeHtml(descriptor.primaryRole)}
           </div>
         </div>
       </div>

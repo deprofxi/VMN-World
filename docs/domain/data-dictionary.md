@@ -24,7 +24,7 @@ and every `file:line` citation in this file and in `canonical-model.md`.
 | Layer | What it is | Count | Command (§7) |
 |:---|:---|--:|:---|
 | Prisma `enum` | Database-enforced member sets | **10 enums / 44 members / 12 fields** | `grep -c "^enum " prisma/schema.prisma` |
-| TypeScript string unions | The vocabulary the running code type-checks against | **49 distinct state-shaped union names / 227 members** | §7 |
+| TypeScript string unions | The vocabulary the running code type-checks against | **50 distinct state-shaped union names / 229 members** | §7 |
 | Bare `String` columns with an uppercase default | State carried with no enumeration at all | **11 columns** | §7 |
 | `code:` response literals | Machine-readable codes returned to clients | **113 distinct** | §7 |
 | Bracketed traceability tags `[FAMILY-CODE-nn]` | Register/audit identifiers embedded in code and messages | **184 distinct across 24 families** (194 occurrences) | §7 |
@@ -151,16 +151,16 @@ registered as TSK-59.
 
 | Fact | Count | Source |
 |:---|--:|:---|
-| `DateTime` columns | **110** | `prisma/schema.prisma` |
+| `DateTime` columns | **113** | `prisma/schema.prisma` — 110 at the 2026-10-17 pin, +3 on 2026-11-19: `InAppNotificationRecord.createdAt`/`readAt` and `NotificationPreferenceRecord.updatedAt` (the in-app inbox and its dispatch gate, UX-HUB-003 / UX-SYS-012). `readAt` is nullable and written from the domain record, never re-derived, because a notification that comes back unread after a restart is the defect the row removes |
 | …with `@default(now())` | 26 | `grep -c "@default(now())" prisma/schema.prisma` |
 | …with `@updatedAt` | 18 | `grep -c "@updatedAt" prisma/schema.prisma` |
-| `new Date()` lines in `src/` | 258 | `grep -rn "new Date()" --include='*.ts' src/ \| wc -l` — re-measured 2026-10-17 (+1: the release gate's evidence-freshness policy needs a clock, `src/modules/quality/gates.ts`; 257 after PR-08's SigV4 AMZ date and 254 at the 2026-10-12 pin). The register's closed tasks move this number on every increment, so it is a measurement, not a constant |
-| `.toISOString()` lines | 110 | §7 — re-measured 2026-10-17 (+2: the signed release manifest serialises `signedAt` and `evaluatedAt` so the signature covers the instants it attests, `src/modules/quality/artifact.ts`; 108 after PR-08's SigV4 date string, 107 at the 2026-10-12 pin) |
-| `Date.now()` lines | 134 | §7 — re-measured 2026-10-16 (132 at the 2026-10-10 pin, +2: the readiness probe's cache TTL and its probe deadline) |
+| `new Date()` lines in `src/` | 311 | `grep -rn "new Date()" --include='*.ts' src/ \| wc -l` — re-measured 2026-11-22 (+8 across playout automation adapters, automated banking gateway, SCTE-35 coordinator, and Azeebo+ federation SSO; 303 at the 2026-11-21 pin) |
+| `.toISOString()` lines | 132 | §7 — re-measured 2026-11-21 (+16 across route responses and state serialization; 116 at the 2026-11-19 pin) |
+| `Date.now()` lines | 170 | §7 — re-measured 2026-11-22 (+3 across session nonce generators and heartbeat timestamps; 167 at the 2026-11-21 pin) |
 
 Counts are **matching lines**, the rule `grep -rn … | wc -l` applies, not total occurrences.
 
-There is no clock abstraction: timestamps are taken from the process clock at 258 `new Date()` lines,
+There is no clock abstraction: timestamps are taken from the process clock at 311 `new Date()` lines,
 which is why
 every lifecycle test in `tests/` that needs a window boundary injects explicit ISO dates into the
 fixture rather than relying on wall time (`tests/unit/broadcast-schedule-lifecycle.test.ts`,
@@ -180,8 +180,8 @@ an instant).
 | Application-minted ids | 11 `randomUUID()` call sites across 7 files in `src/` |
 | Prefixed ids | 4 template prefixes actually used: `` `usr-${…}` ``, `` `per-${…}` ``, `` `msg-${…}` ``, `` `rrr-${…}` ``. Identity is the clearest case — `src/core/auth/index.ts:632` mints `` personId: `per-${randomUUID()}` `` for a `Person` row that is never created (`canonical-model.md` §4, 1.1) |
 | Literal business codes | 18 distinct `"XXX-YYYY"` literals in `src/` (e.g. `CHN-NXTR` `src/db/seeds/golden/index.ts:33`), i.e. code-like ids exist but are seeded, not generated |
-| Channel codes | A single source of truth: `CANONICAL_CHANNELS` (`src/modules/broadcast/channels/index.ts:26`) defines exactly three — `NXTR` `:30`, `ORIS` `:50`, `IMBD` `:67`. The public site repeats the same three as its own union (`src/web/public/channels.ts:10`), so the vocabulary is consistent while the *declaration* is duplicated |
-| Non-`id` natural keys | `@unique`/`@@unique` appears in **26 of 43** model blocks (§2 of `canonical-model.md` prints it per model); the 17 that have **no unique key at all** are `RightsRecord`, `Evidence`, `AuditLog`, `AsRunLogRecord`, `BankStatementRecord` and, from the TSK-17 block, `ApprovalItem`, `PrivacySecurityCase`, `RiskRecord`, `IssueRecord`, `AzeeboDestination`, `MediaAssetRecord`, `SessionRecord`, `IdempotencyRecord`, `ContentItemRecord`, `JournalEntryRecord`, `SponsorBindingRecord` and TSK-60's `SalesDealRecord` — their primary key *is* the application-minted domain id, so a second unique column would assert a constraint nothing owns. Which is what makes the rights registry's id-based resolution (`src/core/database/repositories/rights.repository.ts:123`) the only thing standing between duplicate windows and a cleared slot |
+| Channel codes | A single source of truth: `CANONICAL_CHANNELS` (`src/modules/broadcast/channels/index.ts:26`) defines exactly three — `NXTR` `:30`, `ORIS` `:50`, `IMBD` `:67`. The public site repeats the same three as its own union (`src/web/public/channels.ts:11`), so the vocabulary is consistent while the *declaration* is duplicated |
+| Non-`id` natural keys | `@unique`/`@@unique` appears in **26 of 45** model blocks (§2 of `canonical-model.md` prints it per model); the 19 that have **no unique key at all** are `RightsRecord`, `Evidence`, `AuditLog`, `AsRunLogRecord`, `BankStatementRecord` and, from the TSK-17 block, `ApprovalItem`, `PrivacySecurityCase`, `RiskRecord`, `IssueRecord`, `AzeeboDestination`, `MediaAssetRecord`, `SessionRecord`, `IdempotencyRecord`, `ContentItemRecord`, `JournalEntryRecord`, `SponsorBindingRecord`, TSK-60's `SalesDealRecord` and 2026-11-19's `InAppNotificationRecord` / `NotificationPreferenceRecord` — their primary key *is* the application-minted domain id, so a second unique column would assert a constraint nothing owns. Which is what makes the rights registry's id-based resolution (`src/core/database/repositories/rights.repository.ts:123`) the only thing standing between duplicate windows and a cleared slot |
 
 ---
 
@@ -211,8 +211,8 @@ were removed rather than renamed. A code identifies an implemented refusal, not 
 **Machine-readable API codes** — `UPPER_SNAKE` values returned as `code`. **117 distinct** in `src/`,
 emitted as object literals (`code: "RIGHTS_NOT_CLEARED_AT_EXPORT"`
 `src/modules/broadcast/export/epg.ts:96`, `code: "CANONICAL_CONTRACT_WORKFLOW_UNAVAILABLE"`
-`src/api/router.ts:4200`, `code: "AUTH_TOKEN_REQUIRED"`). This set includes three values that are
-channel codes rather than errors (`NXTR`, `ORIS`, `IMBD`, `src/web/public/channels.ts:10`) — the same
+`src/api/router.ts:4253`, `code: "AUTH_TOKEN_REQUIRED"`). This set includes three values that are
+channel codes rather than errors (`NXTR`, `ORIS`, `IMBD`, `src/web/public/channels.ts:11`) — the same
 `code` field name is used for both, which is a naming collision worth knowing before a client tries to
 branch on it.
 
@@ -252,7 +252,7 @@ grep -cE '^\s+\w*(Ngn|Kobo)\w*\s+(Int|Float)' prisma/schema.prisma        # → 
 grep -rhoE '\b[a-zA-Z_]\w*Ngn\b' --include='*.ts' src/ | sort -u | wc -l  # → 96
 
 # §5 time / §6 identifiers
-grep -cE '^\s+\w+\s+DateTime' prisma/schema.prisma                       # → 110
+grep -cE '^\s+\w+\s+DateTime' prisma/schema.prisma                       # → 113
 grep -c "@default(uuid())" prisma/schema.prisma                          # → 27
 grep -rn "randomUUID()" --include='*.ts' src/ | wc -l                    # → 11
 

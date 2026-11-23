@@ -100,13 +100,32 @@ describe("Phase 7: Public Digital Surfaces & User Experience", () => {
   });
 
   describe("TASK-P7-01: Public VMN Corporate Portal", () => {
-    it("renders the mobile menu trigger as keyboard reachable and the drawer initially hidden", () => {
+    it("ships the mobile trigger and its no-JS fallback, not a second copy of the nav", () => {
       const html = renderMasterLayout("Public Page", "<p>Body</p>", "/");
+
+      // The trigger is a real button in the header, and it is not removed from
+      // the tab order (the old assertion guarded a `tabindex="-1"` regression).
       expect(html).toContain('id="vmn-mobile-menu-btn"');
-      expect(html).toContain('aria-controls="vmn-mobile-drawer"');
       expect(html).toContain('aria-expanded="false"');
-      expect(html).not.toContain('id="vmn-mobile-menu-btn" class="vmn-hamburger-btn" type="button" aria-label="Open Navigation Drawer" aria-controls="vmn-mobile-drawer" aria-expanded="false" title="Open Navigation Menu" tabindex="-1"');
-      expect(html).toContain('id="vmn-mobile-drawer" class="vmn-mobile-drawer" aria-label="Mobile Navigation" aria-hidden="true" inert');
+      expect(html).not.toContain('tabindex="-1"');
+
+      // The drawer, its backdrop and the sticky action bar are built by
+      // /assets/app.js from the header nav, so the server ships neither the
+      // elements nor an aria-controls pointing at one that does not exist yet.
+      expect(html).not.toContain('id="vmn-mobile-drawer"');
+      expect(html).not.toContain('id="vmn-drawer-backdrop"');
+      expect(html).not.toContain('aria-controls');
+      expect(html).not.toContain('vmn-mobile-action-bar');
+      expect(html).not.toContain('vmn-drawer-link');
+
+      // One nav list, in the header, is the only copy of the nine destinations.
+      expect((html.match(/nav class="vmn-nav-links"/g) ?? []).length).toBe(1);
+
+      // No-JS: the stylesheet's collapsed nav comes back as a wrapped list and
+      // the trigger disappears rather than sitting there unable to open anything.
+      expect(html).toContain("<noscript><style>");
+      expect(html).toContain("nav.vmn-nav-links{display:flex!important");
+      expect(html).toContain(".vmn-hamburger-btn{display:none!important}");
     });
 
   it("provides SEO structured metadata and three enterprise pillars overview", () => {

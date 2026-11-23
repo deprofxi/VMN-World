@@ -84,7 +84,7 @@ describe("T-19 (B-15): 33 Operational Broadcast Screen Surfaces", () => {
     const asRunScreen = BROADCAST_SCREEN_INVENTORY.find((s) => s.screenId === "SCR-BCST-24")!;
     const html = renderBroadcastScreenHtml(asRunScreen, {}, "TrafficManager");
 
-    expect(html).toContain("As-Run Log Ingestion & Reconciliation");
+    expect(html).toContain("As-Run Log Ingestion &amp; Reconciliation");
     expect(html).toContain("SCR-BCST-24");
     expect(html).toContain("TrafficManager");
     expect(html).toContain("ingest_log");
@@ -110,15 +110,16 @@ describe("T-19 (B-15): 33 Operational Broadcast Screen Surfaces", () => {
     // Duty stations rail checks (§4.2)
     expect(html).toContain("Duty Stations (§4.2)");
     expect(html).toContain("Commissioning");
-    expect(html).toContain("Catalogue & Rights");
+    expect(html).toContain("Catalogue &amp; Rights");
     expect(html).toContain("Scheduling");
-    expect(html).toContain("Traffic & Inventory");
+    // Escaped in the HTML source; the browser renders `&`.
+    expect(html).toContain("Traffic &amp; Inventory");
     expect(html).toContain("Playout");
-    expect(html).toContain("Transmission & Carriage");
-    expect(html).toContain("Proof & Reconciliation");
+    expect(html).toContain("Transmission &amp; Carriage");
+    expect(html).toContain("Proof &amp; Reconciliation");
     expect(html).toContain("Revenue");
     expect(html).toContain("Analytics");
-    expect(html).toContain("Continuity & Command");
+    expect(html).toContain("Continuity &amp; Command");
   });
 
   it("renders distinct, accessible empty, error, and loading states per screen (DT-404)", () => {

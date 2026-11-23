@@ -24,7 +24,7 @@ import type { ApprovalItem } from "../../approvals/index.js";
 import type { PrivacySecurityCase } from "../../cases/index.js";
 import type { AzeeboDestination } from "../../federation/destinations.js";
 import type { IssueRecord, RiskRecord } from "../../work/index.js";
-import type { SessionRecord } from "../../auth/sessions.js";
+import type { InboxNotificationRecord, NotificationPreferences, SessionRecord } from "../../auth/sessions.js";
 import type { IdempotencyRecord } from "../../websecurity/index.js";
 import type { MediaAssetRecord } from "../../storage/index.js";
 import type {
@@ -70,9 +70,20 @@ function asRequiredJson(value: unknown): Prisma.InputJsonValue {
 // CommercialEnquiry — VS-RL1-01 / HX-01 enquiry intake
 // ---------------------------------------------------------------------------
 
+/**
+ * The idempotency key is the identity of a *logical* submission (the intake
+ * deduplicates on it in-process, and boot hydration rebuilds that index from
+ * these rows), so the durable write is keyed on it when one exists: a replayed
+ * submission after a restart or a lost drain resolves to the same row instead
+ * of colliding on the `idempotencyKey` unique index — a collision that would
+ * otherwise fail the whole journal transaction (P2002) and, fail-closed, the
+ * request. Records without a key (drill fixtures) fall back to their row id.
+ */
 export async function persistCommercialEnquiry(record: EnquiryRecord): Promise<void> {
   await getPrismaClient().commercialEnquiry.upsert({
-    where: { id: record.id },
+    where: record.idempotencyKey
+      ? { idempotencyKey: record.idempotencyKey }
+      : { id: record.id },
     create: {
       id: record.id,
       reference: record.reference,
@@ -1128,5 +1139,111 @@ export async function loadAuditLogRows(query: AuditLogQuery): Promise<AuditLogRo
     userAgent: row.userAgent,
     createdAt: row.createdAt,
     changesJson: row.changesJson,
+  }));
+}
+
+// ---------------------------------------------------------------------------
+// InAppNotificationRecord — UX-HUB-003 in-app inbox
+// ---------------------------------------------------------------------------
+
+/**
+ * The inbox was a process `Map`, so a restart emptied it and a notification the
+ * desk had not yet read came back as if it had never been sent. The row is
+ * keyed by the id the dispatcher minted, which is what keeps a hydrated inbox
+ * identical to the one the reader was looking at.
+ *
+ * `readAt` is written from the domain record and read back verbatim: a
+ * notification that reappears unread after a restart would be the defect this
+ * table exists to remove, so nothing re-derives it.
+ */
+export async function persistInAppNotification(record: InboxNotificationRecord): Promise<void> {
+  const state = {
+    userId: record.userId,
+    category: record.category,
+    title: record.title,
+    body: record.body,
+    route: record.route ?? null,
+    createdAt: new Date(record.createdAt),
+    readAt: record.readAt ? new Date(record.readAt) : null,
+  };
+  await getPrismaClient().inAppNotificationRecord.upsert({
+    where: { id: record.id },
+    create: { id: record.id, ...state },
+    update: state,
+  });
+}
+
+/** Oldest first, so the hydrated index can rebuild the newest-first read order. */
+export async function loadInAppNotifications(): Promise<InboxNotificationRecord[]> {
+  const rows = await getPrismaClient().inAppNotificationRecord.findMany({
+    orderBy: { createdAt: "asc" },
+  });
+  return rows.map((row) => ({
+    id: row.id,
+    userId: row.userId,
+    category: row.category as InboxNotificationRecord["category"],
+    title: row.title,
+    body: row.body,
+    ...(row.route ? { route: row.route } : {}),
+    createdAt: row.createdAt,
+    readAt: row.readAt,
+  }));
+}
+
+// ---------------------------------------------------------------------------
+// NotificationPreferenceRecord — UX-SYS-012 dispatch gate
+// ---------------------------------------------------------------------------
+
+/**
+ * The preferences are not a display concern: they are the gate the dispatcher
+ * consults before it writes anything. While they lived in a `Map`, a restart
+ * reset every opt-out to the defaults, so an opted-out category was delivered
+ * after every deploy — dispatch behaviour changed with the process, not with the
+ * user's choice. One row per user, replaced whole on save.
+ */
+export async function persistNotificationPreferences(
+  userId: string,
+  preferences: NotificationPreferences
+): Promise<void> {
+  const state = {
+    email: preferences.email,
+    sms: preferences.sms,
+    inApp: preferences.inApp,
+    playoutDisruption: preferences.categories.playoutDisruption,
+    rightsBlocks: preferences.categories.rightsBlocks,
+    financeApprovals: preferences.categories.financeApprovals,
+    admissionsDecisions: preferences.categories.admissionsDecisions,
+    updatedAt: new Date(preferences.updatedAt),
+  };
+  await getPrismaClient().notificationPreferenceRecord.upsert({
+    where: { userId },
+    create: { userId, ...state },
+    update: state,
+  });
+}
+
+export interface StoredNotificationPreferences {
+  userId: string;
+  preferences: NotificationPreferences;
+}
+
+export async function loadNotificationPreferences(): Promise<StoredNotificationPreferences[]> {
+  const rows = await getPrismaClient().notificationPreferenceRecord.findMany({
+    orderBy: { userId: "asc" },
+  });
+  return rows.map((row) => ({
+    userId: row.userId,
+    preferences: {
+      email: row.email,
+      sms: row.sms,
+      inApp: row.inApp,
+      categories: {
+        playoutDisruption: row.playoutDisruption,
+        rightsBlocks: row.rightsBlocks,
+        financeApprovals: row.financeApprovals,
+        admissionsDecisions: row.admissionsDecisions,
+      },
+      updatedAt: row.updatedAt,
+    },
   }));
 }

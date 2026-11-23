@@ -174,8 +174,8 @@ export function renderVtmPaymentVisibilityHtml(projection: VtmPaymentVisibilityP
  <div class="s-sRpO5MaMLv">
  <div class="vmn-card s-Ur9k9UL2FN" >
  <div class="s-cU3Cr5m8eq">Contracts</div>
- <div class="s-vu7vwqr--r">${projection.summary.contracts}</div>
- <div class="s-wUMD0XWoZI">${projection.summary.deployable} deployable · ${projection.summary.blocked} blocked · ${projection.summary.reviewRequired} review</div>
+ <div class="s-vu7vwqr--r">${escapeHtml(projection.summary.contracts)}</div>
+ <div class="s-wUMD0XWoZI">${escapeHtml(projection.summary.deployable)} deployable · ${escapeHtml(projection.summary.blocked)} blocked · ${escapeHtml(projection.summary.reviewRequired)} review</div>
       </div>
  <div class="vmn-card s-Ur9k9UL2FN" >
  <div class="s-cU3Cr5m8eq">Escrow Held (restricted)</div>
@@ -200,7 +200,7 @@ export function renderVtmPaymentVisibilityHtml(projection: VtmPaymentVisibilityP
  <div class="vmn-card s-QTA1yfp9QZ" >
  <div class="s-zw5ShTxO9V">
  <h2 class="s-2to96tsOZe">${escapeHtml(c.contractNumber)} — Talent ${escapeHtml(c.talentId)} / Client ${escapeHtml(c.clientId)}</h2>
-          <span class="vmn-badge ${c.readinessState === "DEPLOYABLE" ? "badge-ready" : c.readinessState === "BLOCKED" ? "badge-danger" : "badge-warning"}">READINESS: ${c.readinessState}</span>
+          <span class="vmn-badge ${c.readinessState === "DEPLOYABLE" ? "badge-ready" : c.readinessState === "BLOCKED" ? "badge-danger" : "badge-warning"}">READINESS: ${escapeHtml(c.readinessState)}</span>
         </div>
  <div class="s-0B57PT0_Oz">
           Contract value ${formatNgn(c.totalValueNgn)} · Escrow held ${formatNgn(c.escrowHeldNgn)} · Talent payable ${formatNgn(c.talentDisbursedNgn)} · Platform commission ${formatNgn(c.platformCommissionNgn)} — measures are distinct per 7-way separation and never aggregate into a single "revenue" figure.
@@ -214,7 +214,7 @@ export function renderVtmPaymentVisibilityHtml(projection: VtmPaymentVisibilityP
  <div class="s-_z5x8vd6M8">
  <div class="s-wrzqCFgz1Y">
  <span class="s-OAVpd553dT">${escapeHtml(g.gate.replace(/_/g, " "))}</span>
-              <span class="vmn-badge ${g.status === "SATISFIED" ? "badge-ready" : g.status === "OPEN" ? "badge-danger" : "badge-warning"}">${g.status}</span>
+              <span class="vmn-badge ${g.status === "SATISFIED" ? "badge-ready" : g.status === "OPEN" ? "badge-danger" : "badge-warning"}">${escapeHtml(g.status)}</span>
             </div>
  <div class="s--pYpvxyCah">${escapeHtml(g.note)}</div>
           </div>`

@@ -23,7 +23,7 @@ import { SessionUser } from "../../core/auth/index.js";
 function renderEmptyRecords(note: string): string {
   return `
  <div class="vmn-card s-jBAg6JRnQZ" >
- <p class="s-s8QClmJr6r">${note}</p>
+ <p class="s-s8QClmJr6r">${escapeHtml(note)}</p>
     </div>
   `;
 }
@@ -81,7 +81,7 @@ export function renderHeadspaceIntelligenceHtml(snapshot: HeadspaceDeskSnapshot 
  <div class="s-LKssrCZ4j1">
  <div class="vmn-card s-OAPQ4AS9-O" >
  <div class="s-cU3Cr5m8eq">Knowledge Documents</div>
- <div class="s-ykrP-ZIQ8m">${total}</div>
+ <div class="s-ykrP-ZIQ8m">${escapeHtml(total)}</div>
  <div class="s-_tdYXnR5PA">Canonical, search-indexed</div>
         </div>
  <div class="vmn-card s-OAPQ4AS9-O" >
@@ -277,7 +277,7 @@ export function renderAgenticOsConsoleHtml(snapshot: AgenticOsDeskSnapshot | und
  <div class="s-LKssrCZ4j1">
  <div class="vmn-card s-OAPQ4AS9-O" >
  <div class="s-cU3Cr5m8eq">Registered Agents</div>
- <div class="s-ykrP-ZIQ8m">${agents.length}</div>
+ <div class="s-ykrP-ZIQ8m">${escapeHtml(agents.length)}</div>
         </div>
  <div class="vmn-card s-OAPQ4AS9-O" >
  <div class="s-cU3Cr5m8eq">Pending HITL Proposals</div>
@@ -285,7 +285,7 @@ export function renderAgenticOsConsoleHtml(snapshot: AgenticOsDeskSnapshot | und
         </div>
  <div class="vmn-card s-OAPQ4AS9-O" >
  <div class="s-cU3Cr5m8eq">Audit Records</div>
- <div class="s-Am3eRxce65">${auditTrail.length}</div>
+ <div class="s-Am3eRxce65">${escapeHtml(auditTrail.length)}</div>
         </div>
       </div>
 
@@ -306,7 +306,7 @@ export function renderAgenticOsConsoleHtml(snapshot: AgenticOsDeskSnapshot | und
  <div class="s-fNfgHipnYh">
  <span class="s-Z3gWSXIolr">${escapeHtml(a.id)}</span>
                   <span class="vmn-badge ${a.killSwitchEngaged || a.status !== "ACTIVE" ? "badge-danger" : "badge-ready"}">${escapeHtml(a.killSwitchEngaged ? "KILL SWITCH ENGAGED" : a.status)}</span>
-                  <span class="vmn-badge badge-neutral">${a.actionsPerformedToday}/${a.maxDailyActions} actions today</span>
+                  <span class="vmn-badge badge-neutral">${escapeHtml(a.actionsPerformedToday)}/${escapeHtml(a.maxDailyActions)} actions today</span>
                 </div>
  <h4 class="s-tWHMqvnoKy">${escapeHtml(a.name)}</h4>
  <p class="s-nn_bvjEsa6">${escapeHtml(a.role.replace(/_/g, " "))} — ${escapeHtml(a.operationalScope)}</p>

@@ -13,8 +13,30 @@
  * surfaces and the material operating surfaces.
  */
 
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 import { AxeBuilder } from "@axe-core/playwright";
+
+/**
+ * axe must sample **settled** colours. The design system transitions background
+ * and text colour on buttons (`.btn` declares `transition: background-color,
+ * color, …`), so a page whose cascade applies a frame after `load` can be
+ * measured mid-animation — which reports a ratio no steady state has. Two pages
+ * failed intermittently that way (a lavender-on-green 4.32, a brightened danger
+ * button 3.75), while their settled colours measure 10:1 and 4.9:1. Waiting for
+ * the running CSS *transitions* to finish measures the design; CSS animations
+ * (the marquee, spinners) are allowed to keep running.
+ */
+async function settleTransitions(page: Page): Promise<void> {
+  await page.waitForFunction(
+    () =>
+      document
+        .getAnimations()
+        .filter((animation) => animation.constructor.name === "CSSTransition")
+        .every((animation) => animation.playState !== "running"),
+    undefined,
+    { timeout: 5_000 }
+  );
+}
 
 /** The six target viewports (matches the breakpoints the stylesheet declares). */
 const VIEWPORTS = [
@@ -31,9 +53,13 @@ const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 /** Public surfaces first, then the material operating surfaces. */
 const ROUTES = [
   { path: "/", label: "Public overview" },
-  { path: "/channels", label: "Linear channels" },
-  { path: "/hub", label: "Creative economy hub" },
+  { path: "/media-and-audience-overview", label: "Media and audience overview" },
+  { path: "/creative-economy-hub-overview", label: "Creative economy hub overview" },
   { path: "/broadcast/screens", label: "Broadcast screens catalog" },
+  // EDGE-005's document is reached by a visitor with no connection and no
+  // session, so it is measured like any other public page rather than assumed
+  // legible from its markup.
+  { path: "/offline", label: "Offline document (EDGE-005)" },
   { path: "/workspace", label: "Workspace directory" },
   { path: "/prototypes", label: "Prototype viewer" },
   { path: "/styleguide", label: "Design system styleguide" },
@@ -49,6 +75,7 @@ for (const route of ROUTES) {
       const response = await page.goto(route.path, { waitUntil: "load" });
       expect(response, `${route.path} returned no response at ${viewport.label}`).not.toBeNull();
       expect(response!.status(), `${route.path} at ${viewport.label}`).toBe(200);
+      await settleTransitions(page);
 
       const results = await new AxeBuilder({ page }).withTags([...WCAG_TAGS]).analyze();
 

@@ -410,7 +410,7 @@ export function renderPoaExceptionsWorkbenchHtml(
           }</div>
  <div class="s-huAjaSyPZk">${
    resolved.status === "MAKE_GOOD_REBOOKED"
-     ? `${resolved.shortfallSeconds}s of ${escapeHtml(resolved.campaignId)} inventory was scheduled into break ${escapeHtml(
+     ? `${escapeHtml(resolved.shortfallSeconds)}s of ${escapeHtml(resolved.campaignId)} inventory was scheduled into break ${escapeHtml(
          resolved.allocatedBreakId || ""
        )} by ${escapeHtml(resolved.resolvedBy || "traffic")}. The make-good obligation is no longer queued.`
      : `Credit note ${escapeHtml(resolved.creditNoteId || "")} (${resolved.makeGoodValueNgn.toLocaleString(
@@ -443,9 +443,9 @@ export function renderPoaExceptionsWorkbenchHtml(
 
  <div class="vmn-card s-6KYnYzlM1L" >
         <p class="s-zrikAgYqXF">
-          <strong>${exceptions.length}</strong> registered delivery exception${
+          <strong>${escapeHtml(exceptions.length)}</strong> registered delivery exception${
             exceptions.length === 1 ? "" : "s"
-          } &bull; <strong>${openShortfallSeconds}</strong>s of commercial inventory still owed.
+          } &bull; <strong>${escapeHtml(openShortfallSeconds)}</strong>s of commercial inventory still owed.
         </p>
  ${
    exceptions.length === 0
@@ -478,15 +478,15 @@ export function renderPoaExceptionsWorkbenchHtml(
  <div class="s-OdlmY1tzrc">${escapeHtml(e.clientName)} &bull; ${escapeHtml(e.channelCode)}</div>
               </td>
  <td class="s-O6cnlXePf8">
-                <div>Plan: ${e.plannedDurationSeconds}s &bull; Run: ${e.airedDurationSeconds}s</div>
- <div class="s-TEJjAykNyT">-${e.shortfallSeconds}s owed (spot ${escapeHtml(e.spotId)})</div>
+                <div>Plan: ${escapeHtml(e.plannedDurationSeconds)}s &bull; Run: ${escapeHtml(e.airedDurationSeconds)}s</div>
+ <div class="s-TEJjAykNyT">-${escapeHtml(e.shortfallSeconds)}s owed (spot ${escapeHtml(e.spotId)})</div>
               </td>
  <td class="s-O6cnlXePf8">
                 <span class="vmn-badge badge-warning">${escapeHtml(e.nature)}</span>
               </td>
  <td class="s-o1-djKZYTY">
                 <div>Make-good ${escapeHtml(e.makeGoodId)}</div>
- <div class="s-OdlmY1tzrc">${e.makeGoodValueNgn.toLocaleString("en-NG")} NGN (provisional rate card)</div>
+ <div class="s-OdlmY1tzrc">${escapeHtml(e.makeGoodValueNgn.toLocaleString("en-NG"))} NGN (provisional rate card)</div>
  <div class="s-OdlmY1tzrc">${
    e.status === "OPEN"
      ? "Queued for rebooking &mdash; no inventory allocated yet"
@@ -740,14 +740,14 @@ export function renderApprovalReviewHtml(user?: SessionUser, options: { decidedI
  <div class="s-EDUTwg_Z-I">
  <form method="POST" action="/api/v1/workspace/approvals/${escapeHtml(approval.id)}/decide" class="s-Q0_DLsKcmN">
                     <input type="hidden" name="decision" value="APPROVED" />
-                    <input type="hidden" name="reason" value="Reviewed against current revision ${approval.objectRevision}." />
+                    <input type="hidden" name="reason" value="Reviewed against current revision ${escapeHtml(approval.objectRevision)}." />
  <button type="submit" class="btn btn-primary s-edUd71cpo5" >
                       Approve
                     </button>
                   </form>
  <form method="POST" action="/api/v1/workspace/approvals/${escapeHtml(approval.id)}/decide" class="s-Q0_DLsKcmN">
                     <input type="hidden" name="decision" value="REJECTED" />
-                    <input type="hidden" name="reason" value="Rejected after review of revision ${approval.objectRevision}." />
+                    <input type="hidden" name="reason" value="Rejected after review of revision ${escapeHtml(approval.objectRevision)}." />
  <button type="submit" class="btn btn-outline s-8BLmUnUUAh" >
                       Reject
                     </button>
@@ -762,11 +762,11 @@ export function renderApprovalReviewHtml(user?: SessionUser, options: { decidedI
  <td class="s-O6cnlXePf8"><span class="vmn-badge ${badgeClass}">${escapeHtml(approval.category)}</span>${fourEyesTag}</td>
  <td class="s-O6cnlXePf8">
  <div class="s-v9ujfxeGxB">${escapeHtml(approval.subject)}</div>
- <div class="s-wUMD0XWoZI">${escapeHtml(approval.justification)} &bull; Revision ${approval.objectRevision}${APPROVAL_SEEDED_IDS.has(approval.id) ? " &bull; DEMO SEED" : ""}</div>
+ <div class="s-wUMD0XWoZI">${escapeHtml(approval.justification)} &bull; Revision ${escapeHtml(approval.objectRevision)}${APPROVAL_SEEDED_IDS.has(approval.id) ? " &bull; DEMO SEED" : ""}</div>
               </td>
- <td class="s-gSzyZDrSbr">&#8358;${approval.financialScopeNgn.toLocaleString("en-NG")}</td>
+ <td class="s-gSzyZDrSbr">&#8358;${escapeHtml(approval.financialScopeNgn.toLocaleString("en-NG"))}</td>
  <td class="s-o1-djKZYTY">${escapeHtml(approval.initiatorName)}</td>
- <td class="s-RhdStrjBOr">${decisionActions}</td>
+ <td class="s-RhdStrjBOr">${escapeHtml(decisionActions)}</td>
             </tr>`;
                     })
                     .join("")

@@ -25,6 +25,8 @@ import { describe, expect, it } from "vitest";
 const REPO_ROOT = path.resolve(new URL("../../", import.meta.url).pathname);
 const SRC = path.join(REPO_ROOT, "src");
 const DURABILITY_SUITE = "tests/unit/durability-release-critical.test.ts";
+/** UX-HUB-003 / UX-SYS-012 keep their drills beside the domain they measure. */
+const DRILL_SUITES = [DURABILITY_SUITE, "tests/unit/durability-in-app-notifications.test.ts"];
 const RESTART_READER = "tests/helpers/durable-restart-reader.mjs";
 const JOURNEY_DRILLS = "tests/integration/journey-failure-drills.test.ts";
 const REGISTER = "tasks.md";
@@ -70,6 +72,13 @@ const DOMAINS: readonly DurableDomain[] = [
   { domain: "sponsor fulfilment evidence", storeKey: "sponsorFulfillment", entity: "sponsorFulfillment", addedBy: "TSK-16" },
   { domain: "Quote-to-Cash deal portfolio", storeKey: "salesDeal", entity: "salesDeal", addedBy: "TSK-60" },
   { domain: "tamper-evident audit ledger", storeKey: "auditLog", entity: "auditLedger", addedBy: "TSK-18" },
+  { domain: "in-app notification inbox", storeKey: "inAppNotification", entity: "inAppNotification", addedBy: "UX-HUB-003" },
+  { domain: "notification dispatch preferences", storeKey: "notificationPreference", entity: "notificationPreference", addedBy: "UX-SYS-012" },
+  // The gate is read through the preference row, but its durability claim is
+  // behavioural: a restarted process must *refuse* a category the user switched
+  // off. That drill has its own reader branch and no store of its own, because the
+  // row it needs is the preference row above.
+  { domain: "post-restart dispatch refusal", storeKey: null, entity: "inAppDispatchAfterRestart", addedBy: "UX-SYS-012" },
   { domain: "provider event claims", storeKey: null, entity: "providerClaim", addedBy: "TSK-19" },
 ];
 
@@ -91,12 +100,13 @@ function readerBranches(): Set<string> {
   return new Set([...src.matchAll(/^ {2}([A-Za-z]+): async \(key\)/gm)].map((m) => m[1]));
 }
 
-/** entity -> how many times a drill actually restarts against it. */
+/** entity -> how many times a drill actually restarts against it, across the drill suites. */
 function restartReadsByEntity(): Map<string, number> {
-  const src = read(DURABILITY_SUITE);
   const counts = new Map<string, number>();
-  for (const m of src.matchAll(/restartRead\("([A-Za-z]+)"/g)) {
-    counts.set(m[1], (counts.get(m[1]) ?? 0) + 1);
+  for (const suite of DRILL_SUITES) {
+    for (const m of read(suite).matchAll(/restartRead\(\s*"([A-Za-z]+)"/g)) {
+      counts.set(m[1], (counts.get(m[1]) ?? 0) + 1);
+    }
   }
   return counts;
 }
@@ -177,7 +187,7 @@ describe("TSK-47: every durable domain has a restart/failure drill", () => {
 
   it("prints the coverage census the register quotes", () => {
     const rows = DOMAINS.map((d) => {
-      const where = d.storeKey ? stores.get(d.storeKey) ?? "MISSING" : "claim row (not journal-staged)";
+      const where = d.storeKey ? stores.get(d.storeKey) ?? "MISSING" : "no journal store of its own";
       const drills = restarts.get(d.entity) ?? 0;
       return `  ${d.entity.padEnd(19)} ${String(drills)} restart drill(s)  ${d.addedBy.padEnd(7)} ${where}`;
     });

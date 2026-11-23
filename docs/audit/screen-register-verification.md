@@ -27,9 +27,10 @@ restatement of the register's own prose.
 | Entries naming no checkable file | **1** — `UX-VTM-010` (ALIAS: "See knownConflicts[0]", a cross-reference by design) | same |
 | Provenance: DOMAIN_ENGINE | **75 IDs** | marker in the served page, or domain state read by the handler that serves it |
 | Provenance: NOT_CONNECTED | **4 IDs** | `UX-COM-001..003`, `UX-PRJ-001` — no route the router dispatches |
+| Provenance after the 2026-11-16 re-measure | **unchanged (75 / 4 / 147)** | `UX-COM-004` re-pointed from the retired `/enquiry` to its `301` successor `/contact`; the mount check now also consults `resolveIARoute`, so IA-served paths are mounted rather than read as unmounted |
 | Provenance: NOT_VERIFIED | **147 IDs** | page declares no provenance and no domain state is identifiable in the handler |
 | Reachable HTML surfaces (register-declared routes) | **40** | distinct paths answered `200 text/html` to a SuperAdmin session |
-| Reachable HTML surfaces (whole router, literal paths) | **111 of 229** | every literal path GET-probed once; parameterised literals excluded, so a floor, not a total |
+| Reachable HTML surfaces (whole router, literal paths) | **104 of 222** | every literal path GET-probed once; parameterised literals excluded, so a floor, not a total. Re-measured 2026-11-16: eight literals left the probed set when IA Phase 7 retired seven of them to `301` and moved `/contact` to the IA resolver, and one entered it — `/offline` (EDGE-005), the handler document a disconnected visitor can still load |
 
 ## 3. The "225 system screens" claim, retired
 
@@ -40,8 +41,9 @@ ranges were expanded and again as an operational status claim), **60** (entries,
 Measured replacements:
 
 - documented screens = **226 IDs (225 + 1 ALIAS)**, by arithmetic over the register's own ranges;
-- reachable HTML surfaces = **40** for the routes the register declares, **111** literal HTML-serving
-  routes across the whole router (a floor: parameterised paths are not probeable without an entity).
+- reachable HTML surfaces = **40** for the routes the register declares, **104** literal HTML-serving
+  routes across the whole router (a floor: parameterised paths are not probeable without an entity;
+  re-measured 2026-11-16 after the legacy-route retirement, previously 111).
 
 The ≈166 estimate is withdrawn: it was a sweep over route lists, not a request to the server.
 `DEC-RL1-SCOPE-001` remains `PENDING_SIGNATURE` and still repudiates "225/225 screens operational".
@@ -115,7 +117,7 @@ basis | first probe | evidence files resolved).
 | UX-HUB-004 | 1 | 1/1 | DOMAIN_ENGINE | handler source | /workspace/management/overview 200 page declares no provenance | evidence 4/4
 | UX-HUB-005 | 1 | 1/1 | NOT_VERIFIED | handler source | /workspace 200 page declares no provenance | evidence 2/2
 | UX-COM-001..003 | 3 | 0/0 | NOT_CONNECTED | route not mounted | — 0 no mounted route declared | evidence 1/1
-| UX-COM-004 | 1 | 1/1 | NOT_VERIFIED | handler source | /enquiry 200 page declares no provenance | evidence 1/1
+| UX-COM-004 | 1 | 1/1 | NOT_VERIFIED | handler source | /contact 200 page declares no provenance (`/enquiry` retired to a 301) | evidence 1/1
 | UX-COM-005..009 | 5 | 1/1 | NOT_VERIFIED | handler source | /workspace/commercial/proposals/builder 200 page declares no provenance | evidence 1/1
 | UX-COM-010 | 1 | 1/1 | NOT_VERIFIED | handler source | /portal/client/ORG-1/projects/PRJ-1 404 page declares no provenance | evidence 1/1
 | UX-PRJ-001 | 1 | 0/0 | NOT_CONNECTED | route not mounted | — 0 no mounted route declared | evidence 1/1

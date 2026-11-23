@@ -17,7 +17,7 @@ import {
   BROADCAST_SCREEN_INVENTORY,
   BroadcastScreenDescriptor,
 } from "../../modules/broadcast/screens/index.js";
-import { renderIcon, IconName, renderEpisodeMastersTableHtml } from "../components/index.js";
+import { escapeHtml, renderIcon, IconName, renderEpisodeMastersTableHtml } from "../components/index.js";
 import {
   renderMockDataBanner,
   renderScreenKpis,
@@ -559,7 +559,9 @@ function renderScheduleGridTimelineHtml(entries: ReturnType<typeof approvedSched
     <div class="timeline-container">
       <div class="s-DzaXJk6FQb">
         <h4 class="s-nw6M5YHQ6Q">
-          Approved Schedule Entries (${entries.length} slots across ${new Set(entries.map((e) => e.channelId)).size} channel days)
+          Approved Schedule Entries (${escapeHtml(entries.length)} slots across ${escapeHtml(
+            new Set(entries.map((e) => e.channelId)).size
+          )} channel days)
         </h4>
         <div class="s-yFCr8u7ohF">
           <span class="s-5_U1hQP3mB">Source: <strong>broadcast schedule store, approved revisions only</strong></span>
@@ -639,7 +641,7 @@ function renderPlaylistLockViewHtml(): string {
       <tr>
         <td class="s-aaCSFZsIgI">${esc(schedule.revisionId ?? schedule.scheduleId)}</td>
         <td class="s-j_mWEmdNC2">${esc(schedule.channelId)} · ${esc(schedule.broadcastDate)}</td>
-        <td class="s-j_mWEmdNC2">${entries.length} slots</td>
+        <td class="s-j_mWEmdNC2">${escapeHtml(entries.length)} slots</td>
         <td class="s-6ijxZ0CuDg">${esc(schedule.playlist?.playlistId ?? "not generated")}</td>
         <td class="s-dDYIG8pocu">${esc(digest)}</td>
         <td><span class="vmn-badge ${schedule.playlist ? "badge-ready" : "badge-warning"}">${
@@ -675,7 +677,7 @@ function renderPlaylistLockViewHtml(): string {
                 <th>State</th>
               </tr>
             </thead>
-            <tbody>${rows}</tbody>
+            <tbody>${escapeHtml(rows)}</tbody>
           </table>
         </div>
       </div>
@@ -700,10 +702,10 @@ function renderAsRunReconciliationDiffHtml(engines?: ScreenDataContext["engines"
     <div class="s-4h8zhEfDP0">
       <h4 class="s-IjylZHBtZ8">As-Run Reconciliation Summary (Leg 1 Traffic vs Leg 2 Playout Log)</h4>
       <div class="s-toooqsHHlc">
-        <div class="s-CgNfDhuegV"><span class="s-WeE1qSZNFg">Planned spots</span><strong class="s-tiKlUUWToo">${s.totalPlannedSpots}</strong></div>
-        <div class="s-CgNfDhuegV"><span class="s-WeE1qSZNFg">Aired spots</span><strong class="s-tiKlUUWToo">${s.totalAiredSpots}</strong></div>
-        <div class="s-CgNfDhuegV"><span class="s-WeE1qSZNFg">Matched</span><strong class="s-tiKlUUWToo">${s.matchedSpots}</strong></div>
-        <div class="s-CgNfDhuegV"><span class="s-WeE1qSZNFg">Discrepancies</span><strong class="s-tiKlUUWToo">${s.discrepancyCount}</strong></div>
+        <div class="s-CgNfDhuegV"><span class="s-WeE1qSZNFg">Planned spots</span><strong class="s-tiKlUUWToo">${escapeHtml(s.totalPlannedSpots)}</strong></div>
+        <div class="s-CgNfDhuegV"><span class="s-WeE1qSZNFg">Aired spots</span><strong class="s-tiKlUUWToo">${escapeHtml(s.totalAiredSpots)}</strong></div>
+        <div class="s-CgNfDhuegV"><span class="s-WeE1qSZNFg">Matched</span><strong class="s-tiKlUUWToo">${escapeHtml(s.matchedSpots)}</strong></div>
+        <div class="s-CgNfDhuegV"><span class="s-WeE1qSZNFg">Discrepancies</span><strong class="s-tiKlUUWToo">${escapeHtml(s.discrepancyCount)}</strong></div>
       </div>
       <p class="s-Vgd1b_7V2z">Leg 3 (carrier telemetry) is NOT CONNECTED: no verified carrier feed is configured, so the match is two-leg and labelled as such.</p>
     </div>
@@ -775,13 +777,13 @@ function renderBroadcastYieldAnalyticsHtml(engines?: ScreenDataContext["engines"
       <div class="grid-3 s-KRt7uwFSzR">
         <div class="card stat-box">
           <span class="stat-val s-_ZPfN4CX-f">₦${total.toLocaleString("en-NG")}</span>
-          <span class="stat-lbl">Contracted billing schedule total (engine sums, ${totals.length} campaigns)</span>
+          <span class="stat-lbl">Contracted billing schedule total (engine sums, ${escapeHtml(totals.length)} campaigns)</span>
         </div>
       </div>
       <div class="table-container">
         <table>
           <thead><tr><th>Campaign</th><th>Contracted value (₦)</th></tr></thead>
-          <tbody>${rows}</tbody>
+          <tbody>${escapeHtml(rows)}</tbody>
         </table>
       </div>
       <p class="s-Vgd1b_7V2z">Fill rate and average spot rate are NOT CONNECTED: no audience or as-run telemetry feeds them.</p>
@@ -812,11 +814,11 @@ export function renderBroadcastScreenHtml(
           <div class="s-vCnRA-YpNt">${renderIcon("lock", { size: 48 })}</div>
           <h1 class="text-2xl font-bold text-red-800 mb-2">403 Access Denied</h1>
           <p class="text-red-700 mb-4">
-            Role <strong>${userRole || "Anonymous"}</strong> is not authorized to access operational screen
-            <strong>${screen.screenId} (${screen.name})</strong>.
+            Role <strong>${escapeHtml(userRole || "Anonymous")}</strong> is not authorized to access operational screen
+            <strong>${escapeHtml(screen.screenId)} (${escapeHtml(screen.name)})</strong>.
           </p>
           <p class="text-sm text-red-600 mb-6">
-            Required Operating Authority: <strong>${screen.primaryRole}</strong> or Broadcast Executive clearance.
+            Required Operating Authority: <strong>${escapeHtml(screen.primaryRole)}</strong> or Broadcast Executive clearance.
           </p>
           <div class="actions">
             <a href="/broadcast/screens" class="btn btn-primary s-MYOewE5A8M">
@@ -848,15 +850,17 @@ export function renderBroadcastScreenHtml(
   const actionsBadges = screen.permittedActions
     .map(
       (a) =>
-        `<span class="s-Zpc7iXTDlF">${renderIcon("bolt", { size: 14 })} ${a}</span>`
+        `<span class="s-Zpc7iXTDlF">${renderIcon("bolt", { size: 14 })} ${escapeHtml(a)}</span>`
     )
     .join(" ");
 
+  // DEBT-009: the values are decoded route parameters from the request path, so
+  // both halves are escaped before they reach markup.
   const paramTags = Object.entries(params)
     .filter(([k]) => k !== "state")
     .map(
       ([k, v]) =>
-        `<span class="s-l81ES_HgRX">${k}: <strong>${v}</strong></span>`
+        `<span class="s-l81ES_HgRX">${escapeHtml(k)}: <strong>${escapeHtml(v)}</strong></span>`
     )
     .join(" ");
 
@@ -973,12 +977,12 @@ has no operational records to list. Records are never invented here (UIUX-001 §
     const href = primaryScreen.route.includes(":") ? `/broadcast/screens/${primaryScreen.screenId}` : primaryScreen.route;
 
     return `
-      <a href="${href}" class="${activeClass}" title="${station.description}">
+      <a href="${escapeHtml(href)}" class="${activeClass}" title="${escapeHtml(station.description)}">
         <span class="s-JyMdrv2Xyh">
           ${renderIcon(station.icon, { size: 16 })}
-          <span>${station.name}</span>
+          <span>${escapeHtml(station.name)}</span>
         </span>
-        <span class="s-aY4iL2xKuF">${station.screens.length}</span>
+        <span class="s-aY4iL2xKuF">${escapeHtml(station.screens.length)}</span>
       </a>
     `;
   }).join("\n");
@@ -997,7 +1001,7 @@ has no operational records to list. Records are never invented here (UIUX-001 §
 
           <span class="operator-context-label s-YXDZTIE0Fw">Broadcast Date:</span>
           <span class="s-uiQObaTqJW">
-            ${params.date || "2026-03-30"}
+            ${escapeHtml(params.date || "2026-03-30")}
           </span>
 
           <span class="operator-context-label s-YXDZTIE0Fw">Mode:</span>
@@ -1009,7 +1013,7 @@ has no operational records to list. Records are never invented here (UIUX-001 §
         <div class="operator-context-group">
           <span class="operator-context-label">Role Context:</span>
           <span class="s-aHFes1ZWzl">
-            ${userRole || screen.primaryRole}
+            ${escapeHtml(userRole || screen.primaryRole)}
           </span>
           <a href="/broadcast/screens" class="btn btn-outline s-Sg6QgtPAw0">
             Catalog
@@ -1029,36 +1033,36 @@ has no operational records to list. Records are never invented here (UIUX-001 §
           <div class="s-6OEmWbNdpS">
             <div class="operator-rail-header s-to20TYnU6c">Release Gate</div>
             <div class="s-Cw0yw_ElOy">
-              ${gateClearance}
+              ${escapeHtml(gateClearance)}
             </div>
           </div>
         </nav>
 
         <!-- Right Main: Operational Screen Surface -->
-        <main class="broadcast-screen-surface" data-screen-id="${screen.screenId}">
+        <main class="broadcast-screen-surface" data-screen-id="${escapeHtml(screen.screenId)}">
           <!-- Screen Header -->
           <header class="screen-header mb-6 pb-4 border-b border-slate-200 s-eNztNGULjh">
             <div>
               <div class="s-97MdRRIcrk">
                 <span class="s-O-gFliO8Lg">
-                  ${screen.screenId}
+                  ${escapeHtml(screen.screenId)}
                 </span>
-                <span class="s-xVz95s6ljh">Screen #${screen.screenNumber} of 33</span>
+                <span class="s-xVz95s6ljh">Screen #${escapeHtml(screen.screenNumber)} of 33</span>
                 <span class="s-bzxkW0tcv_">
-                  ${screen.primaryRole}
+                  ${escapeHtml(screen.primaryRole)}
                 </span>
                 <span class="s-iwQeQ5cgZi">
-                  ${gateClearance}
+                  ${escapeHtml(gateClearance)}
                 </span>
                 ${paramTags ? `<div class="s-xfcqi_PFHp">${paramTags}</div>` : ""}
               </div>
-              <h1 class="text-3xl font-extrabold text-slate-900">${screen.name}</h1>
-              <p class="text-slate-600 mt-1 max-w-2xl">${screen.description}</p>
+              <h1 class="text-3xl font-extrabold text-slate-900">${escapeHtml(screen.name)}</h1>
+              <p class="text-slate-600 mt-1 max-w-2xl">${escapeHtml(screen.description)}</p>
             </div>
 
             <div class="s-GyydKV-rBn">
-              <button class="btn btn-primary btn-execute-control" data-screen-id="${screen.screenId}" style="min-height:44px; display:inline-flex; align-items:center; padding:0 16px;">
-                ${decisionData.actionLabel} &rarr;
+              <button class="btn btn-primary btn-execute-control" data-screen-id="${escapeHtml(screen.screenId)}" style="min-height:44px; display:inline-flex; align-items:center; padding:0 16px;">
+                ${escapeHtml(decisionData.actionLabel)} &rarr;
               </button>
             </div>
           </header>
@@ -1103,7 +1107,7 @@ has no operational records to list. Records are never invented here (UIUX-001 §
                     Primary Operational Decision (R1.2A §48 / §67)
                   </strong>
                   <p class="s-BtMqImfqOU">
-                    ${decisionData.decision}
+                    ${escapeHtml(decisionData.decision)}
                   </p>
                 </div>
               </div>
@@ -1118,7 +1122,7 @@ has no operational records to list. Records are never invented here (UIUX-001 §
             <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
               <h3 class="font-bold text-slate-800 text-lg">Active Operational Records</h3>
               <span class="text-xs font-semibold px-2 py-1 bg-sky-100 text-sky-800 rounded">
-                State: ${activeState.toUpperCase()}
+                State: ${escapeHtml(activeState.toUpperCase())}
               </span>
             </div>
 

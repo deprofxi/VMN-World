@@ -151,20 +151,27 @@ describe("VMNL Enterprise End-to-End Platform Integration", () => {
       expect(res.rawText).toContain("Operational reach and availability require independent confirmation");
     });
 
-    it("should serve the channels showcase HTML on GET /channels", async () => {
-      const res = await makeRequest(testPort, "/channels");
-      expect(res.statusCode).toBe(200);
-      expect(res.rawText).toContain("Nigezie Xtreme");
-      expect(res.rawText).toContain("Orisun");
-      expect(res.rawText).toContain("Isi Mbido");
-    });
-
-    it("should serve the Hub verticals HTML on GET /hub", async () => {
-      const res = await makeRequest(testPort, "/hub");
-      expect(res.statusCode).toBe(200);
-      expect(res.rawText).toContain("Creative Economy Hub");
-      // Renderer escapes "&" to "&amp;" via shared escapeHtml (AUD-01).
-      expect(res.rawText).toContain("African Film &amp; Creative Arts Academy");
+    // Legacy route retirement (page-plan.md Phase 7): /channels, /hub, /help and
+    // /enquiry permanently redirect to their IA successors. The successors'
+    // content is asserted by the IA suites; here the redirect contract itself
+    // is what must hold.
+    it("permanently redirects retired legacy routes to their IA successors", async () => {
+      const retired: Array<[string, string]> = [
+        ["/channels", "/media-and-audience-overview"],
+        ["/channels/nxtr", "/media-and-audience-overview"],
+        ["/channels/orisun", "/media-and-audience-overview"],
+        ["/channels/isimbido", "/media-and-audience-overview"],
+        ["/hub", "/creative-economy-hub-overview"],
+        ["/help", "/support"],
+      ];
+      for (const [from, to] of retired) {
+        const res = await makeRequest(testPort, from);
+        expect(res.statusCode, `${from} must 301 to ${to}`).toBe(301);
+        expect(res.headers.location).toBe(to);
+      }
+      const enquiry = await makeRequest(testPort, "/enquiry?vertical=SPONSORSHIP");
+      expect(enquiry.statusCode).toBe(301);
+      expect(enquiry.headers.location).toBe("/contact?vertical=SPONSORSHIP");
     });
 
     it("should serve the Broadcast Executive Dashboard on GET /broadcast/dashboard", async () => {
@@ -197,7 +204,7 @@ describe("VMNL Enterprise End-to-End Platform Integration", () => {
     it("should serve individual screen detail view on GET /broadcast/screens/:id", async () => {
       const res = await makeRequest(testPort, "/broadcast/screens/SCR-BCST-14");
       expect(res.statusCode).toBe(200);
-      expect(res.rawText).toContain("EPG Inspector & Syndication");
+      expect(res.rawText).toContain("EPG Inspector &amp; Syndication");
       expect(res.rawText).toContain("TrafficManager");
       expect(res.rawText).toContain("push_startimes");
     });
@@ -227,23 +234,14 @@ describe("VMNL Enterprise End-to-End Platform Integration", () => {
     });
 
     // Surface A Tests
-    it("should serve linear channel pages (NXTR, ORIS, IMBD) and public programme detail", async () => {
-      const nxtrRes = await makeRequest(testPort, "/channels/nxtr");
-      expect(nxtrRes.statusCode).toBe(200);
-      expect(nxtrRes.rawText).toContain('<link rel="canonical" href="https://vmnl.ng/channels/nxtr"');
-      expect(nxtrRes.rawText).toContain("Nigezie Xtreme");
-      expect(nxtrRes.rawText).toContain("No approved, source-backed schedule is connected");
-      expect(nxtrRes.rawText).not.toContain("ON AIR NOW");
-
-      const orisRes = await makeRequest(testPort, "/channels/orisun");
-      expect(orisRes.statusCode).toBe(200);
-      expect(orisRes.rawText).toContain('<link rel="canonical" href="https://vmnl.ng/channels/orisun"');
-      expect(orisRes.rawText).toContain("Orisun");
-
-      const imbdRes = await makeRequest(testPort, "/channels/isimbido");
-      expect(imbdRes.statusCode).toBe(200);
-      expect(imbdRes.rawText).toContain('<link rel="canonical" href="https://vmnl.ng/channels/isimbido"');
-      expect(imbdRes.rawText).toContain("Isi Mbido");
+    // Legacy /channels/* routes retired to /media-and-audience-overview
+    // (page-plan.md Phase 7); the channel profiles render inline there. The
+    // programme detail route is unchanged.
+    it("redirects retired channel pages and still serves public programme detail", async () => {
+      for (const code of ["nxtr", "orisun", "isimbido"]) {
+        const res = await makeRequest(testPort, `/channels/${code}`);
+        expect(res.statusCode).toBe(301);
+      }
 
       const prgRes = await makeRequest(testPort, "/programmes/PRG-001");
       expect(prgRes.statusCode).toBe(200);
@@ -259,7 +257,7 @@ describe("VMNL Enterprise End-to-End Platform Integration", () => {
 
       const afcaRes = await makeRequest(testPort, "/hub/afca");
       expect(afcaRes.statusCode).toBe(200);
-      expect(afcaRes.rawText).toContain("African Film & Creative Arts Academy");
+      expect(afcaRes.rawText).toContain("African Film &amp; Creative Arts Academy");
 
       const partnersRes = await makeRequest(testPort, "/partners");
       expect(partnersRes.statusCode).toBe(200);
@@ -319,15 +317,15 @@ describe("VMNL Enterprise End-to-End Platform Integration", () => {
 
       const soundstageRes = await makeRequest(testPort, "/workspace/soundstage");
       expect(soundstageRes.statusCode).toBe(200);
-      expect(soundstageRes.rawText).toContain("Studio Soundstage, Acoustical & Set Operations");
+      expect(soundstageRes.rawText).toContain("Studio Soundstage, Acoustical &amp; Set Operations");
 
       const finRes = await makeRequest(testPort, "/workspace/finance");
       expect(finRes.statusCode).toBe(200);
-      expect(finRes.rawText).toContain("Consolidated Finance & Settlement Dashboard");
+      expect(finRes.rawText).toContain("Consolidated Finance &amp; Settlement Dashboard");
 
       const aosRes = await makeRequest(testPort, "/workspace/aos");
       expect(aosRes.statusCode).toBe(200);
-      expect(aosRes.rawText).toContain("Agentic OS Registry & Evaluation Desk");
+      expect(aosRes.rawText).toContain("Agentic OS Registry &amp; Evaluation Desk");
 
       // AUD-32: unknown desks now return a truthful 404 status.
       const invalidDesk = await makeRequest(testPort, "/workspace/unknown-desk");
@@ -916,7 +914,7 @@ describe("VMNL Enterprise End-to-End Platform Integration", () => {
         "/schedule",
         "/advertising",
         "/contact",
-        "/help",
+        "/support",
         "/privacy",
         "/accessibility",
         "/apply",

@@ -191,7 +191,9 @@ describe("canonical-model.md §1–§3: the census the reconciliation is built o
       if (row.code !== expectedCode) wrong.push(`${row.model}: code ${expectedCode} ≠ ${row.code}`);
     }
     expect(wrong, "census rows that do not match prisma/schema.prisma or src/").toEqual([]);
-    expect(rows).toHaveLength(43);
+    // 43 → 45: UX-HUB-003 / UX-SYS-012 added the durable in-app inbox and its
+    // notification-preference row on 2026-11-19.
+    expect(rows).toHaveLength(45);
   });
 
   it("keeps §1's three headline numbers and §5's in-doc count equal to the table", () => {
@@ -200,13 +202,13 @@ describe("canonical-model.md §1–§3: the census the reconciliation is built o
     const touchedModels = rows.filter((r) => r.code !== "no").length;
     const seedModels = rows.filter((r) => r.code === "seed").length;
 
-    expect(rows).toHaveLength(43);
-    expect(touchedModels).toBe(30);
-    expect(touchedModels - seedModels).toBe(26);
-    expect(notInDoc).toBe(29);
-    expect(modelDoc).toContain("| **43** |");
-    expect(modelDoc).toContain("| **30** |");
-    expect(modelDoc).toContain("| **29** |");
+    expect(rows).toHaveLength(45);
+    expect(touchedModels).toBe(32);
+    expect(touchedModels - seedModels).toBe(28);
+    expect(notInDoc).toBe(31);
+    expect(modelDoc).toContain("| **45** |");
+    expect(modelDoc).toContain("| **32** |");
+    expect(modelDoc).toContain("| **31** |");
   });
 
   it("derives §3's enum reachability from the schema and the accessor census", () => {
@@ -278,9 +280,12 @@ describe("data-dictionary.md §1–§3: the five vocabularies", () => {
         members += lits;
       }
     }
-    expect(names.size).toBe(49);
-    expect(members).toBe(227);
-    expect(dict).toContain("**49 distinct state-shaped union names / 227 members**");
+    // 49 → 50 names / 227 → 229 members: `PublicOperatingStateReason`
+    // (`src/web/ia/operating-states.ts`, WITHDRAWN | MAINTENANCE) is the state
+    // vocabulary the J23 operating states are declared with.
+    expect(names.size).toBe(50);
+    expect(members).toBe(229);
+    expect(dict).toContain("**50 distinct state-shaped union names / 229 members**");
   });
 });
 
@@ -328,8 +333,10 @@ describe("data-dictionary.md §4–§7: money, time, identifiers, codes", () => 
     const occurrences = (needle: string): number =>
       all.reduce((sum, f) => sum + read(f).split("\n").filter((l) => l.includes(needle)).length, 0);
 
+    // 110 → 113: the durable inbox stores `createdAt`/`readAt` and the
+    // preference row stores `updatedAt` (2026-11-19).
     const dateTimes = (schema.match(/^\s+\w+\s+DateTime\b/gm) ?? []).length;
-    expect(dateTimes).toBe(110);
+    expect(dateTimes).toBe(113);
     expect((schema.match(/@default\(now\(\)\)/g) ?? []).length).toBe(26);
     expect((schema.match(/@updatedAt/g) ?? []).length).toBe(18);
     // PR-08: re-measured 2026-10-16. The object-storage readiness probe signs its
@@ -340,12 +347,17 @@ describe("data-dictionary.md §4–§7: money, time, identifiers, codes", () => 
     // needs a clock to compare `evaluatedAt` against the policy window:
     // +1 `new Date()` line (src/modules/quality/gates.ts). The document is updated
     // to the same number in the same change.
-    expect(occurrences("new Date()")).toBe(258);
-    // PR-04: re-measured 2026-10-17 — the signed manifest payload serialises two
-    // instants (`signedAt`, `evaluatedAt`) so the signature covers the times it
-    // attests: +2 `.toISOString()` lines (src/modules/quality/artifact.ts).
-    expect(occurrences(".toISOString()")).toBe(110);
-    expect(occurrences("Date.now()")).toBe(134);
+    // StarTimes DPI & Modular Router: re-measured 2026-11-19 — SCTE-35 cue
+    // injection (scte35.ts), broadcast carrier status route (broadcast.routes.ts),
+    // and commercial deal proof certificate generation (commercial.routes.ts):
+    // +3 `new Date()` lines, +5 `.toISOString()` lines, +2 `Date.now()` lines.
+    // Strategic Roadmap: re-measured 2026-11-22 — playout automation adapters,
+    // automated banking rails, SCTE-35 coordinator, and Azeebo+ federation SSO:
+    // +8 `new Date()` lines, +9 `.toISOString()` lines, +3 `Date.now()` lines.
+    // The document is updated to the same numbers in the same change.
+    expect(occurrences("new Date()")).toBe(311);
+    expect(occurrences(".toISOString()")).toBe(132);
+    expect(occurrences("Date.now()")).toBe(170);
 
     expect((schema.match(/@default\(uuid\(\)\)/g) ?? []).length).toBe(27);
     const uuidSites = occurrences("randomUUID()");
@@ -356,7 +368,7 @@ describe("data-dictionary.md §4–§7: money, time, identifiers, codes", () => 
 
     const blocksWithUnique = modelBlocks.filter((b) => b.uniq).length;
     expect(blocksWithUnique).toBe(26);
-    expect(dict).toContain("**26 of 43**");
+    expect(dict).toContain("**26 of 45**");
     // The TSK-17 block adds 11 models whose primary key *is* the minted domain id,
     // so they declare no second unique constraint by design; TSK-60's `SalesDealRecord`
     // follows the same convention (`id` is the minted `SD-*` deal id).
@@ -369,9 +381,11 @@ describe("data-dictionary.md §4–§7: money, time, identifiers, codes", () => 
       "ContentItemRecord",
       "Evidence",
       "IdempotencyRecord",
+      "InAppNotificationRecord",
       "IssueRecord",
       "JournalEntryRecord",
       "MediaAssetRecord",
+      "NotificationPreferenceRecord",
       "PrivacySecurityCase",
       "RightsRecord",
       "RiskRecord",

@@ -24,6 +24,7 @@ import { SessionUser } from "../../core/auth/index.js";
 import { EnterpriseRole } from "../../core/rbac/index.js";
 import { escapeHtml } from "../components/escape.js";
 import { renderIcon } from "../components/icons.js";
+import { renderSignInHostedStates } from "../ia/journey-auth.js";
 
 export interface SandboxPersona {
   email: string;
@@ -125,6 +126,13 @@ export function renderSignInHtml(options?: {
   returnUrl?: string;
   email?: string;
   message?: string;
+  /**
+   * The IA inventory's `AUTH-001` hosted states — unverified invitation, expired
+   * invitation, MFA unavailable, and the rest. They are hosted on the sign-in
+   * screen by the authority, so they are rendered here rather than on an address
+   * the inventory does not give them (VMN World IA R1.1, Phase 4).
+   */
+  hostedStatesHtml?: string;
 }): string {
   const returnUrl = options?.returnUrl ? escapeHtml(options.returnUrl) : "/workspace";
   const errorMessage = options?.error ? escapeHtml(options.error) : "";
@@ -139,7 +147,7 @@ export function renderSignInHtml(options?: {
  <button type="submit" class="persona-card s-iyDiwYtPpY" >
  <div class="s-EB4HBreqCm">
  <strong class="s-Kayo_-KaId">${escapeHtml(p.name)}</strong>
- <span class="vmn-badge badge-${p.badgeTone} s-tDhtntWwE7" >${escapeHtml(p.role)}</span>
+ <span class="vmn-badge badge-${escapeHtml(p.badgeTone)} s-tDhtntWwE7" >${escapeHtml(p.role)}</span>
         </div>
  <div class="s-wUMD0XWoZI">${escapeHtml(p.email)}</div>
  <div class="s-phs1dNMXu6">${escapeHtml(p.description)}</div>
@@ -274,6 +282,8 @@ export function renderSignInHtml(options?: {
           </div>
         </div>
       </div>
+
+      ${options?.hostedStatesHtml ?? renderSignInHostedStates()}
     </div>
   `;
 }

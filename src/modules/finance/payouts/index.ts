@@ -301,3 +301,6 @@ export class TalentPayoutEngine {
     ].join("\n");
   }
 }
+
+export * from "./banking-gateway.js";
+

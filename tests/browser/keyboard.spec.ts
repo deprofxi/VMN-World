@@ -59,12 +59,12 @@ test.describe("keyboard path", () => {
     await page.goto("/", { waitUntil: "load" });
 
     // Establish an opener so restoration has a target that is not <body>.
-    const trigger = page.locator('nav.vmn-nav-links a[href="/channels"]');
+    const trigger = page.locator('nav.vmn-nav-links a[href="/media-and-audience-overview"]');
     await trigger.focus();
     const openerIsFocused = await page.evaluate(
       () => document.activeElement?.getAttribute("href") ?? ""
     );
-    expect(openerIsFocused).toBe("/channels");
+    expect(openerIsFocused).toBe("/media-and-audience-overview");
 
     await page.keyboard.press("ControlOrMeta+k");
     const palette = page.locator("#vmn-cmd-backdrop");
@@ -117,7 +117,7 @@ test.describe("keyboard path", () => {
       backgroundInert: Boolean((document.getElementById("main-content") as HTMLElement | null)?.inert),
     }));
     expect(restored.backgroundInert, "closing the modal must restore the page").toBe(false);
-    expect(restored.href, "focus must return to the element that opened the palette").toBe("/channels");
+    expect(restored.href, "focus must return to the element that opened the palette").toBe("/media-and-audience-overview");
   });
 
   test("keeps the closed command palette out of the tab order", async ({ page }) => {

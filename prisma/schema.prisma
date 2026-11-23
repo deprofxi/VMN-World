@@ -909,3 +909,41 @@ model SalesDealRecord {
 @@index([updatedAt])
 }
 
+/// UX-HUB-003 / UX-SYS-012: the in-app inbox and the notification preferences
+/// that gate delivery. Both were process `Map`s until these rows existed, so a
+/// restart emptied an inbox *and* silently reset an opt-out to the defaults —
+/// the second of which changed dispatch behaviour, not merely what a reader
+/// could see.
+/// The inbox row is keyed by the notification id the dispatcher minted, so
+/// hydration cannot renumber a delivered notification; `readAt` is written,
+/// never re-derived, because "unread again after a restart" is the defect.
+model InAppNotificationRecord {
+  id        String    @id
+  userId    String
+  category  String
+  title     String
+  body      String
+  route     String?
+  createdAt DateTime
+  readAt    DateTime?
+
+  @@index([userId, createdAt])
+  @@index([readAt])
+}
+
+/// The preference record the dispatcher consults before delivering. One row per
+/// user, replaced on save; `updatedAt` is the save instant, so hydration does not
+/// invent a fresh one. Category flags are columns rather than a JSON payload
+/// because the dispatcher reads them individually: a missing key has to be a
+/// schema question, never an `undefined` that silently means "allowed".
+model NotificationPreferenceRecord {
+  userId              String   @id
+  email               Boolean
+  sms                 Boolean
+  inApp               Boolean
+  playoutDisruption   Boolean
+  rightsBlocks        Boolean
+  financeApprovals    Boolean
+  admissionsDecisions Boolean
+  updatedAt           DateTime
+}

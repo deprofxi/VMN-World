@@ -23,12 +23,12 @@ const STATE_COLORS: Record<EpisodeMasterState, string> = {
 function renderStateCell(row: EpisodeMasterRow): string {
   const color = STATE_COLORS[row.state];
   if (row.state === "NO_REFERENCE") {
- return `<span style="color:${color}; font-size:0.8rem; font-weight:700;">No master reference</span>`;
+ return `<span style="color:${escapeHtml(color)}; font-size:0.8rem; font-weight:700;">No master reference</span>`;
   }
   if (row.state === "UNREGISTERED") {
- return `<span style="color:${color}; font-size:0.8rem; font-weight:700;">UNREGISTERED</span> <span class="s-Wb159Mw4sr">${escapeHtml(row.mediaAssetId)}</span>`;
+ return `<span style="color:${escapeHtml(color)}; font-size:0.8rem; font-weight:700;">UNREGISTERED</span> <span class="s-Wb159Mw4sr">${escapeHtml(row.mediaAssetId)}</span>`;
   }
- return `<span style="color:${color}; font-size:0.8rem; font-weight:700;">${row.state}</span> <span class="s-Wb159Mw4sr">${escapeHtml(row.mediaAssetId)}</span>${row.assetTitle ? ` · ${escapeHtml(row.assetTitle)}` : ""}`;
+ return `<span style="color:${escapeHtml(color)}; font-size:0.8rem; font-weight:700;">${escapeHtml(row.state)}</span> <span class="s-Wb159Mw4sr">${escapeHtml(row.mediaAssetId)}</span>${row.assetTitle ? ` · ${escapeHtml(row.assetTitle)}` : ""}`;
 }
 
 const EMPTY_STATE_TEXT =
@@ -68,7 +68,7 @@ export function renderEpisodeMastersTableHtml(
     <div class="card" role="region" aria-label="${escapeHtml(heading)}">
  <div class="s-RbdLgOeBnZ">
  <h2 class="s-5yiBMOtiRi">${escapeHtml(heading)}</h2>
- <span class="s-37h9gF_4Xa">${rows.length} episode${rows.length === 1 ? "" : "s"} · canonical BroadcastEpisode → DAM registry chain</span>
+ <span class="s-37h9gF_4Xa">${escapeHtml(rows.length)} episode${rows.length === 1 ? "" : "s"} · canonical BroadcastEpisode → DAM registry chain</span>
       </div>
  ${options.note ? `<p class="s-Bn4hJjdmcO">${escapeHtml(options.note)}</p>` : ""}
  <div class="s-0GmMSMP86s">
@@ -81,7 +81,7 @@ export function renderEpisodeMastersTableHtml(
  <th scope="col" class="s-drsUO0gkUT">Master asset &amp; access state</th>
             </tr>
           </thead>
-          <tbody>${rowsHtml}
+          <tbody>${escapeHtml(rowsHtml)}
           </tbody>
         </table>
       </div>
@@ -115,5 +115,5 @@ export function renderEpisodeMasterSummaryHtml(rows: EpisodeMasterRow[]): string
   if (counts.NO_REFERENCE) parts.push(`no reference ${counts.NO_REFERENCE}`);
   const color = problems > 0 ? "var(--vmn-color-warning-600, #b45309)" : "var(--vmn-color-success-600, #15803d)";
 
- return `<p style="font-size:0.82rem; color:${color}; margin:8px 0 0;"><strong>DAM masters:</strong> ${escapeHtml(parts.join(" · "))}</p>`;
+ return `<p style="font-size:0.82rem; color:${escapeHtml(color)}; margin:8px 0 0;"><strong>DAM masters:</strong> ${escapeHtml(parts.join(" · "))}</p>`;
 }

@@ -67,12 +67,12 @@ export function renderLearningPlanHtml(_courseId: string = "AFCA-CRS-101"): stri
                     ${escapeHtml(m.status)}
                   </span>
                 </div>
- <div class="s-ypL9N-nGuz">Duration: ${m.duration} &bull; 12 Studio Lab Hours</div>
+ <div class="s-ypL9N-nGuz">Duration: ${escapeHtml(m.duration)} &bull; 12 Studio Lab Hours</div>
               </div>
  <div class="s-81E6Km55Op">
- <div class="s-BPn5daoqEy">${m.progress}% Mastered</div>
+ <div class="s-BPn5daoqEy">${escapeHtml(m.progress)}% Mastered</div>
  <div class="s-5GrClCOiyp">
- <div style="width: ${m.progress}%; height: 100%; background: var(--vmn-color-primary);"></div>
+ <div style="width: ${escapeHtml(m.progress)}%; height: 100%; background: var(--vmn-color-primary);"></div>
                 </div>
               </div>
             </div>
@@ -137,8 +137,7 @@ export function renderAssignmentSubmissionHtml(assignmentId: string = "ASN-LIGHT
               type="text"
               required
               placeholder="e.g. Night Scene Interior - Dramatic 3-Point Light Study"
-              class="vmn-input"
- class="s-npZXKSAIoi"
+              class="vmn-input s-npZXKSAIoi"
             />
           </div>
 
@@ -152,8 +151,7 @@ export function renderAssignmentSubmissionHtml(assignmentId: string = "ASN-LIGHT
               type="url"
               required
               placeholder="https://assets.vmnl.ng/afca/submissions/student-204/cut-01.mp4"
-              class="vmn-input"
- class="s-npZXKSAIoi"
+              class="vmn-input s-npZXKSAIoi"
             />
           </div>
 
@@ -166,8 +164,7 @@ export function renderAssignmentSubmissionHtml(assignmentId: string = "ASN-LIGHT
               name="notes"
               rows="4"
               placeholder="Explain camera ISO, lens aperture (T-stop), lighting ratios, and skin-tone fill considerations..."
-              class="vmn-input"
- class="s-USa2UeMSTs"
+              class="vmn-input s-USa2UeMSTs"
             ></textarea>
           </div>
 
@@ -330,7 +327,7 @@ export function renderCertificateGeneratorHtml(_learnerId: string = "LRN-2026-04
         </div>
 
  <div class="s-_0xMqK-es-">
-          Cryptographic Verification Hash: ${escapeHtml(certificateHash)}
+          Cryptographic Verification Hash: ${certificateHash}
         </div>
       </div>
     </div>

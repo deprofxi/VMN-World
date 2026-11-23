@@ -11,6 +11,7 @@ import type { IAScreen } from "./types.js";
 export { IA_REGISTRY, IA_REGISTRY_SOURCE };
 export type { IAScreen } from "./types.js";
 export type { IAGate, IAArchetype, IARouteKind, IARegistrySource } from "./types.js";
+export { IA_WAVE_1_SCREEN_RULES, getIAScreenRequiredRule, type IAScreenRuleMapping } from "./role-mapping.js";
 
 const BY_ID: ReadonlyMap<string, IAScreen> = new Map(
   IA_REGISTRY.map((screen) => [screen.id, screen])

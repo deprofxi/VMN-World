@@ -71,7 +71,7 @@ export interface JournalEntry {
 
 import { toKobo, fromKobo } from "../../../core/domain/types.js";
 import { registerDurableStore, stageDurableWrite } from "../../../core/database/durable-journal.js";
-import { persistJournalEntry } from "../../../core/database/repositories/release-critical.repository.js";
+import { persistJournalEntry, loadJournalEntries } from "../../../core/database/repositories/release-critical.repository.js";
 
 /**
  * TSK-17 (report.md CA-12): a posted journal is a financial fact, so it belongs
@@ -231,4 +231,17 @@ export class SevenWayLedgerEngine {
   public hydrate(entries: JournalEntry[]): void {
     this.entries = entries.map((entry) => ({ ...entry, lines: entry.lines.map((line) => ({ ...line })) }));
   }
+}
+
+/**
+ * Boot hydration (TSK-32 / TSK-17): loads persisted journal entries from
+ * PostgreSQL into the SevenWayLedgerEngine so that double-entry facts survive
+ * process restarts.
+ */
+export async function hydrateLedgerEngine(
+  engine: SevenWayLedgerEngine
+): Promise<{ journalEntries: number }> {
+  const entries = await loadJournalEntries();
+  engine.hydrate(entries);
+  return { journalEntries: entries.length };
 }

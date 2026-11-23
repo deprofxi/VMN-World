@@ -724,11 +724,11 @@ describe("Production Core & Background Infrastructure", () => {
       expect(html).toContain("Desks Bound to Engine State");
       expect(html).not.toContain("48 of 48 Desks Operational");
       expect(html).not.toContain("RBAC / ABAC Protected");
-      expect(html).toContain("Executive & Core");
+      expect(html).toContain("Executive &amp; Core");
       expect(html).toContain("Broadcast Operations");
       expect(html).toContain("Hub Specialist");
-      expect(html).toContain("Commercial & Finance");
-      expect(html).toContain("Tech & Governance");
+      expect(html).toContain("Commercial &amp; Finance");
+      expect(html).toContain("Tech &amp; Governance");
     });
 
     it("renders individual desk HTML for any valid desk key", () => {
@@ -738,7 +738,7 @@ describe("Production Core & Background Infrastructure", () => {
       expect(mcrHtml).toContain("/workspace/mcr");
 
       const soundstageHtml = renderWorkspaceDeskHtml("soundstage");
-      expect(soundstageHtml).toContain("Studio Soundstage, Acoustical & Set Operations");
+      expect(soundstageHtml).toContain("Studio Soundstage, Acoustical &amp; Set Operations");
       expect(soundstageHtml).toContain("StudioManager");
 
       const invalidHtml = renderWorkspaceDeskHtml("non-existent-desk");

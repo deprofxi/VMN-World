@@ -69,6 +69,7 @@ import { QuoteToCashSalesEngine, type SalesDeal } from "../../src/modules/financ
 import { registerSession, type SessionRecord } from "../../src/core/auth/sessions.js";
 import { recordIdempotentOutcome } from "../../src/core/websecurity/index.js";
 import { submitCommercialEnquiry, type EnquiryRecord } from "../../src/modules/hub/enquiry/index.js";
+import { persistCommercialEnquiry } from "../../src/core/database/repositories/release-critical.repository.js";
 import { createApiServer, type ApiServerInstance } from "../../src/api/server.js";
 
 const REPO_ROOT = path.resolve(new URL("../../", import.meta.url).pathname);
@@ -197,6 +198,44 @@ describe.skipIf(!DURABLE)("TSK-17: release-critical stores survive a process res
     expect(new Date(stored.createdAt).getTime()).toBe(new Date(enquiry.createdAt).getTime());
     expect(stored.retryCount).toBe(0);
   });
+
+  restartIt(
+    "resolves a replayed submission (same idempotency key, fresh row identity) to the same durable row, not a P2002",
+    async () => {
+      // Regression: the wizard's idempotency key is deterministic (a hash of the
+      // payload), so a replay after a restart or a lost drain used to stage a
+      // record with a NEW row id and reference carrying the SAME key, and the
+      // upsert-by-id create branch collided on the `idempotencyKey` unique
+      // index — failing the whole journal transaction and, fail-closed, the
+      // request. The durable write now keys on the idempotency key itself, so
+      // a replay resolves to the same row instead of refusing it.
+      const key = `enq-replay-${RUN}`;
+      const { enquiry } = await submitCommercialEnquiry({
+        fullName: "Replay Probe",
+        email: `replay+${RUN}@vmnl.ng`,
+        message: "Idempotency-key replay probe for the commercial intake queue.",
+        ndprConsent: true,
+        vertical: "ONE_STUDIOS",
+        idempotencyKey: key,
+      });
+      cleanup.push(() => getPrismaClient().commercialEnquiry.deleteMany({ where: { idempotencyKey: key } }));
+
+      // A replay from a fresh process: new row identity, same logical key, and
+      // the intake index is empty (no hydration) — exactly the pre-fix
+      // collision conditions.
+      const replayedReference = `${enquiry.reference}-R`;
+      await persistCommercialEnquiry({
+        ...enquiry,
+        id: `replay-row-${RUN}`,
+        reference: replayedReference,
+      });
+
+      const rows = await getPrismaClient().commercialEnquiry.findMany({ where: { idempotencyKey: key } });
+      expect(rows, "one logical submission must be one durable row").toHaveLength(1);
+      expect(rows[0].id).toBe(`replay-row-${RUN}`);
+      expect(rows[0].reference).toBe(replayedReference);
+    },
+  );
 
   restartIt("persists an approval with its NGN scope exact, not as a float approximation", async () => {
     const item = createApproval({

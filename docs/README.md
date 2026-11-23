@@ -22,6 +22,7 @@ this page is the defect.
 |:---|:---|:---|
 | `/CLAUDE.md` | [`CLAUDE.md`](../CLAUDE.md) | Repository constitution: canonical laws, engineering behaviour, stop conditions |
 | `docs/authorities/` | [`docs/authorities/`](authorities/) | The governing authority documents (BRD/PRD, CCPP, EXEC) — the source of every "Authority:" line |
+| `docs/authorities/ia/` | [`docs/authorities/ia/`](authorities/ia/) | VMN World Information Architecture R1.1 suite (inventory, architecture review, complete screen architecture, verification manifest, developer handoff, and master spreadsheet) |
 | `docs/domain/` | [`docs/domain/`](domain/) | Canonical model, data dictionary, systems of record, state/invariant statements |
 | `docs/security/` | [`docs/security/`](security/) | Threat model, route authorization coverage, PII handling |
 | `docs/decisions/` | [`docs/decisions/`](decisions/) | Decision records and machine-readable registers (for example `screen-register.json`) |

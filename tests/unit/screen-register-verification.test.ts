@@ -41,6 +41,7 @@ import {
   computeScreenRegisterCounts,
   type ExpandedScreenId,
 } from "../../src/core/config/screen-register.js";
+import { resolveIARoute } from "../../src/web/ia/index.js";
 
 const REPO_ROOT = fileURLToPath(new URL("../..", import.meta.url));
 const ROUTER_SOURCE = fs.readFileSync(path.join(REPO_ROOT, "src/api/router.ts"), "utf8");
@@ -96,6 +97,12 @@ function isMounted(route: string): boolean {
   if (route === "/" || route === "") return LITERAL_PATHS.has("/");
   if (LITERAL_PATHS.has(route)) return true;
   if (PREFIX_PATHS.some((p) => route.startsWith(p))) return true;
+  // A route the IA resolver owns is mounted by the router too: `dispatchIARoute`
+  // runs before the page handlers and answers every registry route, so "is this
+  // declared path dispatched?" must consult the resolver as well as the literal
+  // `pathname ===` guards. Reading the registry — not a hand-list — keeps the
+  // mount check a fact about the code the router runs.
+  if (resolveIARoute(route)) return true;
   // A declared pattern like /programmes/:id mounts if the router has a matching
   // literal-with-wildcard or an explicit startsWith for its first segment.
   if (route.includes(":")) {
@@ -314,8 +321,20 @@ for (const e of expanded) {
  * SuperAdmin bearer session. Parameterised literals are excluded (no defensible
  * sample entity for every one), so this is a floor for the HTML surface, not a
  * total — and it is the figure that replaces the withdrawn "225 system screens".
+ *
+ * Re-measured 2026-11-16 (111 → 103): IA Phase 7 retired seven overlapping
+ * legacy `pathname ===` branches to permanent redirects (`/channels`,
+ * `/channels/isimbido`, `/channels/nxtr`, `/channels/orisun`, `/enquiry`,
+ * `/help`, `/hub`) and `/contact` is now answered by the IA resolver rather than
+ * by a literal branch, so eight literals left the probed set. Nothing was
+ * un-mounted to reach the figure: the seven redirects are asserted one by one in
+ * `tests/integration/ia-routing.test.ts` and the IA route set is counted by
+ * `tests/unit/ia-registry.test.ts`.
  */
-const HTML_SURFACES_PIN = 111;
+// 103 → 104 on 2026-11-16: the J23 operating-state work added one literal
+// HTML-serving path, `/offline` (EDGE-005), which the probe below reaches and
+// which answers 200 text/html.
+const HTML_SURFACES_PIN = 104;
 
 let app: ApiServerInstance | undefined;
 let port = 0;
@@ -331,7 +350,12 @@ function get(p: string): Promise<{ status: number; contentType: string; body: st
       );
     });
     req.on("error", reject);
-    req.setTimeout(10000, () => req.destroy(new Error(`probe timeout after 10000ms on ${p}`)));
+    // 30s, not 10s: the probe is the first request a freshly booted server
+    // answers and it shares the machine with the rest of the suite. At `maxWorkers:
+    // 1` a full run once held `/` past a 10s bound and failed this file on load,
+    // not on a register defect (re-run alone: 7/7 green). Still bounded, so a
+    // genuinely hung route is reported rather than waited on indefinitely.
+    req.setTimeout(30000, () => req.destroy(new Error(`probe timeout after 30000ms on ${p}`)));
     req.end();
   });
 }

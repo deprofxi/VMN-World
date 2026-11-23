@@ -17,8 +17,9 @@ import { escapeHtml } from "./escape.js";
 
 export * from "./tokens.js";
 export * from "./icons.js";
-export { escapeHtml } from "./escape.js";
+export { escapeHtml, html, isSafeHtml, type SafeHtml } from "./escape.js";
 export * from "./episode-masters.js";
+export * from "./ia-contracts.js";
 
 export interface LoadingSkeletonProps {
   lines?: number;
@@ -59,7 +60,7 @@ export class ComponentRenderer {
       `vmn-btn-state-${state}`,
     ].join(" ");
 
- return `<button type="button" class="${classes} s-uFwdajinpr" ${ariaDisabled}${ariaBusy}${ariaLabel}${actionAttr}>${content}</button>`;
+ return `<button type="button" class="${escapeHtml(classes)} s-uFwdajinpr" ${ariaDisabled}${ariaBusy}${ariaLabel}${actionAttr}>${content}</button>`;
   }
 
   /**
@@ -82,7 +83,7 @@ export class ComponentRenderer {
         : "";
 
     return `
-<div class="vmn-form-field vmn-field-state-${state}">
+<div class="vmn-form-field vmn-field-state-${escapeHtml(state)}">
   <label for="${safeId}" class="vmn-label">${escapeHtml(props.label)}${props.required ? ' <span class="vmn-required" aria-hidden="true">*</span>' : ""}</label>
  <input id="${safeId}" name="${safeId}" type="text" class="vmn-input s-GP5FDgmEZf" value="${escapeHtml(props.value)}" placeholder="${escapeHtml(props.placeholder || "")}" ${ariaInvalid}${disabledAttr}${requiredAttr}/>
   ${errorHtml}
@@ -113,7 +114,7 @@ export class ComponentRenderer {
       iconHtml = renderIcon("info", { size: 14 });
     }
 
-    return `<span class="status-chip status-chip-${tone}">${pulseDot}${iconHtml}<span>${escapeHtml(props.label)}</span></span>`;
+    return `<span class="status-chip status-chip-${escapeHtml(tone)}">${pulseDot}${iconHtml}<span>${escapeHtml(props.label)}</span></span>`;
   }
 
   /**
@@ -148,7 +149,7 @@ export class ComponentRenderer {
     const rows = Array.from({ length: lines })
       .map(
         (_, i) =>
- `<div class="vmn-skeleton-line" style="height:${height}px; width:${i === lines - 1 ? "75%" : width}; background: #E2E8F0; border-radius: 4px; margin-bottom: 8px; animation: pulse 1.5s infinite ease-in-out;"></div>`
+ `<div class="vmn-skeleton-line" style="height:${escapeHtml(height)}px; width:${i === lines - 1 ? "75%" : escapeHtml(width)}; background: #E2E8F0; border-radius: 4px; margin-bottom: 8px; animation: pulse 1.5s infinite ease-in-out;"></div>`
       )
       .join("");
 

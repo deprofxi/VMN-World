@@ -12,6 +12,7 @@
  */
 
 import { escapeHtml } from "../components/escape.js";
+import { publicEdgeContract } from "../ia/operating-states.js";
 import { getMediaAsset } from "../../core/storage/index.js";
 import type { MediaAssetRecord } from "../../core/storage/index.js";
 
@@ -110,7 +111,7 @@ export function renderMediaRefBadgesHtml(badges: ContentMediaRefBadge[], emptyTe
     .map((b) => {
       const color = MEDIA_REF_STATE_COLOR[b.state];
       const detail = b.detail ? ` title="${escapeHtml(b.detail)}"` : "";
- return `<span${detail} class="s-P3mdFH2Rdl"><strong style="color: ${color};">${escapeHtml(b.state)}</strong> ${escapeHtml(b.label)}<span class="s-wazT-oUSIh"> · ${escapeHtml(b.assetId)}</span></span>`;
+ return `<span${escapeHtml(detail)} class="s-P3mdFH2Rdl"><strong style="color: ${escapeHtml(color)};">${escapeHtml(b.state)}</strong> ${escapeHtml(b.label)}<span class="s-wazT-oUSIh"> · ${escapeHtml(b.assetId)}</span></span>`;
     })
     .join("");
 }
@@ -134,6 +135,14 @@ export function renderMediaPickerHtml(projection: MediaPickerProjection): string
     once the virus-scan and MIME gates have evidence to show.</p>
   </section>`;
   }
+
+  // EDGE-023: rows that are not selectable are the inventory's upload state,
+  // not a rendering accident — the picker quotes the contract so an editor can
+  // tell "quarantined by the scan" from "refused by validation".
+  const uploadState = summary.quarantined + summary.failed > 0 ? publicEdgeContract("EDGE-023") : undefined;
+  const uploadStateNote = uploadState
+    ? `<p class="s-Y2zrxdGou0" data-testid="media-picker-edge-023">${escapeHtml(uploadState.id)} · ${escapeHtml(uploadState.acceptanceId)} — ${escapeHtml(uploadState.title)}. A row in this state keeps its evidence and rejection reason and is never selectable media.</p>`
+    : "";
 
   const rows = assets
     .map((a) => {
@@ -159,10 +168,11 @@ export function renderMediaPickerHtml(projection: MediaPickerProjection): string
  <section class="card s-kqRH8I4df0" aria-labelledby="media-picker-heading" >
     <h2 id="media-picker-heading">Approved Media Picker</h2>
  <p class="s-Y2zrxdGou0">
-      ${summary.total} asset${summary.total === 1 ? "" : "s"} in the registry — ${summary.available} available,
-      ${summary.quarantined} quarantined, ${summary.failed} failed. Only AVAILABLE assets satisfy the
+      ${escapeHtml(summary.total)} asset${summary.total === 1 ? "" : "s"} in the registry — ${escapeHtml(summary.available)} available,
+      ${escapeHtml(summary.quarantined)} quarantined, ${escapeHtml(summary.failed)} failed. Only AVAILABLE assets satisfy the
       UIUX-001 §7.3 evidence-attachment contract; quarantined/failed rows are shown with their reason for review.
     </p>
+    ${uploadStateNote}
  <div class="s-QtRFDAL0Yl">
  <table class="s-C8adFL88uc" data-testid="media-picker-table">
         <thead>

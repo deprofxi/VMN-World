@@ -61,7 +61,7 @@ test.describe("the browser run measures styled pages", () => {
         ".skip-to-content",
         ".vmn-brand-group",
         'nav.vmn-nav-links a[href="/"]',
-        'nav.vmn-nav-links a[href="/channels"]',
+        'nav.vmn-nav-links a[href="/media-and-audience-overview"]',
       ];
       return selectors.map((selector) => {
         const element = document.querySelector(selector);

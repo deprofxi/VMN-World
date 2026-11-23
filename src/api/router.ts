@@ -6,6 +6,8 @@
 import { IncomingMessage, ServerResponse } from "node:http";
 import { gzipSync, gzip as gzipCallback } from "node:zlib";
 import { promisify } from "node:util";
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 // AUD-17: compression above this size runs off the event loop (async zlib);
 // smaller bodies compress synchronously (sub-millisecond) so hot small
@@ -25,7 +27,14 @@ import {
   FlutterwaveWebhookSchema,
 } from "./schemas/index.js";
 import { dispatchDomainRoute } from "./routes/index.js";
-import { dispatchIARoute } from "./routes/ia.routes.js";
+import { dispatchIARoute, isPublicIARoute } from "./routes/ia.routes.js";
+import { renderIAEdgeState } from "../web/ia/edge-states.js";
+import {
+  publicEdgeContract,
+  publicOperatingStateFor,
+  renderOfflineBody,
+  renderOperatingStateBody,
+} from "../web/ia/operating-states.js";
 import { PUBLIC_INDEXABLE_ROUTES } from "../web/public/public-route-registry.js";
 import { TelemetryService } from "../core/observability/index.js";
 import { getAllActiveChannels, getChannelByCode } from "../modules/broadcast/channels/index.js";
@@ -80,12 +89,9 @@ import {
 import {
   renderMasterLayout,
   renderHomePageHtml,
-  renderChannelsPageHtml,
-  renderHubPageHtml,
   renderDashboardHtml,
   renderScreensCatalogHtml,
   renderScreenDetailHtml,
-  renderChannelDetailPageHtml,
   renderPublicProgrammeDetailHtml,
   renderTalentAcceleratorPageHtml,
   renderAfcaAcademyPageHtml,
@@ -113,16 +119,12 @@ import {
   ENTERPRISE_WORKSPACES,
   renderStyleguideHtml,
   renderPrototypesViewerHtml,
-  PrototypeScreenId,
-  PrototypeScenario,
-  PrototypeDevice,
+  parsePrototypeViewOptions,
   renderVcfPageHtml,
   renderOneStudiosPageHtml,
   renderAboutPageHtml,
   renderPublicScheduleHtml,
   renderAdvertisingSponsorshipHtml,
-  renderEnquiryContactHtml,
-  renderHelpPageHtml,
   renderPrivacyPageHtml,
   renderAccessibilityPageHtml,
   renderAdmissionsApplicationHtml,
@@ -443,6 +445,7 @@ export class PayloadTooLargeError extends Error {
 const DEFAULT_MAX_BODY_BYTES = 1 * 1024 * 1024; // 1 MB (AUD-10)
 const LARGE_BODY_ROUTES: Array<{ prefix: string; limitBytes: number }> = [
   { prefix: "/api/v1/storage/scan", limitBytes: 30 * 1024 * 1024 }, // base64 of the 20MB scan cap
+  { prefix: "/api/v1/branding/logo", limitBytes: 5 * 1024 * 1024 }, // 2MB image base64 allowance
 ];
 
 export function maxBodyBytesForPath(pathname: string): number {
@@ -490,6 +493,15 @@ async function stashFormBody(req: IncomingMessage): Promise<string> {
   const body = await readBodyWithLimit(req, maxBodyBytesForPath(""));
   reqAny[stashKey] = body;
   return body;
+}
+
+/**
+ * Exported for the IA wizard submit path: the CSRF pre-read stashes the form
+ * body when a session is present, so the handler must reuse the same stash
+ * (and its body-size limit) instead of reading the stream twice.
+ */
+export async function readFormBodyStash(req: IncomingMessage): Promise<string> {
+  return stashFormBody(req);
 }
 
 /**
@@ -1240,7 +1252,11 @@ export async function handleApiRequest(
         canonicalPath === "/broadcast/dashboard");
 
     if (isOperatorDesk) {
-      if (!sessionUser) {
+      // VMN World IA R1.1: a public (W0) inventory route is served as its gate
+      // declares, even when it sits under /workspace (LEARN-001). The default
+      // deny is for operator desks, not for a page the IA authority marks
+      // public; the IA dispatcher still runs the full gate evaluation below.
+      if (!sessionUser && !isPublicIARoute(pathname)) {
         res.writeHead(302, { Location: `/sign-in?returnUrl=${encodeURIComponent(pathname)}` });
         res.end();
         return;
@@ -1249,7 +1265,7 @@ export async function handleApiRequest(
       const restricted = WORKSPACE_HTML_GUARDS.find(
         (g) => canonicalPath.startsWith(g.prefix) || pathname.startsWith(g.prefix)
       );
-      if (restricted) {
+      if (restricted && sessionUser) {
         const allowed = sessionUser.roles.some((r) => restricted.roles.includes(r));
         if (!allowed) {
           const html = renderMasterLayout(
@@ -1262,6 +1278,58 @@ export async function handleApiRequest(
           return;
         }
       }
+    }
+
+    // J23 public operating states. Withdrawal, a closed public surface and an
+    // unlaunched corporate brand are deployment declarations, not request
+    // facts, so they are answered from configuration (src/web/ia/operating-
+    // states.ts) instead of being inferred. Exempt paths — operator desks,
+    // assets, APIs, identity and this notice itself — keep serving, so the
+    // window can be operated from inside.
+    const operating = publicOperatingStateFor(pathname);
+    // A closed surface must also refuse the writes a visitor could not have
+    // reached: with the pages answering 503, accepting a public form submission
+    // would record something nobody can see the outcome of. A withdrawal is
+    // content-specific and stays a read-side statement.
+    const operatingApplies =
+      operating !== undefined &&
+      (method === "GET" || method === "HEAD" || operating.reason === "MAINTENANCE");
+    if (operating && operatingApplies) {
+      for (const [name, value] of Object.entries(operating.headers)) res.setHeader(name, value);
+      const accept = String(req.headers.accept || "");
+      if (accept === "" || accept.includes("text/html")) {
+        const html = renderMasterLayout(
+          operating.contract.title,
+          renderOperatingStateBody(operating, pathname),
+          pathname,
+          { shell: "identity", sessionUser }
+        );
+        await sendHtml(res, operating.status, html, { private: true });
+      } else {
+        await sendJson(res, operating.status, {
+          error: operating.status === 410 ? "Gone" : "Service Unavailable",
+          message: operating.contract.message,
+          code: operating.reason,
+          edgeState: operating.contract,
+        });
+      }
+      return;
+    }
+
+    // EDGE-005: the document a disconnected visitor can still load. It states
+    // the guidance and claims no offline caching — this deployment ships no
+    // service worker, and a page cannot assert a guarantee the transport does
+    // not provide.
+    if (pathname === "/offline" && (method === "GET" || method === "HEAD")) {
+      await sendHtml(
+        res,
+        200,
+        renderMasterLayout("Offline | VMNL", renderOfflineBody(), "/offline", {
+          shell: "identity",
+          sessionUser,
+        })
+      );
+      return;
     }
 
     // VMN World IA R1.1 — inventory routes. Runs after session resolution and
@@ -2213,6 +2281,33 @@ export async function handleApiRequest(
       return;
     }
 
+    // Legacy route retirement (plan Phase 7 / decision D1): each overlapping
+    // legacy route permanently redirects (301) to the IA successor the
+    // inventory serves at that URL, with the query string preserved. Every
+    // redirect has its own test in tests/integration/ia-route-retirement
+    // assertions and a documented reason:
+    //   /channels        → /media-and-audience-overview  (PUB-005: the three
+    //     channel profiles render there; carriage stays unverified)
+    //   /channels/{code} → /media-and-audience-overview  (same profiles,
+    //     inline)
+    //   /hub             → /creative-economy-hub-overview (PUB-006)
+    const LEGACY_REDIRECTS: ReadonlyMap<string, string> = new Map([
+      ["/channels", "/media-and-audience-overview"],
+      ["/channels/nxtr", "/media-and-audience-overview"],
+      ["/channels/orisun", "/media-and-audience-overview"],
+      ["/channels/isimbido", "/media-and-audience-overview"],
+      ["/hub", "/creative-economy-hub-overview"],
+      ["/enquiry", "/contact"],
+      ["/help", "/support"],
+    ]);
+    const legacyTarget = LEGACY_REDIRECTS.get(pathname);
+    if (legacyTarget && method === "GET") {
+      const query = parsedUrl.search ? parsedUrl.search : "";
+      res.writeHead(301, { Location: `${legacyTarget}${query}` });
+      res.end();
+      return;
+    }
+
     // 0. Public Web Pages & Operator Dashboard
     if (pathname === "/" && method === "GET") {
       const sessionUser = resolveSessionUser(req);
@@ -2221,32 +2316,10 @@ export async function handleApiRequest(
       return;
     }
 
-    if (pathname === "/channels" && method === "GET") {
-      const html = renderMasterLayout("Linear Channels", renderChannelsPageHtml(), "/channels");
-      sendHtml(res, 200, html);
-      return;
-    }
-
     // Surface A: Channel Pages (BCST-09: now/next widget from approved EPG;
     // BCST-08: viewer-timezone presentation via the Time-Zone request header)
-    const tzHeader = typeof req.headers["time-zone"] === "string" ? (req.headers["time-zone"] as string) : undefined;
-    if (pathname === "/channels/nxtr" && method === "GET") {
-      const html = renderMasterLayout("Nigezie Xtreme (NXTR)", renderChannelDetailPageHtml("NXTR", tzHeader), "/channels/nxtr");
-      sendHtml(res, 200, html);
-      return;
-    }
-
-    if (pathname === "/channels/orisun" && method === "GET") {
-      const html = renderMasterLayout("Orisun (ORIS)", renderChannelDetailPageHtml("ORIS", tzHeader), "/channels/orisun");
-      sendHtml(res, 200, html);
-      return;
-    }
-
-    if (pathname === "/channels/isimbido" && method === "GET") {
-      const html = renderMasterLayout("Isi Mbido (IMBD)", renderChannelDetailPageHtml("IMBD", tzHeader), "/channels/isimbido");
-      sendHtml(res, 200, html);
-      return;
-    }
+    // Legacy /channels/* routes retired above; the renderers remain for the
+    // surfaces that still embed them.
 
     if (pathname.startsWith("/programmes/") && method === "GET") {
       const programmeId = pathname.replace("/programmes/", "").trim();
@@ -2260,11 +2333,7 @@ export async function handleApiRequest(
     }
 
     // Surface A: Hub Verticals & Public Pages
-    if (pathname === "/hub" && method === "GET") {
-      const html = renderMasterLayout("Creative Economy Hub", renderHubPageHtml(), "/hub");
-      sendHtml(res, 200, html);
-      return;
-    }
+    // Legacy /hub retired above (redirects to PUB-006).
 
     if (pathname === "/hub/talent" && method === "GET") {
       const html = renderMasterLayout("Talent Accelerator", renderTalentAcceleratorPageHtml(), "/hub");
@@ -2365,12 +2434,13 @@ export async function handleApiRequest(
 
     // R1.1 Representative Desktop & Mobile Prototypes Viewer (Docx §1, §14)
     if (pathname === "/prototypes" && method === "GET") {
-      const screen = (parsedUrl.searchParams.get("screen") || "home") as PrototypeScreenId;
-      const scenario = (parsedUrl.searchParams.get("scenario") || "normal") as PrototypeScenario;
-      const device = (parsedUrl.searchParams.get("device") || "desktop") as PrototypeDevice;
+      // DEBT-009: these three values are query parameters. The viewer's own
+      // parser keeps them inside the declared sets instead of casting the raw
+      // string, so a hostile `device` cannot reach a CSS class or an href.
+      const viewOptions = parsePrototypeViewOptions(parsedUrl.searchParams);
       const html = renderMasterLayout(
         "R1.1 Representative Prototypes",
-        renderPrototypesViewerHtml({ screen, scenario, device }),
+        renderPrototypesViewerHtml(viewOptions),
         "/prototypes"
       );
       sendHtml(res, 200, html);
@@ -2399,18 +2469,14 @@ export async function handleApiRequest(
     }
 
     // UX-PUB-025: Commercial Enquiry & Contact
-    if ((pathname === "/enquiry" || pathname === "/contact") && method === "GET") {
-      const html = renderMasterLayout("Contact & Commercial Enquiry", renderEnquiryContactHtml(), "/contact");
-      sendHtml(res, 200, html);
-      return;
-    }
+    // /contact is served by the IA dispatcher (PUB-011). Legacy /enquiry is
+    // retired above with a redirect to it; the vertical-selection defect the
+    // IA page fixed is recorded in page-plan.md §8.2.
 
     // UX-PUB-026: Help Center & Knowledge Base
-    if (pathname === "/help" && method === "GET") {
-      const html = renderMasterLayout("Help Center & Support", renderHelpPageHtml(), "/help");
-      sendHtml(res, 200, html);
-      return;
-    }
+    // Legacy /help is retired above with a redirect to PUB-012 /support. The
+    // operator-facing /help/operator surface is a different surface and is
+    // NOT retired.
 
     // UX-PUB-027: Privacy Policy & Data Protection Notice
     if (pathname === "/privacy" && method === "GET") {
@@ -2712,6 +2778,30 @@ ${publicRoutes
       return;
     }
 
+    // Modern Vite & Tailwind CSS compilation pipeline asset
+    if (pathname === "/assets/tailwind.css" && (method === "GET" || method === "HEAD")) {
+      let sheet = "";
+      try {
+        const tailwindPath = resolve(process.cwd(), "dist/client/tailwind.css");
+        if (existsSync(tailwindPath)) {
+          sheet = readFileSync(tailwindPath, "utf8");
+        }
+      } catch {
+        sheet = "";
+      }
+      const etag = `"${crypto.createHash("sha256").update(sheet).digest("base64url")}"`;
+      res.setHeader("ETag", etag);
+      res.setHeader("Vary", "Accept-Encoding");
+      res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
+      if (res.req?.headers["if-none-match"] === etag) {
+        res.writeHead(304);
+        res.end();
+        return;
+      }
+      sendText(res, 200, sheet, "text/css; charset=utf-8");
+      return;
+    }
+
     // AUD-04: Client bootstrap JS served as external CSP-'self'-compliant asset
     if (pathname === "/assets/app.js" && (method === "GET" || method === "HEAD")) {
       const etag = `"${crypto.createHash("sha256").update(CLIENT_BOOTSTRAP_JS).digest("base64url")}"`;
@@ -2837,7 +2927,8 @@ ${publicRoutes
       const deskKey = pathname.replace("/workspace/", "").trim();
       const knownDesk = ENTERPRISE_WORKSPACES.some((w) => w.key === deskKey.toLowerCase());
       if (knownDesk) {
-        const html = renderMasterLayout(`Workspace / ${deskKey}`, renderWorkspaceDeskHtml(deskKey), "/workspace");
+        const user = resolveSessionUser(req);
+        const html = renderMasterLayout(`Workspace / ${deskKey}`, renderWorkspaceDeskHtml(deskKey), `/workspace/${deskKey}`, { sessionUser: user, shell: "work" });
         sendHtml(res, 200, html);
         return;
       }
@@ -6434,7 +6525,7 @@ ${publicRoutes
  <div class="s-Ml473Qh3zh">
                 Environment-local Reference (not durable): <strong>${inquiry.id}</strong>
               </div>
-              <a href="/hub" class="btn btn-primary">&larr; Return to Creative Hub</a>
+              <a href="/creative-economy-hub-overview" class="btn btn-primary">&larr; Return to Creative Hub</a>
             </section>
             `,
             "/hub"
@@ -7369,7 +7460,11 @@ ${publicRoutes
         res.end();
         return;
       }
-      markInAppNotificationsRead(user.userId);
+      // Read the inbox *before* stamping it: the page has to show which items
+      // were new when it was opened, and the durable read stamp is written in
+      // the same request (drained at the response choke point). Marking first
+      // made every item look read on its own arrival screen — the "0 unread" and
+      // the missing NEW badge.
       const notifications = listInAppNotifications(user.userId).map((n) => ({
         id: n.id,
         category: n.category,
@@ -7379,6 +7474,7 @@ ${publicRoutes
         readAt: n.readAt,
         route: n.route,
       }));
+      markInAppNotificationsRead(user.userId);
       const html = renderMasterLayout(
         "Notifications | VMNL",
         renderNotificationsHtml({ email: user.email }, notifications),
@@ -8178,7 +8274,16 @@ ${publicRoutes
           ipAddress: clientIp,
           userAgent: req.headers["user-agent"] || null,
         });
-        sendJson(res, 201, { status: "SUCCESS", asset });
+        // EDGE-023: a registration whose scan did not pass is still recorded,
+        // but the asset is QUARANTINED and is not usable media. The response
+        // carries the inventory's upload state so the caller can say why the
+        // asset is unusable instead of only surfacing an access-state string.
+        const quarantine = asset.accessState !== "AVAILABLE" ? publicEdgeContract("EDGE-023") : undefined;
+        await sendJson(res, 201, {
+          status: "SUCCESS",
+          asset,
+          ...(quarantine ? { edgeState: quarantine } : {}),
+        });
       } catch (err: any) {
         const code = (err?.message?.match(/\[MEDIA-ASSET-(\d+)\]/)?.[1] || "ERROR") as string;
         sendJson(res, code === "07" ? 403 : 422, { status: code === "07" ? "CROSS_TENANT" : "REJECTED", code: `MEDIA-ASSET-${code}`, message: err?.message || "Registration rejected." });
@@ -8220,7 +8325,20 @@ ${publicRoutes
       return;
     }
 
-    // Route not found
+    // Route not found. Browsers get the inventory's own public edge state
+    // (EDGE-001) rather than a bare machine payload; API clients keep the
+    // JSON shape they have always had. No new handler is invented — this is
+    // the same final fallback, extended for GET requests that asked for HTML.
+    if (method === "GET" && String(req.headers.accept || "").includes("text/html")) {
+      const html = renderMasterLayout(
+        "404 Not Found | VMNL",
+        renderIAEdgeState("EDGE-001"),
+        pathname,
+        { sessionUser: resolveSessionUser(req) }
+      );
+      sendHtml(res, 404, html);
+      return;
+    }
     sendJson(res, 404, {
       error: "Not Found",
       message: `Endpoint ${method} ${pathname} does not exist on VMNL Enterprise Platform`,

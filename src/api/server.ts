@@ -34,7 +34,7 @@ import { SponsorshipEngine } from "../modules/broadcast/sponsorship/index.js";
 import { CarriageMonitoringEngine } from "../modules/broadcast/carriage/index.js";
 import { BroadcastBillingEngine } from "../modules/broadcast/billing/index.js";
 import { LedgerPostingService } from "../modules/finance/ledger/posting.js";
-import { SevenWayLedgerEngine } from "../modules/finance/ledger/index.js";
+import { SevenWayLedgerEngine, hydrateLedgerEngine } from "../modules/finance/ledger/index.js";
 import { PlayoutExportEngine } from "../modules/broadcast/export/index.js";
 import { handleApiRequest, RequestHandlerContext } from "./router.js";
 import { loadConfig } from "../core/config/index.js";
@@ -60,7 +60,11 @@ import { refreshDestinationIndex } from "../core/federation/destinations.js";
 import { refreshMediaAssetIndex } from "../core/storage/index.js";
 import { refreshContentIndex } from "../core/content/index.js";
 import { hydrateSponsorshipEngine } from "../modules/broadcast/sponsorship/index.js";
-import { refreshSessionIndex } from "../core/auth/sessions.js";
+import {
+  refreshInAppNotificationIndex,
+  refreshNotificationPreferenceIndex,
+  refreshSessionIndex,
+} from "../core/auth/sessions.js";
 import { refreshIdempotencyIndex } from "../core/websecurity/index.js";
 
 export interface ApiServerInstance {
@@ -119,7 +123,9 @@ export function createApiServer(port?: number, envOverrides: Record<string, stri
   // instead). resolveKeyValueAdapter prefers Redis when REDIS_URL is set and
   // logs its backend decision, so a deployment never silently assumes
   // distribution. The adapter is shared with the auth and session stores.
-  if (process.env.REDIS_URL) {
+  const effectiveRedisUrl = config.REDIS_URL || process.env.REDIS_URL;
+  if (effectiveRedisUrl) {
+    process.env.REDIS_URL = effectiveRedisUrl;
     configureRedisAdapterFactory((url) => createMinimalRespRedisClient(url));
   }
   const kvAdapter = resolveKeyValueAdapter({
@@ -326,6 +332,11 @@ export function createApiServer(port?: number, envOverrides: Record<string, stri
       try {
         const assets = await refreshMediaAssetIndex();
         await refreshSessionIndex();
+        // UX-SYS-012 / UX-HUB-003: preferences before any dispatch can run, and
+        // the inbox beside them, so a restarted process honours the opt-outs the
+        // user saved and shows the deliveries they were already sent.
+        const notificationPreferences = await refreshNotificationPreferenceIndex();
+        const notifications = await refreshInAppNotificationIndex();
         await refreshIdempotencyIndex();
         await refreshEnquiryIndex();
         await refreshApprovalIndex();
@@ -338,19 +349,38 @@ export function createApiServer(port?: number, envOverrides: Record<string, stri
         // hydrates with the others. Deals come from an explicit console action
         // rather than a boot seed, so nothing has to be re-run after hydration.
         const sales = await hydrateSalesEngine(salesEngine);
+        // TSK-32 / TSK-17 / AUDIT-PHASE-1: Hydrate double-entry journal entries
+        // into the canonical SevenWayLedgerEngine so double-entry postings survive restarts.
+        const ledger = await hydrateLedgerEngine(ledgerPostingService.getLedger());
         // Re-run the deterministic boot seeds against the hydrated registries:
         // created in `createApiServer` before hydration could run, they are
         // idempotent by assetId/contentId, so durable rows win and only genuinely
         // missing demo data is added.
         registerGoldenDamAssets();
         ensureContentDemoSeed();
-        if (assets.assets > 0 || content.items > 0 || sponsorship.bindings > 0 || sales.deals > 0) {
+        if (
+          assets.assets > 0 ||
+          content.items > 0 ||
+          sponsorship.bindings > 0 ||
+          sales.deals > 0 ||
+          ledger.journalEntries > 0 ||
+          notificationPreferences.preferences > 0 ||
+          notifications.notifications > 0
+        ) {
           const span = TelemetryService.createSpanContext("server_bootstrap");
           telemetry.logStructured(
             "INFO",
             "Release-critical durable stores hydrated at boot",
             span,
-            { ...assets, ...content, ...sponsorship, ...sales }
+            {
+              ...assets,
+              ...content,
+              ...sponsorship,
+              ...sales,
+              ...ledger,
+              ...notificationPreferences,
+              ...notifications,
+            }
           );
         }
       } catch (err) {

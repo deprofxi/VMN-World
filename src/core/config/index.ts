@@ -96,6 +96,7 @@ const configSchema = z.object({
   AZEEBO_API_BASE_URL: optionalUrl,
   AZEEBO_CLIENT_ID: z.string().default("vmnl_enterprise_hub"),
   AZEEBO_WEBHOOK_SECRET: z.string().min(16, "AZEEBO_WEBHOOK_SECRET must be at least 16 characters"),
+  AZEEBO_FEDERATION_SECRET: z.string().min(16, "AZEEBO_FEDERATION_SECRET must be at least 16 characters").default("azeebo_federation_secret_key_32chars"),
   AZEEBO_APP_SCHEME: z.string().default("azeeboplus"),
 
   // Security & CORS
@@ -171,6 +172,8 @@ const configSchema = z.object({
       .regex(/^rediss?:\/\//, "REDIS_URL must start with redis:// or rediss:// (see PR-07: an unknown scheme is refused, not downgraded)")
       .optional()
   ),
+  BROADCAST_HEADEND_UDP_HOST: optionalTrimmed,
+  BROADCAST_HEADEND_UDP_PORT: z.preprocess(blankToUndefined, z.coerce.number().int().min(1).max(65535).optional()),
   ALLOW_MEMORY_KV_IN_PRODUCTION: booleanish(false),
   STORAGE_READINESS_GATING: booleanish(true),
   KV_READINESS_GATING: booleanish(true),

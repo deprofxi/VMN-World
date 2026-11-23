@@ -22,18 +22,58 @@
 import { escapeHtml } from "../components/escape.js";
 import { renderIcon } from "../components/icons.js";
 
-export type PrototypeScreenId =
-  | "home"
-  | "channel"
-  | "work"
-  | "client"
-  | "application"
-  | "terms"
-  | "schedule"
-  | "proof";
+export const PROTOTYPE_SCREEN_IDS = [
+  "home",
+  "channel",
+  "work",
+  "client",
+  "application",
+  "terms",
+  "schedule",
+  "proof",
+] as const;
 
-export type PrototypeScenario = "normal" | "stale" | "blocked" | "recovery";
-export type PrototypeDevice = "desktop" | "tablet" | "mobile" | "compact";
+export const PROTOTYPE_SCENARIOS = ["normal", "stale", "blocked", "recovery"] as const;
+export const PROTOTYPE_DEVICES = ["desktop", "tablet", "mobile", "compact"] as const;
+
+export type PrototypeScreenId = (typeof PROTOTYPE_SCREEN_IDS)[number];
+export type PrototypeScenario = (typeof PROTOTYPE_SCENARIOS)[number];
+export type PrototypeDevice = (typeof PROTOTYPE_DEVICES)[number];
+
+/**
+ * The screens' codes and reader-facing names, declared once.
+ *
+ * The viewer renders its screen tabs from this list and the site registry
+ * (`site-registry.ts`) builds the command palette's prototype destinations
+ * from it, so a renamed or re-coded screen cannot survive in one place and go
+ * stale in the other.
+ */
+export const PROTOTYPE_SCREEN_CATALOG: ReadonlyArray<{
+  id: PrototypeScreenId;
+  name: string;
+  code: string;
+}> = [
+  { id: "home", name: "Public Discovery", code: "UX-PUB-001" },
+  { id: "channel", name: "Linear Channel", code: "UX-PUB-004" },
+  { id: "work", name: "My Work Queue", code: "UX-HUB-001" },
+  { id: "client", name: "Client Delivery Proof", code: "UX-PRJ-002" },
+  { id: "application", name: "Learner Application", code: "UX-APP-002" },
+  { id: "terms", name: "Engagement Terms", code: "UX-VTM-008" },
+  { id: "schedule", name: "Schedule Review", code: "UX-BR-012" },
+  { id: "proof", name: "Delivery Evidence", code: "UX-BR-030" },
+];
+
+/** The scenario toggles' labels and provenance wording, declared once. */
+export const PROTOTYPE_SCENARIO_CATALOG: ReadonlyArray<{
+  id: PrototypeScenario;
+  label: string;
+  desc: string;
+}> = [
+  { id: "normal", label: "Normal", desc: "Prototype baseline — not production data" },
+  { id: "stale", label: "Stale Data", desc: "Simulated stale state; no live source connected" },
+  { id: "blocked", label: "Blocked State", desc: "Illustrative rights/compliance scenario, not an actual decision" },
+  { id: "recovery", label: "Recovery Drill", desc: "Illustrative recovery workflow, not durable evidence" },
+];
 
 export interface PrototypeViewOptions {
   screen?: PrototypeScreenId;
@@ -41,28 +81,48 @@ export interface PrototypeViewOptions {
   device?: PrototypeDevice;
 }
 
+/**
+ * DEBT-009: the viewer's screen/scenario/device arrive as `?screen=&scenario=&device=`
+ * query values. This is the boundary that makes the union types true: anything
+ * outside the declared sets falls back instead of being cast and then used in a
+ * link or a CSS class name.
+ */
+export function parsePrototypeViewOptions(searchParams: URLSearchParams): Required<PrototypeViewOptions> {
+  const pick = <T extends string>(value: string | null, allowed: readonly T[], fallback: T): T =>
+    value !== null && (allowed as readonly string[]).includes(value) ? (value as T) : fallback;
+
+  return {
+    screen: pick(searchParams.get("screen"), PROTOTYPE_SCREEN_IDS, "home"),
+    scenario: pick(searchParams.get("scenario"), PROTOTYPE_SCENARIOS, "normal"),
+    device: pick(searchParams.get("device"), PROTOTYPE_DEVICES, "desktop"),
+  };
+}
+
+/** One place that builds the viewer's own links, so query values are encoded. */
+function prototypeHref(
+  screen: PrototypeScreenId,
+  scenario: PrototypeScenario,
+  device: PrototypeDevice
+): string {
+  return `/prototypes?${new URLSearchParams({ screen, scenario, device }).toString()}`;
+}
+
 export function renderPrototypesViewerHtml(options: PrototypeViewOptions = {}): string {
-  const currentScreen = options.screen || "home";
-  const currentScenario = options.scenario || "normal";
-  const currentDevice = options.device || "desktop";
+  // The same validation runs here, so a direct caller cannot inject an
+  // attribute or a class through `device` even if it skips the router.
+  const { screen: currentScreen, scenario: currentScenario, device: currentDevice } =
+    parsePrototypeViewOptions(
+      new URLSearchParams({
+        screen: options.screen ?? "",
+        scenario: options.scenario ?? "",
+        device: options.device ?? "",
+      })
+    );
 
-  const screens: Array<{ id: PrototypeScreenId; name: string; code: string }> = [
-    { id: "home", name: "Public Discovery", code: "UX-PUB-001" },
-    { id: "channel", name: "Linear Channel", code: "UX-PUB-004" },
-    { id: "work", name: "My Work Queue", code: "UX-HUB-001" },
-    { id: "client", name: "Client Delivery Proof", code: "UX-PRJ-002" },
-    { id: "application", name: "Learner Application", code: "UX-APP-002" },
-    { id: "terms", name: "Engagement Terms", code: "UX-VTM-008" },
-    { id: "schedule", name: "Schedule Review", code: "UX-BR-012" },
-    { id: "proof", name: "Delivery Evidence", code: "UX-BR-030" },
-  ];
-
-  const scenarios: Array<{ id: PrototypeScenario; label: string; desc: string }> = [
-    { id: "normal", label: "Normal", desc: "Prototype baseline — not production data" },
-    { id: "stale", label: "Stale Data", desc: "Simulated stale state; no live source connected" },
-    { id: "blocked", label: "Blocked State", desc: "Illustrative rights/compliance scenario, not an actual decision" },
-    { id: "recovery", label: "Recovery Drill", desc: "Illustrative recovery workflow, not durable evidence" },
-  ];
+  // Rendered from the exported catalogs rather than a local copy: the command
+  // palette's prototype destinations are built from the same lists.
+  const screens = PROTOTYPE_SCREEN_CATALOG;
+  const scenarios = PROTOTYPE_SCENARIO_CATALOG;
 
   const devices: Array<{ id: PrototypeDevice; label: string; width: string }> = [
     { id: "desktop", label: "Desktop (100%)", width: "100%" },
@@ -75,9 +135,9 @@ export function renderPrototypesViewerHtml(options: PrototypeViewOptions = {}): 
   const screenNavHtml = screens
     .map((s) => {
       const active = s.id === currentScreen ? "active" : "";
- return `<a href="/prototypes?screen=${s.id}&scenario=${currentScenario}&device=${currentDevice}" class="vmn-btn vmn-btn-outline ${active} s-ss1kWoUBIJ" >
+ return `<a href="${prototypeHref(s.id, currentScenario, currentDevice)}" class="vmn-btn vmn-btn-outline ${active} s-ss1kWoUBIJ" >
         <span>${escapeHtml(s.name)}</span>
- <span class="s-rizvLiSQHH">${s.code}</span>
+ <span class="s-rizvLiSQHH">${escapeHtml(s.code)}</span>
       </a>`;
     })
     .join(" ");
@@ -86,7 +146,7 @@ export function renderPrototypesViewerHtml(options: PrototypeViewOptions = {}): 
   const scenarioNavHtml = scenarios
     .map((sc) => {
       const active = sc.id === currentScenario ? "active" : "";
-      return `<a href="/prototypes?screen=${currentScreen}&scenario=${sc.id}&device=${currentDevice}" class="vmn-scenario-btn ${active}" title="${escapeHtml(sc.desc)}">
+      return `<a href="${prototypeHref(currentScreen, sc.id, currentDevice)}" class="vmn-scenario-btn ${active}" title="${escapeHtml(sc.desc)}">
         ${renderIcon(sc.id === "normal" ? "check" : sc.id === "stale" ? "clock" : sc.id === "blocked" ? "alert" : "refresh", { size: 14 })}
         <span>${escapeHtml(sc.label)}</span>
       </a>`;
@@ -97,7 +157,7 @@ export function renderPrototypesViewerHtml(options: PrototypeViewOptions = {}): 
   const deviceNavHtml = devices
     .map((d) => {
       const active = d.id === currentDevice ? "active" : "";
-      return `<a href="/prototypes?screen=${currentScreen}&scenario=${currentScenario}&device=${d.id}" class="vmn-device-btn ${active}">
+      return `<a href="${prototypeHref(currentScreen, currentScenario, d.id)}" class="vmn-device-btn ${active}">
         <span>${escapeHtml(d.label)}</span>
       </a>`;
     })
@@ -106,7 +166,9 @@ export function renderPrototypesViewerHtml(options: PrototypeViewOptions = {}): 
   // Render individual screen body
   const screenContentHtml = renderScreenContent(currentScreen, currentScenario);
 
-  const stageClass = `vmn-preview-stage vmn-stage-${currentDevice}`;
+  // `currentDevice` is already restricted to PROTOTYPE_DEVICES above; the escape
+  // keeps that guarantee visible at the attribute boundary (DEBT-009).
+  const stageClass = escapeHtml(`vmn-preview-stage vmn-stage-${currentDevice}`);
 
   return `
  <div class="s-jXAzROAz5F">
@@ -198,7 +260,7 @@ function renderScreenHome(scenario: PrototypeScenario): string {
           Virtual Media Network Limited brings together linear channel profiles, production infrastructure for African creators, and the federated Azeebo+ ecosystem.
         </p>
  <div class="s-GNTtGikGkV">
- <a href="/channels" class="btn s-Yrm0zmaVBy" >Explore Channels</a>
+ <a href="/media-and-audience-overview" class="btn s-Yrm0zmaVBy" >Explore Channels</a>
  <a href="/apply" class="btn btn-outline s-T_Ux9z4CH6" >Apply to AFCA Academy</a>
  <a href="/contact" class="btn btn-outline s-T_Ux9z4CH6" >Commercial Enquiry</a>
         </div>
@@ -228,7 +290,7 @@ function renderScreenHome(scenario: PrototypeScenario): string {
             </div>
  <h3 class="s--8YyDPFw84">Orisun — The Source</h3>
  <p class="s-ATxcpEYg9n">Rich Yoruba culture, cinema, music, folklore, and heritage programming.</p>
- <a href="/channels/oris" class="btn btn-outline s-TsQkvSw5DC" >Channel Details &rarr;</a>
+ <a href="/prototypes?screen=channel" class="btn btn-outline s-TsQkvSw5DC" >Channel Details &rarr;</a>
           </div>
 
  <div class="card s-7ndtghkGqf" >
@@ -238,7 +300,7 @@ function renderScreenHome(scenario: PrototypeScenario): string {
             </div>
  <h3 class="s--8YyDPFw84">Isi Mbido — The Beginning</h3>
  <p class="s-ATxcpEYg9n">Igbo language, customs, traditional drama, and authentic storytelling.</p>
- <a href="/channels/imbd" class="btn btn-outline s-TsQkvSw5DC" >Channel Details &rarr;</a>
+ <a href="/prototypes?screen=channel" class="btn btn-outline s-TsQkvSw5DC" >Channel Details &rarr;</a>
           </div>
         </div>
       </section>

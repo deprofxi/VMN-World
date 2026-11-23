@@ -11,7 +11,14 @@
 import crypto from "crypto";
 import type { KeyValueAdapter } from "../cache/index.js";
 import { registerDurableStore, stageDurableWrite } from "../database/durable-journal.js";
-import { loadSessionRecords, persistSessionRecord } from "../database/repositories/release-critical.repository.js";
+import {
+  loadInAppNotifications,
+  loadNotificationPreferences,
+  loadSessionRecords,
+  persistInAppNotification,
+  persistNotificationPreferences,
+  persistSessionRecord,
+} from "../database/repositories/release-critical.repository.js";
 
 let sessionKvAdapter: KeyValueAdapter | null = null;
 
@@ -244,6 +251,32 @@ export interface NotificationPreferences {
 
 const preferencesByUser = new Map<string, NotificationPreferences>();
 
+/**
+ * UX-SYS-012: the preference record is durable, and that is a *dispatch* fix,
+ * not a display one. `deliverInAppNotification` consults these flags before it
+ * writes anything; while they lived only in this map, a restart reset every
+ * opt-out to the defaults, so an opted-out category was delivered after every
+ * deploy. The map stays as the read index — the row is the record.
+ */
+// One line, like every other registration: the census instruments read these
+// call sites line-by-line, and a wrapped signature would read as a missing store.
+registerDurableStore<{ userId: string; preferences: NotificationPreferences }>("notificationPreference", (payload) =>
+  persistNotificationPreferences(payload.userId, payload.preferences)
+);
+
+/** Boot hydration: rebuild the dispatcher's gate from the durable rows. */
+export async function refreshNotificationPreferenceIndex(): Promise<{ preferences: number }> {
+  try {
+    const loaded = await loadNotificationPreferences();
+    preferencesByUser.clear();
+    for (const row of loaded) preferencesByUser.set(row.userId, row.preferences);
+    return { preferences: loaded.length };
+  } catch (_err) {
+    // If the table has not yet been migrated in this database, fail soft with in-memory defaults
+    return { preferences: 0 };
+  }
+}
+
 const DEFAULT_PREFS: NotificationPreferences = {
   email: true,
   sms: false,
@@ -270,7 +303,19 @@ export function saveNotificationPreferences(userId: string, prefs: Partial<Notif
     categories: { ...current.categories, ...(prefs.categories || {}) },
     updatedAt: new Date(),
   };
+  const previous = preferencesByUser.get(userId);
   preferencesByUser.set(userId, updated);
+  stageDurableWrite<{ userId: string; preferences: NotificationPreferences }>({
+    store: "notificationPreference",
+    key: userId,
+    payload: { userId, preferences: updated },
+    rollback: () => {
+      // A rolled-back save leaves the previous gate in place: dispatch must
+      // never start honouring a preference the database refused to store.
+      if (previous) preferencesByUser.set(userId, previous);
+      else preferencesByUser.delete(userId);
+    },
+  });
   return updated;
 }
 
@@ -347,6 +392,32 @@ export interface InboxNotificationRecord {
 const inboxByUser = new Map<string, InboxNotificationRecord[]>();
 
 /**
+ * UX-HUB-003: the inbox is durable. The map is the read index the surfaces
+ * project; `InAppNotificationRecord` rows are the record, so a delivered
+ * notification and its read state outlive the process that delivered it.
+ */
+registerDurableStore<InboxNotificationRecord>("inAppNotification", persistInAppNotification);
+
+/** Boot hydration: rebuild every inbox, newest first, as the dispatcher left it. */
+export async function refreshInAppNotificationIndex(): Promise<{ notifications: number }> {
+  try {
+    const loaded = await loadInAppNotifications();
+    inboxByUser.clear();
+    for (const record of loaded) {
+      const list = inboxByUser.get(record.userId) || [];
+      // `loadInAppNotifications()` answers oldest first, so unshift restores the
+      // newest-first order `deliverInAppNotification` produces.
+      list.unshift(record);
+      inboxByUser.set(record.userId, list);
+    }
+    return { notifications: loaded.length };
+  } catch (_err) {
+    // If the table has not yet been migrated in this database, fail soft with in-memory empty inbox
+    return { notifications: 0 };
+  }
+}
+
+/**
  * Delivers an in-app notification IF the user's preferences allow the
  * category (TODO-SEC-05 end-to-end honoring). Returns the record when
  * delivered, or null when suppressed by preference.
@@ -378,6 +449,17 @@ export function deliverInAppNotification(params: {
   const list = inboxByUser.get(params.userId) || [];
   list.unshift(record);
   inboxByUser.set(params.userId, list);
+  stageDurableWrite<InboxNotificationRecord>({
+    store: "inAppNotification",
+    key: record.id,
+    payload: record,
+    rollback: () => {
+      const current = inboxByUser.get(record.userId) || [];
+      const next = current.filter((n) => n.id !== record.id);
+      if (next.length > 0) inboxByUser.set(record.userId, next);
+      else inboxByUser.delete(record.userId);
+    },
+  });
   return record;
 }
 
@@ -392,6 +474,17 @@ export function markInAppNotificationsRead(userId: string): number {
     if (!n.readAt) {
       n.readAt = new Date();
       count += 1;
+      // The read stamp is staged per record: journal coalescing keeps this to
+      // one row write per notification, and a restart cannot bring back an
+      // "unread" item the reader already opened.
+      stageDurableWrite<InboxNotificationRecord>({
+        store: "inAppNotification",
+        key: n.id,
+        payload: n,
+        rollback: () => {
+          n.readAt = null;
+        },
+      });
     }
   }
   return count;

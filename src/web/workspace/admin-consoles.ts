@@ -91,15 +91,15 @@ export function renderAccessAdminConsoleHtml(projection: AccessMatrixProjection,
  <div class="s-LdTx3wBkat">
  <div class="vmn-card s-Ur9k9UL2FN" >
  <div class="s-cU3Cr5m8eq">Defined Roles</div>
- <div class="s-vu7vwqr--r">${projection.summary.roles}</div>
+ <div class="s-vu7vwqr--r">${escapeHtml(projection.summary.roles)}</div>
         </div>
  <div class="vmn-card s-Ur9k9UL2FN" >
  <div class="s-cU3Cr5m8eq">Permission Rules</div>
- <div class="s-vu7vwqr--r">${projection.summary.rules}</div>
+ <div class="s-vu7vwqr--r">${escapeHtml(projection.summary.rules)}</div>
         </div>
  <div class="vmn-card s-Ur9k9UL2FN" >
  <div class="s-cU3Cr5m8eq">Active Sessions</div>
- <div class="s-vu7vwqr--r">${projection.summary.activeSessions} / ${projection.summary.sessionsTotal}</div>
+ <div class="s-vu7vwqr--r">${escapeHtml(projection.summary.activeSessions)} / ${escapeHtml(projection.summary.sessionsTotal)}</div>
         </div>
       </div>
 
@@ -194,15 +194,15 @@ export function renderSourceMappingsConsoleHtml(mappings?: SourceMapping[], _use
  <div class="s-GFq2lKWsfq">
  <div class="vmn-card s-Ur9k9UL2FN" >
  <div class="s-cU3Cr5m8eq">Registered Mappings</div>
- <div class="s-vu7vwqr--r">${counts.total}</div>
+ <div class="s-vu7vwqr--r">${escapeHtml(counts.total)}</div>
         </div>
  <div class="vmn-card s-Ur9k9UL2FN" >
  <div class="s-cU3Cr5m8eq">Approved</div>
- <div class="s-Am3eRxce65">${counts.approved}</div>
+ <div class="s-Am3eRxce65">${escapeHtml(counts.approved)}</div>
         </div>
  <div class="vmn-card s-Ur9k9UL2FN" >
  <div class="s-cU3Cr5m8eq">Pending / N-A</div>
- <div class="s-vu7vwqr--r">${counts.pending} / ${counts.notApplicable}</div>
+ <div class="s-vu7vwqr--r">${escapeHtml(counts.pending)} / ${escapeHtml(counts.notApplicable)}</div>
         </div>
       </div>
 

@@ -31,10 +31,10 @@ backend (ADR-006's own decision) and is not part of TSK-21's two boxes.
 
 | JobType | handler | producers in `src/` | what the handler actually does |
 |:---|:---|:---|:---|
-| `EPG_GENERATION` | `src/api/server.ts:192-207` | **2** — boot-time enqueue `src/api/server.ts:393-399`; recurring `configureRollingEpgScheduler` (`src/core/queue/index.ts:301-314`, 24 h interval, wired at `src/api/server.ts:392`) | Builds 7-day rolling feeds for the three provisioned channels and returns `{channelsProcessed, totalSlots, xmltvTotalLength, generatedAt}` plus a `epg_syndication_generation_total` metric. **It does not publish an EPG anywhere** — there is no syndication endpoint in code, and inventing one is prohibited (`tasks.md` TSK-15/TSK-35 constraints) |
-| `NOTIFICATION_DELIVERY` | `src/api/server.ts:210-216` | **1** — `src/web/public/hub.ts:209` (public enquiry capture) | Routes to `notificationService.sendSms` when `payload.channel === "SMS"`, else `sendEmail`. Delivery transport is environment-configured; unset credentials produce a logged failure, not a silent success |
-| `WEBHOOK_DISPATCH` | `src/api/server.ts:218-226` | **0** | Records `webhook_dispatch_total` and returns `{dispatched: true, endpoint, timestamp}`. **Nothing is dispatched** — the handler performs no network I/O. It is a metrics stub with a success-shaped return value |
-| `RECONCILIATION_RUN` | `src/api/server.ts:228-238` | **0** | Calls `bankRecon.reconcileAgainstInvoices(payload.invoices ?? [])`. With no producer in `src/`, the only way this runs is a test or a hand-driven enqueue |
+| `EPG_GENERATION` | `src/api/server.ts:199-215` | **2** — boot-time enqueue `src/api/server.ts:410-417`; recurring `configureRollingEpgScheduler` (`src/core/queue/index.ts:301-314`, 24 h interval, wired at `src/api/server.ts:409`) | Builds 7-day rolling feeds for the three provisioned channels and returns `{channelsProcessed, totalSlots, xmltvTotalLength, generatedAt}` plus a `epg_syndication_generation_total` metric. **It does not publish an EPG anywhere** — there is no syndication endpoint in code, and inventing one is prohibited (`tasks.md` TSK-15/TSK-35 constraints) |
+| `NOTIFICATION_DELIVERY` | `src/api/server.ts:217-223` | **1** — `src/web/public/hub.ts:209` (public enquiry capture) | Routes to `notificationService.sendSms` when `payload.channel === "SMS"`, else `sendEmail`. Delivery transport is environment-configured; unset credentials produce a logged failure, not a silent success |
+| `WEBHOOK_DISPATCH` | `src/api/server.ts:225-233` | **0** | Records `webhook_dispatch_total` and returns `{dispatched: true, endpoint, timestamp}`. **Nothing is dispatched** — the handler performs no network I/O. It is a metrics stub with a success-shaped return value |
+| `RECONCILIATION_RUN` | `src/api/server.ts:235-244` | **0** | Calls `bankRecon.reconcileAgainstInvoices(payload.invoices ?? [])`. With no producer in `src/`, the only way this runs is a test or a hand-driven enqueue |
 
 **Two of four job types are dead handlers** (`WEBHOOK_DISPATCH`, `RECONCILIATION_RUN`): registered,
 never enqueued. `tests/unit/event-catalogue.test.ts` pins that count so a new producer cannot appear
@@ -42,16 +42,16 @@ without this table being updated — and so a handler cannot be quietly deleted 
 
 The *real* outbound webhook path is not the queue. It is `AzeeboBridge.dispatchWebhook`
 (`src/modules/federation/azeebo/bridge.ts:100`), called from the federation route at
-`src/api/router.ts:6953`.
+`src/api/router.ts:7006`.
 
 ## 3. Outbound federation events (the only externally-visible events)
 
 | fact | value | source |
 |:---|:---|:---|
-| event type | caller-supplied `body.eventType`, defaulting to `CONTENT_SYNDICATED` | `src/api/router.ts:6954-6956` |
+| event type | caller-supplied `body.eventType`, defaulting to `CONTENT_SYNDICATED` | `src/api/router.ts:7007-7009` |
 | typed kinds elsewhere in the same module | `CONTENT_PUBLISHED`, `CONTENT_UPDATED`, `CONTENT_UNPUBLISHED`, `RIGHTS_EXPIRED` | `src/modules/federation/azeebo/metadata.ts:34` |
 | signature | HMAC-SHA256 over the payload with an ISO timestamp header | `src/modules/federation/azeebo/bridge.ts:107-109` (`signPayload`) |
-| target | configured `AZEEBO_API_BASE_URL` + `/webhooks`, or an explicit `targetEndpoint`; **503 `FED_ENDPOINT_NOT_CONFIGURED` when neither exists** | `src/api/router.ts:6940-6952` — no endpoint is invented (TSK-35) |
+| target | configured `AZEEBO_API_BASE_URL` + `/webhooks`, or an explicit `targetEndpoint`; **503 `FED_ENDPOINT_NOT_CONFIGURED` when neither exists** | `src/api/router.ts:6993-7005` — no endpoint is invented (TSK-35) |
 | circuit breaker | `OPEN` ⇒ webhook goes straight to the dead-letter queue with `lastError` naming the breaker | `src/modules/federation/azeebo/bridge.ts:122-128` |
 | **delivery defect, recorded not fixed** | `const success = mockTransport ? mockTransport(webhook) : true;` — with no transport injected the webhook is marked delivered **without any HTTP call** | `src/modules/federation/azeebo/bridge.ts:134` |
 
@@ -71,8 +71,8 @@ closing TSK-21 means; emitting all sixteen is a feature programme, not a doc fix
 Measured: **none of the sixteen names is emitted anywhere in `src/`.** `grep -rn` for each string in
 `src` returns zero. Three near-miss strings exist and are *not* events — they are a provenance field
 id (`broadcast.schedule_state`, `src/core/config/source-mappings.ts:68`) and two audit-log action
-labels (`broadcast.epg.push_attempted`, `src/api/router.ts:5941`; `broadcast.version.rfa`,
-`src/api/router.ts:7467`).
+labels (`broadcast.epg.push_attempted`, `src/api/router.ts:5994`; `broadcast.version.rfa`,
+`src/api/router.ts:7520`).
 
 | candidate (PRD §39, line) | status | nearest mechanism that does exist |
 |:---|:---|:---|

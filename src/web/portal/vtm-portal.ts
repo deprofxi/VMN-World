@@ -8,6 +8,10 @@
 
 import { isFeatureEnabled, renderFeatureDisabledNotice } from "../../core/feature-flags/index.js";
 import { BUYOUT_MULTIPLIERS, BuyoutTier } from "../../modules/hub/vtm/index.js";
+// DEBT-009: contract, milestone and opportunity strings are authored by the
+// counterparty (or, today, by the demo literal), not by this module, so they are
+// escaped at the point they enter markup.
+import { escapeHtml } from "../components/index.js";
 
 export interface MockVtmContract {
   id: string;
@@ -39,10 +43,10 @@ export function renderVtmTermsReviewHtml(contract: MockVtmContract): string {
     .map(
       (m, idx) => `
  <tr class="s-z7JacQSDqk">
- <td class="s-0X4a4COY72">Milestone ${idx + 1}: ${m.title}</td>
- <td class="s-gL0G9B66bL">${m.deliverable}</td>
+ <td class="s-0X4a4COY72">Milestone ${idx + 1}: ${escapeHtml(m.title)}</td>
+ <td class="s-gL0G9B66bL">${escapeHtml(m.deliverable)}</td>
  <td class="s-PVlViuuo3G">₦${m.amountNgn.toLocaleString()}</td>
- <td class="s-6FCnPHXEyo"><span class="vmn-badge badge-ready">${m.status}</span></td>
+ <td class="s-6FCnPHXEyo"><span class="vmn-badge badge-ready">${escapeHtml(m.status)}</span></td>
     </tr>
   `
     )
@@ -56,7 +60,7 @@ export function renderVtmTermsReviewHtml(contract: MockVtmContract): string {
           Talent Engagement Agreement & Terms
         </h1>
  <p class="s-AuP1EyxEBf">
-          Reference: <code>${contract.contractNumber}</code> · Project: <strong>${contract.projectName}</strong>
+          Reference: <code>${escapeHtml(contract.contractNumber)}</code> · Project: <strong>${escapeHtml(contract.projectName)}</strong>
         </p>
       </header>
 
@@ -67,11 +71,11 @@ export function renderVtmTermsReviewHtml(contract: MockVtmContract): string {
         </h2>
  <dl class="s-8At14DM17U">
  <dt class="s-F7gY5MEZDy">Production Client:</dt>
- <dd class="s-tR1NYl3ZY2">${contract.productionCompany}</dd>
+ <dd class="s-tR1NYl3ZY2">${escapeHtml(contract.productionCompany)}</dd>
  <dt class="s-F7gY5MEZDy">Talent Role:</dt>
- <dd class="s-DwKwdeUqE1">${contract.roleTitle}</dd>
+ <dd class="s-DwKwdeUqE1">${escapeHtml(contract.roleTitle)}</dd>
  <dt class="s-F7gY5MEZDy">Shoot Schedule:</dt>
- <dd class="s-DwKwdeUqE1">${contract.startDate} to ${contract.endDate}</dd>
+ <dd class="s-DwKwdeUqE1">${escapeHtml(contract.startDate)} to ${escapeHtml(contract.endDate)}</dd>
  <dt class="s-F7gY5MEZDy">Escrow Guarantee:</dt>
  <dd class="s-75J06PRW51">100% Funds Secured in VMN Restricted Escrow</dd>
         </dl>
@@ -137,15 +141,15 @@ export function renderVtmTermsReviewHtml(contract: MockVtmContract): string {
             Legally Binding Signature Executed
           </h2>
  <p class="s-EaI1YscjpR">
-            Signed on ${contract.signedAt} by verified digital certificate.
+            Signed on ${escapeHtml(contract.signedAt)} by verified digital certificate.
           </p>
  <div class="s-Wag9ZD-NOW">
-            SHA-256: <code>${contract.signedHash}</code>
+            SHA-256: <code>${escapeHtml(contract.signedHash)}</code>
           </div>
         </div>
       `
           : `
- <form method="POST" action="/api/v1/vtm/contracts/${contract.id}/sign" class="card s-sqzC72lluV" >
+ <form method="POST" action="/api/v1/vtm/contracts/${escapeHtml(contract.id)}/sign" class="card s-sqzC72lluV" >
  <h2 class="s-2FSZNGekMT">
             Digital Execution & Acceptance
           </h2>
@@ -199,11 +203,11 @@ export function renderVtmMarketplaceHtml(opportunities: Array<{
  <div class="card s-_Eo7me1G2b" >
       <div>
  <div class="s-QBgwgYUD6o">
-          <span class="vmn-badge badge-ready">${opp.matchScore}% Match Score</span>
- <span class="s-LjiBFW-B18">${opp.category}</span>
+          <span class="vmn-badge badge-ready">${escapeHtml(opp.matchScore)}% Match Score</span>
+ <span class="s-LjiBFW-B18">${escapeHtml(opp.category)}</span>
         </div>
- <h3 class="s--AXXFl7-B0">${opp.title}</h3>
- <p class="s-5ASyq8OqJg">Production: <strong>${opp.production}</strong></p>
+ <h3 class="s--AXXFl7-B0">${escapeHtml(opp.title)}</h3>
+ <p class="s-5ASyq8OqJg">Production: <strong>${escapeHtml(opp.production)}</strong></p>
  <div class="s-cdCbWj2_iT">
           ₦${opp.budgetPerDayNgn.toLocaleString()} / day
         </div>

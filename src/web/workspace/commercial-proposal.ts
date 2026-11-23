@@ -241,7 +241,7 @@ export function renderProposalBuilderHtml(
  <div class="vmn-card s-wcVsfAg15v" >
  <div class="s-dLeS_DPTdT">
  <span class="s-v9ujfxeGxB">Spot Placement Packages &amp; Volume Incentives</span>
-          <span class="vmn-badge badge-success">${proposal.items.length} Package Items</span>
+          <span class="vmn-badge badge-success">${escapeHtml(proposal.items.length)} Package Items</span>
         </div>
  <table class="s-StXB6StjnQ">
           <thead>
@@ -265,9 +265,9 @@ export function renderProposalBuilderHtml(
  <div class="s-OdlmY1tzrc">${escapeHtml(it.daypart)}</div>
                 </td>
  <td class="s-_QxDliOZ47">${escapeHtml(it.channel)}</td>
- <td class="s-V08YmU-HsM">${it.units}</td>
+ <td class="s-V08YmU-HsM">${escapeHtml(it.units)}</td>
  <td class="s-W_dnHLVmdE">&#8358;${it.ratePerUnitNgn.toLocaleString()}</td>
- <td class="s-LFVsd3Qfe0"><span class="vmn-badge badge-info">-${it.discountPercent}%</span></td>
+ <td class="s-LFVsd3Qfe0"><span class="vmn-badge badge-info">-${escapeHtml(it.discountPercent)}%</span></td>
  <td class="s-8r9s_0NSbH">&#8358;${Math.round(itemNet).toLocaleString()}</td>
               </tr>
             `;

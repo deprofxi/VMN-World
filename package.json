@@ -13,11 +13,12 @@
     "start": "node dist/src/index.js",
     "cli": "node dist/src/cli/index.js",
     "db:seed": "node dist/src/db/migrate-and-seed.js",
-    "build": "tsc",
+    "build": "tsc && vite build",
+    "build:client": "vite build",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "typecheck": "tsc --noEmit && tsc --noEmit -p tests/browser",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tests/browser && tsc --noEmit -p src/web/client",
     "lint": "eslint . --max-warnings 0",
     "audit:check": "node scripts/audit-check.js",
     "audit:threshold": "node scripts/audit-threshold.js",
@@ -40,7 +41,9 @@
       "lodash": "4.18.1",
       "deepmerge-ts": "8.0.2",
       "mysql2": "3.24.5",
-      "source-map-js": "^1.2.2"
+      "source-map-js": "^1.2.2",
+      "effect": "3.22.5",
+      "fast-uri": "3.1.9"
     }
   },
   "dependencies": {
@@ -50,20 +53,24 @@
     "dotenv": "^16.4.7",
     "jsonwebtoken": "^9.0.3",
     "pg": "^8.23.0",
-    "zod": "^3.24.2"
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.63.0",
+    "@tailwindcss/vite": "^4.3.5",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22.13.9",
     "@types/pg": "^8.23.1",
     "@vitest/coverage-v8": "4.1.11",
+    "effect": "^3.22.5",
     "eslint": "^10.11.0",
     "prisma": "7.10.0",
+    "tailwindcss": "^4.3.5",
     "typescript": "^5.8.2",
     "typescript-eslint": "^8.70.1",
+    "vite": "^8.3.8",
     "vitest": "^4.1.11"
   }
 }

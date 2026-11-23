@@ -35,8 +35,6 @@
  *   pnpm vitest run tests/unit/performance-budget-seeded-data.test.ts
  */
 
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
 import http from "node:http";
 
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
@@ -50,7 +48,6 @@ import { provisionDatabase, type ProvisionOutcome } from "../helpers/provision-d
 
 const KB = 1024;
 const PUBLIC_SHELL_BUDGET = 25 * KB;
-const DEBT_REGISTER = fileURLToPath(new URL("../../docs/design-debt-register.md", import.meta.url));
 
 let app: ApiServerInstance | undefined;
 let port = 0;
@@ -159,31 +156,28 @@ describe("TSK-62: frozen byte budgets against golden-seeded data", () => {
     );
   });
 
-  it("records the seeded `/channels/nxtr` overrun as DEBT-010 instead of asserting an empty-state figure", async (ctx) => {
+  it("keeps the IA successor of the retired channel page inside 25 KB on seeded data", async (ctx) => {
     if (!ready) {
       console.log(`[TSK-62] skipped — ${notReadyReason}`);
       return ctx.skip();
     }
-    const res = await get("/channels/nxtr");
+    // DEBT-010 (seeded `/channels/nxtr` at 72,026 B) was retired with the
+    // route (page-plan.md Phase 7): `/channels/nxtr` now 301-redirects to the
+    // IA media overview, and the successor — registry-driven, rendering no
+    // seeded episode/DAM tables — must hold the budget the old page missed.
+    const redirect = await get("/channels/nxtr");
+    expect(redirect.status, "the retired channel route must 301").toBe(301);
+
+    const res = await get("/media-and-audience-overview");
     console.log(
-      `[TSK-62] GET /channels/nxtr (seeded) → ${res.bytes} B in ${res.ms} ms ` +
+      `[TSK-62] GET /media-and-audience-overview (seeded) → ${res.bytes} B in ${res.ms} ms ` +
         `(budget ${PUBLIC_SHELL_BUDGET} B)`,
     );
-    expect(res.status, "/channels/nxtr must serve").toBe(200);
-
-    if (res.bytes <= PUBLIC_SHELL_BUDGET) {
-      // The budget is met on seeded data: the debt is paid, so the row and this
-      // assertion must both go — the same forcing pattern DEBT-008 uses.
-      throw new Error(
-        `/channels/nxtr now serves ${res.bytes} B on seeded data (≤ ${PUBLIC_SHELL_BUDGET} B budget) — ` +
-          `pay off DEBT-010 in docs/design-debt-register.md and update this test`,
-      );
-    }
-
-    const register = readFileSync(DEBT_REGISTER, "utf8");
-    expect(register, "an unrecorded seeded-data budget miss is not allowed").toMatch(/\*\*DEBT-010\*\*/);
-    expect(register, "DEBT-010 must carry an owner").toMatch(/\*\*DEBT-010\*\*[^\n]*Lead Frontend Architect/);
-    expect(register, "DEBT-010 must carry an expiry").toMatch(/\*\*DEBT-010\*\*[^\n]*2027-01-31/);
+    expect(res.status, "the successor page must serve").toBe(200);
+    expect(
+      res.bytes,
+      `the IA successor of the retired channel page exceeds the 25 KB public shell budget on seeded data (${res.bytes} B)`,
+    ).toBeLessThanOrEqual(PUBLIC_SHELL_BUDGET);
   });
 
   it("prints the TTFB artifact figures (cold first request, warm median)", async (ctx) => {

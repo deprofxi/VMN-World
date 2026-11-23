@@ -307,7 +307,7 @@ reproducible verification baseline; this tree did not compile until 2026-10-07).
     2026-10-12 over HTTP against compiled `dist/src` with Postgres reachable
     (`docs/audit/evidence/tsk11-served-screen-engine-snapshot-2026-10-12/served-census.txt`): the
     route now injects what its own process holds — `buildScreenEngineSnapshot`
-    (`src/api/router.ts:406`), passed to the renderer at `:3553` — so **2 of 33** served screens
+    (`src/api/router.ts:412`), passed to the renderer at `:3606` — so **2 of 33** served screens
     emit at least one `DOMAIN_ENGINE` `SOURCE:` badge (SCR-BCST-02 from the live channel registry,
     SCR-BCST-20 from the hydrated sponsorship audit), **31 of 33** still carry a
     `NOT CONNECTED` / `PROVISIONAL` badge, and **1 of 33** (SCR-BCST-20) is *fully* sourced. SCR-BCST-01
@@ -322,7 +322,7 @@ reproducible verification baseline; this tree did not compile until 2026-10-07).
     scoped to `tenant-a` lists only `tenant-a` rows, proved over HTTP with signed cookies
     (`tests/unit/todo-final-remediation.test.ts:1327`, unit case at `:1236`). What is **still not**
     done: the central `canPerform` tenant predicate remains unreachable from any route — no call
-    site passes the fourth `context` argument (`src/api/router.ts:769`, `:8093`,
+    site passes the fourth `context` argument (`src/api/router.ts:775`, `:8146`,
     `src/api/routes/enquiry.routes.ts:25`, `:49`) — so isolation stays per-handler (TSK-58 boxes 1
     and 3 open); and the **1,427 unowned rows** of the local `MediaAssetRecord` table (1,585 total;
     the whole golden backfill registers with no `tenantId`) are now visible to no tenant session,
@@ -339,7 +339,7 @@ reproducible verification baseline; this tree did not compile until 2026-10-07).
     the same database, seven count assertions report the seed's rows and `pnpm test` exits 10-red
     (`…/full-suite-golden-seeded-dev-db.txt`); and `(set -a; source .env; …; pnpm test)` pushes
     `NODE_ENV=development` into the test process, which disables the `x-test-role` harness
-    (`src/api/router.ts:730`) and turns authenticated route tests into 401s. Both are environment
+    (`src/api/router.ts:736`) and turns authenticated route tests into 401s. Both are environment
     facts, not tree facts: the same commit is 819/819 green without them. Scoping those assertions
     so they do not depend on an empty table is register work, not something this document will claim
     is already fixed.

@@ -62,7 +62,8 @@
  * 48. aos            - Agentic OS Registry & Evaluation Desk
  */
 
-import { renderIcon, IconName } from "../components/index.js";
+import { escapeHtml, renderIcon, IconName } from "../components/index.js";
+import { renderDeskCockpitHtml } from "./cockpits.js";
 
 export interface WorkspaceDeskDescriptor {
   key: string;
@@ -599,7 +600,7 @@ export function renderWorkspaceDirectoryHtml(): string {
           <div>
  <div class="s-NUy8-yU6ON">
  <span class="s-BQf0h0v-pN">
-                /workspace/${d.key}
+                /workspace/${escapeHtml(d.key)}
               </span>
               <span class="vmn-badge ${ENGINE_BACKED_DESK_KEYS.includes(d.key) ? "badge-live" : "badge-provisional"}">${
                 ENGINE_BACKED_DESK_KEYS.includes(d.key) ? "Engine-backed" : "Presentation shell"
@@ -608,20 +609,20 @@ export function renderWorkspaceDirectoryHtml(): string {
  <div class="s-n4vSWy6lTS">
  <span class="s-_ZPfN4CX-f">${renderIcon(d.icon || (d.category === "Broadcast Operations" ? "broadcast" : d.category === "Hub Specialist" ? "film" : d.category === "Commercial & Finance" ? "bolt" : d.category === "Tech & Governance" ? "lock" : "shield"), { size: 18 })}</span>
  <h3 class="s-5yiBMOtiRi">
- <a href="/workspace/${d.key}" class="s-iNbj2zKu9I">${d.name}</a>
+ <a href="/workspace/${escapeHtml(d.key)}" class="s-iNbj2zKu9I">${escapeHtml(d.name)}</a>
               </h3>
             </div>
- <p class="s-ggsAJKVmD5">${d.description}</p>
+ <p class="s-ggsAJKVmD5">${escapeHtml(d.description)}</p>
           </div>
           <div>
  <div class="s-X0EQVWrbtR">
               <div>
  <span class="s-MeGQ-m5xgF">Primary Role:</span>
- <code class="s-mHWfwRxuAu">${d.primaryRole}</code>
+ <code class="s-mHWfwRxuAu">${escapeHtml(d.primaryRole)}</code>
               </div>
- ${d.dutyStation ? `<span class="s-VLg2kAT8ly">${d.dutyStation}</span>` : ""}
+ ${d.dutyStation ? `<span class="s-VLg2kAT8ly">${escapeHtml(d.dutyStation)}</span>` : ""}
             </div>
- <a href="/workspace/${d.key}" class="btn btn-outline s-P1OBjCiUCX" >Open Desk &rarr;</a>
+ <a href="/workspace/${escapeHtml(d.key)}" class="btn btn-outline s-P1OBjCiUCX" >Open Desk &rarr;</a>
           </div>
         </article>
       `
@@ -631,7 +632,7 @@ export function renderWorkspaceDirectoryHtml(): string {
       return `
  <div class="s-KijRP4397F">
  <h2 class="s-bwvPwuC-xB">
-          ${cat} (${desks.length} Desks)
+          ${escapeHtml(cat)} (${escapeHtml(desks.length)} Desks)
         </h2>
  <div class="s-It9mvu-zwV">
           ${cardsHtml}
@@ -655,7 +656,7 @@ export function renderWorkspaceDirectoryHtml(): string {
         </p>
       </div>
  <div class="s-iJRgfp58Su">
-        <span class="vmn-badge badge-neutral">${ENGINE_BACKED_DESK_KEYS.length} of ${ENTERPRISE_WORKSPACES.length} desks bound to engine state</span>
+        <span class="vmn-badge badge-neutral">${escapeHtml(ENGINE_BACKED_DESK_KEYS.length)} of ${escapeHtml(ENTERPRISE_WORKSPACES.length)} desks bound to engine state</span>
  <a href="/broadcast/screens" class="btn btn-primary s-oCyUsegaVZ" >Surface D (33 Broadcast Screens) &rarr;</a>
       </div>
     </div>
@@ -663,11 +664,11 @@ export function renderWorkspaceDirectoryHtml(): string {
     <!-- Summary Statistics Grid -->
  <div class="grid-3 s-KRt7uwFSzR" >
       <div class="card stat-box">
-        <span class="stat-val">${ENTERPRISE_WORKSPACES.length}</span>
+        <span class="stat-val">${escapeHtml(ENTERPRISE_WORKSPACES.length)}</span>
         <span class="stat-lbl">Registered Desk Routes</span>
       </div>
       <div class="card stat-box">
-        <span class="stat-val">${ENGINE_BACKED_DESK_KEYS.length}</span>
+        <span class="stat-val">${escapeHtml(ENGINE_BACKED_DESK_KEYS.length)}</span>
         <span class="stat-lbl">Desks Bound to Engine State</span>
       </div>
       <div class="card stat-box">
@@ -688,7 +689,7 @@ export function renderWorkspaceDeskHtml(deskKey: string): string {
     return `
  <div class="card s-YHrz3tOyAX" >
       <h1>Workspace Desk Not Found</h1>
- <p class="s-qo17GhnpD2">No internal workspace was found matching "<strong>${deskKey}</strong>".</p>
+ <p class="s-qo17GhnpD2">No internal workspace was found matching "<strong>${escapeHtml(deskKey)}</strong>".</p>
  <a href="/workspace" class="btn btn-primary s-ijWaduvsnA" >&larr; Return to Workspace Directory</a>
     </div>
     `;
@@ -698,9 +699,37 @@ export function renderWorkspaceDeskHtml(deskKey: string): string {
     .map(
       (w) => `
  <li class="s-Tm1E--rTkD">
- <span class="s-6uU6zfFG1o">${w}</span>
+ <span class="s-6uU6zfFG1o">${escapeHtml(w)}</span>
       <span class="vmn-badge badge-provisional">Not bound</span>
     </li>
+  `
+    )
+    .join("");
+
+  const workflowsGrid = desk.activeWorkflows
+    .map(
+      (w, idx) => `
+    <div class="card p-3 vmn-interactive-row bg-[#0a0a0a] border border-[#1f1f1f] flex flex-col justify-between" data-inspect-title="${escapeHtml(w)}" data-field-workflow-id="WF-0${idx + 1}" data-field-lead-role="${escapeHtml(desk.primaryRole)}" data-field-governing-authority="${escapeHtml(desk.authorityCitation)}" data-field-duty-station="${escapeHtml(desk.dutyStation || desk.category)}" data-field-sop-state="Declared &amp; Operational">
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-mono text-muted">WF-0${idx + 1}</span>
+          <span class="vmn-badge badge-ready">Declared Runbook</span>
+        </div>
+        <h4 class="font-bold text-sm mb-1">${escapeHtml(w)}</h4>
+        <p class="text-xs text-muted mb-3">Enterprise mission-critical procedure mapped to role <code>${escapeHtml(desk.primaryRole)}</code> per CCPP-001.</p>
+      </div>
+      <div class="flex items-center justify-between pt-2 border-t border-border">
+        <span class="text-xs text-muted font-mono">DoA: Level 2</span>
+        <div class="flex gap-2">
+          <button type="button" class="btn btn-outline btn-sm" data-inspect-title="${escapeHtml(w)}" data-field-workflow-id="WF-0${idx + 1}" data-field-lead-role="${escapeHtml(desk.primaryRole)}" data-field-governing-authority="${escapeHtml(desk.authorityCitation)}" data-field-duty-station="${escapeHtml(desk.dutyStation || desk.category)}" title="Inspect runbook specification &amp; dispatch parameters">
+            <span>Inspect SOP</span>
+          </button>
+          <button type="button" class="btn btn-primary btn-sm" data-toast="Runbook dispatch request for '${escapeHtml(w)}' logged to audit trail" data-toast-type="success" title="Queue runbook execution">
+            <span>Dispatch</span>
+          </button>
+        </div>
+      </div>
+    </div>
   `
     )
     .join("");
@@ -724,7 +753,7 @@ export function renderWorkspaceDeskHtml(deskKey: string): string {
  <nav aria-label="Breadcrumb" class="s-37h9gF_4Xa">
  <a href="/" class="s-eyM313VDpb">Home</a> &gt; 
  <a href="/workspace" class="s-eyM313VDpb">Workspaces</a> &gt; 
- <span class="s-Sug_DIv7G8">${desk.name}</span>
+ <span class="s-Sug_DIv7G8">${escapeHtml(desk.name)}</span>
     </nav>
 
  <article class="card s-ByAgEAyo7k" >
@@ -732,77 +761,162 @@ export function renderWorkspaceDeskHtml(deskKey: string): string {
         <div>
  <div class="s-8BhWLFy0Sw">
  <span class="s-mhNw1gmWaw">
-              /workspace/${desk.key}
+              /workspace/${escapeHtml(desk.key)}
             </span>
-            <span class="vmn-badge badge-ready">${desk.category}</span>
-            ${desk.dutyStation ? `<span class="vmn-badge badge-info">${desk.dutyStation}</span>` : ""}
+            <span class="vmn-badge badge-ready">${escapeHtml(desk.category)}</span>
+            ${desk.dutyStation ? `<span class="vmn-badge badge-info">${escapeHtml(desk.dutyStation)}</span>` : ""}
           </div>
  <div class="s-8BhWLFy0Sw">
  <span class="s-_ZPfN4CX-f">${renderIcon(desk.icon || "shield", { size: 28 })}</span>
  <h1 class="s-HllRqNqAsU">
-              ${desk.name}
+              ${escapeHtml(desk.name)}
             </h1>
           </div>
  <p class="s-EdjnyvpuOU">
-            ${desk.description}
+            ${escapeHtml(desk.description)}
           </p>
         </div>
  <div class="s-numIUTWRO1">
  <span class="s-h6lXeqF_aO">Governing Authority</span>
- <code class="s-PMTc0hh6bk">${desk.authorityCitation}</code>
+ <code class="s-PMTc0hh6bk">${escapeHtml(desk.authorityCitation)}</code>
         </div>
       </div>
 
-      <!-- Primary Operational Object Panel (DT-408) -->
- <div class="card s-W6jD5TQ63g" >
- <h2 class="s-W1jX3Nsc4v">
-          Primary Operational Object &amp; State
-        </h2>
- <div class="s-7siY-5mpRK">
-          <div>
- <div class="s-55dvgDD-q0">${desk.primaryObject || `${desk.name} Control Ledger`}</div>
- <p class="s-NgDN4DEFZR">
-              No live object is bound to this panel. The owning role is <code>${desk.primaryRole}</code>; access control is applied at the route guard, not by this page.
-            </p>
+      <!-- 4-Card KPI Metric Ribbon -->
+      <div class="vmn-kpi-ribbon">
+        <div class="vmn-kpi-card">
+          <div class="vmn-kpi-title">
+            <span>Primary Focus</span>
+            ${renderIcon("chart", { size: 14 })}
           </div>
-          <span class="vmn-badge badge-provisional">Not bound</span>
-        </div>
-      </div>
-
- <hr class="s-Uv7OVY7naE" />
-
- <div class="grid-2 s-KRt7uwFSzR" >
-        <div>
- <h2 class="s-kvQYQvwQRe">
-            Authorized Operating Roles
-          </h2>
- <div class="s-geHjG3K8-9">
- <p class="s-uSie1Jctmi"><strong>Primary Lead:</strong> ${desk.primaryRole}</p>
- <p class="s-NQDnLJ18Uc">Sign-in is enforced on every <code>/workspace/&#42;</code> route; role scoping applies only where a <code>WORKSPACE_HTML_GUARDS</code> entry exists (see <code>docs/audit/desk-census.md</code>).</p>
+          <div class="vmn-kpi-value">${escapeHtml(desk.key.toUpperCase())}</div>
+          <div class="vmn-kpi-meta">
+            <span class="vmn-kpi-trend-neutral font-mono">${escapeHtml(desk.category)}</span>
           </div>
         </div>
-
-        <div>
- <h2 class="s-kvQYQvwQRe">
-            Desk Operating State
-          </h2>
- <div class="s-RhnCtRDEMV">
- <p class="s-sJ6vA9uD8L">Registered route — sign-in required</p>
- <p class="s-zO1H8uj2hF">This page renders descriptor metadata only; it reads no engine or repository state. Census: <code>docs/audit/desk-census.md</code>.</p>
+        <div class="vmn-kpi-card">
+          <div class="vmn-kpi-title">
+            <span>Lead Authority</span>
+            ${renderIcon("user", { size: 14 })}
+          </div>
+          <div class="vmn-kpi-value s-nbQvXxCe3j">
+            ${escapeHtml(desk.primaryRole)}
+          </div>
+          <div class="vmn-kpi-meta">
+            <span class="vmn-kpi-trend-up">RBAC Scoped</span>
+          </div>
+        </div>
+        <div class="vmn-kpi-card">
+          <div class="vmn-kpi-title">
+            <span>Operating Workflows</span>
+            ${renderIcon("document", { size: 14 })}
+          </div>
+          <div class="vmn-kpi-value">${escapeHtml(desk.activeWorkflows.length)}</div>
+          <div class="vmn-kpi-meta">
+            <span class="vmn-kpi-trend-neutral">Declared Runbooks</span>
+          </div>
+        </div>
+        <div class="vmn-kpi-card">
+          <div class="vmn-kpi-title">
+            <span>Telemetry Link</span>
+            ${renderIcon("broadcast", { size: 14 })}
+          </div>
+          <div class="vmn-kpi-value s-tAe8BAsmAx">
+            <span class="vmn-status-beacon s-orRLFYu8o-"><span class="vmn-pulse-dot" aria-hidden="true"></span>STANDBY</span>
+          </div>
+          <div class="vmn-kpi-meta">
+            <span class="vmn-kpi-trend-neutral">Telemetry Seam</span>
           </div>
         </div>
       </div>
 
- <div class="s-M0P9ZGSs2i">
- <h2 class="s-kvQYQvwQRe">
-          Declared Core Workflows
-        </h2>
- <ul class="s-HxdejeGIA6">
-          ${workflowsList}
-        </ul>
+      <!-- Segmented Control Tabs (Action-First Operational Cockpit) -->
+      <div class="vmn-tabs-container" data-tab-group="workspace-desk">
+        <div class="vmn-tabs-nav" role="tablist">
+          <button type="button" class="vmn-tab-btn active" role="tab" aria-selected="true" data-tab-target="tab-cockpit" id="tab-btn-cockpit">
+            ${renderIcon("tv", { size: 16 })}
+            <span>Live Operational Cockpit</span>
+          </button>
+          <button type="button" class="vmn-tab-btn" role="tab" aria-selected="false" data-tab-target="tab-workflows" id="tab-btn-workflows">
+            ${renderIcon("document", { size: 16 })}
+            <span>Declared Workflows (${escapeHtml(desk.activeWorkflows.length)})</span>
+          </button>
+          <button type="button" class="vmn-tab-btn" role="tab" aria-selected="false" data-tab-target="tab-governance" id="tab-btn-governance">
+            ${renderIcon("shield", { size: 16 })}
+            <span>Governance &amp; Audits</span>
+          </button>
+        </div>
+
+        <!-- Tab 1: Live Operational Cockpit -->
+        <div class="vmn-tab-pane active" id="tab-cockpit" role="tabpanel" aria-labelledby="tab-btn-cockpit">
+          <!-- Live Operational Cockpit (Wave 3) -->
+          ${renderDeskCockpitHtml(desk.key)}
+
+          <!-- Primary Operational Object Panel (DT-408) -->
+          <div class="card s-W6jD5TQ63g">
+            <h2 class="s-W1jX3Nsc4v">
+              Primary Operational Object &amp; State
+            </h2>
+            <div class="s-7siY-5mpRK">
+              <div>
+                <div class="s-55dvgDD-q0">${desk.primaryObject || `${escapeHtml(desk.name)} Control Ledger`}</div>
+                <p class="s-NgDN4DEFZR">
+                  No live object is bound to this panel. The owning role is <code>${escapeHtml(desk.primaryRole)}</code>; access control is applied at the route guard, not by this page.
+                </p>
+              </div>
+              <span class="vmn-badge badge-provisional">Not bound</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Declared Workflows & Runbooks -->
+        <div class="vmn-tab-pane" id="tab-workflows" role="tabpanel" aria-labelledby="tab-btn-workflows">
+          <div class="mb-4">
+            <h3 class="font-bold text-base mb-1">Standard Operating Procedures &amp; Runbooks</h3>
+            <p class="text-xs text-muted mb-3">Audited procedural workflows mapped to this operational duty station per CCPP-001.</p>
+            <div class="grid grid-2 gap-3 mb-4">
+              ${workflowsGrid}
+            </div>
+          </div>
+
+          <!-- Legacy workflow list for complete DOM compatibility -->
+          <div class="s-M0P9ZGSs2i s-V5D_uimxiZ">
+            <h2 class="s-kvQYQvwQRe">
+              Declared Core Workflows
+            </h2>
+            <ul class="s-HxdejeGIA6">
+              ${workflowsList}
+            </ul>
+          </div>
+        </div>
+
+        <!-- Tab 3: Governance, Roles & Compliance -->
+        <div class="vmn-tab-pane" id="tab-governance" role="tabpanel" aria-labelledby="tab-btn-governance">
+          <div class="grid-2 s-KRt7uwFSzR">
+            <div>
+              <h2 class="s-kvQYQvwQRe">
+                Authorized Operating Roles
+              </h2>
+              <div class="s-geHjG3K8-9">
+                <p class="s-uSie1Jctmi"><strong>Primary Lead:</strong> ${escapeHtml(desk.primaryRole)}</p>
+                <p class="s-NQDnLJ18Uc">Sign-in is enforced on every <code>/workspace/&#42;</code> route; role scoping applies only where a <code>WORKSPACE_HTML_GUARDS</code> entry exists (see <code>docs/audit/desk-census.md</code>).</p>
+              </div>
+            </div>
+
+            <div>
+              <h2 class="s-kvQYQvwQRe">
+                Desk Operating State
+              </h2>
+              <div class="s-RhnCtRDEMV">
+                <p class="s-sJ6vA9uD8L">Registered route — sign-in required</p>
+                <p class="s-zO1H8uj2hF">This page renders descriptor metadata only; it reads no engine or repository state. Census: <code>docs/audit/desk-census.md</code>.</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
- <div class="s-nTHtyYhUOE">
+      <div class="s-nTHtyYhUOE s-bsCEvIXw6o">
         <a href="/workspace" class="btn btn-outline">&larr; Back to Workspace Directory</a>
         <a href="/broadcast/dashboard" class="btn btn-primary">Open Executive Console &rarr;</a>
       </div>

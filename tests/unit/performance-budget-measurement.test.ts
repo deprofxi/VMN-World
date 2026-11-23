@@ -20,6 +20,7 @@ import { fileURLToPath } from "node:url";
 
 import { createApiServer, type ApiServerInstance } from "../../src/api/server.js";
 import { signSessionToken } from "../../src/core/auth/index.js";
+import { IA_PUBLIC_PAGES } from "../../src/web/ia/index.js";
 import { CANONICAL_STYLESHEET } from "../../src/web/styles/index.js";
 
 /** Frozen targets, verbatim from docs/audit/performance-budgets.md. */
@@ -85,13 +86,33 @@ describe("TSK-42: shipped payload budgets, measured not asserted", () => {
     expect(register).toMatch(/212[,\s]?853|212\.85 KB|208 KB/);
   });
 
-  it("keeps the public page shell inside 25 KB uncompressed", async () => {
-    for (const path of ["/", "/channels/nxtr"]) {
+  it("keeps every public page inside the 25 KB shell budget, not just a sample", async () => {
+    // `/channels/nxtr` retired to the IA media overview (page-plan.md Phase 7), so
+    // the budget is now measured over the IA public set instead of two hand-picked
+    // paths. This replaces the DEBT-011 ceiling pair (2026-11-16): the shell was
+    // compacted and the index trimmed, so the debt is paid and the assertion that
+    // bounded the miss has gone with it — the same forcing pattern DEBT-008/010
+    // used. Measuring the whole set is what stops the next heavy page from
+    // blowing the budget silently.
+    // `/brands/nigezie` measures the content-instance template through a real
+    // instance, which a placeholder slug would render as the withdrawn state.
+    const routes = new Set<string>(["/", "/media-and-audience-overview", "/brands/nigezie"]);
+    for (const screen of IA_PUBLIC_PAGES) {
+      routes.add(screen.route.includes("{") ? screen.route.replace(/\{[^}]+\}/g, "probe-value") : screen.route);
+    }
+
+    for (const path of routes) {
       const res = await get(path);
       expect(res.status, `${path} must serve`).toBe(200);
       expect(res.bytes, `${path} exceeds the 25 KB public shell budget`).toBeLessThanOrEqual(BUDGETS.publicShell);
     }
-  });
+
+    // The pressure that produced DEBT-011 is worth keeping visible: if the
+    // register stops recording how the miss was paid, the next reader has to
+    // rediscover it.
+    const register = readFileSync(DEBT_REGISTER, "utf8");
+    expect(register, "DEBT-011 must record how the overrun was paid").toMatch(/\*\*DEBT-011\*\*[^\n]*RESOLVED/);
+  }, 180000);
 
   it("keeps critical-path HTML inside 65 KB uncompressed", async () => {
     const res = await get("/broadcast/dashboard", authHeader);

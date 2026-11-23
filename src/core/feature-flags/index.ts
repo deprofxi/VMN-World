@@ -539,7 +539,9 @@ export function assertFeatureEnabled(key: FeatureFlagKey, actionDescription?: st
 export function renderFeatureDisabledNotice(
   key: FeatureFlagKey,
   featureTitle: string,
-  backUrl: string = "/hub"
+  // `/hub` was retired to the creative-economy overview (decision D1); a disabled
+  // workspace must not send the operator into a redirect.
+  backUrl: string = "/creative-economy-hub-overview"
 ): string {
   const def = FEATURE_FLAG_DEFINITIONS[key];
   return `

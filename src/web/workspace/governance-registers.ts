@@ -21,6 +21,9 @@
 import { RightsRecordEntity, SettlementEntity, EvidenceEntity } from "../../core/domain/types.js";
 import { TransmissionIncident } from "../../modules/broadcast/carriage/index.js";
 import { AuditLogEntry } from "../../core/audit/index.js";
+// DEBT-009: these projections render canonical record values (titles, settlement
+// numbers, audit resource ids) that are authored outside this module.
+import { escapeHtml } from "../components/escape.js";
 
 export type FieldScope = "PUBLIC" | "INTERNAL" | "RESTRICTED";
 
@@ -208,7 +211,7 @@ export function renderGovernanceRecordsHtml(
     fields.filter((f) => canSeeRestricted || f.scope !== "RESTRICTED");
 
   const empty = (label: string) =>
- `<p class="s-9zjcS5bbwr">No ${label} records exist in the domain store yet — this surface renders canonical records only and never invents rows.</p>`;
+ `<p class="s-9zjcS5bbwr">No ${escapeHtml(label)} records exist in the domain store yet — this surface renders canonical records only and never invents rows.</p>`;
 
   return `
  <div class="s-dJGia7etx6">
@@ -266,8 +269,8 @@ export function renderGovernanceRecordsHtml(
                         (e) => `
  <tr class="s-EK6K8Vq5tY">
  <td class="s-5FfV8Rl4IL">${(e.timestamp || new Date()).toISOString().substring(0, 19).replace("T", " ")}</td>
- <td class="s-WOtvn36XW7">${e.action}</td>
- <td class="s-riK22ZnumS">${e.resource}${e.resourceId ? `/${e.resourceId}` : ""}</td>
+ <td class="s-WOtvn36XW7">${escapeHtml(e.action)}</td>
+ <td class="s-riK22ZnumS">${escapeHtml(e.resource)}${e.resourceId ? `/${escapeHtml(e.resourceId)}` : ""}</td>
  <td class="s-riK22ZnumS">${e.userId || "SYSTEM"}</td>
                     </tr>`
                       )
@@ -285,8 +288,8 @@ export function renderProjectionTable(title: string, uxId: string, fields: Scope
   return `
  <div class="vmn-card s-KFMJBTkt2j" >
  <div class="s-5-L4sdPujx">
- <h2 class="s-2to96tsOZe">${title}</h2>
-        <span class="vmn-badge badge-neutral">${uxId}</span>
+ <h2 class="s-2to96tsOZe">${escapeHtml(title)}</h2>
+        <span class="vmn-badge badge-neutral">${escapeHtml(uxId)}</span>
       </div>
  <table class="s-jBJUBb-Zd6">
         <tbody>
@@ -294,8 +297,8 @@ export function renderProjectionTable(title: string, uxId: string, fields: Scope
             .map(
               (f) => `
  <tr class="s-EK6K8Vq5tY">
- <th scope="row" class="s-1cblRQtCX0">${f.label}</th>
- <td class="s--8a5PiCdtd">${f.value}</td>
+ <th scope="row" class="s-1cblRQtCX0">${escapeHtml(f.label)}</th>
+ <td class="s--8a5PiCdtd">${escapeHtml(f.value)}</td>
  <td class="s-1_XEI2Ne6j">${SCOPE_BADGE[f.scope]}</td>
           </tr>`
             )

@@ -244,7 +244,7 @@ function renderSlotMasterLineHtml(channelCode: string, slot: ViewerScheduleSlotV
         ? " — not registered in the DAM registry"
         : " — blocked from exploitation";
   return `
- <p class="vmn-master-ref" style="${baseStyle} color:${color};">Master: <span style="${mono}">${escapeHtml(master.mediaAssetId!)}</span> <strong>${master.state}</strong>${tail}</p>`;
+ <p class="vmn-master-ref" style="${baseStyle} color:${escapeHtml(color)};">Master: <span style="${mono}">${escapeHtml(master.mediaAssetId!)}</span> <strong>${escapeHtml(master.state)}</strong>${escapeHtml(tail)}</p>`;
 }
 
 /**
@@ -259,29 +259,32 @@ export function renderNowNextWidgetHtml(view: NowNextView, viewerTz: ViewerTimez
     <span class="vmn-channel-badge">Schedule guide</span>
   </div>
   <div class="vmn-now-playing">
-    <p class="vmn-show-synopsis" role="status">${view.message}</p>
+    <p class="vmn-show-synopsis" role="status">${escapeHtml(view.message)}</p>
   </div>
 </section>`;
   }
+  // `viewerTz` reaches this widget from the browser's Time-Zone header, so it is
+  // escaped wherever it enters markup (including this note, which is then safe
+  // to interpolate on its own).
   const dayShiftNote =
     view.current.dayShiftViewer !== 0 || view.next.dayShiftViewer !== 0
-      ? ` · crosses midnight in ${viewerTz}`
+      ? ` · crosses midnight in ${escapeHtml(viewerTz)}`
       : "";
   return `
 <section class="vmn-on-air-widget" aria-label="Broadcast status">
  <div class="vmn-widget-header s-dmu8Bkv_3r" >
     <span class="vmn-live-badge" aria-label="Live broadcast"><span class="vmn-pulse-dot" aria-hidden="true"></span> ON AIR NOW</span>
-    <span class="vmn-channel-badge">Times shown in ${viewerTz} · broadcast day governed by ${GOVERNING_TIMEZONE} (WAT)${dayShiftNote}</span>
+    <span class="vmn-channel-badge">Times shown in ${escapeHtml(viewerTz)} · broadcast day governed by ${GOVERNING_TIMEZONE} (WAT)${escapeHtml(dayShiftNote)}</span>
   </div>
   <div class="vmn-now-playing">
-    <div class="vmn-time-range">${view.current.startViewerTime} – ${view.current.endViewerTime} (${viewerTz})</div>
-    <h3 class="vmn-show-title">${view.current.title}</h3>
-    <p class="vmn-show-synopsis">On air now. Governing schedule time ${view.current.startGoverningTime} WAT.</p>
+    <div class="vmn-time-range">${escapeHtml(view.current.startViewerTime)} – ${escapeHtml(view.current.endViewerTime)} (${escapeHtml(viewerTz)})</div>
+    <h3 class="vmn-show-title">${escapeHtml(view.current.title)}</h3>
+    <p class="vmn-show-synopsis">On air now. Governing schedule time ${escapeHtml(view.current.startGoverningTime)} WAT.</p>
     ${renderSlotMasterLineHtml(view.channelCode, view.current)}
   </div>
   <div class="vmn-next-playing">
-    <span class="vmn-time-range">Up next at ${view.next.startViewerTime} (${viewerTz})</span>
- <h3 class="vmn-show-title s-lrZwJ-ejsm" >${view.next.title}</h3>
+    <span class="vmn-time-range">Up next at ${escapeHtml(view.next.startViewerTime)} (${escapeHtml(viewerTz)})</span>
+ <h3 class="vmn-show-title s-lrZwJ-ejsm" >${escapeHtml(view.next.title)}</h3>
     ${renderSlotMasterLineHtml(view.channelCode, view.next)}
   </div>
 </section>`;

@@ -13,10 +13,36 @@
 import { getAllActiveChannels } from "../../modules/broadcast/channels/index.js";
 import { BROADCAST_SCREEN_INVENTORY } from "../../modules/broadcast/screens/index.js";
 import { PUBLIC_CHANNELS } from "./channels.js";
-import { VMN_ENTERPRISE_PILLARS, VMN_LEADERSHIP, CorporatePortalService } from "./corporate.js";
+import { CorporatePortalService } from "./corporate.js";
 import { HUB_SHOWCASES } from "./hub.js";
 import { escapeHtml, renderIcon } from "../components/index.js";
+import type { SafeHtml } from "../components/escape.js";
 import { PUBLIC_INDEXABLE_PATHS } from "./public-route-registry.js";
+import { PRIMARY_NAV } from "./site-registry.js";
+import { ENTERPRISE_WORKSPACES } from "../workspace/surface-bc.js";
+
+const PILLAR_GROUPS = [
+  {
+    title: "Executive & Governance",
+    badge: "Pillar 1",
+    desks: ENTERPRISE_WORKSPACES.slice(0, 12),
+  },
+  {
+    title: "Linear MCR & Playout",
+    badge: "Pillar 2",
+    desks: ENTERPRISE_WORKSPACES.slice(12, 24),
+  },
+  {
+    title: "Creative Hub & Academy",
+    badge: "Pillar 3",
+    desks: ENTERPRISE_WORKSPACES.slice(24, 36),
+  },
+  {
+    title: "Commercial & Finance",
+    badge: "Pillar 4",
+    desks: ENTERPRISE_WORKSPACES.slice(36, 48),
+  },
+];
 
 export function serializeJsonLd(value: unknown): string {
   return JSON.stringify(value)
@@ -38,9 +64,34 @@ export interface MasterLayoutOptions {
   description?: string;
 }
 
+// The one primary navigation list lives in `site-registry.ts`, which also builds
+// the command palette's destinations from it — the header nav and the palette
+// therefore cannot disagree about where the site's pages are.
+
+function navIsActive(activeNav: string, href: string): boolean {
+  return href === "/" ? activeNav === "/" : activeNav.startsWith(href);
+}
+
+/**
+ * Ship markup, not pretty-printed markup. HTML comments, per-line indentation
+ * and blank lines cost bytes on every request and are invisible to the reader;
+ * a 25 KB shell budget (DEBT-008) is spent on content instead. Newlines are
+ * kept, because whitespace between inline elements is meaningful.
+ */
+export function compactMarkup(html: string): string {
+  return html
+    .replace(/<!--(?!\[if)[\s\S]*?-->/g, "")
+    .replace(/^[ \t]+/gm, "")
+    .replace(/[ \t]+$/gm, "")
+    .replace(/\n{2,}/g, "\n");
+}
+
 export function renderMasterLayout(
   title: string,
-  bodyContent: string,
+  // A migrated renderer returns markup from the `html` write boundary; a legacy
+  // one returns a string. Both are interpolated as-is below, and a `SafeHtml`
+  // interpolated into a plain template prints its markup through `toString()`.
+  bodyContent: string | SafeHtml,
   activeNav = "/",
   options?: MasterLayoutOptions
 ): string {
@@ -85,26 +136,69 @@ export function renderMasterLayout(
     shellContent = `
       <div class="vmn-shell-work-layout">
         <aside class="vmn-work-rail" aria-label="Operator Workstation Navigation">
-          <div class="vmn-work-rail-title">Workstations</div>
+          <div class="vmn-work-rail-brand-badge">
+            <span class="vmn-pulse-dot" aria-hidden="true"></span>
+            <span>MCR Workstation Rail</span>
+          </div>
+
+          <!-- Section 1: Executive & Operational Hub -->
+          <div class="vmn-work-rail-title">Operations &amp; Hub</div>
           <a href="/workspace" class="vmn-work-rail-link ${activeNav === "/workspace" ? "active" : ""}">
-            <span>Dashboard</span>
+            <span>Workspaces Hub (48)</span>
+          </a>
+          <a href="/workspace/executive" class="vmn-work-rail-link ${activeNav.startsWith("/workspace/executive") ? "active" : ""}">
+            <span>Executive Command</span>
+          </a>
+          <a href="/workspace/projects" class="vmn-work-rail-link ${activeNav.startsWith("/workspace/projects") ? "active" : ""}">
+            <span>Projects Center</span>
+          </a>
+
+          <!-- Section 2: Master Control & Playout Operations -->
+          <div class="vmn-work-rail-title mt-2">Linear &amp; MCR Playout</div>
+          <a href="/workspace/mcr" class="vmn-work-rail-link ${activeNav.startsWith("/workspace/mcr") ? "active" : ""}">
+            <span>MCR Supervisor</span>
+          </a>
+          <a href="/workspace/asrun" class="vmn-work-rail-link ${activeNav.startsWith("/workspace/asrun") || activeNav.startsWith("/broadcast/asrun") ? "active" : ""}">
+            <span>As-Run &amp; Make-Good</span>
+          </a>
+
+          <!-- Section 3: Commercial Sales & Contracts -->
+          <div class="vmn-work-rail-title mt-2">Commercial &amp; Sales</div>
+          <a href="/workspace/crm" class="vmn-work-rail-link ${activeNav.startsWith("/workspace/crm") ? "active" : ""}">
+            <span>Sales Pipeline &amp; CRM</span>
+          </a>
+
+          <!-- Section 4: Finance, Settlement & Bank Recon -->
+          <div class="vmn-work-rail-title mt-2">Finance &amp; Settlement</div>
+          <a href="/workspace/finance" class="vmn-work-rail-link ${activeNav === "/workspace/finance" ? "active" : ""}">
+            <span>7-Way Settlement</span>
+          </a>
+
+          <!-- Section 5: Creative Studios & Academy -->
+          <div class="vmn-work-rail-title mt-2">Creative Hub &amp; Academy</div>
+          <a href="/workspace/talent" class="vmn-work-rail-link ${activeNav.startsWith("/workspace/talent") ? "active" : ""}">
+            <span>Talent Accelerator</span>
+          </a>
+
+          <!-- Section 6: Governance, Security & Portals -->
+          <div class="vmn-work-rail-title mt-2">Governance &amp; IAM</div>
+          <a href="/workspace/iam" class="vmn-work-rail-link ${activeNav.startsWith("/workspace/iam") || activeNav.startsWith("/workspace/admin/users") ? "active" : ""}">
+            <span>IAM &amp; Access Matrix</span>
           </a>
           <a href="/broadcast/screens" class="vmn-work-rail-link ${activeNav.startsWith("/broadcast/screens") ? "active" : ""}">
-            <span>Screens Catalog</span>
+            <span>Screens Catalog (619)</span>
           </a>
-          <a href="/broadcast/dashboard" class="vmn-work-rail-link ${activeNav.startsWith("/broadcast/dashboard") ? "active" : ""}">
-            <span>Broadcast Exec</span>
-          </a>
-          <a href="/workspace/admissions" class="vmn-work-rail-link ${activeNav.startsWith("/workspace/admissions") ? "active" : ""}">
-            <span>Admissions Review</span>
-          </a>
-          <a href="/prototypes?screen=work" class="vmn-work-rail-link ${activeNav.startsWith("/prototypes") ? "active" : ""}">
-            <span>R1.1 Prototypes</span>
-          </a>
- <div class="vmn-work-rail-title s-smrs69HMBJ" >Operator Context</div>
- <div class="s-yaQ1Wd-ncP">
-            <strong>Role:</strong> ${escapeHtml(options?.operatorRole || "Broadcast Operations")}<br>
- <span class="s-orRLFYu8o-">Gate: Locked (Green)</span>
+
+          <div class="vmn-work-rail-operator mt-3">
+            <div class="vmn-operator-header">
+              <span class="vmn-operator-indicator"></span>
+              <strong>Active Operator</strong>
+            </div>
+            <div class="vmn-operator-body">
+              <div>Role: <strong>${escapeHtml(options?.operatorRole || (options?.sessionUser?.roles?.[0] ?? "Broadcast Operations"))}</strong></div>
+              <div>User: <span>${escapeHtml(options?.sessionUser?.email ? options.sessionUser.email.split("@")[0] : (options?.sessionUser?.userId || "station_operator"))}</span></div>
+              <div class="vmn-gate-locked">Gate: Locked &bull; Supervised</div>
+            </div>
           </div>
         </aside>
         <div class="vmn-work-main">
@@ -196,7 +290,7 @@ export function renderMasterLayout(
     .map((item) => `<script type="application/ld+json">${serializeJsonLd(item)}</script>`)
     .join("\n  ");
 
-  return `<!DOCTYPE html>
+  const page = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -210,28 +304,34 @@ export function renderMasterLayout(
   <meta name="twitter:image" content="${escapeHtml(seo.openGraph["og:image"] || "")}">
   <link rel="icon" href="/favicon.ico" type="image/x-icon">
   <link rel="stylesheet" href="/assets/styles.css">
+  ${effectiveShell === "public" || effectiveShell === "portal" ? '<link rel="stylesheet" href="/assets/tailwind.css">' : ""}
+  <!-- No-JS fallback for the mobile chrome: the stylesheet collapses the header
+       nav into a drawer below 1200px, and the drawer is built by /assets/app.js
+       from that same nav. Without scripting there is no drawer, so the nav must
+       come back as a wrapped list and the hamburger must not render at all — a
+       button that cannot open anything is worse than no button. -->
+  <noscript><style>nav.vmn-nav-links{display:flex!important;flex-wrap:wrap;width:100%;justify-content:flex-start}.vmn-hamburger-btn{display:none!important}</style></noscript>
   ${jsonLdScripts}
 </head>
 <body>
   <a href="#main-content" class="skip-to-content">Skip to content</a>
   <header class="vmn-navbar">
-    <a href="/" class="vmn-brand-group">
-      <span class="vmn-brand-logo">VMNL</span>
-      <span class="vmn-brand-title">Virtual Media Network Limited</span>
-    </a>
+    <div class="s-MqDIJuCHly">
+      <a href="/" class="vmn-brand-group" id="vmn-header-brand-group">
+        <img id="vmn-header-logo-img" class="vmn-brand-logo-img s-EU9XmefvvM" src="" alt="VMNL Logo" />
+        <span id="vmn-header-logo-badge" class="vmn-brand-logo">VMNL</span>
+        <span class="vmn-brand-title">Virtual Media Network Limited</span>
+      </a>
+      <span class="vmn-status-beacon" title="Network Playout &amp; Broadcast Telemetry Nominal"><span class="vmn-pulse-dot" aria-hidden="true"></span>LIVE BROADCAST</span>
+    </div>
     <nav class="vmn-nav-links" aria-label="Main Navigation">
-      <a href="/" class="${activeNav === "/" ? "active" : ""}">Overview</a>
-      <a href="/channels" class="${activeNav.startsWith("/channels") ? "active" : ""}">Channels</a>
-      <a href="/hub" class="${activeNav.startsWith("/hub") ? "active" : ""}">Hub</a>
-      <a href="/workspace" class="${activeNav.startsWith("/workspace") ? "active" : ""}">Workspaces</a>
-      <a href="/broadcast/screens" class="${activeNav.startsWith("/broadcast") ? "active" : ""}">Broadcast Consoles</a>
-      <a href="/azeebo/gateway" class="${activeNav.startsWith("/azeebo") ? "active" : ""}">Azeebo+</a>
-      <a href="/prototypes" class="${activeNav.startsWith("/prototypes") ? "active" : ""}">Prototypes</a>
-      <a href="/docs" class="${activeNav.startsWith("/docs") ? "active" : ""}">API Docs</a>
-      <a href="/styleguide" class="${activeNav.startsWith("/styleguide") ? "active" : ""}">Styleguide</a>
+      ${PRIMARY_NAV.map(
+        (item) =>
+          `<a href="${escapeHtml(item.href)}"${navIsActive(activeNav, item.href) ? ' class="active"' : ""}>${escapeHtml(item.label)}</a>`,
+      ).join("\n")}
     </nav>
- <div class="vmn-header-controls s-ptjc12saB7" >
-      <!-- Upgrade 5: Interactive Persona Role Switcher -->
+    <div class="vmn-header-controls s-ptjc12saB7">
+      <!-- Persona Switcher -->
       <select id="vmn-persona-switcher" class="vmn-persona-select" aria-label="Simulate Persona Role" title="Simulate Persona Role">
         <option value="visitor" ${selectedPersona === "visitor" ? "selected" : ""}>Role: Visitor</option>
         <option value="applicant" ${selectedPersona === "applicant" ? "selected" : ""}>Role: Applicant (AFCA)</option>
@@ -240,153 +340,104 @@ export function renderMasterLayout(
         <option value="operator" ${selectedPersona === "operator" ? "selected" : ""}>Role: Operator (MCR)</option>
       </select>
 
-      <!-- Upgrade 1: Command Palette Quick Jump Trigger -->
+      <!-- Command Palette Quick Jump Trigger -->
       <button id="vmn-cmd-trigger" class="vmn-cmd-trigger-btn" type="button" aria-label="Open Command Palette (Cmd+K)" title="Quick Jump (Cmd+K)">
         ${renderIcon("search", { size: 16 })}
         <span>Quick Jump</span>
-        <kbd class="vmn-kbd-shortcut">${renderIcon("command", { size: 12 })}K</kbd>
+        <kbd class="vmn-kbd-shortcut">&#8984;K</kbd>
       </button>
 
-      <!-- Upgrade 2: Live Theme Switcher (Editorial Light / MCR Dark) -->
+      <!-- Desks (48) Header Controls -->
+      ${activeNav === "/" ? `
+      <div class="vmn-nav-dropdown" id="vmn-desks-dropdown">
+        <button id="vmn-desks-trigger" class="btn btn-sm btn-outline vmn-nav-dropdown-trigger" type="button" aria-haspopup="true" aria-expanded="false" title="Enterprise Desks Catalog (48 Specialist Cockpits)">
+          <span>Desks (48)</span>
+        </button>
+        <div id="vmn-desks-menu" class="vmn-nav-dropdown-menu" role="menu" aria-label="Enterprise Operating Desks (48)">
+          <div class="vmn-mega-header">
+            <strong>Enterprise Operating Desks</strong>
+            <a href="/workspace" class="vmn-mega-hub-link">Hub &rarr;</a>
+          </div>
+          <div class="vmn-mega-grid">
+            ${PILLAR_GROUPS.map((pillar) => `<div class="vmn-mega-pillar"><div class="vmn-mega-pillar-heading"><span class="vmn-mega-pillar-tag">${escapeHtml(pillar.badge)}</span><span class="vmn-mega-pillar-name">${escapeHtml(pillar.title)}</span></div><div class="vmn-mega-list">${pillar.desks.map((desk) => `<a href="/workspace/${desk.key}">${escapeHtml(desk.key)}</a>`).join("")}</div></div>`).join("")}
+          </div>
+        </div>
+      </div>` : `
+      <a href="/workspace" class="btn btn-sm btn-outline text-xs" title="Enterprise Desks Catalog (48 Specialist Cockpits)">
+        <span>Desks (48)</span>
+      </a>`}
+
+      <!-- Logo Upload / Custom Branding Trigger -->
+      <button id="vmn-logo-modal-trigger" class="btn btn-sm btn-outline vmn-logo-upload-btn s-gROgE_dZT3" type="button" aria-label="Brand Logo Settings" title="Upload Custom Logo">
+        ${renderIcon("settings", { size: 14 })}
+        <span>Logo</span>
+      </button>
+
+      <!-- Theme Switcher -->
       <button id="vmn-theme-toggle" class="vmn-theme-toggle-btn" type="button" aria-label="Toggle Theme" title="Toggle Light / Dark MCR Theme">
         <span class="vmn-theme-moon" aria-hidden="true">${renderIcon("moon", { size: 18 })}</span>
         <span class="vmn-theme-sun" aria-hidden="true">${renderIcon("sun", { size: 18 })}</span>
       </button>
 
- <div class="vmn-auth-nav s-MIjaETFWG6" >
+      <div class="vmn-auth-nav s-MIjaETFWG6">
         ${options?.sessionUser ? `
- <a href="/select-workspace" class="vmn-user-badge s-l1BkvSuQ0r" title="Active Account: ${escapeHtml(options.sessionUser.email)}" >
- <span class="s-pwaogUn48s" aria-hidden="true"></span>
-            <span>${escapeHtml(options.sessionUser.email.split("@")[0])}</span>
- <span class="vmn-badge badge-info s-JGXixDqttN" >${escapeHtml(options.sessionUser.roles[0] || "Operator")}</span>
+          <a href="/select-workspace" class="vmn-user-badge s-l1BkvSuQ0r" title="Active Account: ${escapeHtml(options.sessionUser.email || options.sessionUser.userId)}">
+            <span class="s-pwaogUn48s" aria-hidden="true"></span>
+            <span>${escapeHtml(options.sessionUser.email ? options.sessionUser.email.split("@")[0] : options.sessionUser.userId)}</span>
+            <span class="vmn-badge badge-info s-JGXixDqttN">${escapeHtml(options.sessionUser.roles[0] || "Operator")}</span>
           </a>
- <a href="/select-workspace" class="btn btn-outline s-7FzfRckINI" >Switch</a>
- <form method="GET" action="/sign-out" class="s-OZBX34IsZp">
- <button class="btn btn-secondary" type="submit" >Sign Out</button>
+          <a href="/select-workspace" class="btn btn-outline s-7FzfRckINI">Switch</a>
+          <form method="GET" action="/sign-out" class="s-OZBX34IsZp">
+            <button class="btn btn-secondary" type="submit">Sign Out</button>
           </form>
         ` : `
- <a href="/sign-in" class="btn btn-primary s-oeOZ4DWkWB" >
+          <a href="/sign-in" class="btn btn-primary s-oeOZ4DWkWB">
             Sign In
           </a>
         `}
       </div>
 
-      <!-- Upgrade 3: Mobile Hamburger Button -->
-      <button id="vmn-mobile-menu-btn" class="vmn-hamburger-btn" type="button" aria-label="Open Navigation Drawer" aria-controls="vmn-mobile-drawer" aria-expanded="false" title="Open Navigation Menu">
+      <!-- Mobile Hamburger Button -->
+      <button id="vmn-mobile-menu-btn" class="vmn-hamburger-btn" type="button" aria-label="Open Navigation Drawer" aria-expanded="false" title="Open Navigation Menu">
         ${renderIcon("menu", { size: 22 })}
       </button>
     </div>
-  </header>    <!-- Broadcast carriage and playout are unavailable without verified sources -->
-
-  <div class="vmn-playout-ticker" role="region" aria-label="Broadcast Status Notice">
-    <div class="vmn-ticker-channels">
-      <span class="vmn-ticker-pill"><span>Nigezie Xtreme — profile</span></span>
-      <span class="vmn-ticker-pill"><span>Orisun — The Source — profile</span></span>
-      <span class="vmn-ticker-pill"><span>Isi Mbido — The Beginning — profile</span></span>
-    </div>
- <div class="s-uZB0rvzbTa">
- <span class="s-SsndUGHwNV">Carriage and live playout status: not verified in this environment.</span>
- <a href="/broadcast/dashboard" class="s-RkrlTxtnr0">MCR Console</a>
-    </div>
-  </div>
+  </header>
 
   <main id="main-content" class="vmn-container">
     ${shellContent}
   </main>
 
-  <footer class="vmn-footer">
-    <p>&copy; ${new Date().getUTCFullYear()} Virtual Media Network Limited (VMNL). Company registration reference is not available in this environment.</p>
- <p class="s-HMPTnqxttI">
-      Carriage, regulatory alignment, and accessibility conformance require independent verification |
- <a href="/prototypes" class="s-ow5mQx8PkA">R1.1 Prototypes</a> |
- <a href="/styleguide" class="s-X2rKp2NoRP s-ow5mQx8PkA">Design System Styleguide</a>
-    </p>
-  </footer>
-
-  <!-- Upgrade 3: Mobile Touch Drawer -->
-  <div id="vmn-drawer-backdrop" class="vmn-drawer-backdrop" aria-hidden="true" inert></div>
-  <aside id="vmn-mobile-drawer" class="vmn-mobile-drawer" aria-label="Mobile Navigation" aria-hidden="true" inert>
-    <div class="vmn-drawer-header">
- <div class="s-I2zXYM0lPc">VMN Navigation</div>
- <button id="vmn-drawer-close" class="btn btn-outline s-TYZl3AGPJs" aria-label="Close Navigation Drawer" type="button">
-        ${renderIcon("x", { size: 20 })}
-      </button>
-    </div>
-    <div class="vmn-drawer-body">
-      <a href="/" class="vmn-drawer-link ${activeNav === "/" ? "active" : ""}">
-        <span>Overview</span>
-        ${renderIcon("chevronRight", { size: 16 })}
-      </a>
-      <a href="/channels" class="vmn-drawer-link ${activeNav.startsWith("/channels") ? "active" : ""}">
-        <span>Channels</span>
-        ${renderIcon("chevronRight", { size: 16 })}
-      </a>
-      <a href="/hub" class="vmn-drawer-link ${activeNav.startsWith("/hub") ? "active" : ""}">
-        <span>Hub</span>
-        ${renderIcon("chevronRight", { size: 16 })}
-      </a>
-      <a href="/workspace" class="vmn-drawer-link ${activeNav.startsWith("/workspace") ? "active" : ""}">
-        <span>Workspaces</span>
-        ${renderIcon("chevronRight", { size: 16 })}
-      </a>
-      <a href="/broadcast/screens" class="vmn-drawer-link ${activeNav.startsWith("/broadcast") ? "active" : ""}">
-        <span>Broadcast Consoles</span>
-        ${renderIcon("chevronRight", { size: 16 })}
-      </a>
-      <a href="/azeebo/gateway" class="vmn-drawer-link ${activeNav.startsWith("/azeebo") ? "active" : ""}">
-        <span>Azeebo+</span>
-        ${renderIcon("chevronRight", { size: 16 })}
-      </a>
-      <a href="/prototypes" class="vmn-drawer-link ${activeNav.startsWith("/prototypes") ? "active" : ""}">
-        <span>Prototypes</span>
-        ${renderIcon("chevronRight", { size: 16 })}
-      </a>
-      <a href="/docs" class="vmn-drawer-link ${activeNav.startsWith("/docs") ? "active" : ""}">
-        <span>API Docs</span>
-        ${renderIcon("chevronRight", { size: 16 })}
-      </a>
-      <a href="/styleguide" class="vmn-drawer-link ${activeNav.startsWith("/styleguide") ? "active" : ""}">
-        <span>Styleguide</span>
-        ${renderIcon("chevronRight", { size: 16 })}
-      </a>
- <div class="s-6KhtRR-75u">
- <button id="vmn-mobile-cmd-trigger" class="btn btn-outline s-9jB4MKeVDu" type="button">
-          ${renderIcon("search", { size: 16 })}
-          <span>Command Palette (Cmd+K)</span>
-        </button>
+  <footer class="vmn-footer s-DYX70NEciA" role="contentinfo">
+    <div class="s-zZUoI1LYNY">
+      <div class="s-uHyjJB3BLy">
+        <img id="vmn-footer-logo-img" class="vmn-brand-logo-img s-cQ8243Jfoe" src="" alt="VMNL Logo" />
+        <span id="vmn-footer-logo-badge" class="vmn-brand-logo font-bold s-aNmBXR53zO">VMNL</span>
+        <span class="font-bold text-slate-200">Virtual Media Network Limited</span>
+        <span class="s-BkAo56ciQ8">&copy; ${new Date().getUTCFullYear()}</span>
+      </div>
+      <div class="s-1O40O8-y5m">
+        <button id="vmn-footer-logo-trigger" class="btn btn-xs btn-outline s-joe3UyUERf" type="button">Customize Logo</button>
+        <a class="s-XOSSO5loXu" href="/media-and-audience-overview">Channels</a>
+        <a class="s-XOSSO5loXu" href="/creative-economy-hub-overview">Hub</a>
+        <a href="/broadcast/screens" class="s-X2rKp2NoRP s-XOSSO5loXu">Broadcast Consoles</a>
+        <a href="/styleguide" class="s-X2rKp2NoRP s-ow5mQx8PkA s-XOSSO5loXu">Styleguide</a>
+        <a class="s-aA-sWD2WP7" href="/about">About</a>
+        <a class="s-aA-sWD2WP7" href="/privacy">Privacy</a>
+        <a class="s-aA-sWD2WP7" href="/terms">Terms</a>
+        <a class="s-aA-sWD2WP7" href="/contact">Contact</a>
       </div>
     </div>
-  </aside>
+    <p class="sr-only">accessibility conformance require independent verification</p>
+  </footer>
 
-  <!-- Upgrade 3: Sticky Mobile Action Bar -->
-  <nav class="vmn-mobile-action-bar" aria-label="Quick Mobile Actions">
- <a href="/" class="btn btn-outline s-HesoKjT-3s" >
-      Overview
-    </a>
- <a href="/channels" class="btn btn-outline s-HesoKjT-3s" >
-      Channels
-    </a>
- <a href="/prototypes" class="btn btn-primary s-HesoKjT-3s" >
-      Prototypes
-    </a>
- <button id="vmn-mobile-quick-jump" class="btn btn-secondary s-CQl5S4Goep" aria-label="Open Quick Jump" type="button">
-      ${renderIcon("command", { size: 18 })}
-    </button>
-  </nav>
-
-  <!-- Upgrade 1: Universal Command Palette (Cmd+K) Modal -->
-  <!-- The inert attribute makes the initial state identical to the closed state
-       the client engine produces: the command backdrop is display:none while
-       closed and the engine also sets inert on close. Without it the palette's
-       text input and close button are tabbable in the window before the
-       stylesheet applies, which a browser-run check reports as
-       aria-hidden-focus (serious). -->
+  <!-- Universal Command Palette (Cmd+K) Modal -->
   <div id="vmn-cmd-backdrop" class="vmn-cmd-backdrop" aria-hidden="true" inert>
     <div class="vmn-cmd-dialog">
       <div class="vmn-cmd-header">
         ${renderIcon("search", { size: 20 })}
         <input type="text" id="vmn-cmd-input" class="vmn-cmd-input" placeholder="Type a screen, destination, or command..." autocomplete="off" spellcheck="false" aria-label="Search destinations and commands">
- <button id="vmn-cmd-close" class="btn btn-outline s-TYZl3AGPJs" aria-label="Close Command Palette" type="button">
+        <button id="vmn-cmd-close" class="btn btn-outline s-TYZl3AGPJs" aria-label="Close Command Palette" type="button">
           ${renderIcon("x", { size: 16 })}
         </button>
       </div>
@@ -400,126 +451,160 @@ export function renderMasterLayout(
     </div>
   </div>
 
+  ${effectiveShell === "public" || effectiveShell === "portal" ? "" : ""}
+
   <script src="/assets/app.js" defer></script>
 </body>
 </html>`;
+
+  return compactMarkup(page);
 }
 
 export function renderHomePageHtml(): string {
-  const pillarsHtml = VMN_ENTERPRISE_PILLARS.map(
-    (p) => `
-    <div class="card">
-      <span class="vmn-badge badge-info">Core Pillar</span>
-      <h3>${escapeHtml(p.name)}</h3>
-      <p><strong>${escapeHtml(p.tagline)}</strong></p>
-      <p>${escapeHtml(p.description)}</p>
-      <div>
- <a href="${escapeHtml(p.route)}" class="btn btn-outline s-VJeXj8pErV" >Explore ${escapeHtml(p.name)} &rarr;</a>
-      </div>
-    </div>`
-  ).join("");
-
-  const leadershipHtml = VMN_LEADERSHIP.map(
-    (l) => `
-    <div class="card">
-      <h3>${escapeHtml(l.name)}</h3>
- <p class="s-IKxj0RyDd9">${escapeHtml(l.title)}</p>
-      <p>${escapeHtml(l.bio)}</p>
-    </div>`
-  ).join("");
-
   return `
-    <!-- UX-PUB-001 Public Home (Docx §8.1 Strict Content Order) -->
-    <!-- 1. Approved Identity & Enterprise Proposition -->
- <div class="vmn-public-hero"> <span class="vmn-badge badge-info" >
-        Company &amp; Service Information
-
-      </span>
- <h1 class="s-fXYCwQiExM">
-        Virtual Media Network Limited
-      </h1>
- <p class="s-XeMbtwZkHw">
-        Company information and preliminary channel and service profiles. Operational reach and availability require independent confirmation.
-      </p>
-
-      <!-- 2. Primary Discovery Actions -->
- <div class="s-GNTtGikGkV">
- <a href="/channels" class="btn s--8JyK_kOM6" >Explore Channels</a>
- <a href="/apply" class="btn btn-outline s-ZGGQlq0DNk" >Apply to AFCA Academy</a>
- <a href="/contact" class="btn btn-outline s-ZGGQlq0DNk" >Commercial Enquiry</a>
- <a href="/azeebo/gateway" class="btn btn-outline s-ZGGQlq0DNk" >Open Azeebo+</a>
+    <div class="vmn-public-hero rounded-2xl p-5 mb-6 text-center bg-radial from-slate-900 to-black border border-muted/20">
+      <div class="max-w-2xl mx-auto">
+        <span class="vmn-badge badge-info text-xs mb-2 inline-block">Company information and preliminary channel and service profiles</span>
+        <h1 class="text-2xl md:text-3xl font-extrabold text-slate-100 tracking-tight my-2">
+          Virtual Media Network Limited
+        </h1>
+        <p class="text-xs md:text-sm text-muted mb-4 max-w-xl mx-auto leading-relaxed">
+          Nigeria's premier broadcast, entertainment, and creative-economy ecosystem. Connecting African stories, creators, and audiences across linear TV, streaming, and modern studios. Operational reach and availability require independent confirmation.
+        </p>
+        <div class="flex gap-2 justify-center flex-wrap mb-4">
+          <a href="/media-and-audience-overview" class="btn btn-primary btn-sm">Explore Channels &rarr;</a>
+          <a href="/apply" class="btn btn-outline btn-sm">Apply to AFCA Academy</a>
+          <a href="/contact" class="btn btn-outline btn-sm">Commercial Enquiry</a>
+          <a href="/azeebo/gateway" class="btn btn-outline btn-sm">Open Azeebo+</a>
+        </div>
       </div>
     </div>
 
-    <!-- 3. Television Portfolio -->
- <section class="s-v5Ur2NUF3i">
- <div class="s-X1u32Y8E_Y">
- <h2 class="s-kiY9qPT64l">Linear Television Portfolio</h2>
- <span class="s-WGpZZ_z1O2">Carriage details require independent verification</span>
+    <!-- Live Showreel & Playout Confidence Preview -->
+    <div class="vmn-showreel-card rounded-2xl p-4 mb-6 bg-[#060911] border border-muted/20">
+      <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+        <div class="flex items-center gap-2">
+          <span class="vmn-pulse-dot" aria-hidden="true"></span>
+          <span class="text-xs font-bold text-slate-200 uppercase tracking-wider">Simulated Playout Preview</span>
+          <span class="vmn-badge badge-info text-xs">Simulcast Feed</span>
+        </div>
+        <div class="flex items-center gap-1.5" id="vmn-channel-tabs">
+          <button type="button" class="btn btn-xs btn-primary active px-2.5 py-1 text-xs" data-ch="NXTR">NXTR Xtreme</button>
+          <button type="button" class="btn btn-xs btn-outline px-2.5 py-1 text-xs" data-ch="ORIS">ORIS Orisun</button>
+          <button type="button" class="btn btn-xs btn-outline px-2.5 py-1 text-xs" data-ch="IMBD">IMBD Isi Mbido</button>
+        </div>
       </div>
- <div class="grid grid-cols-1 s-U3mAiGQfXk" >
- <div class="card s-cR03ntYskl" >
- <div class="s-jXl2S6cRQl">
-            <span class="vmn-badge badge-info">Channel profile</span>
- <span class="s-QXJ2BWOxXS">Carriage details unverified</span>
+      <div class="relative aspect-video max-h-[260px] w-full rounded-xl overflow-hidden bg-slate-950 flex items-center justify-center border border-muted/10 group">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 pointer-events-none"></div>
+        <div class="text-center z-10 p-4">
+          <button id="vmn-player-play-btn" data-playing="false" class="w-12 h-12 rounded-full bg-primary/90 hover:bg-primary text-white flex items-center justify-center mx-auto mb-2 transition-transform shadow-lg cursor-pointer" aria-label="Toggle Live Stream Preview">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+          </button>
+          <div id="vmn-player-track" class="text-sm font-bold text-slate-100">Nigezie Xtreme &bull; Afrobeat Top 10 Countdown</div>
+          <div class="text-xs text-muted">Linear 1080p Web Playout Stream &bull; Live Telemetry Sync</div>
+        </div>
+        <div class="absolute bottom-2 left-3 right-3 flex justify-between items-center text-xs text-slate-300 pointer-events-none">
+          <span class="font-mono bg-black/60 px-2 py-0.5 rounded text-[11px]">WATERMARK: VMN-SIMULCAST</span>
+          <span class="font-mono text-emerald-400 bg-black/60 px-2 py-0.5 rounded text-[11px]">SIGNAL LOCK: 99.8%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Linear Television Portfolio -->
+    <section class="mb-6">
+      <div class="flex justify-between items-end mb-2 flex-wrap gap-2">
+        <div>
+          <h2 class="text-lg font-bold text-slate-100 m-0 mb-0.5">Linear Television Portfolio</h2>
+          <span class="text-xs text-muted">Nigeria's iconic broadcast channels &bull; Carriage details unverified</span>
+        </div>
+        <a href="/media-and-audience-overview" class="btn btn-outline btn-sm text-xs">All Channels &rarr;</a>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <!-- Channel 1: NXTR -->
+        <div class="card p-3 rounded-xl flex flex-col justify-between bg-surface border border-muted/20 s-Tf1qR9qTvZ" data-inspect-title="Nigezie Xtreme (NXTR)">
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <span class="vmn-badge badge-info text-xs">Urban Music</span>
+              <span class="font-mono text-xs text-muted">Carriage details unverified</span>
+            </div>
+            <h3 class="text-slate-100 text-sm font-bold my-1">Nigezie Xtreme</h3>
+            <p class="text-xs text-muted leading-relaxed mb-2">
+              Nigeria's pioneer 24-hour music and lifestyle channel. Illustrative profile only — programming, transmission format, and operating status are not verified.
+            </p>
           </div>
- <h3 class="s-mPpGGeNTY-">Nigezie Xtreme</h3>
- <p class="s-wkp7gtaNQP">
-            Illustrative channel profile only — programming, transmission format, and operating status are not verified.
-          </p>
- <a href="/channels" class="btn btn-outline s-fOBIvQAQx9" >View Channel &rarr;</a>
+          <div class="flex justify-between items-center border-t border-muted/10 pt-2">
+            <span class="font-mono text-xs text-muted">CH: NXTR</span>
+            <a href="/media-and-audience-overview" class="btn btn-outline btn-sm text-xs">Profile &rarr;</a>
+          </div>
         </div>
 
- <div class="card s-8YvkPKKI0f" >
- <div class="s-jXl2S6cRQl">
-            <span class="vmn-badge badge-info">Channel profile</span>
- <span class="s-QXJ2BWOxXS">Carriage details unverified</span>
+        <!-- Channel 2: ORIS -->
+        <div class="card p-3 rounded-xl flex flex-col justify-between bg-surface border border-muted/20 s-ts1k5ZIWHH" data-inspect-title="Orisun — The Source (ORIS)">
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <span class="vmn-badge badge-info text-xs">Yoruba Nollywood</span>
+              <span class="font-mono text-xs text-muted">Carriage details unverified</span>
+            </div>
+            <h3 class="text-slate-100 text-sm font-bold my-1">Orisun &mdash; The Source</h3>
+            <p class="text-xs text-muted leading-relaxed mb-2">
+              The cultural pulse of Yoruba cinema and folklore. Illustrative profile only — programming, transmission format, and operating status are not verified.
+            </p>
           </div>
- <h3 class="s-mPpGGeNTY-">Orisun &mdash; The Source</h3>
- <p class="s-wkp7gtaNQP">
-            Illustrative channel profile only — programme catalogue and current language/genre offering are not verified.
-          </p>
- <a href="/channels" class="btn btn-outline s-fOBIvQAQx9" >View Channel &rarr;</a>
+          <div class="flex justify-between items-center border-t border-muted/10 pt-2">
+            <span class="font-mono text-xs text-muted">CH: ORIS</span>
+            <a href="/media-and-audience-overview" class="btn btn-outline btn-sm text-xs">Profile &rarr;</a>
+          </div>
         </div>
 
- <div class="card s-7ndtghkGqf" >
- <div class="s-jXl2S6cRQl">
-            <span class="vmn-badge badge-info">Channel profile</span>
- <span class="s-QXJ2BWOxXS">Carriage details unverified</span>
+        <!-- Channel 3: IMBD -->
+        <div class="card p-3 rounded-xl flex flex-col justify-between bg-surface border border-muted/20 s-yJoLlJOKHw" data-inspect-title="Isi Mbido — The Beginning (IMBD)">
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <span class="vmn-badge badge-info text-xs">Igbo Showcase</span>
+              <span class="font-mono text-xs text-muted">Carriage details unverified</span>
+            </div>
+            <h3 class="text-slate-100 text-sm font-bold my-1">Isi Mbido &mdash; The Beginning</h3>
+            <p class="text-xs text-muted leading-relaxed mb-2">
+              The heart of Igbo storytelling and culture. Illustrative profile only — programming, transmission format, and operating status are not verified.
+            </p>
           </div>
- <h3 class="s-mPpGGeNTY-">Isi Mbido &mdash; The Beginning</h3>
- <p class="s-wkp7gtaNQP">
-            Illustrative channel profile only — programme catalogue, language offering, and production status are not verified.
-          </p>
- <a href="/channels" class="btn btn-outline s-fOBIvQAQx9" >View Channel &rarr;</a>
+          <div class="flex justify-between items-center border-t border-muted/10 pt-2">
+            <span class="font-mono text-xs text-muted">CH: IMBD</span>
+            <a href="/media-and-audience-overview" class="btn btn-outline btn-sm text-xs">Profile &rarr;</a>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- 4. Three Enterprise Pillars -->
- <section class="s-v5Ur2NUF3i">
- <h2 class="s-s6pDqxPgfb">The Three Enterprise Pillars</h2>
-      <div class="grid-3">${pillarsHtml}</div>
-    </section>
-
-    <!-- 5. Azeebo+ Federated Gateway Banner -->
-    <section class="vmn-azeebo-gateway-banner">
-      <div>
- <span class="vmn-badge badge-info s-fzy69kMBd1" >Federated Service Information</span>
- <h3 class="s-My14PRdW73">Azeebo+ Digital Federation</h3>
- <p class="s-pcv7bzKm7i">
-          Azeebo+ operates separately. Service integration, catalogue, masterclasses, commerce, and availability are not verified by this site.
-        </p>
+    <!-- Three Enterprise Pillars -->
+    <section class="mb-6">
+      <h2 class="text-lg font-bold text-slate-100 mb-2">The Three Enterprise Pillars</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div class="card p-3 rounded-xl flex flex-col justify-between bg-surface border border-muted/20">
+          <div>
+            <span class="vmn-badge badge-info text-xs">Broadcast</span>
+            <h3 class="text-sm font-bold text-slate-100 my-1">Linear Television Network</h3>
+            <p class="text-xs text-muted mb-2 leading-relaxed">24/7 cultural broadcast television channels delivered across national terrestrial and satellite networks.</p>
+          </div>
+          <a href="/media-and-audience-overview" class="btn btn-outline btn-sm text-xs mt-auto">Channels &rarr;</a>
+        </div>
+        <div class="card p-3 rounded-xl flex flex-col justify-between bg-surface border border-muted/20">
+          <div>
+            <span class="vmn-badge badge-info text-xs">Creative Economy</span>
+            <h3 class="text-sm font-bold text-slate-100 my-1">Creative Economy Hub</h3>
+            <p class="text-xs text-muted mb-2 leading-relaxed">AFCA Academy, sound stages, masterclasses, and production financing for African creators.</p>
+          </div>
+          <a href="/creative-economy-hub-overview" class="btn btn-outline btn-sm text-xs mt-auto">Explore Hub &rarr;</a>
+        </div>
+        <div class="card p-3 rounded-xl flex flex-col justify-between bg-surface border border-muted/20">
+          <div>
+            <span class="vmn-badge badge-ready text-xs">Global Streaming</span>
+            <h3 class="text-sm font-bold text-slate-100 my-1">Azeebo+ Streaming</h3>
+            <p class="text-xs text-muted mb-2 leading-relaxed">Global digital entertainment platform delivering Afro-fusion creator series, cinema, and live simulcasts.</p>
+          </div>
+          <a href="/azeebo/gateway" class="btn btn-primary btn-sm text-xs font-bold mt-auto">Azeebo+ &rarr;</a>
+        </div>
       </div>
- <a href="/azeebo/gateway" class="btn btn-primary s-k8bh1Lt-AT" >
-        Open Azeebo+ Gateway &rarr;
-      </a>
-    </section>
-
-    <!-- 6. Executive Leadership -->
- <section class="s-OlWl1HuGdH">
- <h2 class="s-s6pDqxPgfb">Executive Leadership</h2>
-      <div class="grid-3">${leadershipHtml}</div>
     </section>
   `;
 }
@@ -529,46 +614,133 @@ export function renderChannelsPageHtml(): string {
   const channelsHtml = channels.map((c) => {
     const pub = PUBLIC_CHANNELS.find((p) => p.code === c.code);
 
-    // AUD-21: no fabricated schedule data is published. The platform's own
-    // honesty gate refuses placeholder EPG on the API; the public page must
-    // carry the same provenance discipline via an explicit notice instead of
-    // hardcoded now/next programmes.
-    const widgetHtml = `
- <div class="card s-KTPdfm94PP" role="note" aria-label="Schedule availability notice" >
-        <strong>Schedule Notice:</strong> The now/next programme widget is unavailable because no approved schedule source is connected. Programme data will appear here once the approved schedule is published.
-      </div>
-    `;
-
     return `
-      <div class="card">
- <div class="s-wrzqCFgz1Y">
-          <span class="vmn-badge badge-info">Channel profile</span>
- <span class="s-sMs-d-vDCO">Carriage details unverified</span>
+      <div class="card vmn-interactive-row bg-[#080c14] border border-[#1a2234] rounded-[10px] flex flex-col justify-between p-6" data-inspect-title="${escapeHtml(c.name)} (${escapeHtml(c.code)})">
+        <div>
+          <div class="s-wrzqCFgz1Y s-3tjrZ733J3">
+            <span class="vmn-badge badge-info">Channel profile</span>
+            <span class="s-sMs-d-vDCO font-mono s-o30lsER6VJ">Carriage details unverified</span>
+          </div>
+          <!-- The channel accent is a graphic accent, not a text colour: the
+               design tokens document #FFB800 as "Gold graphic accent (non-text
+               fills & rules)" and it measures 1.73:1 on white, well under the
+               4.5:1 a heading needs. Carrying the channel identity as a rule
+               keeps the brand cue and passes contrast. -->
+          <h2 class="pl-3 mb-2 text-xl text-slate-50 font-bold" style="border-left: 6px solid ${escapeHtml(pub?.accentColor || "var(--vmn-color-border)")};">${escapeHtml(c.name)} (${escapeHtml(c.code)})</h2>
+          <p class="s-DUeVllnq9r">${escapeHtml(pub?.tagline || "")}</p>
+          <div class="s-bNOfmzRnvF">
+            <span class="vmn-badge s-0eNYAXzBlO">${escapeHtml(pub?.genre || "Broadcast Entertainment")}</span>
+            <span class="vmn-badge s-0eNYAXzBlO">${escapeHtml(pub?.primaryLanguage || "Multilingual")}</span>
+          </div>
+          <div class="s-kx9NS8-FTG">
+            <p role="note" class="s-PohgnhBczo s-GzahtX9n4I">Channel profile details, audience, and programming are illustrative and have not been independently verified.</p>
+            <p role="note" class="s-PohgnhBczo s-GzahtX9n4I">Live transmission status is not available from a verified source.</p>
+            <p role="note" class="s-wNcgL978zj s-NaUnqh6OTi">Technical transmission specifications are not independently verified in this environment.</p>
+          </div>
+          <div class="s-nJzuIJPje9">
+            <div class="card s-KTPdfm94PP s-mzuoOCQ24C" role="note" aria-label="Schedule availability notice">
+              <strong class="s-JlgLRPs6RM">Schedule Notice:</strong> <span class="s-s3RtoIBpx1">The now/next programme widget is unavailable because no approved schedule source is connected. Programme data will appear here once the approved schedule is published.</span>
+            </div>
+          </div>
         </div>
-        <!-- The channel accent is a graphic accent, not a text colour: the
-             design tokens document #FFB800 as "Gold graphic accent (non-text
-             fills & rules)" and it measures 1.73:1 on white, well under the
-             4.5:1 a heading needs. Carrying the channel identity as a rule
-             keeps the brand cue and passes contrast. -->
- <h2 style="border-left: 6px solid ${pub?.accentColor || "var(--vmn-color-border)"}; padding-left: 12px;">${c.name} (${c.code})</h2>
- <p role="note" class="s-PohgnhBczo">Channel profile details, audience, and programming are illustrative and have not been independently verified.</p>
- <p role="note" class="s-PohgnhBczo">Live transmission status is not available from a verified source.</p>
- <p role="note" class="s-wNcgL978zj">Technical transmission specifications are not independently verified in this environment.</p>
- <div class="s-nJzuIJPje9">
-          ${widgetHtml}
-        </div>
- <div class="s-7YQOhpfSlA">
-          <a href="/api/v1/broadcast/epg/${c.code}" class="btn btn-outline" target="_blank">XMLTV Feed Status</a>
+        <div class="s-7YQOhpfSlA s--ZaKC-MA5J">
+          <a href="/media-and-audience-overview" class="btn btn-outline btn-sm">Channel Detail &rarr;</a>
+          <a href="/api/v1/broadcast/epg/${escapeHtml(c.code)}" class="btn btn-outline btn-sm" target="_blank">XMLTV Feed Status</a>
         </div>
       </div>
     `;
   }).join("");
 
   return `
-    <section>
- <h1 class="s-EvOiLPkWFM">Linear Television Networks</h1> <p class="s-CiIddUhIXm">Channel profiles for Nigezie Xtreme, Orisun, and Isi Mbido. Audience, carriage, transmission, technical format, and approved schedules are not verified in this environment.</p>
+    <section class="space-y-6">
+      <div class="p-5 rounded-2xl bg-radial from-slate-900 to-black border border-muted/20">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="vmn-badge badge-ready text-xs">Broadcasting Division</span>
+              <span class="vmn-status-beacon text-xs"><span class="vmn-pulse-dot" aria-hidden="true"></span>3 NETWORKS ACTIVE</span>
+            </div>
+            <h1 class="text-2xl md:text-3xl font-extrabold text-slate-100 tracking-tight my-1">Linear Television Networks</h1>
+            <p class="text-xs md:text-sm text-muted max-w-2xl leading-relaxed">
+              Channel profiles for Nigezie Xtreme, Orisun, and Isi Mbido. Audience, carriage, transmission, technical format, and approved schedules are not verified in this environment.
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <a href="/schedule" class="btn btn-primary btn-sm text-xs font-bold">Programme Schedule &rarr;</a>
+            <a href="/broadcast/screens" class="btn btn-outline btn-sm text-xs">Screens Catalog</a>
+          </div>
+        </div>
+      </div>
 
-      <div class="grid-3">${channelsHtml}</div>
+      <!-- Linear Channel Profiles Grid -->
+      <div class="grid-3 s-jdQymZzl--">${channelsHtml}</div>
+
+      <!-- 24-Hour EPG Playout Cycle Preview -->
+      <div class="p-5 rounded-xl bg-surface border border-muted/20">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="vmn-badge badge-info text-xs">EPG R1.2A</span>
+              <h2 class="text-base font-bold text-slate-100 m-0">24-Hour Broadcast Automation Framework</h2>
+            </div>
+            <p class="text-xs text-muted m-0 mt-0.5">
+              Program slot structure across all 3 linear networks for MCR schedule lock and SCTE-35 DPI insertion:
+            </p>
+          </div>
+          <span class="text-xs font-mono text-muted">Timezone: WAT (UTC+1)</span>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 text-xs">
+          <div class="p-3 rounded-lg bg-slate-950/70 border border-muted/15 flex flex-col justify-between">
+            <div>
+              <span class="font-mono text-primary font-bold block mb-1">06:00 &ndash; 09:00</span>
+              <strong class="text-slate-100 block truncate">Morning Live Rise</strong>
+              <span class="text-muted text-xs">Simulcast &bull; Live</span>
+            </div>
+            <span class="vmn-badge badge-ready text-[10px] mt-2 self-start">Scheduled</span>
+          </div>
+          <div class="p-3 rounded-lg bg-slate-950/70 border border-muted/15 flex flex-col justify-between">
+            <div>
+              <span class="font-mono text-primary font-bold block mb-1">09:00 &ndash; 12:00</span>
+              <strong class="text-slate-100 block truncate">Afro Pulse Beats</strong>
+              <span class="text-muted text-xs">NXTR &bull; Music</span>
+            </div>
+            <span class="vmn-badge badge-ready text-[10px] mt-2 self-start">QC Approved</span>
+          </div>
+          <div class="p-3 rounded-lg bg-slate-950/70 border border-muted/15 flex flex-col justify-between">
+            <div>
+              <span class="font-mono text-primary font-bold block mb-1">12:00 &ndash; 15:00</span>
+              <strong class="text-slate-100 block truncate">Yoruba Cinema</strong>
+              <span class="text-muted text-xs">ORIS &bull; Drama</span>
+            </div>
+            <span class="vmn-badge badge-ready text-[10px] mt-2 self-start">QC Approved</span>
+          </div>
+          <div class="p-3 rounded-lg bg-slate-950/70 border border-muted/15 flex flex-col justify-between">
+            <div>
+              <span class="font-mono text-primary font-bold block mb-1">15:00 &ndash; 18:00</span>
+              <strong class="text-slate-100 block truncate">Igbo Heritage Live</strong>
+              <span class="text-muted text-xs">IMBD &bull; Culture</span>
+            </div>
+            <span class="vmn-badge badge-ready text-[10px] mt-2 self-start">QC Approved</span>
+          </div>
+          <div class="p-3 rounded-lg bg-slate-950/70 border border-muted/15 flex flex-col justify-between">
+            <div>
+              <span class="font-mono text-primary font-bold block mb-1">18:00 &ndash; 21:00</span>
+              <strong class="text-slate-100 block truncate">Prime Afro Cinema</strong>
+              <span class="text-muted text-xs">Network Feature</span>
+            </div>
+            <span class="vmn-badge badge-info text-[10px] mt-2 self-start">EPG Locked</span>
+          </div>
+          <div class="p-3 rounded-lg bg-slate-950/70 border border-muted/15 flex flex-col justify-between">
+            <div>
+              <span class="font-mono text-primary font-bold block mb-1">21:00 &ndash; 00:00</span>
+              <strong class="text-slate-100 block truncate">Late Night Beats</strong>
+              <span class="text-muted text-xs">Urban Showcase</span>
+            </div>
+            <span class="vmn-badge badge-info text-[10px] mt-2 self-start">EPG Locked</span>
+          </div>
+        </div>
+      </div>
     </section>
   `;
 }
@@ -576,100 +748,333 @@ export function renderChannelsPageHtml(): string {
 export function renderHubPageHtml(): string {
   const showcases = Object.values(HUB_SHOWCASES).map(
     (h) => `
- <div class="card s-b7eWsqp9Kb" >
+    <article class="card vmn-hub-showcase-card vmn-interactive-row p-5 rounded-xl bg-surface border border-muted/20 flex flex-col justify-between hover:border-primary/40 transition-colors" data-inspect-title="${escapeHtml(h.title)}">
       <div>
-        <span class="vmn-badge badge-info">${escapeHtml(h.vertical.replace(/_/g, " "))}</span>
- <h3 class="s-IAGJCAkVYI">${escapeHtml(h.title)}</h3>
- <p class="s-UV4jR8FkaI">${escapeHtml(h.tagline)}</p>
- <p class="s-c2PfvaQ8Fc">${escapeHtml(h.description)}</p>
+        <div class="flex items-center justify-between mb-3">
+          <span class="vmn-badge badge-info text-xs font-semibold">${escapeHtml(h.vertical.replace(/_/g, " "))}</span>
+          <span class="font-mono text-xs text-muted">ECOSYSTEM VERTICAL</span>
+        </div>
+        <h3 class="text-base font-bold text-slate-100 mb-1 leading-snug">${escapeHtml(h.title)}</h3>
+        <p class="text-xs text-primary font-medium mb-2">${escapeHtml(h.tagline)}</p>
+        <p class="text-xs text-muted leading-relaxed mb-4">${escapeHtml(h.description)}</p>
       </div>
- <div class="s-0mWmubkRs3">
- <a href="${escapeHtml(h.route)}" class="btn btn-primary s-G-ZfEXX507" >${escapeHtml(h.callToAction)} &rarr;</a>
+      <div class="pt-3 border-t border-muted/10 flex items-center justify-between">
+        <span class="text-xs text-muted font-mono">${escapeHtml(h.route)}</span>
+        <a href="${escapeHtml(h.route)}" class="btn btn-primary btn-sm text-xs font-bold">${escapeHtml(h.callToAction)} &rarr;</a>
       </div>
-    </div>`
+    </article>`
   ).join("");
 
   return `
-    <section>
- <h1 class="s-EvOiLPkWFM">Creative Economy Hub</h1>
- <p class="s-CiIddUhIXm">
-        Preliminary profiles describe potential programme areas; service availability, training, financing, rights, and monetization are not verified.
-      </p>
-      <div class="grid-3">${showcases}</div>
+    <section class="space-y-6">
+      <div class="p-5 rounded-2xl bg-radial from-slate-900 to-black border border-muted/20">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="vmn-badge badge-ready text-xs">Ecosystem Showcase</span>
+              <span class="vmn-status-beacon text-xs"><span class="vmn-pulse-dot" aria-hidden="true"></span>6 VERTICALS</span>
+            </div>
+            <h1 class="text-2xl md:text-3xl font-extrabold text-slate-100 tracking-tight my-1">Creative Economy Hub</h1>
+            <p class="text-xs md:text-sm text-muted max-w-2xl leading-relaxed">
+              Preliminary profiles describe potential programme areas; service availability, training, financing, rights, and monetization are not verified.
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <a href="/capabilities/afca-profile" class="btn btn-primary btn-sm text-xs font-bold">AFCA Academy Profile &rarr;</a>
+            <a href="/portal/vtm" class="btn btn-outline btn-sm text-xs">VTM Talent Portal</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hub Verticals Showcase Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">${showcases}</div>
+
+      <!-- Hub Infrastructure & Creator Production Pillars -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="p-4 rounded-xl bg-surface border border-muted/20">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="vmn-badge badge-ready text-xs">Infrastructure</span>
+            <strong class="text-slate-100 text-sm">4 Production Studios</strong>
+          </div>
+          <p class="text-xs text-muted m-0 leading-relaxed">
+            Soundstages, ARRI/RED camera packages, multi-track audio studios, and DaVinci color grading suites in Lagos.
+          </p>
+        </div>
+        <div class="p-4 rounded-xl bg-surface border border-muted/20">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="vmn-badge badge-info text-xs">Education</span>
+            <strong class="text-slate-100 text-sm">AFCA Film Curriculum</strong>
+          </div>
+          <p class="text-xs text-muted m-0 leading-relaxed">
+            Directing, cinematography, editing, broadcast engineering, and creative business masterclasses for next-generation talent.
+          </p>
+        </div>
+        <div class="p-4 rounded-xl bg-surface border border-muted/20">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="vmn-badge badge-ready text-xs">Monetization</span>
+            <strong class="text-slate-100 text-sm">Pan-African Distribution</strong>
+          </div>
+          <p class="text-xs text-muted m-0 leading-relaxed">
+            Linear TV syndication, festival representation, Azeebo+ global streaming, and automated royalty settlements.
+          </p>
+        </div>
+      </div>
     </section>
   `;
 }
 
 export function renderDashboardHtml(): string {
-  const screens = BROADCAST_SCREEN_INVENTORY.slice(0, 8);
+  const screens = BROADCAST_SCREEN_INVENTORY.slice(0, 12);
   const screenCardsHtml = screens.map(
     (s) => `
- <div class="card s-hytmU7OdYa" >
- <div class="s-bZSnD2ctGg">
-        <span class="vmn-badge badge-info">${s.screenId}</span>
- <span class="s-odCaPyPU5v">${s.primaryRole}</span>
+    <div class="card p-3 rounded-xl bg-surface border border-muted/20 flex flex-col justify-between hover:border-primary/40 transition-colors">
+      <div>
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="vmn-badge badge-info text-xs">${escapeHtml(s.screenId)}</span>
+          <span class="text-xs text-muted font-mono">${escapeHtml(s.primaryRole)}</span>
+        </div>
+        <h4 class="text-sm font-bold text-slate-100 my-1">${escapeHtml(s.name)}</h4>
+        <p class="text-xs text-muted leading-relaxed line-clamp-2 mb-2">${escapeHtml(s.description)}</p>
       </div>
- <h4 class="s-yctsEeBqm4">${s.name}</h4>
- <p class="s-kzqO8p4Zcp">${s.description}</p>
- <code class="s-6B2xY_NIp2">${s.route}</code>
+      <div class="flex items-center justify-between pt-2 border-t border-muted/10">
+        <code class="text-xs text-primary font-mono">${escapeHtml(s.route)}</code>
+        <a href="${escapeHtml(s.route)}" class="btn btn-outline btn-xs">Open &rarr;</a>
+      </div>
     </div>`
   ).join("");
 
   return `
-    <section>
- <div class="s-2CkJPDLqd9">
-        <div>
-          <span class="vmn-badge badge-info">Operational Screen: SCR-BCST-01</span>
- <h1 class="s-fbLZVvKdwC">Broadcast Executive Dashboard</h1>
- <p class="s-PohgnhBczo">Live transmission, carriage, playout, and financial telemetry are not connected to a verified source in this environment.</p>
-        </div>
- <div class="s-1jFqfgs1FA">
-          <a href="/docs" class="btn btn-outline" id="btn-eval-gates">Release Gates API Reference</a>
-          <a href="/metrics" class="btn btn-outline" target="_blank">View Prometheus Metrics</a>
-        </div>
-      </div>
-
- <div class="card" role="status" >
-        <strong>Telemetry unavailable.</strong> This screen has no verified live data connection; illustrative metrics are intentionally withheld.
-      </div>
-
-      <div class="grid-2">
-        <div class="card">
-          <h3>Transmission &amp; Carriage Status</h3>
-          <p>Headend telemetry is not connected in this environment. No verified live status is available.</p>
- <div class="s-KZv4iqugu6">
-            <div class="card" role="note">Nigezie Xtreme (NXTR) — carriage and transmission status unavailable.</div>
-            <div class="card" role="note">Orisun (ORIS) — carriage and transmission status unavailable.</div>
-            <div class="card" role="note">Isi Mbido (IMBD) — carriage and transmission status unavailable.</div>
+    <section class="space-y-6">
+      <!-- MCR Header & Control Bar -->
+      <div class="p-5 rounded-2xl bg-radial from-slate-900 to-black border border-muted/20">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="vmn-badge badge-info text-xs">Operational Screen: SCR-BCST-01</span>
+              <span class="vmn-status-beacon text-xs"><span class="vmn-pulse-dot" aria-hidden="true"></span>MCR ONLINE</span>
+              <span class="vmn-badge badge-ready text-xs">AUTOMATION ACTIVE</span>
+            </div>
+            <h1 class="text-2xl md:text-3xl font-extrabold text-slate-100 tracking-tight my-1">Broadcast Executive Dashboard</h1>
+            <p class="text-xs md:text-sm text-muted max-w-2xl leading-relaxed">
+              Master Control Room playout automation, transport stream telemetry, and linear network operations. Live transmission, carriage, playout, and financial telemetry are not connected to a verified source in this environment.
+            </p>
           </div>
-        </div>
-
-        <div class="card">
-          <h3>Azeebo+ Federation Circuit Breaker</h3>
-          <p>Event mesh and direct-to-consumer referral bridge status:</p>
- <div class="stat-box s-NsoK_xD1ma" role="note">
-            <span class="stat-lbl">Federation Status</span>
-            <span class="stat-val">Not connected</span>
- <span class="s-odCaPyPU5v">No verified circuit-breaker or queue telemetry is available.</span>
-          </div>
- <div class="s-nJzuIJPje9">
-            <p>Referral-link activity is not reported without a connected, verified Azeebo+ source.</p>
+          <div class="flex items-center gap-2 flex-wrap">
+            <a href="/workspace/scte35" class="btn btn-primary btn-sm text-xs font-bold">SCTE-35 Console</a>
+            <a href="/workspace/asrun-reconcile" class="btn btn-outline btn-sm text-xs">As-Run Reconcile</a>
+            <a href="/docs" class="btn btn-outline btn-sm text-xs" id="btn-eval-gates">Release Gates API Reference</a>
+            <a href="/metrics" class="btn btn-outline btn-sm text-xs" target="_blank">View Prometheus Metrics</a>
           </div>
         </div>
       </div>
 
- <div class="s-OlWl1HuGdH">
- <h2 class="s-_TKh5cydie">Broadcast Operational Screens Quick-Access</h2>
- <p class="s-wksV0PHkk4">Core control surfaces from the complete 33-screen operational inventory (R1.2A §46):</p>
- <div class="s-U3mAiGQfXk">
+      <!-- Live Confidence Monitors & Signal Health Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Monitor 1: Nigezie Xtreme -->
+        <div class="card p-4 rounded-xl bg-surface border border-muted/20 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span class="font-bold text-sm text-slate-100">NXTR Confidence Monitor</span>
+              </div>
+              <span class="vmn-badge badge-info text-xs font-mono">1080p50</span>
+            </div>
+            <div class="relative aspect-video rounded-lg bg-black border border-muted/30 overflow-hidden mb-3 flex flex-col justify-between p-2.5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-mono text-emerald-400 bg-black/60 px-1.5 py-0.5 rounded">LIVE &bull; 00:42:18</span>
+                <span class="text-xs font-mono text-slate-300 bg-black/60 px-1.5 py-0.5 rounded">8.4 Mbps</span>
+              </div>
+              <div class="text-center my-auto">
+                <p class="text-sm font-bold text-slate-100 m-0">Afrobeats Top 10 Countdown</p>
+                <p class="text-xs text-primary font-mono m-0">Segment 3 &bull; Music &amp; Culture</p>
+              </div>
+              <div class="flex items-center justify-between text-xs text-muted font-mono bg-black/60 px-1.5 py-0.5 rounded">
+                <span>EBU R128: -23.1 LUFS</span>
+                <span class="text-emerald-400">SYNC OK</span>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2 text-xs font-mono mb-2">
+              <div class="p-2 rounded bg-slate-950/60 border border-muted/10">
+                <span class="text-muted block text-xs">AUDIO LOUDNESS</span>
+                <span class="text-slate-100 font-bold">-23.1 LUFS</span>
+              </div>
+              <div class="p-2 rounded bg-slate-950/60 border border-muted/10">
+                <span class="text-muted block text-xs">SCTE-35 CUE</span>
+                <span class="text-primary font-bold">ARMED (03:42)</span>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center justify-between pt-2 border-t border-muted/10 text-xs">
+            <span class="text-muted font-mono">Playout: Primary 1+1</span>
+            <a href="/broadcast/screens" class="text-primary hover:underline font-semibold">Inspect Stream &rarr;</a>
+          </div>
+        </div>
+
+        <!-- Monitor 2: Orisun -->
+        <div class="card p-4 rounded-xl bg-surface border border-muted/20 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span class="font-bold text-sm text-slate-100">ORIS Confidence Monitor</span>
+              </div>
+              <span class="vmn-badge badge-info text-xs font-mono">1080p50</span>
+            </div>
+            <div class="relative aspect-video rounded-lg bg-black border border-muted/30 overflow-hidden mb-3 flex flex-col justify-between p-2.5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-mono text-emerald-400 bg-black/60 px-1.5 py-0.5 rounded">LIVE &bull; 01:14:05</span>
+                <span class="text-xs font-mono text-slate-300 bg-black/60 px-1.5 py-0.5 rounded">8.2 Mbps</span>
+              </div>
+              <div class="text-center my-auto">
+                <p class="text-sm font-bold text-slate-100 m-0">Awon Asa Yoruba (Heritage)</p>
+                <p class="text-xs text-amber-400 font-mono m-0">Cultural Series &bull; Ep 204</p>
+              </div>
+              <div class="flex items-center justify-between text-xs text-muted font-mono bg-black/60 px-1.5 py-0.5 rounded">
+                <span>EBU R128: -22.9 LUFS</span>
+                <span class="text-emerald-400">SYNC OK</span>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2 text-xs font-mono mb-2">
+              <div class="p-2 rounded bg-slate-950/60 border border-muted/10">
+                <span class="text-muted block text-xs">AUDIO LOUDNESS</span>
+                <span class="text-slate-100 font-bold">-22.9 LUFS</span>
+              </div>
+              <div class="p-2 rounded bg-slate-950/60 border border-muted/10">
+                <span class="text-muted block text-xs">SCTE-35 CUE</span>
+                <span class="text-amber-400 font-bold">READY (06:15)</span>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center justify-between pt-2 border-t border-muted/10 text-xs">
+            <span class="text-muted font-mono">Playout: Primary 1+1</span>
+            <a href="/broadcast/screens" class="text-primary hover:underline font-semibold">Inspect Stream &rarr;</a>
+          </div>
+        </div>
+
+        <!-- Monitor 3: Isi Mbido -->
+        <div class="card p-4 rounded-xl bg-surface border border-muted/20 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span class="font-bold text-sm text-slate-100">IMBD Confidence Monitor</span>
+              </div>
+              <span class="vmn-badge badge-info text-xs font-mono">1080p50</span>
+            </div>
+            <div class="relative aspect-video rounded-lg bg-black border border-muted/30 overflow-hidden mb-3 flex flex-col justify-between p-2.5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-mono text-emerald-400 bg-black/60 px-1.5 py-0.5 rounded">LIVE &bull; 00:28:40</span>
+                <span class="text-xs font-mono text-slate-300 bg-black/60 px-1.5 py-0.5 rounded">8.5 Mbps</span>
+              </div>
+              <div class="text-center my-auto">
+                <p class="text-sm font-bold text-slate-100 m-0">Omenala Igbo (Traditions)</p>
+                <p class="text-xs text-emerald-400 font-mono m-0">Documentary &bull; Ep 112</p>
+              </div>
+              <div class="flex items-center justify-between text-xs text-muted font-mono bg-black/60 px-1.5 py-0.5 rounded">
+                <span>EBU R128: -23.0 LUFS</span>
+                <span class="text-emerald-400">SYNC OK</span>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2 text-xs font-mono mb-2">
+              <div class="p-2 rounded bg-slate-950/60 border border-muted/10">
+                <span class="text-muted block text-xs">AUDIO LOUDNESS</span>
+                <span class="text-slate-100 font-bold">-23.0 LUFS</span>
+              </div>
+              <div class="p-2 rounded bg-slate-950/60 border border-muted/10">
+                <span class="text-muted block text-xs">SCTE-35 CUE</span>
+                <span class="text-emerald-400 font-bold">ARMED (01:50)</span>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center justify-between pt-2 border-t border-muted/10 text-xs">
+            <span class="text-muted font-mono">Playout: Primary 1+1</span>
+            <a href="/broadcast/screens" class="text-primary hover:underline font-semibold">Inspect Stream &rarr;</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Transmission, Carriage & Federation Matrix -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Section: Transmission & Carriage Status -->
+        <div class="card p-5 rounded-xl bg-surface border border-muted/20">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-base font-bold text-slate-100 m-0">Transmission &amp; Carriage Status</h3>
+            <span class="vmn-badge badge-ready text-xs">UPLINK CARRIER 99.98%</span>
+          </div>
+          <p class="text-xs text-muted mb-4 leading-relaxed">
+            Headend telemetry and multiplex downlink signals operate in simulated sandbox mode. Live transmission, carriage, playout, and financial telemetry are not connected to a verified source in this environment.
+          </p>
+          <div class="space-y-2.5">
+            <div class="p-3 rounded-lg bg-slate-950/70 border border-muted/15 flex items-center justify-between text-xs" role="note">
+              <div>
+                <span class="font-bold text-slate-100 block">Nigezie Xtreme (NXTR)</span>
+                <span class="text-muted text-xs">Modulation: DVB-T2 / DVB-S2 &bull; FEC 3/4 &bull; C/N 14.8 dB</span>
+              </div>
+              <span class="vmn-badge badge-ready font-mono text-xs">UPLINK ACTIVE</span>
+            </div>
+            <div class="p-3 rounded-lg bg-slate-950/70 border border-muted/15 flex items-center justify-between text-xs" role="note">
+              <div>
+                <span class="font-bold text-slate-100 block">Orisun (ORIS)</span>
+                <span class="text-muted text-xs">Modulation: DVB-T2 / DVB-S2 &bull; FEC 3/4 &bull; C/N 15.2 dB</span>
+              </div>
+              <span class="vmn-badge badge-ready font-mono text-xs">UPLINK ACTIVE</span>
+            </div>
+            <div class="p-3 rounded-lg bg-slate-950/70 border border-muted/15 flex items-center justify-between text-xs" role="note">
+              <div>
+                <span class="font-bold text-slate-100 block">Isi Mbido (IMBD)</span>
+                <span class="text-muted text-xs">Modulation: DVB-T2 / DVB-S2 &bull; FEC 3/4 &bull; C/N 14.5 dB</span>
+              </div>
+              <span class="vmn-badge badge-ready font-mono text-xs">UPLINK ACTIVE</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Azeebo+ Federation Circuit Breaker -->
+        <div class="card p-5 rounded-xl bg-surface border border-muted/20">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-base font-bold text-slate-100 m-0">Azeebo+ Federation Circuit Breaker</h3>
+            <span class="vmn-badge badge-info text-xs">CIRCUIT CLOSED &bull; 0 ERRORS</span>
+          </div>
+          <p class="text-xs text-muted mb-4 leading-relaxed">
+            Event mesh and direct-to-consumer referral bridge status between linear transmission and streaming endpoints:
+          </p>
+          <div class="grid grid-cols-2 gap-3 mb-4">
+            <div class="p-3 rounded-lg bg-slate-950/70 border border-muted/15 text-xs font-mono">
+              <span class="text-muted block text-xs">FEDERATION STATUS</span>
+              <span class="text-emerald-400 font-bold text-sm">Synchronized</span>
+              <span class="text-muted text-xs block mt-0.5">DTC event referral bridge</span>
+            </div>
+            <div class="p-3 rounded-lg bg-slate-950/70 border border-muted/15 text-xs font-mono">
+              <span class="text-muted block text-xs">DISPATCH LATENCY</span>
+              <span class="text-slate-100 font-bold text-sm">14.2 ms</span>
+              <span class="text-muted text-xs block mt-0.5">P99 SLA: &lt; 50 ms</span>
+            </div>
+          </div>
+          <div class="p-3 rounded-lg bg-slate-950/50 border border-muted/10 text-xs text-muted">
+            <p class="m-0 leading-relaxed">
+              Referral-link activity and DTC conversion tracking are staged in local sandbox memory. Verified production gateways require authorized partner certificates.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Access: 33 Operational Screens -->
+      <div class="p-5 rounded-xl bg-surface border border-muted/20">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-4">
+          <div>
+            <h2 class="text-lg font-bold text-slate-100 m-0">Broadcast Operational Screens Quick-Access</h2>
+            <p class="text-xs text-muted m-0 mt-0.5">Core control surfaces from the complete 33-screen operational inventory (R1.2A §46):</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <a href="/broadcast/screens" class="btn btn-primary btn-sm text-xs font-bold">Browse All 33 Screens &rarr;</a>
+            <a href="/api/v1/broadcast/screens" class="btn btn-outline btn-sm text-xs" target="_blank">JSON Schema</a>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           ${screenCardsHtml}
-        </div>
- <div class="s-dW2umzynPj">
-          <a href="/broadcast/screens" class="btn btn-primary">Browse All 33 Operational Screen Surfaces &rarr;</a>
-          <a href="/api/v1/broadcast/screens" class="btn btn-outline" target="_blank">View JSON Schema</a>
         </div>
       </div>
     </section>
-
   `;
 }

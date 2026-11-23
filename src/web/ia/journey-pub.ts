@@ -26,6 +26,12 @@ export interface IAPublicPageContext {
   params: Readonly<Record<string, string>>;
   query: URLSearchParams;
   pathname: string;
+  /**
+   * Double-submit CSRF token, issued by the route layer only when the request
+   * carries a session (public intake forms stay CSRF-free for anonymous
+   * visitors, matching the platform's own rule).
+   */
+  csrfToken?: string;
 }
 
 const ENQUIRY_VERTICALS = [
@@ -76,10 +82,9 @@ function renderEcosystemBody(): string {
       title: "The media portfolio",
       summary:
         "Three linear channel profiles — Nigezie Xtreme, Orisun and Isi Mbido — plus federated Azeebo+ service information. Carriage, transmission and catalogue status are not asserted here.",
-      links: [
-        { href: "/channels", label: "Linear channels" },
-        { href: "/media-and-audience-overview", label: "Media and audience overview" },
-      ],
+      // `/channels` is retired to this overview (decision D1); linking the overview
+      // once keeps this layer to one destination per layer.
+      links: [{ href: "/media-and-audience-overview", label: "Media and audience overview" }],
     },
     {
       title: "The capability network",
@@ -102,7 +107,7 @@ function renderEcosystemBody(): string {
     .map(
       (layer, index) => `
       <li class="card mb-4">
-        <h2>${escapeHtml(`${index + 1}. ${layer.title}`)}</h2>
+        <h2>${escapeHtml(`${index + 1}. ${escapeHtml(layer.title)}`)}</h2>
         <p>${escapeHtml(layer.summary)}</p>
         <p>
           ${layer.links
@@ -221,8 +226,8 @@ function renderMediaAudienceBody(): string {
         <p>${escapeHtml(channel.genre)} · ${escapeHtml(channel.primaryLanguage)}</p>
         <p class="text-muted">${escapeHtml(channel.targetAudience)}</p>
         <p>
-          Programming, transmission format and operating status are not verified here.
-          <a href="/channels/${channel.code === "NXTR" ? "nxtr" : channel.code === "ORIS" ? "orisun" : "isimbido"}">Open the channel profile</a>.
+          Programming, transmission format and operating status are not verified here; the profile
+          above is the published extent of this channel's public record.
         </p>
       </li>
     `.trim()
@@ -485,9 +490,9 @@ function renderSearchBody(query: string): string {
   const resultsHtml =
     trimmed.length === 0
       ? `<p class="text-muted">Enter a term to search the
-      ${IA_PUBLIC_PAGES.length} public pages listed in the sitemap.</p>`
+      ${escapeHtml(IA_PUBLIC_PAGES.length)} public pages listed in the sitemap.</p>`
       : `
-      <p role="status">${results.length} public page${results.length === 1 ? "" : "s"} match “${escapeHtml(query)}”.</p>
+      <p role="status">${escapeHtml(results.length)} public page${results.length === 1 ? "" : "s"} match “${escapeHtml(query)}”.</p>
       <ul>
         ${results
           .map(
@@ -560,13 +565,13 @@ export function renderContactIntentSelector(): string {
 }
 
 function renderContactBody(query: URLSearchParams): string {
-  const requested = query.get("vertical") ?? "";
+  const requested = escapeHtml(query.get("vertical") ?? "");
   const vertical = (ENQUIRY_VERTICALS as readonly string[]).includes(requested)
     ? requested
     : "GENERAL_ENQUIRY";
   return `
     <div id="enquiry-form">
-      ${renderEnquiryContactHtml(vertical)}
+      ${renderEnquiryContactHtml(escapeHtml(vertical))}
       ${renderContactIntentSelector()}
     </div>
   `.trim();
@@ -684,41 +689,25 @@ function renderSitemapBody(): string {
     // a section the visitor cannot open.
     .filter((journey) => journey.publicRouted.length > 0);
 
+  const hostedTotal = groups.reduce((total, journey) => total + journey.publicHosted.length, 0);
+
+  // DEBT-011: the index is written compactly on purpose. Each entry is one link
+  // whose target is the inventory's canonical route, and the hosted states are
+  // listed once at the end instead of inside nine per-journey disclosures. The
+  // long form cost 30 KB with the shell; this shape keeps every public route and
+  // every public hosted state on the page inside the 25 KB budget.
   const groupHtml = groups
     .map(
-      (journey) => `
-      <li class="card mb-4" id="journey-${escapeHtml(journey.code.toLowerCase())}">
-        <h2>${escapeHtml(journey.code)} · ${escapeHtml(journey.name)}</h2>
-        <p class="text-muted">
-          ${journey.publicRouted.length}
-          public page${journey.publicRouted.length === 1 ? "" : "s"}${
-            journey.publicHosted.length > 0
-              ? ` · ${journey.publicHosted.length} hosted state${journey.publicHosted.length === 1 ? "" : "s"}`
-              : ""
-          }
-        </p>
-        <ul>
-          ${journey.publicRouted
-            .map(
-              (screen) =>
-                `<li><a href="${escapeHtml(screen.route)}">${escapeHtml(screen.screenName)}</a> <span class="text-muted">— ${escapeHtml(screen.route)}</span></li>`
-            )
-            .join("")}
-        </ul>
-        ${
-          journey.publicHosted.length === 0
-            ? ""
-            : `<details>
-          <summary>Hosted states in this journey</summary>
-          <ul>${journey.publicHosted
-            .map((screen) => `<li>${escapeHtml(screen.screenName)} (${escapeHtml(screen.id)})</li>`)
-            .join("")}</ul>
-        </details>`
-        }
-      </li>
-    `.trim()
+      (journey) => `<section id="journey-${escapeHtml(journey.code.toLowerCase())}">
+<h2>${escapeHtml(journey.code)} · ${escapeHtml(journey.name)} <span class="text-muted">(${escapeHtml(journey.publicRouted.length)})</span></h2>
+<ul>${journey.publicRouted
+        .map((screen) => `<li><a href="${escapeHtml(screen.route)}">${escapeHtml(screen.screenName)}</a></li>`)
+        .join("")}</ul>
+</section>`,
     )
     .join("\n");
+
+  const hostedStates = groups.flatMap((journey) => journey.publicHosted);
 
   return `
   <article class="container">
@@ -727,21 +716,22 @@ function renderSitemapBody(): string {
       "Index",
       "Discover a specific permitted route. This index is generated from the IA inventory, so it cannot list a page the authority does not define."
     )}
-
-    <section class="card mb-4">
-      <h2>How this index is produced</h2>
-      <p>
-        ${IA_PUBLIC_PAGES.length} public pages and their hosted states are listed from
-        <code>${escapeHtml(IA_REGISTRY_SOURCE.csvPath)}</code>
-        (${IA_REGISTRY_SOURCE.rowCount} records, sha256 ${escapeHtml(IA_REGISTRY_SOURCE.sha256.slice(0, 12))}…).
-        Restricted surfaces are not listed.
-      </p>
-      <a class="btn btn-outline" href="/search">Search public pages</a>
-    </section>
-
-    <ol>
+    <p>
+      ${escapeHtml(IA_PUBLIC_PAGES.length)} public pages and ${hostedTotal} public hosted states are listed from
+      <code>${escapeHtml(IA_REGISTRY_SOURCE.csvPath)}</code>
+      (${escapeHtml(IA_REGISTRY_SOURCE.rowCount)} records, sha256 ${escapeHtml(IA_REGISTRY_SOURCE.sha256.slice(0, 12))}…).
+      Each link targets that screen's canonical route; restricted surfaces are not listed.
+    </p>
+    <nav aria-label="Public pages by journey">
       ${groupHtml}
-    </ol>
+    </nav>
+    <details>
+      <summary>Public hosted states (${escapeHtml(String(hostedTotal))})</summary>
+      <ul>${hostedStates
+        .map((screen) => `<li>${escapeHtml(screen.screenName)} (${escapeHtml(screen.id)})</li>`)
+        .join("")}</ul>
+    </details>
+    <p><a class="btn btn-outline" href="/search">Search public pages</a></p>
   </article>
   `.trim();
 }

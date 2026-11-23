@@ -75,7 +75,7 @@ export function renderAfcaVerificationHtml(result: {
   <!-- Breadcrumb -->
  <nav aria-label="Breadcrumb" class="s-E9ONBO6M1r">
  <a href="/" class="s-O9Z7O4KuIQ">Home</a> &gt; 
- <a href="/hub" class="s-O9Z7O4KuIQ">Creative Hub</a> &gt; 
+ <a href="/creative-economy-hub-overview" class="s-O9Z7O4KuIQ">Creative Hub</a> &gt; 
  <a href="/hub/afca" class="s-O9Z7O4KuIQ">AFCA Academy</a> &gt; 
  <span aria-current="page" class="s-AMflIswjLr">Certificate Verification</span>
   </nav>
@@ -121,12 +121,12 @@ export function renderAfcaVerificationHtml(result: {
 
  <div class="s-IzXuztZpWQ">
  <span class="s-YlS8HiIJf3">Distinction / Classification</span>
- <strong style="font-size: 1.1rem; color: ${distinctionColor};">${escapeHtml(certificate.distinction)} (${certificate.finalScorePercent}%)</strong>
+ <strong style="font-size: 1.1rem; color: ${distinctionColor};">${escapeHtml(certificate.distinction)} (${escapeHtml(certificate.finalScorePercent)}%)</strong>
       </div>
 
  <div class="s-IzXuztZpWQ">
  <span class="s-YlS8HiIJf3">Date of Graduation</span>
- <strong class="s-mh7MYBU_EA">${formattedDate}</strong>
+ <strong class="s-mh7MYBU_EA">${escapeHtml(formattedDate)}</strong>
       </div>
 
  <div class="s-IzXuztZpWQ">
@@ -228,7 +228,7 @@ export function renderPoaVerificationHtml(result: {
   <!-- Breadcrumb -->
  <nav aria-label="Breadcrumb" class="s-E9ONBO6M1r">
  <a href="/" class="s-O9Z7O4KuIQ">Home</a> &gt; 
- <a href="/channels" class="s-O9Z7O4KuIQ">Linear TV</a> &gt; 
+ <a href="/media-and-audience-overview" class="s-O9Z7O4KuIQ">Linear TV</a> &gt; 
  <a href="/broadcast/dashboard" class="s-O9Z7O4KuIQ">Master Control</a> &gt; 
  <span aria-current="page" class="s-AMflIswjLr">Proof-of-Air Audit</span>
   </nav>
@@ -285,7 +285,7 @@ export function renderPoaVerificationHtml(result: {
 
  <div class="s-IzXuztZpWQ">
  <span class="s-YlS8HiIJf3">Aired Duration</span>
- <strong class="s-v9PqLYluAc">${certificate.durationSeconds} seconds</strong>
+ <strong class="s-v9PqLYluAc">${escapeHtml(certificate.durationSeconds)} seconds</strong>
       </div>
 
  <div class="s-IzXuztZpWQ">
@@ -316,7 +316,7 @@ export function renderPoaVerificationHtml(result: {
  <div class="s-jWXDvP723a">
       ${
         certificate.documentBase64
- ? `<a href="data:application/pdf;base64,${certificate.documentBase64}" download="PoA-${escapeHtml(certificate.certificateId)}.pdf" class="vmn-btn vmn-btn-secondary s-pY1QdE60oJ" >
+ ? `<a href="data:application/pdf;base64,${escapeHtml(certificate.documentBase64)}" download="PoA-${escapeHtml(certificate.certificateId)}.pdf" class="vmn-btn vmn-btn-secondary s-pY1QdE60oJ" >
               ${renderIcon("download", { size: 16 })} Download PDF Certificate
             </a>`
           : ""
