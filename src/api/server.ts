@@ -48,6 +48,7 @@ import { wireMediaAssetLookup } from "../core/content/index.js";
 import { getMediaAsset } from "../core/storage/index.js";
 import { registerGoldenDamAssets } from "../db/seeds/dam-backfill.js";
 import { ensureContentDemoSeed } from "./router.js";
+import { hydrateBrandsFromDatabase } from "../core/database/repositories/brand.repository.js";
 import { refreshEpisodeMasterIndex } from "../modules/broadcast/episode-masters.js";
 import { refreshRegisteredRightsIndex } from "../modules/broadcast/rights/index.js";
 import { ensureScheduleDemoSeed } from "../modules/broadcast/schedule-demo.js";
@@ -343,6 +344,7 @@ export function createApiServer(port?: number, envOverrides: Record<string, stri
         await refreshCaseIndex();
         await refreshRiskIssueIndex();
         await refreshDestinationIndex();
+        await hydrateBrandsFromDatabase();
         const content = await refreshContentIndex();
         const sponsorship = await hydrateSponsorshipEngine(sponsorshipEngine);
         // TSK-60 box 3: the counterparty portal projects this instance, so it

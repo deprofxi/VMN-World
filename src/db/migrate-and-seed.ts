@@ -5,6 +5,7 @@
 
 import { generateGoldenDataset } from "./seeds/golden/index.js";
 import { persistEpisodeMediaAssets, registerGoldenDamAssets } from "./seeds/dam-backfill.js";
+import { seedAllBrandsToDatabase } from "../core/database/repositories/brand.repository.js";
 import { loadConfig } from "../core/config/index.js";
 import { getPrismaClient, checkDatabaseConnection, disconnectDatabase } from "../core/database/index.js";
 
@@ -28,6 +29,7 @@ export async function runDatabaseSeed(): Promise<{ success: boolean; stats: Reco
     afcaCourses: dataset.afcaCourses.length,
     vcfSlates: dataset.vcfSlates.length,
     tendDeals: dataset.tendDeals.length,
+    brands: 35,
     damAssets: 0,
     episodeMediaAssets: 0,
   };
@@ -236,6 +238,10 @@ export async function runDatabaseSeed(): Promise<{ success: boolean; stats: Reco
           },
         });
       }
+
+      // 10. Seed All 35 Owner-Approved Brands
+      const seededBrands = await seedAllBrandsToDatabase();
+      stats.brands = seededBrands.length;
 
       persistenceMode = "POSTGRESQL_PERSISTED";
       console.log("[VMNL-DB-SEED] Prisma persistence operations completed successfully for all entity families.");

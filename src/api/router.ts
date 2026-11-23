@@ -45,7 +45,7 @@ import { TalentAcceleratorRegistry } from "../modules/hub/talent/index.js";
 import { AfcaAcademyService } from "../modules/hub/afca/index.js";
 import { FusionEventsEngine } from "../modules/hub/events/index.js";
 import { VirtualTalentManagementEngine } from "../modules/hub/vtm/index.js";
-import { projectVtmPaymentVisibility, renderVtmPaymentVisibilityHtml } from "../web/portal/vtm-payment-visibility.js";
+import { projectVtmPaymentVisibility, renderVtmPaymentVisibilityHtml } from "../web/portal/vtm-payment-visibility.js"; import { renderPortalGatewayHtml } from "../web/portal/index.js";
 import { HeadspaceKnowledgeEngine } from "../modules/intelligence/headspace/index.js";
 import { Cr8TechCreativeEngine } from "../modules/intelligence/cr8tech/index.js";
 import { AgenticOperatingSystem } from "../modules/intelligence/aos/index.js";
@@ -8322,6 +8322,31 @@ ${publicRoutes
       const deskKey = pathname.replace("/workspace/", "").trim();
       const html = renderMasterLayout(`Workspace / ${deskKey}`, renderWorkspaceDeskHtml(deskKey), "/workspace", { sessionUser: user });
       sendHtml(res, 404, html);
+      return;
+    }
+
+    // Enterprise Counterparty Portals Gateway (/portal)
+    if ((pathname === "/portal" || pathname === "/portal/") && method === "GET") {
+      const sessionUser = resolveSessionUser(req);
+      const html = renderMasterLayout(
+        "Enterprise Portals | VMNL",
+        renderPortalGatewayHtml(),
+        "/portal",
+        { sessionUser: sessionUser || undefined }
+      );
+      sendHtml(res, 200, html, { private: Boolean(sessionUser) });
+      return;
+    }
+
+    if ((pathname === "/portal/client" || pathname === "/portal/client/") && method === "GET") {
+      res.writeHead(302, { Location: "/portal/client/organisations/default-org/projects" });
+      res.end();
+      return;
+    }
+
+    if ((pathname === "/portal/vtm" || pathname === "/portal/vtm/") && method === "GET") {
+      res.writeHead(302, { Location: "/portal/vtm/marketplace" });
+      res.end();
       return;
     }
 

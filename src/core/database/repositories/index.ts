@@ -14,3 +14,4 @@ export * from "./broadcast.repository.js";
 export * from "./intelligence.repository.js";
 export * from "./finance.repository.js";
 export * from "./security.repository.js";
+export * from "./brand.repository.js";

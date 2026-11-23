@@ -3,3 +3,4 @@
  */
 export * from "./vtm-portal.js";
 export * from "./client-portal.js";
+export * from "./portal-gateway.js";

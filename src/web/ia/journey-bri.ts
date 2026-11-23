@@ -14,12 +14,18 @@
  */
 
 import { escapeHtml } from "../components/index.js";
-import { getContentInstances, getIAScreen } from "./index.js";
+import { getIAScreen } from "./index.js";
 import type { IAScreen } from "./types.js";
 import type { IAPublicPageContext } from "./journey-pub.js";
+import {
+  getAllBrands,
+  getBrandBySlug,
+  BrandRecord,
+  BRAND_FAMILIES_META,
+} from "../../core/database/repositories/brand.repository.js";
 
 /* -------------------------------------------------------------------------
- * Brand data, derived only from the inventory's own rows
+ * Brand data, derived from the database (persisted in PostgreSQL)
  * ---------------------------------------------------------------------- */
 
 export interface IABrandInstance {
@@ -39,53 +45,72 @@ export interface IABrandFamily {
   instances: readonly IABrandInstance[];
 }
 
-/** "Brand detail: TEN Urban" → { name: "TEN Urban", slug: "ten-urban" } */
-function instanceFromScreen(screen: IAScreen): IABrandInstance {
-  const name = screen.screenName.replace(/^Brand detail:\s*/, "");
-  const slug = name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-  // The row's own core-UI contract carries the brand ID ("…; ID TEN-01; …").
-  const idMatch = /ID\s+([A-Z0-9]+-\d+)/.exec(screen.coreUi);
+function brandRecordToInstance(brand: BrandRecord): IABrandInstance {
+  const screen = getIAScreen(brand.screenId) ?? ({
+    id: brand.screenId,
+    screenName: `Brand detail: ${brand.name}`,
+    coreUi: `BRD-006 canonical template; ID ${brand.code}; owner-approved remit; actual service/operating status; safe context CTA`,
+    primaryAction: brand.primaryAction || "Read the brand profile and follow only a verified action",
+    route: "/brands/{approved-brand-slug}",
+    dataClass: brand.dataClass || "PUBLIC",
+    sourceOffice: brand.sourceOffice || "Group Brand Steward / authorised publisher",
+    recoveryRoute: brand.recoveryRoute || "Display truthful status and direct accessible contact/approved alternate without revealing private records.",
+    acceptanceId: `IA-${brand.screenId}`,
+    journey: "Brand instance profiles",
+    journeyCode: "BRI",
+    step: 1,
+    type: "Page instance",
+    roles: "Public visitor, Audience/fan",
+    roleIds: ["PUB", "FAN"],
+    gate: "W0",
+    routeKind: "ROUTED",
+    hostScreenId: "BRD-006",
+    hostPath: "",
+    entryTrigger: "User starts the governed multi-step process",
+    archetype: "CONTENT_INSTANCE",
+    renderContract: "Data instance of BRD-006, no separate application route implementation",
+    actionClass: "INFORMATION_ONLY",
+    domainObjects: "BrandRef",
+    permissionContract: "Public owner-approved brand definition; live service CTA requires separate verified operating evidence",
+    consequentialEffect: "None without separately authorised source decision and completed provider confirmation.",
+    adverseStates: "NO_ELIGIBLE_DATA; ACCESS_OR_SOURCE_ERROR",
+    evidenceContract: "Source ID + version + observed timestamp + purpose + relationship; published source provenance; consent and case ID for external enquiry",
+    a11y: "Shared brand template, approved alt text and language hints; no inaccessible hardcoded status",
+    acceptanceCriterion: "Given an eligible Public visitor, Read the brand profile and follow only a verified action; observe correct scoped state and persistent source evidence. Negative: deny invalid source/permission, preserve case and safe fallback.",
+    priority: "P0-PUBLIC",
+    releaseStatus: "NOT VERIFIED / RELEASED ONLY BY SCOPED SIGNED MANIFEST",
+    changeClass: "RETAINED + ENRICHED",
+    sourceFamily: "S19",
+    authority: "Group Master R1.3 Appendix A; ONE CIRCLE R2.3 §5.6",
+    implementationHint: "Do not generate 35 bespoke components; bind canonical brand ID to one approved template.",
+    screenRole: "Content instance only; not a distinct codebase or live service",
+  } as unknown as IAScreen);
+
   return {
     screen,
-    name,
-    slug,
-    brandId: idMatch ? idMatch[1] : "",
-    familySlug: "",
+    slug: brand.slug,
+    name: brand.name,
+    brandId: brand.code,
+    familySlug: brand.familySlug,
   };
 }
 
-function slugify(value: string): string {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
-/** Family membership follows the inventory's own naming: the name prefix. */
-const FAMILY_PREFIXES: ReadonlyArray<{ familyId: string; prefix: string }> = [
-  { familyId: "BRD-002", prefix: "TEN" },
-  { familyId: "BRD-003", prefix: "Nigezie" },
-  { familyId: "BRD-004", prefix: "Candy" },
-  { familyId: "BRD-005", prefix: "Games" },
-];
-
 function buildFamilies(): readonly IABrandFamily[] {
-  const instances = getContentInstances("/brands/{approved-brand-slug}").map(instanceFromScreen);
+  // Query brands from database repository
+  const dbBrands = getAllBrands();
+  const instances = dbBrands.map(brandRecordToInstance);
   const families: IABrandFamily[] = [];
-  for (const { familyId, prefix } of FAMILY_PREFIXES) {
-    const familyScreen = getIAScreen(familyId);
+
+  for (const meta of BRAND_FAMILIES_META) {
+    const familyScreen = getIAScreen(meta.screenId);
     if (!familyScreen) continue;
     const family = {
       screen: familyScreen,
-      slug: slugify(familyScreen.route.replace("/brands/", "")),
+      slug: meta.familySlug,
       instances: [] as IABrandInstance[],
     };
     for (const instance of instances) {
-      if (instance.name.startsWith(`${prefix} `)) {
-        instance.familySlug = family.slug;
+      if (instance.familySlug === meta.familySlug) {
         family.instances.push(instance);
       }
     }
@@ -94,11 +119,14 @@ function buildFamilies(): readonly IABrandFamily[] {
   return families;
 }
 
-const FAMILIES: readonly IABrandFamily[] = buildFamilies();
-
-/** Resolve `/brands/{slug}` to one of the 35 inventory instances. */
+/** Resolve `/brands/{slug}` to one of the 35 database-persisted instances. */
 export function resolveBrandInstance(slug: string): IABrandInstance | undefined {
-  for (const family of FAMILIES) {
+  const brand = getBrandBySlug(slug);
+  if (brand) {
+    return brandRecordToInstance(brand);
+  }
+  // Fallback to in-memory families
+  for (const family of getBrandFamilies()) {
     const found = family.instances.find((instance) => instance.slug === slug);
     if (found) return found;
   }
@@ -107,11 +135,11 @@ export function resolveBrandInstance(slug: string): IABrandInstance | undefined 
 
 /** Every family overview route (BRD-002..005). */
 export function isBrandFamilyRoute(slug: string): IABrandFamily | undefined {
-  return FAMILIES.find((family) => family.slug === slug);
+  return getBrandFamilies().find((family) => family.slug === slug);
 }
 
 export function getBrandFamilies(): readonly IABrandFamily[] {
-  return FAMILIES;
+  return buildFamilies();
 }
 
 /* -------------------------------------------------------------------------
@@ -130,7 +158,8 @@ function brandCard(instance: IABrandInstance): string {
 
 export function renderBrandDirectoryBody(): string {
   const directory = getIAScreen("BRD-001");
-  const sections = FAMILIES.map((family) => {
+  const families = getBrandFamilies();
+  const sections = families.map((family) => {
     const cards = family.instances.map(brandCard).join("\n");
     return `
     <section class="card mb-4" aria-labelledby="family-${escapeHtml(family.slug)}">
@@ -193,7 +222,7 @@ export function renderBrandInstanceBody(instance: IABrandInstance): string {
     <nav aria-label="Breadcrumb">
       <a href="/brands">Brand directory</a> /
       <a href="/brands/${escapeHtml(instance.familySlug)}">${escapeHtml(
-        FAMILIES.find((family) => family.slug === instance.familySlug)?.screen.screenName ?? "Family"
+        getBrandFamilies().find((family) => family.slug === instance.familySlug)?.screen.screenName ?? "Family"
       )}</a> /
       <span aria-current="page">${escapeHtml(instance.name)}</span>
     </nav>

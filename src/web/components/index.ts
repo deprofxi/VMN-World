@@ -216,17 +216,17 @@ export function renderStyleguideHtml(): string {
     </p>
   </div>
 
-  <!-- R1.1 Prototype Showcase Banner -->
+  <!-- Enterprise Portals Gateway Banner -->
  <div class="card s-f2qYLRTcZk" >
     <div>
- <span class="vmn-badge badge-ready s-T-7fjmEHMj" >VMN-UX-RL1 Prototype Architecture</span>
- <h3 class="s-ke5oDEmePG">Interactive Representative Prototypes</h3>
+ <span class="vmn-badge badge-ready s-T-7fjmEHMj" >Enterprise Portals</span>
+ <h3 class="s-ke5oDEmePG">Counterparty Operations Gateways</h3>
  <p class="s-4d76DPsh2d">
-        Inspect all 8 first-release screens across desktop, tablet, and mobile viewports with simulated operational scenarios (Normal, Stale Data, Blocked, Recovery).
+        Direct governed access to client commercial portfolios, virtual talent management, partner distribution, creator royalties, and vendor procurement.
       </p>
     </div>
- <a href="/prototypes" class="btn btn-primary s-k8bh1Lt-AT" >
-      Launch Prototypes Viewer &rarr;
+ <a href="/portal" class="btn btn-primary s-k8bh1Lt-AT" >
+      Launch Portals Gateway &rarr;
     </a>
   </div>
 
@@ -299,7 +299,7 @@ export function renderStyleguideHtml(): string {
  <p class="s-j8CUrUlyn5">
           Sponsor and talent portal with verified scope, draft vs released report stamps, and safe terms.
         </p>
- <a href="/prototypes?screen=client" class="btn btn-outline s-CA8Lk2-5Tg" >Inspect Client Portal &rarr;</a>
+ <a href="/portal/client/organisations/default-org/projects" class="btn btn-outline s-CA8Lk2-5Tg" >Inspect Client Portal &rarr;</a>
       </div>
     </div>
   </section>

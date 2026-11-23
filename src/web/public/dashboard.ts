@@ -219,7 +219,7 @@ export function renderMasterLayout(
           </div>
  <div class="s-66kjxA-b-z">
             <span class="vmn-badge badge-ready">Authenticated &amp; Verified</span>
- <a href="/prototypes?screen=client" class="btn btn-outline s-jv_H3_hWre" >Delivery Proof</a>
+ <a href="/portal/client/organisations/default-org/projects" class="btn btn-outline s-jv_H3_hWre" >Delivery Proof</a>
           </div>
         </div>
         ${bodyContent}
@@ -436,7 +436,8 @@ export function renderMasterLayout(
         <div>
           <strong class="text-slate-200 block mb-1">Platform</strong>
           <a href="/workspace" class="block">Desks (48)</a>
-          <a href="/styleguide" class="block">Styleguide</a>
+          <a href="/portal" class="block">Enterprise Portals</a>
+          <a href="/styleguide" class="sr-only">Styleguide</a>
         </div>
         <div>
           <strong class="text-slate-200 block mb-1">Legal</strong>
