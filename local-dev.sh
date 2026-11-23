@@ -306,6 +306,20 @@ fi
 PORT="${PORT:-5500}"
 export PORT
 
+# Self-healing port cleanup: ensure port is free before attempting to bind
+if lsof -ti :"${PORT}" >/dev/null 2>&1; then
+  OCCUPIED_PID=$(lsof -ti :"${PORT}" | head -n 1)
+  warn "Port ${PORT} is currently occupied by PID ${OCCUPIED_PID}."
+  info "Gracefully stopping previous process (PID ${OCCUPIED_PID}) to release port ${PORT}..."
+  kill -TERM "${OCCUPIED_PID}" 2>/dev/null || true
+  sleep 1
+  if lsof -ti :"${PORT}" >/dev/null 2>&1; then
+    kill -9 "${OCCUPIED_PID}" 2>/dev/null || true
+    sleep 0.5
+  fi
+  success "Port ${PORT} is now clear."
+fi
+
 header "Starting VMN Enterprise Server on port ${PORT}"
 info "Host URL: http://127.0.0.1:${PORT}"
 info "Health check: http://127.0.0.1:${PORT}/healthz"
