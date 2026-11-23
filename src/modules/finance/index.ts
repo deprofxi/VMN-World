@@ -7,3 +7,5 @@ export * from "./sales/index.js";
 export * from "./ledger/index.js";
 export * from "./payouts/index.js";
 export * from "./reconciliation/index.js";
+export * from "./tax/index.js";
+

@@ -176,3 +176,6 @@ export class Cr8TechCreativeEngine {
     return out.trim();
   }
 }
+
+export * from "./armor.js";
+

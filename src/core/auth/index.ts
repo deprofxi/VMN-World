@@ -802,3 +802,6 @@ export async function authenticateUser(email: string, password: string): Promise
   };
 }
 
+export * from "./abac.js";
+
+

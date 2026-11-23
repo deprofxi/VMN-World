@@ -15,7 +15,7 @@
 | `npx tsc --noEmit` | exit 0, **0 errors** (root, browser tests, client) | 152 errors across 3 files |
 | `pnpm build` | exit 0 (`tsc && vite build`) | failed |
 | `pnpm lint` | exit 0 (`eslint . --max-warnings 0`) | 4 errors (3 parse + 1 unused) |
-| `pnpm test` | **108 files / 1254 tests passed, 0 failed, 0 skipped**, exit 0 (76.17 s — reproduce with `pnpm test`) | 20 files failing, 4 tests failing, 4 skipped |
+| `pnpm test` | **109 files / 1282 tests passed, 0 failed, 0 skipped**, exit 0 (58.53 s — reproduce with `pnpm test`) | 20 files failing, 4 tests failing, 4 skipped |
 | `pnpm test:browser` | **26 tests passed across Chromium, 0 failed** (1.7 m — all 6 viewports, 0 axe WCAG 2.2 AA violations) | never completed |
 | `pnpm run audit:check` | exit 0 — **All discovered advisories present in docs/audit/dependency-triage.md** | N/A |
 | `pnpm run audit:threshold` | exit 0 — **within vulnerability policy (0 unaccepted critical, 0 unaccepted high)** | N/A |

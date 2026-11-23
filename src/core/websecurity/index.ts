@@ -440,6 +440,28 @@ export function openSealedField(value: string, secret?: string): OpenedField {
 }
 
 /**
+ * HD-05 / AUD-06: Rotates a sealed field envelope from an old key to a new key.
+ * Allows zero-downtime key rotation for sealed columns (Person.nationalId, User.mfaSecret).
+ */
+export function rotateSealedEnvelopeKey(
+  sealedValue: string,
+  currentSecret: string,
+  targetSecret: string
+): { success: boolean; rotatedEnvelope?: string; error?: string } {
+  const opened = openSealedField(sealedValue, currentSecret);
+  if (opened.outcome !== "opened" || !opened.plaintext) {
+    return { success: false, error: `Failed to open envelope with current secret: ${opened.outcome}` };
+  }
+  try {
+    const rotatedEnvelope = sealSensitiveField(opened.plaintext, targetSecret);
+    return { success: true, rotatedEnvelope };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    return { success: false, error: message || "Failed to re-seal envelope with target secret" };
+  }
+}
+
+/**
  * Masks a sensitive string, exposing only the trailing characters (e.g. "••••••••1234").
  */
 export function maskSensitiveLast4(identifier: string | null | undefined, visibleChars = 4): string {
