@@ -572,18 +572,6 @@ export function renderHomePageHtml(): string {
         </div>`).join("")}
       </div>
     </section>
-
-    <!-- Operational Cockpits Strip -->
-    <section class="rounded-lg p-3.5 bg-slate-900/90 border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
-      <div>
-        <h3 class="text-sm font-bold text-slate-100 m-0">Enterprise Operations &amp; Commercial Inquiries</h3>
-        <p class="text-xs text-slate-400 m-0">Explore broadcast consoles, rate cards, and commercial inquiry pathways.</p>
-      </div>
-      <div class="flex items-center gap-2 flex-wrap">
-        <a href="/broadcast/screens" class="btn btn-primary btn-sm text-xs font-bold">Broadcast Consoles &rarr;</a>
-        <a href="/contact" class="btn btn-outline btn-sm text-xs">Commercial Intake</a>
-      </div>
-    </section>
   `;
 }
 

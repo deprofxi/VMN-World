@@ -809,21 +809,23 @@ function renderCorrectionsBody(): string {
 export function renderStatementRevisionHistory(): string {
   const tab = getIAScreen("PUB-022");
   return `
-    <section class="card mb-4" aria-labelledby="ia-statement-history">
-      <div class="flex flex-wrap gap-2 items-center mb-2">
+    <details class="card mb-4 vmn-hosted-tray text-xs text-muted" aria-labelledby="ia-statement-history">
+      <summary class="flex flex-wrap gap-2 items-center cursor-pointer select-none py-1">
         <span class="status-chip badge-info">Hosted view</span>
         ${tab ? `<span class="status-chip badge-provisional">${escapeHtml(tab.id)}</span>` : ""}
+        <span id="ia-statement-history" class="font-bold text-xs text-slate-300">Published statement revision history</span>
+      </summary>
+      <div class="pt-3 mt-2 border-t border-slate-800">
+        ${sourceNotConnected(
+          "No corrected statement has been published, so there is no revision history to show. Withdrawn wording is never presented in place of current wording."
+        )}
+        <p class="text-xs text-muted mt-2">
+          When a statement is corrected, this view lists the current wording first, then the publication
+          timestamp, the reason for the correction and the prior version label. Only the public-approved
+          change summary is disclosed; restricted legal evidence stays private.
+        </p>
       </div>
-      <h2 id="ia-statement-history">Published statement revision history</h2>
-      ${sourceNotConnected(
-        "No corrected statement has been published, so there is no revision history to show. Withdrawn wording is never presented in place of current wording."
-      )}
-      <p>
-        When a statement is corrected, this view lists the current wording first, then the publication
-        timestamp, the reason for the correction and the prior version label. Only the public-approved
-        change summary is disclosed; restricted legal evidence stays private.
-      </p>
-    </section>
+    </details>
   `.trim();
 }
 
