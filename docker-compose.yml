@@ -35,6 +35,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: ${APP_IMAGE:-ghcr.io/deprofxi/vmn-world:latest}
     container_name: vmnl-enterprise-app
     restart: unless-stopped
     <<: *hardening-full
@@ -51,32 +52,34 @@ services:
           cpus: "2.0"
           memory: 2g
     ports:
-      - "127.0.0.1:5500:5500"
+      - "${HOST_PORT:-127.0.0.1:5500}:${PORT:-5500}"
+    env_file:
+      - .env
     environment:
       - NODE_ENV=${NODE_ENV:-development}
-      - PORT=5500
-      - APP_NAME=VMNL Enterprise Orchestrator
+      - PORT=${PORT:-5500}
+      - APP_NAME=${APP_NAME:-VMN World}
       - APP_URL=${APP_URL:-http://localhost:5500}
       # Compose container DNS must target postgres; host-run dev uses localhost.
       # Password is the explicitly sandbox-only value configured on the postgres service.
-      - DATABASE_URL=postgresql://vmn_user:${POSTGRES_PASSWORD:-vmn_sandbox_only_password}@postgres:5432/vmn_enterprise?schema=public
+      - DATABASE_URL=${DATABASE_URL:-postgresql://${POSTGRES_USER:-vmn_user}:${POSTGRES_PASSWORD:-vmn_sandbox_only_password}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-vmn_enterprise}?schema=public}
       # Required in all environments: no default JWT secret (AUD-14).
       - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required, min 32 chars (see .env.example)}
-      - JWT_EXPIRATION_SECONDS=86400
+      - JWT_EXPIRATION_SECONDS=${JWT_EXPIRATION_SECONDS:-86400}
       # Required: no default webhook secret.
       - AZEEBO_WEBHOOK_SECRET=${AZEEBO_WEBHOOK_SECRET:?AZEEBO_WEBHOOK_SECRET is required (see .env.example)}
-      - DATABASE_POOL_MIN=2
-      - DATABASE_POOL_MAX=20
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      - DATABASE_POOL_MIN=${DATABASE_POOL_MIN:-2}
+      - DATABASE_POOL_MAX=${DATABASE_POOL_MAX:-20}
+      - REDIS_HOST=${REDIS_HOST:-redis}
+      - REDIS_PORT=${REDIS_PORT:-6379}
       # TODO-SEC-10: the distributed KV adapter (cache/session/rate-limit
       # stores) prefers REDIS_URL; authenticated with the compose Redis
       # password (AUD-22) so a Redis on the shared network is never open.
       - REDIS_URL=${REDIS_URL:-redis://:${REDIS_PASSWORD:?REDIS_PASSWORD is required (see .env.example)}@redis:6379}
       # Storage credentials for the local sandbox MinIO (non-production only).
-      - STORAGE_DRIVER=minio
+      - STORAGE_DRIVER=${STORAGE_DRIVER:-minio}
       - STORAGE_ENDPOINT=${STORAGE_ENDPOINT:-http://minio:9000}
-      - STORAGE_BUCKET=vmnl-assets
+      - STORAGE_BUCKET=${STORAGE_BUCKET:-vmnl-assets}
       # PR-20: required, not defaulted, and the same variables the MinIO service
       # below reads. The pre-fix state had the app default to
       # `minioadmin_secure_key` while MinIO hard-coded that same literal and
@@ -84,7 +87,9 @@ services:
       # authenticated against nothing. One required source removes the class.
       - STORAGE_ACCESS_KEY=${STORAGE_ACCESS_KEY:?STORAGE_ACCESS_KEY is required (see .env.example)}
       - STORAGE_SECRET_KEY=${STORAGE_SECRET_KEY:?STORAGE_SECRET_KEY is required (see .env.example)}
-      - PROMETHEUS_METRICS_ENABLED=true
+      - PROMETHEUS_METRICS_ENABLED=${PROMETHEUS_METRICS_ENABLED:-true}
+      - AUTO_MIGRATE=${AUTO_MIGRATE:-true}
+      - AUTO_SEED=${AUTO_SEED:-false}
     depends_on:
       postgres:
         condition: service_healthy
@@ -96,7 +101,7 @@ services:
       - vmnl-network
 
   postgres:
-    image: postgres:18-alpine
+    image: postgres:${POSTGRES_VERSION:-18-alpine}
     container_name: vmnl-postgres
     restart: unless-stopped
     <<: *hardening-init
@@ -107,15 +112,15 @@ services:
           memory: 2g
     environment:
       # Sandbox-local credentials; NEVER mirror production values here.
-      - POSTGRES_USER=vmn_user
+      - POSTGRES_USER=${POSTGRES_USER:-vmn_user}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-vmn_sandbox_only_password}
-      - POSTGRES_DB=vmn_enterprise
+      - POSTGRES_DB=${POSTGRES_DB:-vmn_enterprise}
     ports:
-      - "127.0.0.1:5432:5432"
+      - "${POSTGRES_HOST_PORT:-127.0.0.1:5432}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U vmn_user -d vmn_enterprise"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-vmn_user} -d $${POSTGRES_DB:-vmn_enterprise}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -130,7 +135,7 @@ services:
   # healthcheck authenticates. Loopback-bound, but defence-in-depth against
   # any future port exposure or shared-network join.
   redis:
-    image: redis:7-alpine
+    image: redis:${REDIS_VERSION:-7-alpine}
     container_name: vmnl-redis
     restart: unless-stopped
     <<: *hardening-init
@@ -143,7 +148,7 @@ services:
     environment:
       - REDIS_PASSWORD=${REDIS_PASSWORD:?REDIS_PASSWORD is required (see .env.example)}
     ports:
-      - "127.0.0.1:6379:6379"
+      - "${REDIS_HOST_PORT:-127.0.0.1:6379}:6379"
     volumes:
       - redisdata:/data
     healthcheck:
@@ -155,7 +160,7 @@ services:
       - vmnl-network
 
   minio:
-    image: minio/minio:RELEASE.2025-09-07T16-19-51Z
+    image: minio/minio:${MINIO_VERSION:-RELEASE.2025-09-07T16-19-51Z}
     container_name: vmnl-minio
     restart: unless-stopped
     <<: *hardening-init
@@ -172,8 +177,8 @@ services:
       - MINIO_ROOT_USER=${STORAGE_ACCESS_KEY:?STORAGE_ACCESS_KEY is required (see .env.example)}
       - MINIO_ROOT_PASSWORD=${STORAGE_SECRET_KEY:?STORAGE_SECRET_KEY is required (see .env.example)}
     ports:
-      - "127.0.0.1:9000:9000"
-      - "127.0.0.1:9001:9001"
+      - "${MINIO_API_PORT:-127.0.0.1:9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-127.0.0.1:9001}:9001"
     volumes:
       - miniodata:/data
     healthcheck:
@@ -189,7 +194,7 @@ services:
   # remains TARGET-state — see docs/runbooks/disaster-recovery.md and
   # docs/audit/backup-restore-drill.md for the drill evidence protocol.
   postgres-backup:
-    image: postgres:18-alpine
+    image: postgres:${POSTGRES_VERSION:-18-alpine}
     container_name: vmnl-postgres-backup
     restart: unless-stopped
     <<: *hardening-init
@@ -207,14 +212,14 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      - PGHOST=postgres
-      - PGPORT=5432
-      - PGUSER=vmn_user
+      - PGHOST=${PGHOST:-postgres}
+      - PGPORT=${PGPORT:-5432}
+      - PGUSER=${POSTGRES_USER:-vmn_user}
       - PGPASSWORD=${POSTGRES_PASSWORD:-vmn_sandbox_only_password}
-      - PGDATABASE=vmn_enterprise
+      - PGDATABASE=${POSTGRES_DB:-vmn_enterprise}
       - VMNL_BACKUP_DIR=/var/lib/postgresql/backups
       - VMNL_BACKUP_RETENTION_DAYS=${VMNL_BACKUP_RETENTION_DAYS:-14}
-      - TZ=Africa/Lagos
+      - TZ=${TZ:-Africa/Lagos}
     volumes:
       - ./docker/backups/backup.sh:/usr/local/bin/backup.sh:ro
       - pgbackups:/var/lib/postgresql/backups
@@ -233,7 +238,7 @@ services:
       - vmnl-network
 
   prometheus:
-    image: prom/prometheus:v2.53.0
+    image: prom/prometheus:${PROMETHEUS_VERSION:-v2.53.0}
     container_name: vmnl-prometheus
     restart: unless-stopped
     <<: *hardening-full
@@ -249,7 +254,7 @@ services:
       - ./prometheus.rules.yml:/etc/prometheus/prometheus.rules.yml:ro
       - promdata:/prometheus
     ports:
-      - "127.0.0.1:9090:9090"
+      - "${PROMETHEUS_PORT:-127.0.0.1:9090}:9090"
     depends_on:
       - app
     networks:
