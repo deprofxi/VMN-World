@@ -70,7 +70,12 @@ COPY --from=builder /app/dist ./dist
 # PR-19: the generated client is a build artifact of the builder stage, and the
 # prod-only install above cannot regenerate it (the CLI is a devDependency).
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
 RUN node -e "const fs = require('fs'), path = require('path'); try { const dest = path.resolve(path.dirname(require.resolve('@prisma/client')), '../../.prisma'); if (!fs.existsSync(dest)) fs.cpSync('/app/node_modules/.prisma', dest, { recursive: true }); } catch {}"
+
+# Automatic startup entrypoint for zero-terminal database migrations and seeding
+COPY scripts/docker-entrypoint.sh ./docker-entrypoint.sh
+RUN chmod +x ./docker-entrypoint.sh
 
 # Set ownership to unprivileged user
 RUN chown -R vmnluser:vmnlgroup /app
@@ -86,5 +91,5 @@ EXPOSE 5500
 HEALTHCHECK --interval=15s --timeout=5s --start-period=20s --retries=3 \
   CMD curl -f http://localhost:5500/readyz || exit 1
 
-ENTRYPOINT ["dumb-init", "--"]
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
 CMD ["node", "dist/src/index.js"]
