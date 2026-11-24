@@ -216,7 +216,7 @@ export function renderGovernanceRecordsHtml(
   return `
  <div class="s-dJGia7etx6">
  <div class="s-jXAzROAz5F">
- <span class="vmn-badge badge-info s-Dnmmv3HPR8" >RECORDS &bull; UX-GOV-003/005/007/008 + UX-REC</span>
+ <span class="vmn-badge badge-info s-Dnmmv3HPR8" >Statutory Records &amp; Registers <span class="sr-only">&bull; UX-GOV-003/005/007/008 + UX-REC</span></span>
  <h1 class="s-4hDFIYz_z0">Governance &amp; Shared Records</h1>
  <p class="s-74eGsJhV6B">
           Read-only projections over canonical rights, financial, evidence, incident and audit records. Field scopes enforced server-side for your roles.
@@ -254,7 +254,7 @@ export function renderGovernanceRecordsHtml(
  <div class="vmn-card s-KFMJBTkt2j" >
  <div class="s-AoD9Jj9JcR">
  <h2 class="s-2to96tsOZe">Authorised Activity / Audit View</h2>
-          <span class="vmn-badge badge-neutral">UX-GOV-008</span>
+          <span class="vmn-badge badge-neutral">Activity Register <span class="sr-only">UX-GOV-008</span></span>
         </div>
         ${
           canSeeAudit

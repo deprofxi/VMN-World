@@ -18,6 +18,19 @@ export interface AuditDeskContext {
   message?: string;
 }
 
+function renderAuditLogRow(log: AuditLogEntry): string {
+  return `
+    <tr class="border-b border-muted/5 text-slate-200 hover:bg-slate-900/30">
+      <td class="p-2.5 font-mono text-muted text-xs">${escapeHtml(log.timestamp ? new Date(log.timestamp).toISOString().replace("T", " ").slice(0, 19) : "—")}</td>
+      <td class="p-2.5 font-mono font-bold text-primary">${escapeHtml(log.action)}</td>
+      <td class="p-2.5 font-mono text-slate-100">${escapeHtml(log.resource)}</td>
+      <td class="p-2.5 font-mono text-muted">${escapeHtml(log.userId || "System")}</td>
+      <td class="p-2.5 font-mono text-muted">${escapeHtml(log.ipAddress || "127.0.0.1")}</td>
+      <td class="p-2.5 font-mono text-xs text-slate-400 font-bold">${escapeHtml(log.entryHash || log.id || "GENESIS")}</td>
+    </tr>
+  `;
+}
+
 export function renderAuditDeskHtml(ctx: AuditDeskContext): string {
   const logs = ctx.logs;
   const verification = ctx.verification;
@@ -72,9 +85,9 @@ export function renderAuditDeskHtml(ctx: AuditDeskContext): string {
           <span class="text-xs text-muted block mt-0.5">SHA-256 matched</span>
         </div>
         <div class="p-2.5 rounded-lg bg-slate-900/60 border border-muted/10">
-          <span class="text-xs text-muted block font-semibold">PERSISTENCE BACKEND</span>
-          <span class="text-base font-bold block mt-0.5 text-slate-100">Postgres + Redis</span>
-          <span class="text-xs text-muted block mt-0.5">Durable restart safe</span>
+          <span class="text-xs text-muted block font-semibold">STORAGE INTEGRITY</span>
+          <span class="text-base font-bold block mt-0.5 text-slate-100">Secure Immutable Store</span>
+          <span class="text-xs text-muted block mt-0.5">Tamper-evident log</span>
         </div>
         <div class="p-2.5 rounded-lg bg-slate-900/60 border border-muted/10">
           <span class="text-xs text-muted block font-semibold">CHAIN HEAD DIGEST</span>
@@ -113,20 +126,7 @@ export function renderAuditDeskHtml(ctx: AuditDeskContext): string {
             ${
               logs.length === 0
                 ? `<tr><td colspan="6" class="p-4 text-center text-muted">Audit chain is currently at genesis. Consequential mutations will appear here.</td></tr>`
-                : logs
-                    .map(
-                      (log: AuditLogEntry) => `
-              <tr class="border-b border-muted/5 text-slate-200 hover:bg-slate-900/30">
-                <td class="p-2.5 font-mono text-muted text-xs">${escapeHtml(log.timestamp ? new Date(log.timestamp).toISOString().replace("T", " ").slice(0, 19) : "—")}</td>
-                <td class="p-2.5 font-mono font-bold text-primary">${escapeHtml(log.action)}</td>
-                <td class="p-2.5 font-mono text-slate-100">${escapeHtml(log.resource)}</td>
-                <td class="p-2.5 font-mono text-muted">${escapeHtml(log.userId || "System")}</td>
-                <td class="p-2.5 font-mono text-muted">${escapeHtml(log.ipAddress || "127.0.0.1")}</td>
-                <td class="p-2.5 font-mono text-xs text-slate-400 font-bold">${escapeHtml(log.entryHash || log.id || "GENESIS")}</td>
-              </tr>
-            `
-                    )
-                    .join("")
+                : logs.map(renderAuditLogRow).join("")
             }
           </tbody>
         </table>

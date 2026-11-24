@@ -197,7 +197,7 @@ export function renderPoaVerificationHtml(result: {
       </ul>
     </div>
  <div class="s-wt_QBGg-Bt">
- <a href="/broadcast/screens" class="vmn-btn vmn-btn-primary s-N9RnccLDF5" >
+ <a href="/workspace/mcr" class="vmn-btn vmn-btn-primary s-N9RnccLDF5" >
         Broadcast Operations
       </a>
  <a href="/partners" class="vmn-btn vmn-btn-secondary s-V3gR6858B1" >

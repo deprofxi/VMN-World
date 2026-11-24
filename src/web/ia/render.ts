@@ -107,11 +107,11 @@ function renderComponentRow(component: string, index: number): string {
     <div class="vmn-capability-card card p-3 bg-surface border border-muted/20 rounded-xl flex flex-col justify-between">
       <div>
         <div class="flex items-center justify-between mb-1">
-          <span class="vmn-badge badge-ready text-xs">Interactive Control</span>
-          <span class="font-mono text-xs text-primary">MOD-${String(index + 1).padStart(2, "0")}</span>
+          <span class="vmn-badge badge-ready text-xs">Module</span>
+          <span class="font-mono text-xs text-primary">#${String(index + 1).padStart(2, "0")}</span>
         </div>
         <h3 class="font-bold text-sm text-slate-100 my-1">${escapeHtml(component)}</h3>
-        <p class="text-xs text-muted mb-2 leading-relaxed">Control module for ${escapeHtml(component.toLowerCase())}.</p>
+        <p class="text-xs text-muted mb-2 leading-relaxed">Management module for ${escapeHtml(component.toLowerCase())}.</p>
       </div>
       <button type="button" class="btn btn-outline btn-sm text-xs w-full mt-auto" data-toast="Activating ${escapeHtml(component)}..." data-toast-type="info">Launch Module &rarr;</button>
     </div>
@@ -144,7 +144,7 @@ export function renderIAContractScreen(screen: IAScreen): string {
       <div class="flex items-center gap-2">
         <span class="vmn-badge badge-ready font-mono text-xs flex items-center gap-1">
           <span class="vmn-pulse-dot" aria-hidden="true"></span>
-          OPERATIONAL COCKPIT
+          OPERATIONAL VIEW
         </span>
         <span class="font-mono text-xs text-muted">${escapeHtml(screen.id)}</span>
       </div>

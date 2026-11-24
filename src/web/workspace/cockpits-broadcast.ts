@@ -82,45 +82,45 @@ export function renderEpgCockpit(): string {
                 <td><span class="vmn-badge badge-primary text-xs">NXTR</span></td>
                 <td class="font-bold text-slate-100">Good Morning Nigeria Live</td>
                 <td class="font-mono text-muted">LIVE-FEED-01</td>
-                <td><span class="vmn-badge badge-success text-xs">CLEARED</span></td>
+                <td><span class="vmn-badge badge-success text-xs">Cleared</span></td>
                 <td class="font-mono text-xs text-muted">LIVE-SDI-01</td>
-                <td class="text-right"><span class="vmn-badge badge-ready text-xs">LOCKED</span></td>
+                <td class="text-right"><span class="vmn-badge badge-ready text-xs">Locked</span></td>
               </tr>
               <tr class="border-b border-muted/10 hover:bg-slate-900/40">
                 <td class="py-2.5 font-mono text-slate-300">08:30 - 10:00</td>
                 <td><span class="vmn-badge badge-primary text-xs">NXTR</span></td>
                 <td class="font-bold text-slate-100">Nigezie Top 10 Countdown</td>
                 <td class="font-mono text-muted">EP-NXTR-088</td>
-                <td><span class="vmn-badge badge-success text-xs">CLEARED</span></td>
+                <td><span class="vmn-badge badge-success text-xs">Cleared</span></td>
                 <td class="font-mono text-xs text-muted">dam_ast_882</td>
-                <td class="text-right"><span class="vmn-badge badge-ready text-xs">LOCKED</span></td>
+                <td class="text-right"><span class="vmn-badge badge-ready text-xs">Locked</span></td>
               </tr>
               <tr class="border-b border-muted/10 hover:bg-slate-900/40">
                 <td class="py-2.5 font-mono text-slate-300">10:00 - 12:00</td>
                 <td><span class="vmn-badge badge-primary text-xs">NXTR</span></td>
                 <td class="font-bold text-slate-100">Lagos Rush Season 2</td>
                 <td class="font-mono text-muted">EP-NXTR-004</td>
-                <td><span class="vmn-badge badge-success text-xs">CLEARED</span></td>
+                <td><span class="vmn-badge badge-success text-xs">Cleared</span></td>
                 <td class="font-mono text-xs text-muted">dam_ast_1701</td>
-                <td class="text-right"><span class="vmn-badge badge-ready text-xs">LOCKED</span></td>
+                <td class="text-right"><span class="vmn-badge badge-ready text-xs">Locked</span></td>
               </tr>
               <tr class="border-b border-muted/10 hover:bg-slate-900/40">
                 <td class="py-2.5 font-mono text-slate-300">14:00 - 16:30</td>
                 <td><span class="vmn-badge badge-primary text-xs">NXTR</span></td>
                 <td class="font-bold text-slate-100">Afrobeats Mega Concert Special</td>
                 <td class="font-mono text-muted">EP-NXTR-012</td>
-                <td><span class="vmn-badge badge-success text-xs">CLEARED</span></td>
+                <td><span class="vmn-badge badge-success text-xs">Cleared</span></td>
                 <td class="font-mono text-xs text-muted">dam_ast_1702</td>
-                <td class="text-right"><span class="vmn-badge badge-ready text-xs">LOCKED</span></td>
+                <td class="text-right"><span class="vmn-badge badge-ready text-xs">Locked</span></td>
               </tr>
               <tr class="hover:bg-slate-900/40">
                 <td class="py-2.5 font-mono text-slate-300">20:00 - 22:30</td>
                 <td><span class="vmn-badge badge-primary text-xs">NXTR</span></td>
                 <td class="font-bold text-slate-100">OneStudios Prime Cinema Feature</td>
                 <td class="font-mono text-muted">MOV-NXTR-102</td>
-                <td><span class="vmn-badge badge-success text-xs">CLEARED</span></td>
+                <td><span class="vmn-badge badge-success text-xs">Cleared</span></td>
                 <td class="font-mono text-xs text-muted">dam_ast_1704</td>
-                <td class="text-right"><span class="vmn-badge badge-ready text-xs">LOCKED</span></td>
+                <td class="text-right"><span class="vmn-badge badge-ready text-xs">Locked</span></td>
               </tr>
             </tbody>
           </table>
@@ -195,7 +195,7 @@ export function renderUplinkCockpit(): string {
           <span class="text-xs text-muted block mt-0.5">Margin: +4.2 dB</span>
         </div>
         <div class="p-3 rounded-lg bg-slate-900/60 border border-muted/10">
-          <span class="text-xs text-muted block font-semibold">BIT ERROR RATE (BER)</span>
+          <span class="text-xs text-muted block font-semibold">Carrier Signal Quality (Bit Error Rate)</span>
           <span class="text-lg font-bold block mt-1 text-success">&lt; 1.0e-9</span>
           <span class="text-xs text-success block mt-0.5">Quasi Error-Free</span>
         </div>
@@ -408,7 +408,7 @@ export function renderScteCockpit(): string {
           <span class="text-xs text-muted block mt-0.5">Headend MCO</span>
         </div>
         <div class="p-3 rounded-lg bg-slate-900/60 border border-muted/10">
-          <span class="text-xs text-muted block font-semibold">SCTE-35 PID</span>
+          <span class="text-xs text-muted block font-semibold">Ad Insertion Stream ID (SCTE-35 PID)</span>
           <span class="text-lg font-bold block mt-1 text-slate-100">PID 0x0104</span>
           <span class="text-xs text-muted block mt-0.5">MPEG-2 Transport</span>
         </div>
@@ -418,7 +418,7 @@ export function renderScteCockpit(): string {
           <span class="text-xs text-muted block mt-0.5">30s Break Triggered</span>
         </div>
         <div class="p-3 rounded-lg bg-slate-900/60 border border-muted/10">
-          <span class="text-xs text-muted block font-semibold">DPI RELIABILITY</span>
+          <span class="text-xs text-muted block font-semibold">Ad Insertion Uptime (DPI)</span>
           <span class="text-lg font-bold block mt-1 text-success">100% Executed</span>
           <span class="text-xs text-muted block mt-0.5">Zero Missed Cues</span>
         </div>
@@ -427,7 +427,7 @@ export function renderScteCockpit(): string {
       <!-- Quick Cue Trigger & Headend Simulator -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
         <div class="card p-3 rounded-lg bg-slate-950/60 border border-muted/10">
-          <h3 class="font-bold text-xs text-slate-200 mb-2">Manual Splice Cue Quick Trigger (SMPTE 2022-2)</h3>
+          <h3 class="font-bold text-xs text-slate-200 mb-2">Manual Commercial Splice Cue Trigger <span class="sr-only">(SMPTE 2022-2)</span></h3>
           <form method="POST" action="/api/v1/broadcast/scte35/trigger" class="space-y-3 text-xs">
             <div class="grid grid-cols-2 gap-2">
               <div>
@@ -460,7 +460,7 @@ export function renderScteCockpit(): string {
         </div>
 
         <div class="card p-3 rounded-lg bg-slate-950/60 border border-muted/10">
-          <h3 class="font-bold text-xs text-slate-200 mb-2">Recent DPI Transmissions (UDP Loopback)</h3>
+          <h3 class="font-bold text-xs text-slate-200 mb-2">Recent Commercial Splice Transmissions</h3>
           <div class="table-responsive">
             <table class="table w-full text-xs">
               <thead>

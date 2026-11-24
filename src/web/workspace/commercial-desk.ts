@@ -94,7 +94,7 @@ export function renderCommercialDealsDeskHtml(ctx: CommercialDeskContext): strin
       <div class="p-3 flex items-center justify-between flex-wrap gap-2 border-b border-muted/10">
         <div>
           <h2 class="text-sm font-bold text-slate-100 m-0">Commercial Deals Registry</h2>
-          <p class="text-xs text-muted m-0">Canonical SalesDealRecord records from QuoteToCashSalesEngine</p>
+          <p class="text-xs text-muted m-0">Commercial advertising deals from the quote-to-cash sales ledger</p>
         </div>
         <div class="flex items-center gap-2">
           <input type="search" placeholder="Filter by client or deal..." class="input input-xs text-xs px-2 py-1 bg-slate-900/80 border border-muted/20 rounded" id="deal-search">

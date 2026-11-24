@@ -75,16 +75,16 @@ export function projectAccessMatrix(allSessions: SessionRecord[]): AccessMatrixP
 
 export function renderAccessAdminConsoleHtml(projection: AccessMatrixProjection, _user?: SessionUser): string {
   if (!isFeatureEnabled("FF_SHARED_HUB_DIRECTORY")) {
-    return renderFeatureDisabledNotice("FF_SHARED_HUB_DIRECTORY", "Access & Membership Administration (UX-ADM-001)", "/workspace");
+    return renderFeatureDisabledNotice("FF_SHARED_HUB_DIRECTORY", "Access & Membership Administration <span class=\"sr-only\">(UX-ADM-001)</span>", "/workspace");
   }
 
   return `
  <div class="s-Llwj6EPzTQ">
  <div class="s-jXAzROAz5F">
- <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >ADMINISTRATION &bull; UX-ADM-001</span>
+ <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >Access Administration <span class="sr-only">&bull; UX-ADM-001</span></span>
  <h1 class="s-Eg3nXwYpcj">Access &amp; Membership Administration</h1>
  <p class="s-zrikAgYqXF">
-          Read-only projection of the canonical RBAC matrix and active session registry. Grant/revoke flows run exclusively through the audited invitation &amp; sign-in lifecycle (UX-SYS-004) — this console has no mutation path. Viewing this console does NOT confer access to private business records (UIUX-001 §5.7).
+          Read-only view of role permissions and active system sessions. User assignments and revocations run through the audited invitation flow <span class="sr-only">(UX-SYS-004)</span>. Viewing this directory does not grant clearance to private financial or identity records <span class="sr-only">(UIUX-001 §5.7)</span>.
         </p>
       </div>
 
@@ -175,7 +175,7 @@ export function renderAccessAdminConsoleHtml(projection: AccessMatrixProjection,
 
 export function renderSourceMappingsConsoleHtml(mappings?: SourceMapping[], _user?: SessionUser): string {
   if (!isFeatureEnabled("FF_SHARED_HUB_DIRECTORY")) {
-    return renderFeatureDisabledNotice("FF_SHARED_HUB_DIRECTORY", "Approved Routing & Source Mappings (UX-ADM-003)", "/workspace");
+    return renderFeatureDisabledNotice("FF_SHARED_HUB_DIRECTORY", "Approved Routing & Source Mappings <span class=\"sr-only\">(UX-ADM-003)</span>", "/workspace");
   }
 
   const all = mappings || listSourceMappings();
@@ -184,10 +184,10 @@ export function renderSourceMappingsConsoleHtml(mappings?: SourceMapping[], _use
   return `
  <div class="s-Llwj6EPzTQ">
  <div class="s-jXAzROAz5F">
- <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >ADMINISTRATION &bull; UX-ADM-003</span>
+ <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >Routing &amp; Mappings <span class="sr-only">&bull; UX-ADM-003</span></span>
  <h1 class="s-Eg3nXwYpcj">Approved Routing &amp; Source Mappings</h1>
  <p class="s-zrikAgYqXF">
-          The authoritative registry backing the HX-01…HX-14 source-provenance fields. A provenance field may only render from its approved source; PENDING mappings cannot back any surface (no silent substitution, CCPP §1.5).
+          Authoritative registry verifying all system data source feeds. Unverified feeds cannot back production surfaces <span class="sr-only">(CCPP §1.5, HX-01..HX-14)</span>.
         </p>
       </div>
 

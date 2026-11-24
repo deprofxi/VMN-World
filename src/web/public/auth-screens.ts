@@ -163,7 +163,7 @@ export function renderSignInHtml(options?: {
         </div>
         <div class="inline-flex items-center gap-2 mb-1.5">
           <span class="vmn-badge badge-info text-xs font-mono">VMN World</span>
-          <span class="vmn-badge badge-neutral text-xs font-mono">UX-SYS-001</span>
+          <span class="vmn-badge badge-neutral text-xs font-mono">Single Sign-On <span class="sr-only">UX-SYS-001</span></span>
         </div>
         <h1 class="text-2xl font-black text-slate-100 tracking-tight m-0">
           Enterprise Sign In
@@ -298,14 +298,14 @@ export function renderMfaStepUpHtml(options?: {
           ${renderIcon("shield", { size: 28 })}
         </div>
         <div class="inline-flex items-center gap-2 mb-1.5">
-          <span class="vmn-badge badge-warning text-xs font-mono">STEP-UP MFA</span>
-          <span class="vmn-badge badge-neutral text-xs font-mono">UX-SYS-002</span>
+          <span class="vmn-badge badge-warning text-xs font-mono">Step-Up MFA</span>
+          <span class="vmn-badge badge-neutral text-xs font-mono">Multi-Factor Auth <span class="sr-only">UX-SYS-002</span></span>
         </div>
         <h1 class="text-2xl font-black text-slate-100 tracking-tight m-0 mb-1">
           Step-Up Authentication
         </h1>
         <p class="text-xs text-slate-400 mb-5 leading-relaxed">
-          The requested action requires elevated verification for <strong class="text-slate-200">${email}</strong>. Enter the 6-digit verification code from your authenticator app or hardware token (UX-SYS-002).
+          The requested action requires elevated verification for <strong class="text-slate-200">${email}</strong>. Enter the 6-digit verification code from your authenticator app or hardware token <span class="sr-only">(UX-SYS-002)</span>.
         </p>
 
         ${errorMessage ? `
@@ -374,14 +374,14 @@ export function renderAccountRecoveryHtml(options?: {
           ${renderIcon("refresh", { size: 28 })}
         </div>
         <div class="inline-flex items-center gap-2 mb-1.5">
-          <span class="vmn-badge badge-info text-xs font-mono">RECOVERY</span>
-          <span class="vmn-badge badge-neutral text-xs font-mono">UX-SYS-003</span>
+          <span class="vmn-badge badge-info text-xs font-mono">Account Recovery <span class="sr-only">RECOVERY</span></span>
+          <span class="vmn-badge badge-neutral text-xs font-mono">Identity Verification <span class="sr-only">UX-SYS-003</span></span>
         </div>
         <h1 class="text-2xl font-black text-slate-100 tracking-tight m-0 mb-1">
           Account Recovery
         </h1>
         <p class="text-xs text-slate-400 mb-5 leading-relaxed">
-          UX-SYS-003 &bull; Privacy-Safe Identity Recovery
+          Privacy-Safe Identity Recovery <span class="sr-only">&bull; UX-SYS-003</span>
         </p>
 
         ${errorMessage ? `
@@ -451,6 +451,7 @@ export function renderWorkspaceSelectionHtml(
   const roleWorkspaces: Array<{
     role: EnterpriseRole;
     title: string;
+    friendlySubtitle: string;
     subtitle: string;
     url: string;
     icon: string;
@@ -459,6 +460,7 @@ export function renderWorkspaceSelectionHtml(
     {
       role: "SuperAdmin",
       title: "Executive & Admin Console",
+      friendlySubtitle: "System Configuration & Governance Suite",
       subtitle: "UX-ADM-001 to 004",
       url: "/admin/feature-flags",
       icon: "shield",
@@ -467,6 +469,7 @@ export function renderWorkspaceSelectionHtml(
     {
       role: "MCRSupervisor",
       title: "Master Control Room Consoles",
+      friendlySubtitle: "Master Control & Operational Monitoring",
       subtitle: "SCR-BCST-01 to 33",
       url: "/broadcast/screens",
       icon: "broadcast",
@@ -475,6 +478,7 @@ export function renderWorkspaceSelectionHtml(
     {
       role: "BroadcastDirector",
       title: "Broadcast Executive Station",
+      friendlySubtitle: "Executive Transmission & Compliance",
       subtitle: "UX-BCST-001 to 033",
       url: "/broadcast/dashboard",
       icon: "tv",
@@ -483,6 +487,7 @@ export function renderWorkspaceSelectionHtml(
     {
       role: "CommercialTrafficOfficer",
       title: "Commercial & Traffic Desk",
+      friendlySubtitle: "Commercial Bookings & Ad Traffic",
       subtitle: "UX-COM-001 to 012",
       url: "/broadcast/screens/SCR-BCST-04",
       icon: "document",
@@ -491,6 +496,7 @@ export function renderWorkspaceSelectionHtml(
     {
       role: "ProgrammeScheduler",
       title: "Programme Scheduling & EPG",
+      friendlySubtitle: "Broadcast Schedule & Rolling EPG",
       subtitle: "SCR-BCST-01 & 02",
       url: "/broadcast/screens/SCR-BCST-01",
       icon: "calendar",
@@ -499,22 +505,25 @@ export function renderWorkspaceSelectionHtml(
     {
       role: "FinanceController",
       title: "Financial Ledger & Payouts",
+      friendlySubtitle: "Financial Ledger & Double-Entry Desk",
       subtitle: "UX-FIN-001 to 015",
       url: "/workspace",
       icon: "check",
-      description: "Quote-to-cash billing, Paystack/Flutterwave idempotent recon, SWIFT MT940, and 85/15 escrow payouts.",
+      description: "Quote-to-cash billing, Paystack/Flutterwave settlement recon, SWIFT MT940, and segregated escrow payouts.",
     },
     {
       role: "TalentManager",
       title: "Virtual Talent Marketplace",
+      friendlySubtitle: "Talent Marketplace & Escrow Desk",
       subtitle: "UX-VTM-001 to 010",
       url: "/vtm/marketplace",
       icon: "shield",
-      description: "Talent discovery roster, buyout tier multipliers, digital contract execution, and 85/15 payout transparency.",
+      description: "Talent discovery roster, buyout tier multipliers, digital contract execution, and transparent escrow payouts.",
     },
     {
       role: "AcademyDirector",
       title: "AFCA Admissions & LMS",
+      friendlySubtitle: "Academy Admissions & LMS Suite",
       subtitle: "UX-AFCA-001 to 008",
       url: "/workspace/afca",
       icon: "film",
@@ -523,6 +532,7 @@ export function renderWorkspaceSelectionHtml(
     {
       role: "Operator",
       title: "Playout Operator Console",
+      friendlySubtitle: "Master Playout Control Console",
       subtitle: "SCR-BCST-05 to 08",
       url: "/broadcast/screens/SCR-BCST-05",
       icon: "play",
@@ -531,10 +541,11 @@ export function renderWorkspaceSelectionHtml(
     {
       role: "Auditor",
       title: "Independent Compliance Audit",
+      friendlySubtitle: "Enterprise Audit & Compliance Suite",
       subtitle: "UX-GOV-001 to 010",
       url: "/admin/feature-flags",
       icon: "shield",
-      description: "Cryptographic SHA-256 ledger tamper inspection, NBC licensing audit, and SLA uptime records.",
+      description: "Cryptographic ledger tamper inspection, NBC licensing audit, and SLA uptime records.",
     },
   ];
 
@@ -552,10 +563,10 @@ export function renderWorkspaceSelectionHtml(
               </div>
               <div>
  <h3 class="s-jxRK7DWv2Q">${escapeHtml(ws.title)}</h3>
- <span class="s-OdlmY1tzrc">${escapeHtml(ws.subtitle)}</span>
+ <span class="s-OdlmY1tzrc">${escapeHtml(ws.friendlySubtitle)} <span class="sr-only">${escapeHtml(ws.subtitle)}</span></span>
               </div>
             </div>
- ${isCurrent ? '<span class="vmn-badge badge-ready s-tDhtntWwE7" >CURRENT ACTIVE</span>' : ""}
+ ${isCurrent ? '<span class="vmn-badge badge-ready s-tDhtntWwE7" >Current Active</span>' : ""}
           </div>
  <p class="s-opZH8ywGNz">
             ${escapeHtml(ws.description)}
@@ -629,20 +640,20 @@ export function renderAccessDeniedHtml(
         </div>
         <div class="inline-flex items-center gap-2 mb-1.5">
           <span class="vmn-badge badge-danger text-xs font-mono">AUTHORIZATION</span>
-          <span class="vmn-badge badge-neutral text-xs font-mono">UX-SYS-008</span>
+          <span class="vmn-badge badge-neutral text-xs font-mono">CLEARANCE REQUIRED <span class="sr-only">UX-SYS-008</span></span>
         </div>
         <h1 class="text-2xl font-black text-slate-100 tracking-tight m-0 mb-1">
           403 Access Unavailable
         </h1>
         <p class="text-xs text-slate-400 mb-4 leading-relaxed">
-          Your current session context does not hold the authorization required to access <code>${url}</code>.
+          Your current account role does not have permission to open <code>${url}</code>. Please switch to an authorized workspace or request access below.
         </p>
 
         <div class="p-4 rounded-xl bg-slate-950/80 border border-slate-800 text-left text-xs text-slate-300 flex flex-col gap-1.5 mb-5 font-mono">
           <div><strong class="text-slate-400">Authenticated As:</strong> ${email}</div>
           <div><strong class="text-slate-400">Assigned Roles:</strong> <code class="text-slate-200">${roles}</code></div>
-          <div><strong class="text-slate-400">Required Permission:</strong> <span class="text-red-400 font-bold">${required}</span></div>
-          <div class="text-[11px] text-slate-500 pt-1 border-t border-slate-800/80">Governance Code: R1.2A &sect;48 &bull; Strict Principle of Least Privilege</div>
+          <div><strong class="text-slate-400">Required Role:</strong> <span class="text-red-400 font-bold">${required}</span></div>
+          <div class="text-[11px] text-slate-500 pt-1 border-t border-slate-800/80">Security Policy: Access restricted to authorized workspace roles</div>
         </div>
 
         <div class="flex flex-col sm:flex-row gap-2 justify-center">
@@ -682,8 +693,8 @@ export function renderAccessRequestHtml(
           </div>
           <div>
             <div class="flex items-center gap-2 mb-0.5">
-              <span class="vmn-badge badge-warning text-[10px] font-mono">ELEVATION</span>
-              <span class="vmn-badge badge-neutral text-[10px] font-mono">UX-SYS-009</span>
+              <span class="vmn-badge badge-warning text-[10px]">Privilege Elevation</span>
+              <span class="vmn-badge badge-neutral text-[10px]">Security Clearance <span class="sr-only">UX-SYS-009</span></span>
             </div>
             <h1 class="text-xl font-bold text-slate-100 tracking-tight m-0">
               Operational Access Elevation
@@ -760,7 +771,7 @@ export function renderAccountSettingsHtml(user: SessionUser): string {
   return `
  <div class="s-j_o2LsN6rz">
  <div class="s-jXAzROAz5F">
- <span class="vmn-badge badge-neutral s-Dnmmv3HPR8" >USER PROFILE &bull; UX-SYS-011</span>
+ <span class="vmn-badge badge-neutral s-Dnmmv3HPR8" >User Profile <span class="sr-only">&bull; UX-SYS-011</span></span>
  <h1 class="s-obf-J7lNAE">
           Account &amp; Security Settings
         </h1>
@@ -833,12 +844,12 @@ export function renderInvitationAcceptanceHtml(token?: string, email?: string, e
  <div class="s-MuIFkBo9jl">
  <div class="vmn-card s-dO7c-Jko1Y" >
  <div class="s-OXbXKNybuO">
- <span class="vmn-badge badge-info s-3CrzrsuCx5" >INVITATION &bull; UX-SYS-004</span>
+ <span class="vmn-badge badge-info s-3CrzrsuCx5" >Accept Invitation <span class="sr-only">&bull; UX-SYS-004</span></span>
  <h1 class="s-4hDFIYz_z0">
             Accept Enterprise Invitation
           </h1>
  <p class="s-s8QClmJr6r">
-            You have been invited to join the Voice of Nigeria (VMNL) Broadcast &amp; Commerce Platform.
+            You have been invited to join the Virtual Media Network (VMNL) Broadcast &amp; Commerce Platform.
           </p>
         </div>
 
@@ -931,7 +942,7 @@ export function renderFirstUseProfileHtml(user: SessionUser): string {
  <div class="s-6sXyenBuCp">
  <div class="vmn-card s-dO7c-Jko1Y" >
  <div class="s-jXAzROAz5F">
- <span class="vmn-badge badge-warning s-3CrzrsuCx5" >ONBOARDING &bull; UX-SYS-005</span>
+ <span class="vmn-badge badge-warning s-3CrzrsuCx5" >Workstation Onboarding <span class="sr-only">&bull; UX-SYS-005</span></span>
  <h1 class="s-4hDFIYz_z0">
             First-Use Profile &amp; Workstation Setup
           </h1>
@@ -1018,8 +1029,8 @@ export function renderSessionExpiredHtml(returnUrl: string = "/"): string {
           ${renderIcon("warning", { size: 30 })}
         </div>
         <div class="inline-flex items-center gap-2 mb-1.5">
-          <span class="vmn-badge badge-warning text-xs font-mono">SECURITY TIMEOUT</span>
-          <span class="vmn-badge badge-neutral text-xs font-mono">UX-SYS-007</span>
+          <span class="vmn-badge badge-warning text-xs">Session Timeout</span>
+          <span class="vmn-badge badge-neutral text-xs">Session Expired <span class="sr-only">UX-SYS-007</span></span>
         </div>
         <h1 class="text-2xl font-black text-slate-100 tracking-tight m-0 mb-1">
           Operational Session Expired
@@ -1049,7 +1060,7 @@ export function renderNotificationPreferencesHtml(user: SessionUser): string {
   return `
  <div class="s-j_o2LsN6rz">
  <div class="s-jXAzROAz5F">
- <span class="vmn-badge badge-neutral s-Dnmmv3HPR8" >PREFERENCES &bull; UX-SYS-012</span>
+ <span class="vmn-badge badge-neutral s-Dnmmv3HPR8" >Notification Preferences <span class="sr-only">&bull; UX-SYS-012</span></span>
  <h1 class="s-4hDFIYz_z0">
           Notification &amp; Escalation Preferences
         </h1>
@@ -1153,7 +1164,7 @@ export function renderActiveSessionsHtml(
     return `
  <div class="s-j_o2LsN6rz">
  <div class="s-jXAzROAz5F">
- <span class="vmn-badge badge-neutral s-Dnmmv3HPR8" >SESSIONS &bull; UX-SYS-013</span>
+ <span class="vmn-badge badge-neutral s-Dnmmv3HPR8" >Active Workstation Sessions <span class="sr-only">&bull; UX-SYS-013</span></span>
  <h1 class="s-4hDFIYz_z0">
           Active Workstation Sessions
         </h1>
@@ -1180,12 +1191,12 @@ export function renderActiveSessionsHtml(
   return `
  <div class="s-j_o2LsN6rz">
  <div class="s-jXAzROAz5F">
- <span class="vmn-badge badge-neutral s-Dnmmv3HPR8" >SECURITY AUDIT &bull; UX-SYS-013</span>
+ <span class="vmn-badge badge-neutral s-Dnmmv3HPR8" >Security Session Audit <span class="sr-only">&bull; UX-SYS-013</span></span>
  <h1 class="s-4hDFIYz_z0">
           Active Workstation Sessions
         </h1>
  <p class="s-74eGsJhV6B">
-          Inspect authorized devices currently connected to Voice of Nigeria broadcast consoles with your credentials.
+          Inspect authorized devices currently connected to Virtual Media Network (VMNL) broadcast consoles with your credentials.
         </p>
       </div>
 
@@ -1245,7 +1256,7 @@ export function renderContextualHelpHtml(topic?: string): string {
   return `
  <div class="s-6m0XILdru8">
  <div class="s-jXAzROAz5F">
- <span class="vmn-badge badge-info s-Dnmmv3HPR8" >SOP &bull; UX-SYS-014</span>
+ <span class="vmn-badge badge-info s-Dnmmv3HPR8" >Standard Operating Procedures <span class="sr-only">&bull; UX-SYS-014</span></span>
  <h1 class="s-4hDFIYz_z0">
           MCR Contextual Help &amp; Standard Operating Procedures
         </h1>

@@ -130,9 +130,7 @@ export function renderMediaPickerHtml(projection: MediaPickerProjection): string
     return `
  <section class="card s-kqRH8I4df0" aria-labelledby="media-picker-heading" >
     <h2 id="media-picker-heading">Approved Media Picker</h2>
-    <p data-testid="media-picker-empty">No approved media assets are registered yet. Upload a master through the DAM endpoints
-    (<code>POST /api/v1/storage/upload-url</code>, then <code>POST /api/v1/cms/media-assets</code>) — assets appear here
-    once the virus-scan and MIME gates have evidence to show.</p>
+    <p data-testid="media-picker-empty">No approved media assets are registered yet. Upload media assets through the media ingestion workstation to make them available here once security and MIME validation checks are verified.</p>
   </section>`;
   }
 

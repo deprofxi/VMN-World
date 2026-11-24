@@ -194,7 +194,7 @@ export function renderRightsDeskHtml(ctx: RightsDeskContext): string {
 
         <div>
           <label class="block font-semibold text-slate-200 mb-1" for="territory">Geographic Territory *</label>
-          <input type="text" id="territory" name="territory" required placeholder="e.g. NIGERIA, SUB_SAHARAN_AFRICA, GLOBAL" value="NIGERIA" class="input input-sm w-full bg-slate-900 border border-muted/20 rounded px-2.5 py-1.5 text-slate-100 text-xs font-mono">
+          <input type="text" id="territory" name="territory" required placeholder="e.g. Nigeria, Sub-Saharan Africa, Worldwide" value="NIGERIA" class="input input-sm w-full bg-slate-900 border border-muted/20 rounded px-2.5 py-1.5 text-slate-100 text-xs font-mono">
         </div>
 
         <div>

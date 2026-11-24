@@ -69,7 +69,7 @@ export function renderTalentCockpit(): string {
                 <td><span class="vmn-badge badge-success text-xs">KYC VERIFIED (Tier-2)</span></td>
                 <td class="text-slate-200">Project "Oloibiri Rising"</td>
                 <td class="font-mono text-slate-300">85% Disbursable</td>
-                <td class="text-right"><span class="vmn-badge badge-ready text-xs">ACTIVE ON SET</span></td>
+                <td class="text-right"><span class="vmn-badge badge-ready text-xs">Active on Set</span></td>
               </tr>
               <tr class="border-b border-muted/10 hover:bg-slate-900/40">
                 <td class="py-2.5 font-mono text-primary font-bold">TLN-2026-082</td>
@@ -397,7 +397,7 @@ export function renderTendCockpit(): string {
       <div class="card p-3 rounded-lg bg-slate-950/60 border border-muted/10 mb-4">
         <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
           <span class="text-xs font-bold text-slate-200">TEND Syndication Rights &amp; B2B Distribution Catalogue</span>
-          <span class="vmn-badge badge-ready text-xs">Chain-of-Title CA-32 Certified</span>
+          <span class="vmn-badge badge-ready text-xs">Chain-of-Title Certified <span class="sr-only">CA-32</span></span>
         </div>
         <div class="table-responsive">
           <table class="table w-full text-xs">
@@ -428,7 +428,7 @@ export function renderTendCockpit(): string {
                 <td>Docuseries &bull; 6x50 Min</td>
                 <td>North America &amp; UK Diaspora</td>
                 <td class="text-slate-200">AfroStream Global</td>
-                <td><span class="vmn-badge badge-info text-xs">SVOD WINDOW ACTIVE</span></td>
+                <td><span class="vmn-badge badge-info text-xs">Streaming Window Active</span></td>
                 <td class="py-2.5 text-right font-mono font-bold text-success">₦18,600,000/yr</td>
               </tr>
               <tr class="hover:bg-slate-900/40">
@@ -437,7 +437,7 @@ export function renderTendCockpit(): string {
                 <td>HD Animation &bull; 12x22 Min</td>
                 <td>West Africa Free-To-Air</td>
                 <td class="text-slate-200">NTA Network</td>
-                <td><span class="vmn-badge badge-ready text-xs">DTT FIRST WINDOW</span></td>
+                <td><span class="vmn-badge badge-ready text-xs">Terrestrial First Window</span></td>
                 <td class="py-2.5 text-right font-mono font-bold text-success">₦8,400,000/yr</td>
               </tr>
             </tbody>

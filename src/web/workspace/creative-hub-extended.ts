@@ -69,12 +69,12 @@ export function renderTalentAcceleratorDeskHtml(snapshot: AcceleratorDeskSnapsho
  <div class="s-Llwj6EPzTQ">
  <div class="s-k5NLeWec9i">
         <div>
- <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >ACCELERATOR &bull; UX-ACC-001..008</span>
+ <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >Talent Accelerator Network <span class="sr-only">&bull; UX-ACC-001..008</span></span>
  <h1 class="s-n_bp1PhViu">
             Talent Accelerator Partner Network &amp; Funding Readiness
           </h1>
  <p class="s-zrikAgYqXF">
-            Canonical projection of TalentAcceleratorRegistry &bull; Partner hubs, pipeline &amp; verification gates
+            Talent Accelerator Roster &bull; Partner hubs, creative pipeline, and verified artist gates <span class="sr-only">TalentAcceleratorRegistry</span>
           </p>
         </div>
  <div class="s-URRPIWgn0i">
@@ -110,7 +110,7 @@ export function renderTalentAcceleratorDeskHtml(snapshot: AcceleratorDeskSnapsho
         </h3>
         ${
           hubs.length === 0
-            ? renderEmptyRecords("No partner hubs are registered in the TalentAcceleratorRegistry yet — this desk renders canonical registry records only.")
+            ? renderEmptyRecords("No partner hubs have been registered yet — this desk renders canonical registry records only.")
  : `<div class="table-container s-QtRFDAL0Yl" >
  <table class="s-fzAoGce9Zz">
             <thead>
@@ -156,7 +156,7 @@ export function renderTalentAcceleratorDeskHtml(snapshot: AcceleratorDeskSnapsho
           Register Institutional Partner Hub (UX-ACC-004)
         </h3>
  <p class="s-i_qnuR0Wq0">
-          Writes a new partner hub into the canonical TalentAcceleratorRegistry (guarded mutation, create:talent).
+          Registers a new verified partner hub into the talent directory.
         </p>
  <form method="POST" action="/api/v1/workspace/accelerator/partners" class="s-U3mAiGQfXk">
           <div>
@@ -224,12 +224,12 @@ export function renderCommunityGuildsDeskHtml(snapshot: CommunityDeskSnapshot | 
  <div class="s-Llwj6EPzTQ">
  <div class="s-k5NLeWec9i">
         <div>
- <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >COMMUNITY &bull; UX-AFC-001..006</span>
+ <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >Creative Community Hub <span class="sr-only">&bull; UX-AFC-001..006</span></span>
  <h1 class="s-n_bp1PhViu">
             Afro-Fusion Guilds &amp; Peer Collaboration Hub
           </h1>
  <p class="s-zrikAgYqXF">
-            Canonical projection of AfroFusionCommunityHub &bull; Locations, resources, memberships &amp; bookings
+            Afro-Fusion Creative Community &bull; Physical hub locations, production spaces, and guild memberships <span class="sr-only">AfroFusionCommunityHub</span>
           </p>
         </div>
  <div class="s-aTQ0x94bOS">
@@ -261,9 +261,9 @@ export function renderCommunityGuildsDeskHtml(snapshot: CommunityDeskSnapshot | 
 
       ${
         locations.length === 0
-          ? renderEmptyRecords("No hub locations exist in the AfroFusionCommunityHub yet — this desk renders canonical hub records only.")
+          ? renderEmptyRecords("No community hub locations have been established yet.")
  : `<div class="vmn-card s-58Wdku8jfj" >
- <h3 class="s-spyfDabz02">Hub Locations &amp; Bookable Resources (UX-AFC-002)</h3>
+ <h3 class="s-spyfDabz02">Hub Locations &amp; Bookable Resources <span class="sr-only">(UX-AFC-002)</span></h3>
         ${locations
           .map(
             (l) => `
@@ -317,7 +317,7 @@ export function renderCommunityGuildsDeskHtml(snapshot: CommunityDeskSnapshot | 
         members.length === 0
           ? ""
  : `<div class="vmn-card s-58Wdku8jfj" >
- <h3 class="s-spyfDabz02">Registered Members &amp; Guild Affiliations (UX-AFC-003)</h3>
+ <h3 class="s-spyfDabz02">Registered Members &amp; Guild Affiliations <span class="sr-only">(UX-AFC-003)</span></h3>
  <div class="table-container s-QtRFDAL0Yl" >
  <table class="s-xtFEjzqBpd">
             <thead>
@@ -352,7 +352,7 @@ export function renderCommunityGuildsDeskHtml(snapshot: CommunityDeskSnapshot | 
           Register Community Member (UX-AFC-004)
         </h3>
  <p class="s-i_qnuR0Wq0">
-          Writes a member into the canonical AfroFusionCommunityHub (guarded mutation, create:talent).
+          Registers a creative member into the community guild directory.
         </p>
  <form method="POST" action="/api/v1/workspace/community/sprints" class="s-U3mAiGQfXk">
           <div>
@@ -421,7 +421,7 @@ export function renderVtmMatchingWorkbenchHtml(snapshot: VtmWorkbenchSnapshot | 
  <div class="s-Llwj6EPzTQ">
  <div class="s-k5NLeWec9i">
         <div>
- <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >VTM CASTING &bull; UX-VTM-003..007, 012</span>
+ <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >Talent Casting Suite <span class="sr-only">&bull; UX-VTM-003..007, 012</span></span>
  <h1 class="s-n_bp1PhViu">
             Talent Matching &amp; Protected Deployment Workbench
           </h1>
@@ -438,12 +438,12 @@ export function renderVtmMatchingWorkbenchHtml(snapshot: VtmWorkbenchSnapshot | 
 
       ${
         !brief
-          ? renderEmptyRecords(`No opportunity brief '${escapeHtml(opportunityId)}' exists in the VirtualTalentManagementEngine. Create one via POST /api/v1/hub/vtm/briefs — this workbench renders engine records only.`)
+          ? renderEmptyRecords(`The requested opportunity brief '${escapeHtml(opportunityId)}' could not be located in the talent marketplace.`)
           : matches.length === 0
-            ? renderEmptyRecords("No talent profiles match this brief in the registry yet — matches come from vtmEngine.matchTalent over TalentAcceleratorRegistry profiles.")
+            ? renderEmptyRecords("No talent profiles match this brief in the registry yet — recommendations are derived from verified talent profiles and skill criteria.")
  : `<div class="vmn-card s-1lEgQrBXgX" >
  <h3 class="s-spyfDabz02">
-          Algorithmically Matched Candidates (vtmEngine.matchTalent)
+          Recommended Candidates (Automated Role Matching) <span class="sr-only">(vtmEngine.matchTalent)</span>
         </h3>
  <div class="table-container s-QtRFDAL0Yl" >
  <table class="s-fzAoGce9Zz">
@@ -525,12 +525,12 @@ export function renderOneStudiosProductionDeskHtml(snapshot: OneStudiosDeskSnaps
  <div class="s-Llwj6EPzTQ">
  <div class="s-k5NLeWec9i">
         <div>
- <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >PRODUCTION &bull; UX-ONE-001..009</span>
+ <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >Studio Production Desk <span class="sr-only">&bull; UX-ONE-001..009</span></span>
  <h1 class="s-n_bp1PhViu">
             ONE Studios Production Command &amp; Call Sheet Dispatcher
           </h1>
  <p class="s-zrikAgYqXF">
-            Canonical projection of OneStudiosEngine &bull; Gear locker, bookings &amp; call sheets
+            Studio Production Operations &bull; Equipment gear locker, stage reservations, and active call sheets <span class="sr-only">OneStudiosEngine</span>
           </p>
         </div>
  <div class="s-aTQ0x94bOS">
@@ -547,7 +547,7 @@ export function renderOneStudiosProductionDeskHtml(snapshot: OneStudiosDeskSnaps
         </h3>
         ${
           assets.length === 0
-            ? renderEmptyRecords("No production assets are registered in OneStudiosEngine yet.")
+            ? renderEmptyRecords("No production equipment or studio facilities are registered in inventory yet.")
  : `<div class="table-container s-QtRFDAL0Yl" >
  <table class="s-fzAoGce9Zz">
             <thead>
@@ -585,7 +585,7 @@ export function renderOneStudiosProductionDeskHtml(snapshot: OneStudiosDeskSnaps
         bookings.length === 0 && callSheets.length === 0
           ? ""
  : `<div class="vmn-card s-1lEgQrBXgX" >
- <h3 class="s-spyfDabz02">Active Bookings &amp; Published Call Sheets (UX-ONE-002)</h3>
+ <h3 class="s-spyfDabz02">Active Bookings &amp; Published Call Sheets <span class="sr-only">(UX-ONE-002)</span></h3>
         ${
           bookings.length === 0
             ? ""
@@ -640,7 +640,7 @@ export function renderOneStudiosProductionDeskHtml(snapshot: OneStudiosDeskSnaps
           Publish Digital Call Sheet (UX-ONE-002)
         </h3>
  <p class="s-i_qnuR0Wq0">
-          Publishes a call sheet into the canonical OneStudiosEngine (guarded mutation, create:talent).
+          Publishes an operational call sheet to cast and crew.
         </p>
  <form method="POST" action="/api/v1/workspace/production/callsheet" class="s-U3mAiGQfXk">
           <div>
@@ -708,12 +708,12 @@ export function renderVcfCreatorMissionsHtml(snapshot: VcfMissionsSnapshot | und
  <div class="s-Llwj6EPzTQ">
  <div class="s-k5NLeWec9i">
         <div>
- <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >VCF FORMAT LAB &bull; UX-VCF-001..008</span>
+ <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >Content Formats &amp; Development Lab <span class="sr-only">&bull; UX-VCF-001..008</span></span>
  <h1 class="s-n_bp1PhViu">
             VCF Creator Missions &amp; Rapid Format Sprints
           </h1>
  <p class="s-zrikAgYqXF">
-            Canonical projection of VirtualContentFundEngine &bull; Pitch pipeline &amp; active slate
+            Content Development Fund &bull; Creator pitch submissions and greenlit production slate <span class="sr-only">VirtualContentFundEngine</span>
           </p>
         </div>
  <div class="s-aTQ0x94bOS">
@@ -725,7 +725,7 @@ export function renderVcfCreatorMissionsHtml(snapshot: VcfMissionsSnapshot | und
 
       ${
         pitches.length === 0
-          ? renderEmptyRecords("No pitches exist in the VirtualContentFundEngine yet — this desk renders canonical fund records only. Submit one below.")
+          ? renderEmptyRecords("No creator pitch proposals have been submitted for review yet. Submit a proposal below.")
  : `<div class="s-YdRO5DshrX">
         ${pitches
           .map(
@@ -760,7 +760,7 @@ export function renderVcfCreatorMissionsHtml(snapshot: VcfMissionsSnapshot | und
         slate.length === 0
           ? ""
  : `<div class="vmn-card s-1lEgQrBXgX" >
- <h3 class="s-spyfDabz02">Active Greenlit Slate (UX-VCF-006)</h3>
+ <h3 class="s-spyfDabz02">Active Greenlit Slate <span class="sr-only">(UX-VCF-006)</span></h3>
  <div class="table-container s-QtRFDAL0Yl" >
  <table class="s-xtFEjzqBpd">
  <thead><tr class="s-UnSdr9bWTK"><th class="s-JKTsUAJmov">Project</th><th class="s-JKTsUAJmov">Stage</th><th class="s-sHkXKtnkuz">Approved Budget</th><th class="s-sHkXKtnkuz">Disbursed</th></tr></thead>
@@ -788,7 +788,7 @@ export function renderVcfCreatorMissionsHtml(snapshot: VcfMissionsSnapshot | und
           Submit Commissioning Pitch (UX-VCF-004)
         </h3>
  <p class="s-i_qnuR0Wq0">
-          Writes a pitch into the canonical VirtualContentFundEngine pipeline (guarded mutation, create:talent).
+          Submits a new creative format pitch into the development evaluation pipeline.
         </p>
  <form method="POST" action="/api/v1/workspace/vcf/missions" class="s-U3mAiGQfXk">
           <div>
@@ -862,19 +862,19 @@ export function renderFusionEventsDeskHtml(snapshot: FusionEventsDeskSnapshot | 
  <div class="s-Llwj6EPzTQ">
  <div class="s-k5NLeWec9i">
         <div>
- <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >LIVE EVENTS &bull; UX-EVT-001..008</span>
+ <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >Live Events &amp; Festivals <span class="sr-only">&bull; UX-EVT-001..008</span></span>
  <h1 class="s-n_bp1PhViu">
             Fusion Events Stage Manager &amp; Gate Validation
           </h1>
  <p class="s-zrikAgYqXF">
-            Canonical projection of FusionEventsEngine &bull; Live gate statistics &amp; HMAC ticket validation
+            Live Events Management &bull; Box office gate turnstiles and cryptographic ticket verification <span class="sr-only">FusionEventsEngine</span>
           </p>
         </div>
       </div>
 
       ${
         events.length === 0
-          ? renderEmptyRecords("No events exist in the FusionEventsEngine yet — this desk renders canonical event records only. Create one via POST /api/v1/hub/events (createEvent).")
+          ? renderEmptyRecords("No live events or festival productions are currently scheduled.")
  : `<div class="s-DHJOCS9XTL">
         ${events
           .map((e) => {
@@ -910,15 +910,15 @@ export function renderFusionEventsDeskHtml(snapshot: FusionEventsDeskSnapshot | 
       <!-- Quick QR Ticket Validator (real engine validation) -->
  <div class="vmn-card s-JOKW7YLeUA" >
  <h3 class="s-k4BT8HxObJ">
-          Gate Entry QR Ticket Validation (UX-EVT-006)
+          Gate Entry QR Ticket Validation <span class="sr-only">(UX-EVT-006)</span>
         </h3>
  <p class="s-i_qnuR0Wq0">
-          Validates the ticket against FusionEventsEngine (HMAC signature + single-use check). The result is recorded truthfully — reuse and forged tickets are rejected.
+          Validates the ticket using tamper-proof cryptographic signatures and single-entry protection. Counterfeits and duplicate entries are rejected.
         </p>
  <form method="POST" action="/api/v1/workspace/events/scan" class="s-GNTtGikGkV">
  <select name="eventId" required class="s-sWbHXyoQ0U">
             ${events.map((e) => `<option value="${escapeHtml(e.id)}">${escapeHtml(e.name)}</option>`).join("")}
-            ${events.length === 0 ? `<option value="">No events in engine</option>` : ""}
+            ${events.length === 0 ? `<option value="">No events scheduled</option>` : ""}
           </select>
  <input type="text" name="ticketCode" required placeholder="Ticket number, e.g. EVT-XXXXXX-…" class="s-hjveWV9WsR" />
  <button type="submit" class="btn btn-primary s-IA9-EU7SCj" >
@@ -973,12 +973,12 @@ export function renderTendRightsDistributionHtml(snapshot: TendCatalogueSnapshot
  <div class="s-Llwj6EPzTQ">
  <div class="s-k5NLeWec9i">
         <div>
- <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >TEND SYNDICATION &bull; UX-TEND-001..008</span>
+ <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >Content Syndication &amp; Licensing <span class="sr-only">&bull; UX-TEND-001..008</span></span>
  <h1 class="s-n_bp1PhViu">
             TEND B2B Rights Catalogue &amp; Territory Avails Matrix
           </h1>
  <p class="s-zrikAgYqXF">
-            Canonical projection of TendDistributionEngine &bull; Avails computed from live licences
+            Content Syndication Catalogue &bull; Distribution avails derived from active license agreements <span class="sr-only">TendDistributionEngine</span>
           </p>
         </div>
  <div class="s-aTQ0x94bOS">
@@ -990,11 +990,11 @@ export function renderTendRightsDistributionHtml(snapshot: TendCatalogueSnapshot
 
  <div class="vmn-card s-1lEgQrBXgX" >
  <h3 class="s-spyfDabz02">
-          Syndication Catalogue (TendDistributionEngine)
+          Syndication Catalogue <span class="sr-only">(TendDistributionEngine)</span>
         </h3>
         ${
           titles.length === 0
-            ? renderEmptyRecords("No titles are registered in the TendDistributionEngine catalogue yet — register the first below.")
+            ? renderEmptyRecords("No broadcast titles are currently listed in the syndication catalogue. Register a title below.")
  : `<div class="table-container s-QtRFDAL0Yl" >
  <table class="s-fzAoGce9Zz">
             <thead>
@@ -1063,7 +1063,7 @@ export function renderTendRightsDistributionHtml(snapshot: TendCatalogueSnapshot
           Register Catalogue Title (UX-TEND-002)
         </h3>
  <p class="s-i_qnuR0Wq0">
-          Writes a title into the canonical TendDistributionEngine catalogue (guarded mutation, create:rights). Licence drafting with avails enforcement is available via POST /api/v1/hub/tend/licenses.
+          Registers a master title into the syndication rights catalogue.
         </p>
  <form method="POST" action="/api/v1/workspace/tend/license" class="s-U3mAiGQfXk">
           <div>

@@ -339,7 +339,7 @@ export function renderStyleguideHtml(): string {
 
   <!-- 4. Provenance Notices -->
  <section class="s-VH3WyOOC5H">
- <h2 class="s-Gq0p87FzNT">4. Data Provenance & Verification Notice (DT-203)</h2>
+ <h2 class="s-Gq0p87FzNT">4. Data Provenance & Verification Notice <span class="sr-only">(DT-203)</span></h2>
     ${ComponentRenderer.renderProvenanceNotice({
       message: "StarTimes linear carriage telemetry is currently operating under provisional verification.",
       source: "StarTimes Telemetry Bridge",
@@ -375,7 +375,7 @@ export function renderStyleguideHtml(): string {
 
   <!-- 6. Empty & Error States -->
  <section class="s-VH3WyOOC5H">
- <h2 class="s-Gq0p87FzNT">6. Resilient Empty & Error States (DT-205)</h2>
+ <h2 class="s-Gq0p87FzNT">6. Resilient Empty & Error States <span class="sr-only">(DT-205)</span></h2>
  <div class="grid grid-2 s-EJ3KpNnbe_" >
       <div>
         ${ComponentRenderer.renderEmptyState(

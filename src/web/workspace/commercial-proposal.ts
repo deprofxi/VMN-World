@@ -186,7 +186,7 @@ export function renderProposalBuilderHtml(
  <div class="s-pDOVXGiU2L">
  <div class="s-k5NLeWec9i">
         <div>
- <span class="vmn-badge badge-info s-Dnmmv3HPR8" >SALES PIPELINE &bull; UX-COM-006</span>
+ <span class="vmn-badge badge-info s-Dnmmv3HPR8" >Commercial Proposal Builder <span class="sr-only">&bull; UX-COM-006</span></span>
  <h1 class="s-EnfZSIVIG1">
             Commercial Proposal Builder
           </h1>
@@ -196,7 +196,7 @@ export function renderProposalBuilderHtml(
             Proposal Ref: <code>${escapeHtml(proposal.id)}</code> &bull; Client: <strong>${escapeHtml(proposal.clientName)}</strong> &bull; Canonical deal: <code>${escapeHtml(proposal.dealId)}</code>
           </p>`
  : `<p class="s-zrikAgYqXF">
-            No commercial proposals exist in the canonical store yet. Create one via <code>POST /api/v1/commercial/proposals</code> — this surface renders canonical records only and never invents rows.
+            No commercial proposals have been created yet. Use the proposal form below to draft one — this surface renders canonical records only and never invents rows.
           </p>`
           }
         </div>
@@ -324,7 +324,7 @@ export function renderQuoteReviewHtml(
     return `
  <div class="s-k3X1RRTyyB">
  <div class="vmn-card s-UfkZM9inhs" >
- <span class="vmn-badge badge-warning s-Dnmmv3HPR8" >BINDING MEDIA QUOTE &bull; UX-COM-007</span>
+ <span class="vmn-badge badge-warning s-Dnmmv3HPR8" >Binding Media Quotation <span class="sr-only">&bull; UX-COM-007</span></span>
  <h1 class="s-x9iw23zc1_">
           Broadcasting Quotation &amp; Term Sheet
         </h1>
@@ -367,7 +367,7 @@ export function renderQuoteReviewHtml(
  <div class="vmn-card s-sQ4H2l8IG7" >
  <div class="s-xCgVe5R7-o">
           <div>
- <span class="vmn-badge badge-warning s-Dnmmv3HPR8" >BINDING MEDIA QUOTE &bull; UX-COM-007</span>
+ <span class="vmn-badge badge-warning s-Dnmmv3HPR8" >Binding Media Quotation <span class="sr-only">&bull; UX-COM-007</span></span>
  <h1 class="s-n_bp1PhViu">
               Broadcasting Quotation &amp; Term Sheet
             </h1>

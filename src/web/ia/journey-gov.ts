@@ -73,7 +73,7 @@ function renderGov002(screen: IAScreen): string {
       "gov-privacy-dsar",
       "Data-Subject Rights Request (DSAR) & Litigation Hold Management",
       html`<div class="card mb-3">
-        <p>Process statutory data-subject access, rectification, and erasure requests. Invariant: records under an active legal or audit hold cannot be deleted.</p>
+        <p>Process statutory data-subject access, rectification, and erasure requests. Policy rule: records under an active legal or audit hold cannot be deleted.</p>
       </div>
       ${pendingTable(
         "Active Privacy & Rights Inquiries",

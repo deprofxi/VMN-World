@@ -71,7 +71,7 @@ export function renderAsRunReconcileWizardHtml(ctx: AsRunReconcileContext): stri
       </div>
       <h1 class="text-xl md:text-2xl font-extrabold text-slate-100 mb-1">Broadcast As-Run Log Reconciliation</h1>
       <p class="text-xs text-muted max-w-2xl mb-3 leading-relaxed">
-        FIN-07 Authority: Only fully aired commercials are billable. Discrepancies between planned spots and transmission logs trigger balanced contra journal entries and make-good voucher issuance.
+        Billing Policy: Only fully aired commercials are billable. Discrepancies between scheduled spots and actual playout logs automatically issue compensatory make-good vouchers.
       </p>
 
       <!-- KPI Summary Cards -->
@@ -94,7 +94,7 @@ export function renderAsRunReconcileWizardHtml(ctx: AsRunReconcileContext): stri
         <div class="p-2.5 rounded-lg bg-slate-900/60 border border-muted/10">
           <span class="text-xs text-muted block font-semibold">MAKE-GOOD CREDITED</span>
           <span class="text-base font-bold block mt-0.5 text-red-400">₦${escapeHtml(summary.makeGoodCreditIssuedNgn.toLocaleString())}</span>
-          <span class="text-xs text-muted block mt-0.5">Contra ledger credited</span>
+          <span class="text-xs text-muted block mt-0.5">Make-good credit applied</span>
         </div>
       </div>
     </header>

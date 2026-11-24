@@ -107,7 +107,7 @@ function mediaPickerFieldset(projection: ContentEditorFormProjection): string {
     .join("\n");
   return `
  <fieldset class="s-XFJdNBMojc">
- <legend class="s-BEMbOyJv0J">Media (approved picker &middot; UX-CMS-006)</legend>
+ <legend class="s-BEMbOyJv0J">Media (Approved Asset Picker <span class="sr-only">&middot; UX-CMS-006</span>)</legend>
  <p class="s-hoqXe4PDOU">
           ${escapeHtml(mediaSummary.available)} available asset${mediaSummary.available === 1 ? "" : "s"}${mediaSummary.hiddenUnavailable > 0 ? ` &middot; ${mediaSummary.hiddenUnavailable} hidden (quarantined/failed, shown greyed for audit)` : ""}.
           Selected references are validated server-side against the DAM registry.
@@ -137,7 +137,7 @@ export function renderContentEditorFormHtml(projection: ContentEditorFormProject
 
   return `
  <div class="s-6m0XILdru8">
- <span class="vmn-badge badge-info s-Dnmmv3HPR8" >EDITORIAL &bull; UX-CMS-001..006</span>
+ <span class="vmn-badge badge-info s-Dnmmv3HPR8" >Editorial Suite <span class="sr-only">&bull; UX-CMS-001..006</span></span>
  <h1 class="s-2q3CO5UHYm">${escapeHtml(heading)}</h1>
  <form id="content-editor-form" method="POST" action="${action}" class="s-l3QuyaHqJE">
         ${csrfField}${hiddenId}${metaLine}

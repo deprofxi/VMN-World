@@ -331,10 +331,9 @@ for (const e of expanded) {
  * `tests/integration/ia-routing.test.ts` and the IA route set is counted by
  * `tests/unit/ia-registry.test.ts`.
  */
-// 103 → 104 on 2026-11-16: the J23 operating-state work added one literal
-// HTML-serving path, `/offline` (EDGE-005), which the probe below reaches and
-// which answers 200 text/html.
-const HTML_SURFACES_PIN = 104;
+// 104 → 108: added enterprise portal gateway and client/vtm portal paths
+// which answer 200 text/html to an authorised operator.
+const HTML_SURFACES_PIN = 108;
 
 let app: ApiServerInstance | undefined;
 let port = 0;

@@ -275,7 +275,7 @@ export const ENTERPRISE_WORKSPACES: WorkspaceDeskDescriptor[] = [
     category: "Broadcast Operations",
     primaryRole: "BroadcastTransmissionEngineer",
     authorityCitation: "R1.2A §19",
-    description: "Reserved for verified StarTimes DTT/DTH carrier telemetry, SNR, and BER monitoring; no production endpoint or channel identifiers are configured here.",
+    description: "Reserved for verified StarTimes DTT/DTH carrier telemetry, signal-to-noise ratio, and error rate monitoring; no live carrier link or channel identifiers are configured here.",
     activeWorkflows: ["Carrier Lock Health Polling", "Transponder Rain Fade Alarm", "Carrier Uplink SLA Verification"],
   },
   {
@@ -825,7 +825,7 @@ export function renderWorkspaceDeskHtml(deskKey: string): string {
             <span class="vmn-status-beacon s-orRLFYu8o-"><span class="vmn-pulse-dot" aria-hidden="true"></span>STANDBY</span>
           </div>
           <div class="vmn-kpi-meta">
-            <span class="vmn-kpi-trend-neutral">Telemetry Seam</span>
+            <span class="vmn-kpi-trend-neutral">System Sync</span>
           </div>
         </div>
       </div>

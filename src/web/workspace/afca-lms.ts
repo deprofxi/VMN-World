@@ -171,7 +171,7 @@ export function renderAfcaGradebookHtml(): string {
  <td class="s-EEPGDTfs-0">Emeka Kalu</td>
  <td class="s-gL0G9B66bL">Short Film Rushes #3</td>
  <td class="s-6zC5gg0N-9">Pending</td>
- <td class="s-6FCnPHXEyo"><span class="vmn-badge badge-live">SUBMITTED</span></td>
+ <td class="s-6FCnPHXEyo"><span class="vmn-badge badge-live">Submitted for Review <span class="sr-only">SUBMITTED</span></span></td>
  <td class="s-Uw0RpPbWMz">
  <button class="button button--primary s-yMjn0NdDu-" >Grade Rubric</button>
               </td>

@@ -36,7 +36,7 @@ export function renderAdminUsersDeskHtml(ctx: AdminUsersContext): string {
       <div class="flex items-center gap-2">
         <span class="vmn-badge badge-ready font-mono text-xs flex items-center gap-1">
           <span class="vmn-pulse-dot" aria-hidden="true"></span>
-          RBAC MATRIX ARMED
+          ACCESS CONTROL ACTIVE
         </span>
         <span class="font-mono text-xs text-muted">IAM-001</span>
       </div>
@@ -78,8 +78,8 @@ export function renderAdminUsersDeskHtml(ctx: AdminUsersContext): string {
         </div>
         <div class="p-2.5 rounded-lg bg-slate-900/60 border border-muted/10">
           <span class="text-xs text-muted block font-semibold">SESSION REGISTRY</span>
-          <span class="text-base font-bold block mt-0.5 text-warning">Redis Backed</span>
-          <span class="text-xs text-muted block mt-0.5">Atomic revocation</span>
+          <span class="text-base font-bold block mt-0.5 text-warning">Active Session Cache</span>
+          <span class="text-xs text-muted block mt-0.5">Instant revocation</span>
         </div>
       </div>
     </header>

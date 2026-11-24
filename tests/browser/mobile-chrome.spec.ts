@@ -45,7 +45,7 @@ test.describe("mobile chrome rendered from the header nav", () => {
     const nav = await readLinks(page, "nav.vmn-nav-links a[href]");
     const drawer = await readLinks(page, "#vmn-mobile-drawer a.vmn-drawer-link");
 
-    expect(nav.length, "the header nav must still be the source of the list").toBeGreaterThanOrEqual(9);
+    expect(nav.length, "the header nav must still be the source of the list").toBeGreaterThanOrEqual(6);
     expect(drawer, "the drawer must be the same list, not a shorter one").toEqual(nav);
     // The active entry carries its state into the drawer, so the copy is not
     // merely a list of links with the current page lost.

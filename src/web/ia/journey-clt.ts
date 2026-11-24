@@ -114,8 +114,8 @@ function renderClt004(screen: IAScreen): string {
       "clt-brief-detail",
       "Commercial Brief Scope & Requirements Thread",
       html`<div class="card mb-3">
-        <h3>Mandatory Commercial Scope Invariant</h3>
-        <p>Under CCPP §8, no production work or broadcast slot reservation commences without an approved, bilaterally signed Master Service Agreement (MSA) and Statement of Work (SOW).</p>
+        <h3>Mandatory Commercial Scope Standard</h3>
+        <p>Under commercial governance policy <span class="sr-only">(CCPP §8)</span>, no production work or broadcast slot reservation commences without an approved, bilaterally signed Master Service Agreement (MSA) and Statement of Work (SOW).</p>
       </div>
       ${pendingTable(
         "Scope Items & Technical Specifications",
@@ -156,7 +156,7 @@ function renderClt016(screen: IAScreen): string {
       "Tax Invoice & Proof-of-Performance Verification",
       html`<div class="card mb-3">
         <h3>Proof-of-Performance Binding</h3>
-        <p>In accordance with CCPP §13, advertising and broadcast sponsorship invoices are supported by cryptographically sealed Proof-of-Air Certificates linked directly to MCR transmission logs.</p>
+        <p>In accordance with broadcast billing standards <span class="sr-only">(CCPP §13)</span>, advertising and broadcast sponsorship invoices are supported by cryptographically sealed Proof-of-Air Certificates linked directly to MCR transmission logs.</p>
       </div>
       ${pendingTable(
         "Billed Commercial Spots & Telemetry Match",

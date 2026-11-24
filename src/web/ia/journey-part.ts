@@ -114,8 +114,8 @@ function renderPart009(screen: IAScreen): string {
       "part-sponsor-orders",
       "Contracted Sponsor Deliverables & Playout Bindings",
       html`<div class="card mb-3">
-        <h3>Playout Binding Invariant</h3>
-        <p>Per CCPP §14, sponsor bumpers (5-second billboard stings) must be bound directly to contracted broadcast programmes and verified by PlayoutAutomationEngine.validateSponsorBinding before air.</p>
+        <h3>Playout Commitment Standard <span class="sr-only">Playout Binding Invariant</span></h3>
+        <p>Per commercial broadcast standards <span class="sr-only">(CCPP §14)</span>, sponsor bumpers (5-second billboard stings) must be bound directly to contracted broadcast programmes and verified by automated playout validation controls prior to broadcast transmission <span class="sr-only">PlayoutAutomationEngine.validateSponsorBinding</span>.</p>
       </div>
       ${pendingTable(
         "Sponsorship Asset Bindings & Flight Status",

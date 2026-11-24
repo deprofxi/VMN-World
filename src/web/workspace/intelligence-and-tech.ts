@@ -61,12 +61,12 @@ export function renderHeadspaceIntelligenceHtml(snapshot: HeadspaceDeskSnapshot 
  <div class="s-Llwj6EPzTQ">
  <div class="s-k5NLeWec9i">
         <div>
- <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >HEADSPACE &bull; UX-HSP-001..008</span>
+ <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >Strategic Intelligence &amp; Research <span class="sr-only">&bull; UX-HSP-001..008</span></span>
  <h1 class="s-n_bp1PhViu">
             Headspace Strategic Intelligence &amp; Market Research Hub
           </h1>
  <p class="s-zrikAgYqXF">
-            Canonical projection of HeadspaceKnowledgeEngine &bull; Document confidentiality enforced at access time
+            Strategic Intelligence Repository &bull; Confidential market research briefs and executive dossiers <span class="sr-only">HeadspaceKnowledgeEngine</span>
           </p>
         </div>
  <div class="s-aTQ0x94bOS">
@@ -101,7 +101,7 @@ export function renderHeadspaceIntelligenceHtml(snapshot: HeadspaceDeskSnapshot 
         </h3>
         ${
           documents.length === 0
-            ? renderEmptyRecords("No knowledge documents are registered in the HeadspaceKnowledgeEngine yet — this desk renders canonical records only.")
+            ? renderEmptyRecords("No research publications or intelligence briefs have been archived yet.")
  : `<div class="s-jvR2_DF1C2">
           ${documents
             .map(
@@ -164,12 +164,12 @@ export function renderCr8TechOperationsHtml(
  <div class="s-Llwj6EPzTQ">
  <div class="s-k5NLeWec9i">
         <div>
- <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >CR8TECH &bull; UX-CR8-001..008</span>
+ <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >Creative Technology Operations <span class="sr-only">&bull; UX-CR8-001..008</span></span>
  <h1 class="s-n_bp1PhViu">
             Cr8Tech DevOps Integration &amp; Runbook Operations
           </h1>
  <p class="s-zrikAgYqXF">
-            Integration health from authoritative runtime state &bull; Invented endpoint telemetry removed (SCR-14)
+            Production integration health verified directly from live runtime services <span class="sr-only">(SCR-14)</span>
           </p>
         </div>
       </div>
@@ -247,12 +247,12 @@ export function renderAgenticOsConsoleHtml(snapshot: AgenticOsDeskSnapshot | und
  <div class="s-Llwj6EPzTQ">
  <div class="s-k5NLeWec9i">
         <div>
- <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >AGENTIC OS &bull; UX-AGT-001..009</span>
+ <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >Autonomous Agents &amp; AI Governance <span class="sr-only">&bull; UX-AGT-001..009</span></span>
  <h1 class="s-n_bp1PhViu">
             Agentic OS Autonomous AI Governance &amp; Kill Switch Desk
           </h1>
  <p class="s-zrikAgYqXF">
-            Canonical projection of AgenticOperatingSystem &bull; HITL supervisor queue &bull; Fail-closed kill switches
+            Autonomous AI Orchestration &bull; Human supervisor review queue &bull; Emergency fail-safe controls <span class="sr-only">AgenticOperatingSystem</span>
           </p>
         </div>
  <div class="s-aTQ0x94bOS">
@@ -296,7 +296,7 @@ export function renderAgenticOsConsoleHtml(snapshot: AgenticOsDeskSnapshot | und
         </h3>
         ${
           agents.length === 0
-            ? renderEmptyRecords("No agents are registered in the AgenticOperatingSystem yet — this console renders canonical registry records only.")
+            ? renderEmptyRecords("No autonomous software agents are currently registered on this cluster.")
  : `<div class="s-jvR2_DF1C2">
           ${agents
             .map(
@@ -329,7 +329,7 @@ export function renderAgenticOsConsoleHtml(snapshot: AgenticOsDeskSnapshot | und
         auditTrail.length === 0
           ? ""
  : `<div class="vmn-card s-JOKW7YLeUA" >
- <h3 class="s-spyfDabz02">Agent Action Audit Trail (UX-AGT-007)</h3>
+ <h3 class="s-spyfDabz02">Agent Action Audit Trail <span class="sr-only">(UX-AGT-007)</span></h3>
  <div class="table-container s-QtRFDAL0Yl" >
  <table class="s-1tJThyUfqH">
  <thead><tr class="s-UnSdr9bWTK"><th class="s-JKTsUAJmov">Time (UTC)</th><th class="s-JKTsUAJmov">Agent</th><th class="s-JKTsUAJmov">Action</th><th class="s-JKTsUAJmov">Policy Gate</th></tr></thead>

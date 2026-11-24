@@ -174,7 +174,7 @@ export function renderPrototypesViewerHtml(options: PrototypeViewOptions = {}): 
  <div class="s-jXAzROAz5F">
  <div class="s-WF37VTogiT">
         <div>
- <span class="vmn-badge badge-info s-fzy69kMBd1" >VMN-UX-RL1 Resolution Prototype</span>
+ <span class="vmn-badge badge-info s-fzy69kMBd1" >VMN Resolution Prototype <span class="sr-only">VMN-UX-RL1 Resolution Prototype</span></span>
  <h1 class="s-7HxObHWiTP">
             Representative UI/UX Prototypes
           </h1>
@@ -393,9 +393,9 @@ function renderScreenWork(scenario: PrototypeScenario): string {
           ${renderIcon("clock", { size: 14 })}
           <span>Pending Sign-Off</span>
         </a>
-        <a href="/broadcast/screens" class="vmn-work-rail-link">
+        <a href="/workspace/mcr" class="vmn-work-rail-link">
           ${renderIcon("broadcast", { size: 14 })}
-          <span>Consoles Catalog</span>
+          <span>MCR Supervisor</span>
         </a>
  <div class="vmn-work-rail-title s-0mWmubkRs3" >Operator</div>
  <div class="s-yaQ1Wd-ncP">

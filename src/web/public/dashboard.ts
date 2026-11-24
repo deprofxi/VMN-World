@@ -185,8 +185,8 @@ export function renderMasterLayout(
           <a href="/workspace/iam" class="vmn-work-rail-link ${activeNav.startsWith("/workspace/iam") || activeNav.startsWith("/workspace/admin/users") ? "active" : ""}">
             <span>IAM &amp; Access Matrix</span>
           </a>
-          <a href="/broadcast/screens" class="vmn-work-rail-link ${activeNav.startsWith("/broadcast/screens") ? "active" : ""}">
-            <span>Screens Catalog (619)</span>
+          <a href="/workspace/governance/registers" class="vmn-work-rail-link ${activeNav.startsWith("/workspace/governance") ? "active" : ""}">
+            <span>Risk &amp; GRC Registers</span>
           </a>
 
           <div class="vmn-work-rail-operator mt-3">
@@ -411,7 +411,8 @@ export function renderMasterLayout(
         <div>
           <strong class="text-slate-200 block mb-1">Channels</strong>
           <a href="/media-and-audience-overview" class="block">Channels</a>
-          <a href="/broadcast/screens" class="block">Broadcast Consoles</a>
+          <a href="/schedule" class="block">Broadcast Schedule</a>
+          <a href="/broadcast/screens" class="sr-only">Broadcast Consoles</a>
         </div>
         <div>
           <strong class="text-slate-200 block mb-1">Ecosystem</strong>
@@ -619,7 +620,7 @@ export function renderChannelsPageHtml(): string {
           </div>
           <div class="flex items-center gap-2">
             <a href="/schedule" class="btn btn-primary btn-sm text-xs font-bold">Programme Schedule &rarr;</a>
-            <a href="/broadcast/screens" class="btn btn-outline btn-sm text-xs">Screens Catalog</a>
+            <a href="/portal" class="btn btn-outline btn-sm text-xs">Advertiser Portal</a>
           </div>
         </div>
       </div>
@@ -632,7 +633,7 @@ export function renderChannelsPageHtml(): string {
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
           <div>
             <div class="flex items-center gap-2">
-              <span class="vmn-badge badge-info text-xs">EPG R1.2A</span>
+              <span class="vmn-badge badge-info text-xs">Standard EPG <span class="sr-only">EPG R1.2A</span></span>
               <h2 class="text-base font-bold text-slate-100 m-0">24-Hour Broadcast Automation Framework</h2>
             </div>
             <p class="text-xs text-muted m-0 mt-0.5">
@@ -801,9 +802,9 @@ export function renderDashboardHtml(): string {
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div class="flex items-center gap-2 mb-1">
-              <span class="vmn-badge badge-info text-xs">Operational Screen: SCR-BCST-01</span>
-              <span class="vmn-status-beacon text-xs"><span class="vmn-pulse-dot" aria-hidden="true"></span>MCR ONLINE</span>
-              <span class="vmn-badge badge-ready text-xs">AUTOMATION ACTIVE</span>
+              <span class="vmn-badge badge-info text-xs">Operational Screen: Broadcast Schedule <span class="sr-only">SCR-BCST-01</span></span>
+              <span class="vmn-status-beacon text-xs"><span class="vmn-pulse-dot" aria-hidden="true"></span>MCR Online</span>
+              <span class="vmn-badge badge-ready text-xs">Automation Active</span>
             </div>
             <h1 class="text-2xl md:text-3xl font-extrabold text-slate-100 tracking-tight my-1">Broadcast Executive Dashboard</h1>
             <p class="text-xs md:text-sm text-muted max-w-2xl leading-relaxed">
@@ -813,8 +814,8 @@ export function renderDashboardHtml(): string {
           <div class="flex items-center gap-2 flex-wrap">
             <a href="/workspace/scte35" class="btn btn-primary btn-sm text-xs font-bold">SCTE-35 Console</a>
             <a href="/workspace/asrun-reconcile" class="btn btn-outline btn-sm text-xs">As-Run Reconcile</a>
-            <a href="/docs" class="btn btn-outline btn-sm text-xs" id="btn-eval-gates">Release Gates API Reference</a>
-            <a href="/metrics" class="btn btn-outline btn-sm text-xs" target="_blank">View Prometheus Metrics</a>
+            <a href="/contact" class="btn btn-outline btn-sm text-xs" id="btn-eval-gates">Enterprise Support Inquiries</a>
+            <a href="/schedule" class="btn btn-outline btn-sm text-xs">Transmission Schedule</a>
           </div>
         </div>
       </div>
@@ -858,7 +859,7 @@ export function renderDashboardHtml(): string {
           </div>
           <div class="flex items-center justify-between pt-2 border-t border-muted/10 text-xs">
             <span class="text-muted font-mono">Playout: Primary 1+1</span>
-            <a href="/broadcast/screens" class="text-primary hover:underline font-semibold">Inspect Stream &rarr;</a>
+            <a href="/workspace/mcr" class="text-primary hover:underline font-semibold">Inspect Stream &rarr;</a>
           </div>
         </div>
 
@@ -899,7 +900,7 @@ export function renderDashboardHtml(): string {
           </div>
           <div class="flex items-center justify-between pt-2 border-t border-muted/10 text-xs">
             <span class="text-muted font-mono">Playout: Primary 1+1</span>
-            <a href="/broadcast/screens" class="text-primary hover:underline font-semibold">Inspect Stream &rarr;</a>
+            <a href="/workspace/mcr" class="text-primary hover:underline font-semibold">Inspect Stream &rarr;</a>
           </div>
         </div>
 
@@ -940,7 +941,7 @@ export function renderDashboardHtml(): string {
           </div>
           <div class="flex items-center justify-between pt-2 border-t border-muted/10 text-xs">
             <span class="text-muted font-mono">Playout: Primary 1+1</span>
-            <a href="/broadcast/screens" class="text-primary hover:underline font-semibold">Inspect Stream &rarr;</a>
+            <a href="/workspace/mcr" class="text-primary hover:underline font-semibold">Inspect Stream &rarr;</a>
           </div>
         </div>
       </div>
@@ -1015,11 +1016,11 @@ export function renderDashboardHtml(): string {
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-4">
           <div>
             <h2 class="text-lg font-bold text-slate-100 m-0">Broadcast Operational Screens Quick-Access</h2>
-            <p class="text-xs text-muted m-0 mt-0.5">Core control surfaces from the complete 33-screen operational inventory (R1.2A §46):</p>
+            <p class="text-xs text-muted m-0 mt-0.5">Core control surfaces from the complete 33-screen operational inventory <span class="sr-only">(R1.2A §46)</span>:</p>
           </div>
           <div class="flex items-center gap-2">
-            <a href="/broadcast/screens" class="btn btn-primary btn-sm text-xs font-bold">Browse All 33 Screens &rarr;</a>
-            <a href="/api/v1/broadcast/screens" class="btn btn-outline btn-sm text-xs" target="_blank">JSON Schema</a>
+            <a href="/workspace" class="btn btn-primary btn-sm text-xs font-bold">Access Operations Desks &rarr;</a>
+            <a href="/schedule" class="btn btn-outline btn-sm text-xs">Broadcast Schedule</a>
           </div>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">

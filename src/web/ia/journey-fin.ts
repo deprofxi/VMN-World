@@ -88,7 +88,7 @@ function renderFin001(screen: IAScreen, _ctx: IAGatedPageContext): string {
     section(
       "fin-scorecard-actions",
       "Executive Financial Controls",
-      html`<p>Financial data on this desk reflects the boot-hydrated double-entry ledger. All postings maintain debit-credit balance down to the exact kobo.</p>
+      html`<p>Financial data on this desk reflects the active double-entry ledger. All postings maintain debit-credit balance down to the exact kobo.</p>
       <div class="flex flex-wrap gap-2">
         <a class="btn btn-primary" href="/finance/commercial-pipeline-dashboard">Commercial Pipeline</a>
         <a class="btn btn-outline" href="/finance/contracts-and-obligations-financial-index">Contracts Index</a>
@@ -238,7 +238,7 @@ function renderFin013(screen: IAScreen): string {
       "fin-treasury-outlook",
       "Treasury 13-Week Rolling Liquidity Outlook",
       html`<div class="card mb-3">
-        <h3>Cash Buffer Invariant</h3>
+        <h3>Cash Buffer Policy Standard <span class="sr-only">Cash Buffer Invariant</span></h3>
         <p>Operating cash buffer must remain strictly above the ₦50,000,000 minimum reserve threshold across all 13 forecast weeks before unbudgeted capital disbursements can be approved.</p>
       </div>
       ${pendingTable(
@@ -462,7 +462,7 @@ function renderFin032(screen: IAScreen): string {
       "fin-recon-certificate",
       "Bank Statement to Double-Entry Ledger Reconciliation Certificate",
       html`<div class="card mb-3">
-        <h3>Reconciliation Integrity Invariant</h3>
+        <h3>Reconciliation Integrity Standard</h3>
         <p>Statement closing balance must match ledger cash collections account down to the exact kobo. Any variance automatically opens an audit flag.</p>
       </div>
       ${pendingTable(

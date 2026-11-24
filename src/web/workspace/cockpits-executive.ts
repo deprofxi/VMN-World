@@ -371,32 +371,32 @@ export function renderAuditCockpit(): string {
               <tr class="border-b border-muted/10 hover:bg-slate-900/40">
                 <td class="py-2 font-mono text-primary font-bold">#1415 (HEAD)</td>
                 <td class="font-mono text-muted">2026-11-21 14:12:08</td>
-                <td><span class="vmn-badge badge-info text-xs">SCTE35_SPLICE_INJECTED</span></td>
-                <td class="font-mono text-slate-300">usr_mco_playout</td>
+                <td><span class="vmn-badge badge-info text-xs">Ad Splice Injected <span class="sr-only">SCTE35_SPLICE_INJECTED</span></span></td>
+                <td class="font-mono text-slate-300">MCO Playout Lead <span class="sr-only">(usr_mco_playout)</span></td>
                 <td class="font-mono text-xs text-muted">9b4f2c81...e201a4bc</td>
                 <td class="text-right"><span class="vmn-badge badge-ready text-xs">VALID</span></td>
               </tr>
               <tr class="border-b border-muted/10 hover:bg-slate-900/40">
                 <td class="py-2 font-mono text-primary font-bold">#1414</td>
                 <td class="font-mono text-muted">2026-11-21 13:45:22</td>
-                <td><span class="vmn-badge badge-success text-xs">PAYOUT_DUAL_AUTH_KEY2</span></td>
-                <td class="font-mono text-slate-300">usr_cfo_signoff</td>
+                <td><span class="vmn-badge badge-success text-xs">Payout Approved (Dual-Auth) <span class="sr-only">PAYOUT_DUAL_AUTH_KEY2</span></span></td>
+                <td class="font-mono text-slate-300">CFO Signoff <span class="sr-only">(usr_cfo_signoff)</span></td>
                 <td class="font-mono text-xs text-muted">4a17d890...f312c980</td>
                 <td class="text-right"><span class="vmn-badge badge-ready text-xs">VALID</span></td>
               </tr>
               <tr class="border-b border-muted/10 hover:bg-slate-900/40">
                 <td class="py-2 font-mono text-primary font-bold">#1413</td>
                 <td class="font-mono text-muted">2026-11-21 12:30:15</td>
-                <td><span class="vmn-badge badge-ready text-xs">SCHEDULE_DAY_FROZEN_48H</span></td>
-                <td class="font-mono text-slate-300">usr_scheduler_lead</td>
+                <td><span class="vmn-badge badge-ready text-xs">Schedule Locked (48h) <span class="sr-only">SCHEDULE_DAY_FROZEN_48H</span></span></td>
+                <td class="font-mono text-slate-300">Scheduler Lead <span class="sr-only">(usr_scheduler_lead)</span></td>
                 <td class="font-mono text-xs text-muted">8c3210aa...1904bb77</td>
                 <td class="text-right"><span class="vmn-badge badge-ready text-xs">VALID</span></td>
               </tr>
               <tr class="hover:bg-slate-900/40">
                 <td class="py-2 font-mono text-primary font-bold">#1412</td>
                 <td class="font-mono text-muted">2026-11-21 11:15:00</td>
-                <td><span class="vmn-badge badge-outline text-xs">COMMERCIAL_DEAL_SIGNED</span></td>
-                <td class="font-mono text-slate-300">usr_ad_sales_mgr</td>
+                <td><span class="vmn-badge badge-outline text-xs">Commercial Contract Signed <span class="sr-only">COMMERCIAL_DEAL_SIGNED</span></span></td>
+                <td class="font-mono text-slate-300">Ad Sales Manager <span class="sr-only">(usr_ad_sales_mgr)</span></td>
                 <td class="font-mono text-xs text-muted">1d99e034...7761ef22</td>
                 <td class="text-right"><span class="vmn-badge badge-ready text-xs">VALID</span></td>
               </tr>
@@ -534,7 +534,7 @@ export function renderLegalCockpit(): string {
           <h2 class="text-xl font-bold m-0 text-slate-100">General Counsel &amp; Legal Affairs Chamber</h2>
         </div>
         <div class="flex items-center gap-2">
-          <a href="/broadcast/rights" class="btn btn-outline btn-sm text-xs font-bold">Clear CA-32 Rights &rarr;</a>
+          <a href="/broadcast/rights" class="btn btn-outline btn-sm text-xs font-bold">Clear Broadcast Rights <span class="sr-only">CA-32</span> &rarr;</a>
         </div>
       </div>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
@@ -544,7 +544,7 @@ export function renderLegalCockpit(): string {
           <span class="text-xs text-muted block mt-0.5">Zero Open Disputes</span>
         </div>
         <div class="p-3 rounded-lg bg-slate-900/60 border border-muted/10">
-          <span class="text-xs text-muted block font-semibold">CA-32 CLEARANCES</span>
+          <span class="text-xs text-muted block font-semibold">Broadcast Rights Clearance <span class="sr-only">CA-32</span></span>
           <span class="text-lg font-bold block mt-1 text-success">100% Cleared</span>
           <span class="text-xs text-muted block mt-0.5">Music &amp; Archival Footage</span>
         </div>

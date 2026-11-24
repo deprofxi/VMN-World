@@ -54,7 +54,7 @@ export function renderBroadcastScheduleReviewHtml(options: {
  <div class="s-dJGia7etx6">
  <div class="s-k5NLeWec9i">
         <div>
- <span class="vmn-badge badge-live s-Dnmmv3HPR8" >OPERATIONS &bull; UX-BR-012</span>
+ <span class="vmn-badge badge-live s-Dnmmv3HPR8" >Playout Operations Desk <span class="sr-only">&bull; UX-BR-012</span></span>
  <h1 class="s-n_bp1PhViu">
             Broadcast Master Schedule Review
           </h1>
@@ -201,7 +201,7 @@ export function renderRightsReviewRequestHtml(options: {
  <div class="s-jNPXlgaoWl">
  <div class="vmn-card s-sQ4H2l8IG7" >
  <div class="s-jXAzROAz5F">
- <span class="vmn-badge badge-warning s-Dnmmv3HPR8" >GOVERNANCE &bull; UX-GOV-004</span>
+ <span class="vmn-badge badge-warning s-Dnmmv3HPR8" >Broadcast Standards &amp; Compliance <span class="sr-only">&bull; UX-GOV-004</span></span>
  <h1 class="s-n_bp1PhViu">
             Expedited Rights Review Request
           </h1>
@@ -312,7 +312,7 @@ export function renderRightsReviewRequestHtml(options: {
                 name="observedBlocker"
                 type="text"
                 required
-                placeholder="The gate result being reviewed, e.g. POST_EXPIRY_DATE — slot ends after the recorded expiry"
+                placeholder="Describe the clearance issue (e.g. Broadcast window expired prior to scheduled airtime)"
                 class="vmn-input"
               />
             </div>
@@ -384,7 +384,7 @@ export function renderPoaExceptionsWorkbenchHtml(
  <div class="s-dJGia7etx6">
  <div class="s-k5NLeWec9i">
         <div>
- <span class="vmn-badge badge-warning s-Dnmmv3HPR8" >RECONCILIATION &bull; UX-BR-030 / UX-GOV-006</span>
+ <span class="vmn-badge badge-warning s-Dnmmv3HPR8" >As-Run Reconciliation Desk <span class="sr-only">&bull; UX-BR-030 / UX-GOV-006</span></span>
  <h1 class="s-n_bp1PhViu">
             Proof-of-Air Exceptions Workbench
           </h1>
@@ -555,7 +555,7 @@ export function renderContentReviewAndPublicationHtml(options: { publishedId?: s
  <div class="s-dJGia7etx6">
  <div class="s-k5NLeWec9i">
         <div>
- <span class="vmn-badge badge-info s-Dnmmv3HPR8" >EDITORIAL &bull; UX-CMS-001..008</span>
+ <span class="vmn-badge badge-info s-Dnmmv3HPR8" >Media Editorial Library <span class="sr-only">&bull; UX-CMS-001..008</span></span>
  <h1 class="s-n_bp1PhViu">
             Editorial Review &amp; Syndication Publication
           </h1>
@@ -588,7 +588,7 @@ export function renderContentReviewAndPublicationHtml(options: { publishedId?: s
  <th class="s-gSzyZDrSbr">NBC Rating</th>
  <th class="s-gSzyZDrSbr">Languages</th>
  <th class="s-gSzyZDrSbr">Editorial State</th>
- <th class="s-gSzyZDrSbr">Media references (UX-CMS-006)</th>
+ <th class="s-gSzyZDrSbr">Media Assets <span class="sr-only">Media references (UX-CMS-006)</span></th>
  <th class="s-i6k8o9YRzt">Action</th>
             </tr>
           </thead>
@@ -674,7 +674,7 @@ export function renderApprovalReviewHtml(user?: SessionUser, options: { decidedI
  <div class="s-dJGia7etx6">
  <div class="s-k5NLeWec9i">
         <div>
- <span class="vmn-badge badge-warning s-Dnmmv3HPR8" >FOUR-EYES GOVERNANCE &bull; UX-GOV-001/002</span>
+ <span class="vmn-badge badge-warning s-Dnmmv3HPR8" >Dual-Authorization Governance <span class="sr-only">&bull; UX-GOV-001/002</span></span>
  <h1 class="s-n_bp1PhViu">
             Pending Approvals &amp; Executive Authorization
           </h1>

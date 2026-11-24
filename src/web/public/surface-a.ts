@@ -71,7 +71,7 @@ export function renderChannelDetailPageHtml(
         </div>
  <div class="s-numIUTWRO1">
           <a href="/azeebo" class="btn btn-outline s-lNuV4bA1-6">Azeebo+ service information &rarr;</a>
- <a href="/broadcast/screens/SCR-BCST-14" class="btn btn-outline" >EPG Syndication Spec</a>
+ <a href="/schedule" class="btn btn-outline" >EPG Syndication Schedule</a>
         </div>
       </div>
     </div>
@@ -81,7 +81,7 @@ export function renderChannelDetailPageHtml(
       <div class="s-_jH-4CIolt">
         <div class="s-o-By174i2F">
           <span class="vmn-badge badge-ready font-mono text-xs s-JlPFyo8Oua">
-            <span class="vmn-pulse-dot s-3RCx-JyPrv"></span> LIVE BROADCAST
+            <span class="vmn-pulse-dot s-3RCx-JyPrv"></span> Live Broadcast
           </span>
           <span class="s-feHkHpaXrp">1080p50 • H.264 • 48kHz Stereo</span>
         </div>

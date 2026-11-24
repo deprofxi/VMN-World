@@ -156,7 +156,7 @@ function privacy(screen: IAScreen): string {
       <p>Working paths today:</p>
       <ul>
         <li><a href="/privacy">Privacy notice and data-subject rights</a></li>
-        <li><code>POST /api/v1/privacy/export-request</code> — a data-subject export request, recorded as a case.</li>
+        <li>Data privacy export workflow — schedules formal statutory data-subject archives.</li>
       </ul>
       <p class="text-muted">A high-risk processing permission is granted by the accountable privacy role,
       never by the data subject's own screen and never by this page.</p>`

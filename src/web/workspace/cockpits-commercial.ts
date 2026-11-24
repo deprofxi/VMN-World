@@ -257,8 +257,8 @@ export function renderContractsCockpit(): string {
                 <td class="font-bold text-slate-100">Flutterwave Tech Hour</td>
                 <td>NXTR Title Sponsor</td>
                 <td class="font-mono text-slate-200">₦18,000,000</td>
-                <td><span class="vmn-badge badge-warning text-xs">PENDING SIGN</span></td>
-                <td><span class="vmn-badge badge-warning text-xs">PENDING LEGAL</span></td>
+                <td><span class="vmn-badge badge-warning text-xs">Awaiting Signature</span></td>
+                <td><span class="vmn-badge badge-warning text-xs">Under Legal Review</span></td>
                 <td class="text-right">
                   <form method="POST" action="/api/v1/commercial/deals/DEAL-2026-48/advance" class="inline">
                     <button type="submit" class="btn btn-primary btn-xs" data-toast="Deal advanced to signed" data-toast-type="success">Sign Off</button>
@@ -295,13 +295,13 @@ export function renderBankreconCockpit(): string {
       <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div class="flex items-center gap-3">
           <span class="vmn-badge badge-ready font-mono text-xs">TREASURY RECON</span>
-          <h2 class="text-xl font-bold m-0 text-slate-100">Bank Statement Automated Reconciliation (MT940/NIP)</h2>
+          <h2 class="text-xl font-bold m-0 text-slate-100">Automated Bank Statement Reconciliation (Electronic Feeds) <span class="sr-only">(MT940/NIP)</span></h2>
         </div>
         <div class="flex items-center gap-2">
           <a href="/workspace/finance" class="btn btn-outline btn-sm text-xs font-bold">Finance Console &rarr;</a>
           <button type="button" class="btn btn-primary btn-sm text-xs font-bold" data-toast="MT940 automated parse initiated" data-toast-type="info">
             ${renderIcon("upload", { size: 14 })}
-            <span>Upload MT940 File</span>
+            <span>Upload Bank Statement File</span>
           </button>
         </div>
       </div>
@@ -318,7 +318,7 @@ export function renderBankreconCockpit(): string {
         </div>
         <div class="p-3 rounded-lg bg-slate-900/60 border border-muted/10">
           <span class="text-xs text-muted block font-semibold">BANK FEED TYPE</span>
-          <span class="text-lg font-bold block mt-1 text-primary">MT940 / CAMT.053</span>
+          <span class="text-lg font-bold block mt-1 text-primary">Standard Bank Statement (MT940 / CAMT.053)</span>
           <span class="text-xs text-muted block mt-0.5">Direct SFTP Feed</span>
         </div>
         <div class="p-3 rounded-lg bg-slate-900/60 border border-muted/10">
@@ -331,7 +331,7 @@ export function renderBankreconCockpit(): string {
       <!-- Live Matched Bank Statement Lines -->
       <div class="card p-3 rounded-lg bg-slate-950/60 border border-muted/10">
         <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
-          <span class="text-xs font-bold text-slate-200">Reconciled MT940 Bank Inflow Statements</span>
+          <span class="text-xs font-bold text-slate-200">Reconciled Bank Inflow Statements</span>
           <span class="vmn-badge badge-ready text-xs">FirstBank &bull; Zenith Bank NIP</span>
         </div>
         <div class="table-responsive">
@@ -442,12 +442,12 @@ export function renderCr8techCockpit(): string {
         <div class="p-3 rounded-lg bg-slate-900/60 border border-muted/10">
           <span class="text-xs text-muted block font-semibold">CACHE HIT RATIO</span>
           <span class="text-lg font-bold block mt-1 text-success">98.6%</span>
-          <span class="text-xs text-muted block mt-0.5">Redis Distributed</span>
+          <span class="text-xs text-muted block mt-0.5">High-Speed Distributed Cache</span>
         </div>
         <div class="p-3 rounded-lg bg-slate-900/60 border border-muted/10">
           <span class="text-xs text-muted block font-semibold">DB CONNECTION POOL</span>
           <span class="text-lg font-bold block mt-1 text-slate-100">6 / 50 Active</span>
-          <span class="text-xs text-muted block mt-0.5">PostgreSQL Resilient</span>
+          <span class="text-xs text-muted block mt-0.5">Resilient Primary Ledger</span>
         </div>
         <div class="p-3 rounded-lg bg-slate-900/60 border border-muted/10">
           <span class="text-xs text-muted block font-semibold">ZERO-DEP ARCHITECTURE</span>
@@ -481,7 +481,7 @@ export function renderRightsCockpit(): string {
           <span class="text-xs text-muted block mt-0.5">Full Chain-of-Title</span>
         </div>
         <div class="p-3 rounded-lg bg-slate-900/60 border border-muted/10">
-          <span class="text-xs text-muted block font-semibold">CA-32 CLEARANCES</span>
+          <span class="text-xs text-muted block font-semibold">Broadcast Rights Clearance <span class="sr-only">CA-32</span></span>
           <span class="text-lg font-bold block mt-1 text-success">100% Cleared</span>
           <span class="text-xs text-muted block mt-0.5">Zero Copyright Infringements</span>
         </div>
@@ -566,8 +566,8 @@ export function renderSecurityCockpit(): string {
         </div>
         <div class="p-3 rounded-lg bg-slate-900/60 border border-muted/10">
           <span class="text-xs text-muted block font-semibold">SESSION INTEGRITY</span>
-          <span class="text-lg font-bold block mt-1 text-primary">HMAC-SHA256</span>
-          <span class="text-xs text-muted block mt-0.5">Stateless + Revocable</span>
+          <span class="text-lg font-bold block mt-1 text-primary">Cryptographic Seal</span>
+          <span class="text-xs text-muted block mt-0.5">Stateless HMAC-SHA256 &bull; Revocable</span>
         </div>
         <div class="p-3 rounded-lg bg-slate-900/60 border border-muted/10">
           <span class="text-xs text-muted block font-semibold">AUDIT LOG ENTRIES</span>

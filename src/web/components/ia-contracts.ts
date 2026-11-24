@@ -272,7 +272,7 @@ export function candy18PlusEligibilityGate(props: {
         ${props.verified ? "AGE VERIFIED (18+)" : "VERIFICATION REQUIRED"}
       </span>
     </div>
-    <p class="text-xs text-muted mb-3">Strict boundary invariant: Candy Cast audition submission is completely separate from Candy Plus consumer subscriptions. Minors are unconditionally prohibited.</p>
+    <p class="text-xs text-muted mb-3">Strict operational boundary: Candy Cast audition submission is completely separate from Candy Plus consumer subscriptions. Minors are unconditionally prohibited.</p>
     <div class="p-3 bg-surface-sunken card text-xs mb-3">
       <label class="flex items-center gap-2">
         <input type="checkbox" ${props.termsAccepted ? "checked" : ""} disabled />

@@ -59,12 +59,20 @@ export function statusFromStage(stage: SalesStage): ClientProject["status"] {
 
 export function formatStageLabel(stage: SalesStage): string {
   switch (stage) {
-    case "PROPOSAL_SHARED":
+    case "LEAD":
+      return "Initial Inquiry";
+    case "OPPORTUNITY":
+      return "Opportunity Qualified";
+    case "PROPOSAL":
       return "Proposal Shared";
+    case "NEGOTIATION":
+      return "Commercial Negotiation";
     case "CONTRACT_SIGNED":
       return "Contract Signed";
-    case "DEPOSIT_COLLECTED":
+    case "DEPOSIT_RECEIVED":
       return "Deposit Received";
+    case "OPERATIONAL_DELIVERY":
+      return "Broadcast Delivery";
     case "INVOICED":
       return "Invoice Issued";
     case "CASH_COLLECTED":

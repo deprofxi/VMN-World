@@ -62,7 +62,7 @@ export function renderPartnerPortalHtml(snapshot: PartnerPortalSnapshot | undefi
  <div class="s-Llwj6EPzTQ">
  <div class="s-k5NLeWec9i">
         <div>
- <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >PARTNER PORTAL &bull; UX-POR-003</span>
+ <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >Strategic Partner Portal <span class="sr-only">&bull; UX-POR-003</span></span>
  <h1 class="s-n_bp1PhViu">
             Strategic Partner &amp; Broadcaster Counterparty Desk
           </h1>
@@ -151,7 +151,7 @@ export function renderCreatorPortalHtml(snapshot: CreatorPortalSnapshot | undefi
  <div class="s-Llwj6EPzTQ">
  <div class="s-k5NLeWec9i">
         <div>
- <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >CREATOR &bull; UX-POR-004</span>
+ <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >Creator Royalty Portal <span class="sr-only">&bull; UX-POR-004</span></span>
  <h1 class="s-n_bp1PhViu">
             Creator Earnings &amp; 7-Way Royalty Settlement Portal
           </h1>
@@ -240,7 +240,7 @@ export function renderVendorPortalHtml(snapshot: VendorPortalSnapshot | undefine
  <div class="s-Llwj6EPzTQ">
  <div class="s-k5NLeWec9i">
         <div>
- <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >VENDOR &bull; UX-POR-005</span>
+ <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >Vendor Procurement Portal <span class="sr-only">&bull; UX-POR-005</span></span>
  <h1 class="s-n_bp1PhViu">
             Vendor Procurement &amp; Invoice Submission Portal
           </h1>
@@ -256,7 +256,7 @@ export function renderVendorPortalHtml(snapshot: VendorPortalSnapshot | undefine
         </h3>
         ${
           pos.length === 0
-            ? renderEmptyRecords(`The canonical procurement record store does not yet hold purchase orders for vendor '${escapeHtml(vendorId)}' — the PO/invoice domain is a recorded deferral (DEC-RL1-SCOPE-001). This portal renders canonical records only and does not fabricate POs.`)
+            ? renderEmptyRecords(`The canonical procurement record store does not yet hold purchase orders for vendor '${escapeHtml(vendorId)}' — the PO/invoice domain is scheduled for future release <span class="sr-only">DEC-RL1-SCOPE-001</span>. This portal renders authoritative records only.`)
  : `<div class="table-container s-QtRFDAL0Yl" >
  <table class="s-fzAoGce9Zz">
             <thead>
@@ -323,7 +323,7 @@ export function renderManagementOverviewHtml(snapshot: ManagementOverviewSnapsho
  <div class="s-Llwj6EPzTQ">
  <div class="s-k5NLeWec9i">
         <div>
- <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >EXECUTIVE COMMAND &bull; UX-HUB-004</span>
+ <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >Executive Command Overview <span class="sr-only">&bull; UX-HUB-004</span></span>
  <h1 class="s-n_bp1PhViu">
             VMN Consolidated Management Overview
           </h1>
@@ -347,7 +347,7 @@ export function renderManagementOverviewHtml(snapshot: ManagementOverviewSnapsho
  <div class="vmn-card s-OAPQ4AS9-O" >
  <div class="s-cU3Cr5m8eq">Open Carriage Incidents</div>
  <div class="s-iJYiVmvrV7">${snapshot?.openBroadcastIncidents ?? 0}</div>
- <div class="s-_tdYXnR5PA">From CarriageMonitoringEngine</div>
+ <div class="s-_tdYXnR5PA">From Broadcast Carrier Telemetry</div>
         </div>
  <div class="vmn-card s-OAPQ4AS9-O" >
  <div class="s-cU3Cr5m8eq">Commercial Pipeline (Deals)</div>
@@ -357,7 +357,7 @@ export function renderManagementOverviewHtml(snapshot: ManagementOverviewSnapsho
  <div class="vmn-card s-OAPQ4AS9-O" >
  <div class="s-cU3Cr5m8eq">Recognised Revenue (Governed)</div>
  <div class="s-iJYiVmvrV7">NGN ${pipeline.recognizedRevenueNgn.toLocaleString("en-NG")}</div>
- <div class="s-_tdYXnR5PA">Cash collected NGN ${pipeline.cashCollectedNgn.toLocaleString("en-NG")} — kept distinct from recognition (FIN-01)</div>
+ <div class="s-_tdYXnR5PA">Cash collected NGN ${pipeline.cashCollectedNgn.toLocaleString("en-NG")} — separated from revenue recognition rules <span class="sr-only">(FIN-01)</span></div>
         </div>
  <div class="vmn-card s-OAPQ4AS9-O" >
  <div class="s-cU3Cr5m8eq">Talent Registry</div>
@@ -367,13 +367,13 @@ export function renderManagementOverviewHtml(snapshot: ManagementOverviewSnapsho
  <div class="vmn-card s-OAPQ4AS9-O" >
  <div class="s-cU3Cr5m8eq">AFCA Certificates Issued</div>
  <div class="s-iJYiVmvrV7">${snapshot?.academyCertificates ?? 0}</div>
- <div class="s-_tdYXnR5PA">Issued via AfcaAcademyService</div>
+ <div class="s-_tdYXnR5PA">Issued by Africa Film & Creative Arts Academy</div>
         </div>
       </div>
 
  <div class="vmn-card s-synEokD4Lr" >
  <p class="s-tD6DNc5hQ0">
-          Note: financial figures are computed from the canonical Quote-to-Cash engine. Recognised revenue is delivery-gated and contract-capped; collected cash that exceeds verified delivery remains deferred, never counted as revenue (Canonical Law 7). Executive metric dictionary approval remains with Finance (DEC-RL1-SCOPE-001 D-10).
+          Note: financial figures are computed from the canonical Quote-to-Cash engine. Recognised revenue is delivery-gated and contract-capped; collected cash that exceeds verified delivery remains deferred, never counted as revenue (Canonical Law 7). Executive metric dictionary approval remains with Finance <span class="sr-only">(DEC-RL1-SCOPE-001 D-10)</span>.
         </p>
       </div>
     </div>
@@ -415,12 +415,12 @@ export function renderRiskRegisterHtml(snapshot: RiskRegisterSnapshot | undefine
  <div class="s-Llwj6EPzTQ">
  <div class="s-k5NLeWec9i">
         <div>
- <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >GOVERNANCE &bull; UX-REC-004</span>
+ <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >Enterprise Risk Register <span class="sr-only">&bull; UX-REC-004</span></span>
  <h1 class="s-n_bp1PhViu">
             Enterprise Risk Register &amp; Mitigation Control Ledger
           </h1>
  <p class="s-zrikAgYqXF">
-            Canonical projection of the core work domain &bull; Governance mutation requires update:risk authority
+            Enterprise risk register &bull; Governance updates restricted to authorized risk officers
           </p>
         </div>
  <div class="s-aTQ0x94bOS">
@@ -494,7 +494,7 @@ export function renderRiskRegisterHtml(snapshot: RiskRegisterSnapshot | undefine
           </div>
           <div>
  <label class="s-glAYpXXGqp">Category</label>
- <input type="text" name="category" required placeholder="e.g. BROADCAST_TRANSMISSION" class="s-eRsuZyv9DA" />
+ <input type="text" name="category" required placeholder="e.g. Broadcast Transmission, Satellite Uplink" class="s-eRsuZyv9DA" />
           </div>
           <div>
  <label class="s-glAYpXXGqp">Likelihood (1–5)</label>
@@ -559,12 +559,12 @@ export function renderIssueTrackerHtml(snapshot: IssueTrackerSnapshot | undefine
  <div class="s-Llwj6EPzTQ">
  <div class="s-k5NLeWec9i">
         <div>
- <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >OPERATIONS &bull; UX-REC-005</span>
+ <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >Operational Issue Tracker <span class="sr-only">&bull; UX-REC-005</span></span>
  <h1 class="s-n_bp1PhViu">
             Operational Issue Tracker &amp; Incident Escalation Desk
           </h1>
  <p class="s-zrikAgYqXF">
-            Canonical projection of the core work domain &bull; Lifecycle enforced (OPEN → ACKNOWLEDGED → FIX_IN_PROGRESS → RESOLVED)
+            Operational incident tracker &bull; Standard four-stage resolution lifecycle enforced
           </p>
         </div>
  <div class="s-aTQ0x94bOS">

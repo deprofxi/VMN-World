@@ -81,7 +81,7 @@ export function renderGovernanceGrcDeskHtml(ctx: GovernanceGrcContext): string {
       </div>
       <h1 class="text-xl md:text-2xl font-extrabold text-slate-100 mb-1">Enterprise Risk, Issue &amp; Privacy Desk</h1>
       <p class="text-xs text-muted max-w-2xl mb-3 leading-relaxed">
-        Law 05 &amp; 13 Governance: Proactive operational and financial risk tracking, Sev-1 incident escalation matrices, and NDPR statutory data subject access compliance.
+        Enterprise Governance: Proactive operational and financial risk monitoring, critical incident resolution, and statutory data privacy compliance.
       </p>
 
       <!-- KPI Summary Cards -->
@@ -182,10 +182,10 @@ export function renderGovernanceGrcDeskHtml(ctx: GovernanceGrcContext): string {
         <div>
           <label class="block font-semibold text-slate-200 mb-1" for="category">Risk Category *</label>
           <select id="category" name="category" required class="input input-sm w-full bg-slate-900 border border-muted/20 rounded px-2.5 py-1.5 text-slate-100 text-xs font-mono">
-            <option value="BROADCAST_OPERATIONS">BROADCAST_OPERATIONS (Uplink, Headend, Playout)</option>
-            <option value="COMMERCIAL_SETTLEMENT">COMMERCIAL_SETTLEMENT (Revenue, Invoicing, Billing)</option>
-            <option value="DATA_PRIVACY_NDPR">DATA_PRIVACY_NDPR (NDPR, PII, Consent)</option>
-            <option value="LEGAL_RIGHTS">LEGAL_RIGHTS (Copyright, Defamation, Talent Disputes)</option>
+            <option value="BROADCAST_OPERATIONS">Broadcast Operations (Uplink, Transmission, Playout)</option>
+            <option value="COMMERCIAL_SETTLEMENT">Commercial Settlement (Revenue, Invoicing, Billing)</option>
+            <option value="DATA_PRIVACY_NDPR">Data Privacy &amp; Consent (NDPR, Customer Requests)</option>
+            <option value="LEGAL_RIGHTS">Legal &amp; Rights (Licensing, Clearances, Talent Contracts)</option>
           </select>
         </div>
 

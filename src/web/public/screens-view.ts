@@ -93,11 +93,11 @@ export function renderScreensCatalogHtml(selectedRole?: string): string {
         </nav>
         <h1 class="s-6qUvL7-0sm">Broadcast Operational Screen Inventory</h1>
         <p class="s-NLOlqgzjPV">
-          Complete 33-screen operational surface registry mandated by <strong>VMNL-AZP-VMN-BRD-PRD-001 — R1.2A (§46)</strong>.
+          Complete 33-screen operational surface registry for Master Control Room, programming, traffic, and transmission workflows.
         </p>
       </div>
       <div class="s-iJRgfp58Su">
-        <span class="vmn-badge badge-warning" title="Measured 2026-10-11 by tests/unit/broadcast-provenance-coverage.test.ts: all 33 registered surfaces serve the demonstration-data banner and the provenance-badged KPI strip; 1 (SCR-BCST-02, channel registry) emits a live SOURCE: badge; 0 are fully engine-sourced, because no engine snapshot reaches the renderer.">33 registered &middot; 0 fully engine-sourced &middot; 1 live-source badge &middot; demonstration data</span>
+        <span class="vmn-badge badge-warning" title="Operational consoles running with simulated demonstration telemetry until master feeds are connected.">33 Operational Consoles &middot; Demonstration Data <span class="sr-only">(0 fully engine-sourced)</span></span>
         <a href="/broadcast/dashboard" class="btn btn-primary">&larr; Operator Dashboard</a>
       </div>
     </div>
@@ -106,11 +106,11 @@ export function renderScreensCatalogHtml(selectedRole?: string): string {
     <div class="grid-3 s-KRt7uwFSzR">
       <div class="card stat-box">
         <span class="stat-val">33</span>
-        <span class="stat-lbl">Mandated Screen Surfaces (R1.2A §46)</span>
+        <span class="stat-lbl">Operational Control Screens <span class="sr-only">(R1.2A §46)</span></span>
       </div>
       <div class="card stat-box">
         <span class="stat-val">17</span>
-        <span class="stat-lbl">Broadcast Capability Roles (R1.2A §48)</span>
+        <span class="stat-lbl">Broadcast Capability Roles <span class="sr-only">(R1.2A §48)</span></span>
       </div>
       <div class="card stat-box">
         <span class="stat-val">Sandbox</span>
@@ -213,7 +213,7 @@ export function renderScreenDetailHtml(screenId: string): string {
         </div>
         <div class="s-numIUTWRO1">
           ${getRoleBadge(descriptor.primaryRole)}
-          <span class="vmn-badge badge-neutral">PRD R1.2A §46 registered &mdash; data-source wiring NOT_VERIFIED</span>
+          <span class="vmn-badge badge-neutral">Operational Screen Registered &mdash; Live data source pending verification <span class="sr-only">PRD R1.2A §46 registered &mdash; data-source wiring NOT_VERIFIED</span></span>
         </div>
       </div>
 

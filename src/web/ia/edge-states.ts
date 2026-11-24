@@ -46,29 +46,30 @@ export function renderIAEdgeState(edgeId: string): string {
     .join(" ");
 
   return `
-  <article class="container">
-    <header>
+  <article class="container py-4">
+    <header class="mb-4">
       <div class="flex flex-wrap gap-2 items-center mb-2">
-        <span class="status-chip badge-warning">${escapeHtml(state.gate)} edge state</span>
-        <span class="status-chip badge-provisional">${escapeHtml(state.id)}</span>
+        <span class="vmn-badge badge-warning">System Notice</span>
+        <span class="sr-only">${escapeHtml(state.gate)} edge state &bull; ${escapeHtml(state.id)}</span>
       </div>
-      <h1>${escapeHtml(state.screenName)}</h1>
-      <p>${escapeHtml(state.primaryAction)}</p>
+      <h1 class="text-2xl font-bold mb-2">${escapeHtml(state.screenName)}</h1>
+      <p class="text-sm text-slate-300 mb-2">${escapeHtml(state.primaryAction)}</p>
     </header>
-    <section class="card mb-4">
-      <h2>What happened, as far as this page may state it</h2>
-      <p>${escapeHtml(state.entryTrigger)}</p>
-      <p><strong>Recovery:</strong> ${escapeHtml(state.recoveryRoute)}</p>
+    <section class="card mb-4 p-4 rounded-xl bg-surface border border-muted/20">
+      <h2 class="text-base font-semibold mb-2">Status &amp; Next Steps</h2>
+      <p class="text-sm text-slate-300 mb-3">${escapeHtml(state.entryTrigger)}</p>
+      <div class="pt-3 border-t border-muted/10">
+        <p class="text-sm"><strong>Recovery:</strong> <a href="${escapeHtml(state.recoveryRoute || "/")}" class="btn btn-outline btn-sm ml-2">${escapeHtml(state.recoveryRoute || "Return to Home")} &rarr;</a></p>
+      </div>
     </section>
-    <section class="card mb-4">
-      <h2>Recorded state codes</h2>
-      <p>${adverseStates}</p>
-    </section>
-    <section class="card mb-4">
-      <h2>Acceptance</h2>
-      <p><strong>${escapeHtml(state.acceptanceId)}</strong></p>
-      <p>${escapeHtml(state.acceptanceCriterion)}</p>
-    </section>
+    <details class="card mb-4 p-3 rounded-xl bg-slate-950/60 border border-muted/10 text-xs text-muted">
+      <summary class="cursor-pointer font-mono font-semibold">Technical Reference &amp; State Codes (${escapeHtml(state.id)})</summary>
+      <div class="mt-3 pt-2 border-t border-muted/10 space-y-2">
+        <div><strong>State Identifier:</strong> <code>${escapeHtml(state.id)}</code> (${escapeHtml(state.gate)})</div>
+        <div><strong>Recorded State Codes:</strong> ${adverseStates}</div>
+        <div><strong>Verification Criterion:</strong> <code>${escapeHtml(state.acceptanceId)}</code> &mdash; ${escapeHtml(state.acceptanceCriterion)}</div>
+      </div>
+    </details>
   </article>`.trim();
 }
 

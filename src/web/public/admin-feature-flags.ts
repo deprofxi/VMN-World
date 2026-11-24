@@ -89,7 +89,7 @@ export function renderAdminFeatureFlagsHtml(filterDomain?: string): string {
  <div class="container s-bJt7BJCshA" >
  <header class="s-8KqcJvoCxL">
  <div class="s-n4vSWy6lTS">
- <span class="s-VlHOXqFjVb">UX-ADM-004</span>
+ <span class="s-VlHOXqFjVb">Feature Flag Console <span class="sr-only">UX-ADM-004</span></span>
  <span class="s-2-oQGPaezd">Enterprise Governance & Administration</span>
         </div>
  <h1 class="s-GOhckqDSDP">

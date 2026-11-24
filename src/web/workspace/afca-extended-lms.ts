@@ -37,7 +37,7 @@ export function renderLearningPlanHtml(_courseId: string = "AFCA-CRS-101"): stri
  <div class="s-X25-xxgYS8">
  <div class="s-k5NLeWec9i">
         <div>
- <span class="vmn-badge badge-info s-Dnmmv3HPR8" >ACADEMIC &bull; UX-AFCA-004</span>
+ <span class="vmn-badge badge-info s-Dnmmv3HPR8" >Academic Syllabus <span class="sr-only">&bull; UX-AFCA-004</span></span>
  <h1 class="s-n_bp1PhViu">
             Professional Cinematography Diploma &bull; Learning Plan
           </h1>
@@ -115,7 +115,7 @@ export function renderAssignmentSubmissionHtml(assignmentId: string = "ASN-LIGHT
 
  <div class="vmn-card s-sQ4H2l8IG7" >
  <div class="s-jXAzROAz5F">
- <span class="vmn-badge badge-warning s-Dnmmv3HPR8" >STUDENT LAB &bull; UX-AFCA-005</span>
+ <span class="vmn-badge badge-warning s-Dnmmv3HPR8" >Student Practical Lab <span class="sr-only">&bull; UX-AFCA-005</span></span>
  <h1 class="s-n_bp1PhViu">
             Submit Practical Media Assignment
           </h1>
@@ -208,7 +208,7 @@ export function renderFacultyGradingRubricHtml(submissionId: string = "SUB-2026-
  <div class="vmn-card s-sQ4H2l8IG7" >
  <div class="s-k5NLeWec9i">
           <div>
- <span class="vmn-badge badge-info s-Dnmmv3HPR8" >FACULTY SLATE &bull; UX-AFCA-006</span>
+ <span class="vmn-badge badge-info s-Dnmmv3HPR8" >Faculty Grading Slate <span class="sr-only">&bull; UX-AFCA-006</span></span>
  <h1 class="s-n_bp1PhViu">
               Practical Assignment Grading &amp; Review
             </h1>
@@ -291,7 +291,7 @@ export function renderCertificateGeneratorHtml(_learnerId: string = "LRN-2026-04
   return `
  <div class="s-j_o2LsN6rz">
  <div class="s-OXbXKNybuO">
- <span class="vmn-badge badge-success s-Dnmmv3HPR8" >ACCREDITED &bull; UX-AFCA-008</span>
+ <span class="vmn-badge badge-success s-Dnmmv3HPR8" >Accredited Certification <span class="sr-only">&bull; UX-AFCA-008</span></span>
  <h1 class="s-EnfZSIVIG1">
           Certificate of Professional Competency
         </h1>

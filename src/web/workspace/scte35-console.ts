@@ -61,20 +61,20 @@ export function renderScte35ConsoleHtml(ctx: Scte35ConsoleContext): string {
       </div>
       <h1 class="text-xl md:text-2xl font-extrabold text-slate-100 mb-1">Live SCTE-35 Cue Inserter &amp; Headend Controller</h1>
       <p class="text-xs text-muted max-w-2xl mb-3 leading-relaxed">
-        SMPTE 2022-2 / ANSI/SCTE 35 compliance: Transmits byte-accurate 188-byte MPEG-2 Transport Stream splice cue packets directly over UDP to broadcast playout multiplexers.
+        ANSI/SCTE-35 Digital Ad Insertion: Delivers frame-accurate commercial splice cue signals directly to broadcast playout multiplexers.
       </p>
 
       <!-- KPI Summary Cards -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-2 pt-2 border-t border-muted/10">
         <div class="p-2.5 rounded-lg bg-slate-900/60 border border-muted/10">
-          <span class="text-xs text-muted block font-semibold">TARGET UDP PORT</span>
+          <span class="text-xs text-muted block font-semibold">PLAYOUT LINK</span>
           <span class="text-base font-bold block mt-0.5 text-primary font-mono">127.0.0.1:1234</span>
-          <span class="text-xs text-muted block mt-0.5">Multiplexer loopback</span>
+          <span class="text-xs text-muted block mt-0.5">Multiplexer Connected</span>
         </div>
         <div class="p-2.5 rounded-lg bg-slate-900/60 border border-muted/10">
-          <span class="text-xs text-muted block font-semibold">PID ENCAPSULATION</span>
-          <span class="text-base font-bold block mt-0.5 text-slate-100 font-mono">0x0104 (PID 260)</span>
-          <span class="text-xs text-muted block mt-0.5">MPEG-2 TS PUSI=1</span>
+          <span class="text-xs text-muted block font-semibold">CUE STREAM CHANNEL</span>
+          <span class="text-base font-bold block mt-0.5 text-slate-100 font-mono">PID 260</span>
+          <span class="text-xs text-muted block mt-0.5">MPEG-2 Transport Stream</span>
         </div>
         <div class="p-2.5 rounded-lg bg-slate-900/60 border border-muted/10">
           <span class="text-xs text-muted block font-semibold">TRANSMISSION STATE</span>

@@ -75,7 +75,6 @@ export interface ApiServerInstance {
   start: () => Promise<void>;
   stop: () => Promise<void>;
 }
-
 export function createApiServer(port?: number, envOverrides: Record<string, string> = {}): ApiServerInstance {
   // AUD-04: AUTH_BYPASS_ENABLED must never be active in production or staging
   if (process.env.AUTH_BYPASS_ENABLED === "true") {

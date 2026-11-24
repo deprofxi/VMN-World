@@ -259,7 +259,7 @@ export function renderVtmPaymentVisibilityHtml(projection: VtmPaymentVisibilityP
   return `
  <div class="s-Llwj6EPzTQ">
  <div class="s-jXAzROAz5F">
- <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >VTM &bull; UX-VTM-010 / UX-VTM-011</span>
+ <span class="vmn-badge badge-ready s-Dnmmv3HPR8" >Talent Contracts &amp; Payout Visibility <span class="sr-only">&bull; UX-VTM-010 / UX-VTM-011</span></span>
  <h1 class="s-Eg3nXwYpcj">Deployment Readiness &amp; Payment Visibility</h1>
  <p class="s-zrikAgYqXF">
           Projects the canonical VTM contract engine: readiness gates (execution, identity verification, escrow protection, rights clearance) and per-milestone escrow/payment state labelled per the 7-way financial separation. No amount on this page is consolidated revenue.

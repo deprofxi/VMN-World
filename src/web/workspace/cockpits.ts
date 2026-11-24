@@ -449,7 +449,7 @@ function renderFinanceCockpit(): string {
       <!-- Balanced Journal Entry Inspector -->
       <div class="card p-3 s-3zot8ocgAl">
         <div class="flex justify-between items-center mb-2">
-          <h4 class="font-bold text-sm m-0">Recent General Ledger Postings (PostgreSQL Immutable Journal)</h4>
+          <h4 class="font-bold text-sm m-0">Recent General Ledger Postings (Immutable Journal)</h4>
           <span class="text-xs text-muted font-mono">Sum(Dr) ₦594,450,000 == Sum(Cr) ₦594,450,000</span>
         </div>
         <div class="text-xs text-muted mb-2">Internal unit allocations are eliminated on consolidation per Canonical Law 07.</div>
@@ -559,7 +559,7 @@ function renderPayoutsCockpit(): string {
               <td class="py-3 text-right font-mono">₦18,900,000</td>
               <td class="py-3 text-right font-mono text-warning">₦1,890,000</td>
               <td class="py-3 text-right font-mono font-bold text-success">₦17,010,000</td>
-              <td class="py-3 text-center"><span class="vmn-badge badge-warning text-xs">PENDING KEY 2</span></td>
+              <td class="py-3 text-center"><span class="vmn-badge badge-warning text-xs">Awaiting Second Keyholder</span></td>
               <td class="py-3 text-right">
                 <button type="button" class="btn btn-primary btn-sm" data-confirm="Authorize second-key cryptographic approval for talent disbursement batch PAY-2026-11-B02?" data-toast="Second-key authorization verified: ₦17,010,000 queued for NIP transfer" data-toast-type="success">
                   <span>Authorize Disbursal</span>

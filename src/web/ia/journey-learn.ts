@@ -75,7 +75,7 @@ function renderLearn002(screen: IAScreen): string {
       "learn-app-overview",
       "AFCA Academy Admission Criteria & Application Requirements",
       html`<div class="card mb-3">
-        <h3>Admission Invariant: No Auto-Admission</h3>
+        <h3>Admission Policy: Manual Faculty Review Required <span class="sr-only">Admission Invariant: No Auto-Admission</span></h3>
         <p>In accordance with Academic Board standards, admission to AFCA Academy is never automated. Every submission is evaluated against rigorous competency rubrics and blind-reviewed by senior industry faculty.</p>
       </div>
       ${pendingTable(
@@ -168,7 +168,7 @@ function renderLearn014(screen: IAScreen): string {
       "learn-portfolio-submission",
       "Portfolio Artifact Upload & Role Attribution Declaration",
       html`<div class="card mb-3">
-        <h3>Role Attribution & Anti-Plagiarism Invariant</h3>
+        <h3>Role Attribution & Anti-Plagiarism Standard</h3>
         <p>In accordance with Academic Integrity policy, submissions must clearly attribute exact individual roles in collaborative production pieces (e.g., Director, Editor, DP, Sound Recordist). False attribution results in immediate disqualification.</p>
       </div>
       ${sourceNotConnected("Raw media assets (ProRes / DNxHR / WAV) must be delivered via designated academy media ingest bucket.")}

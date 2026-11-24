@@ -40,7 +40,6 @@ export const PRIMARY_NAV: readonly NavEntry[] = [
   { href: "/media-and-audience-overview", label: "Channels", hint: "Nigezie Xtreme, Orisun, Isi Mbido" },
   { href: "/creative-economy-hub-overview", label: "Hub", hint: "Talent, production, academy" },
   { href: "/workspace", label: "Workspaces", hint: "Broadcast & hub operations" },
-  { href: "/broadcast/screens", label: "Broadcast Consoles", hint: "Operational screens catalog" },
   { href: "/portal", label: "Portals", hint: "Counterparty & client gateways" },
   { href: "/azeebo/gateway", label: "Azeebo+", hint: "Federated streaming gateway" },
 ];
@@ -91,24 +90,6 @@ export interface SiteDestination {
  * promoting one of these into `PRIMARY_NAV` later cannot list it twice.
  */
 const EXTRA_DESTINATIONS: readonly SiteDestination[] = [
-  {
-    category: COMMAND_CATEGORIES.primary,
-    title: "Prototypes",
-    url: "/prototypes",
-    hint: "R1.1 screens & scenarios",
-  },
-  {
-    category: COMMAND_CATEGORIES.primary,
-    title: "API Docs",
-    url: "/docs",
-    hint: "OpenAPI specification",
-  },
-  {
-    category: COMMAND_CATEGORIES.primary,
-    title: "Styleguide",
-    url: "/styleguide",
-    hint: "Canonical R1.1 tokens",
-  },
   {
     category: COMMAND_CATEGORIES.primary,
     title: "Broadcast Executive Dashboard",
@@ -191,7 +172,7 @@ const EXTRA_DESTINATIONS: readonly SiteDestination[] = [
     category: COMMAND_CATEGORIES.primary,
     title: "Broadcast Rights Clearinghouse",
     url: "/broadcast/rights",
-    hint: "IP rights registry, CA-32 attestation, territorial clearance",
+    hint: "IP rights registry, broadcast rights clearance, territorial clearance",
   },
   {
     category: COMMAND_CATEGORIES.primary,
@@ -219,7 +200,7 @@ const EXTRA_DESTINATIONS: readonly SiteDestination[] = [
   },
   {
     category: COMMAND_CATEGORIES.primary,
-    title: "Talent Payouts & Nigerian WHT",
+    title: "Talent Payouts & Withholding Tax (WHT)",
     url: "/workspace/finance/payouts",
     hint: "Dual-authorization disbursements, 10% statutory tax withholding",
   },
@@ -239,7 +220,7 @@ const EXTRA_DESTINATIONS: readonly SiteDestination[] = [
     category: COMMAND_CATEGORIES.primary,
     title: "Enterprise Risk & GRC Registers",
     url: "/workspace/governance/registers",
-    hint: "Risk heatmap, Sev-1 incident register, NDPR DSAR queue",
+    hint: "Risk heatmap, Sev-1 incident register, data privacy requests (DSAR)",
   },
   {
     category: COMMAND_CATEGORIES.primary,

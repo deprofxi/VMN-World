@@ -159,9 +159,9 @@ export function renderEpisodesDeskHtml(ctx: EpisodesDeskContext): string {
       <div class="flex items-center justify-between mb-3 border-b border-muted/10 pb-2">
         <div>
           <h2 class="text-base font-bold text-slate-100 m-0">48-Hour Schedule Day Lifecycle Controller</h2>
-          <p class="text-xs text-muted m-0">Authority: BCST-03 schedule lock invariant — freezes day grid against amendments 48 hours prior to playout</p>
+          <p class="text-xs text-muted m-0">Authority: Broadcast schedule lock rule — freezes daily grid against amendments 48 hours prior to playout <span class="sr-only">(BCST-03 invariant)</span></p>
         </div>
-        <span class="vmn-badge badge-info text-xs font-mono">LOCK CONTROLLER</span>
+        <span class="vmn-badge badge-info text-xs">Schedule Freeze Controller</span>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
@@ -206,7 +206,7 @@ export function renderEpisodesDeskHtml(ctx: EpisodesDeskContext): string {
 
         <div>
           <label class="block font-semibold text-slate-200 mb-1" for="programmeCode">Parent Programme Code *</label>
-          <input type="text" id="programmeCode" name="programmeCode" required placeholder="e.g. PRG-NXTR-001 or LAGOS_RUSH" class="input input-sm w-full bg-slate-900 border border-muted/20 rounded px-2.5 py-1.5 text-slate-100 text-xs font-mono">
+          <input type="text" id="programmeCode" name="programmeCode" required placeholder="e.g. PRG-NXTR-001 or Lagos Rush" class="input input-sm w-full bg-slate-900 border border-muted/20 rounded px-2.5 py-1.5 text-slate-100 text-xs font-mono">
         </div>
 
         <div>

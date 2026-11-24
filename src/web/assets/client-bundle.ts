@@ -145,7 +145,7 @@ export const CLIENT_BOOTSTRAP_JS = `(function() {
     var picks = [
       { href: "/", variant: "btn-outline" },
       { href: "/media-and-audience-overview", variant: "btn-outline" },
-      { href: "/prototypes", variant: "btn-primary" }
+      { href: "/portal", variant: "btn-primary" }
     ];
     picks.forEach(function (pick, index) {
       var source = byHref[pick.href] || anchors[index];

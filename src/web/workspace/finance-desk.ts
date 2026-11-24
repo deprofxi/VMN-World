@@ -90,9 +90,9 @@ export function renderFinanceLedgerDeskHtml(ctx: FinanceLedgerContext): string {
           <span class="text-xs text-muted block mt-0.5">Dual-posting check</span>
         </div>
         <div class="p-2.5 rounded-lg bg-slate-900/60 border border-muted/10">
-          <span class="text-xs text-muted block font-semibold">DURABILITY ENGINE</span>
-          <span class="text-base font-bold block mt-0.5 text-primary">Hydrated</span>
-          <span class="text-xs text-muted block mt-0.5">Postgres backed</span>
+          <span class="text-xs text-muted block font-semibold">LEDGER PERSISTENCE</span>
+          <span class="text-base font-bold block mt-0.5 text-primary">Synchronized</span>
+          <span class="text-xs text-muted block mt-0.5">Durable Store Active</span>
         </div>
       </div>
     </header>
@@ -156,7 +156,7 @@ export function renderFinanceLedgerDeskHtml(ctx: FinanceLedgerContext): string {
       <div class="flex items-center justify-between mb-3 border-b border-muted/10 pb-2">
         <div>
           <h2 class="text-base font-bold text-slate-100 m-0">Post Manual Balanced Journal Entry</h2>
-          <p class="text-xs text-muted m-0">FIN-03 Invariant: Debits and credits must be identical in kobo</p>
+          <p class="text-xs text-muted m-0">Double-Entry Standard: Debits and credits must be balanced to the kobo</p>
         </div>
         <span class="vmn-badge badge-info text-xs font-mono">POST ENTRY</span>
       </div>

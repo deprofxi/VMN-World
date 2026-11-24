@@ -112,7 +112,7 @@ export function renderSearchResultsHtml(
   return html`
  <div class="s-dJGia7etx6">
  <div class="s-jXAzROAz5F">
- <span class="vmn-badge badge-info s-Dnmmv3HPR8" >SEARCH &bull; UX-HUB-002</span>
+ <span class="vmn-badge badge-info s-Dnmmv3HPR8" >Universal Search <span class="sr-only">&bull; UX-HUB-002</span></span>
  <h1 class="s-4hDFIYz_z0">Authorised Search</h1>
  <p class="s-74eGsJhV6B">
           ${results.length} result(s) for <strong>“${query}”</strong> — scoped to ${user.email}'s roles${user.roles.length ? html` (${user.roles.join(", ")})` : ""} and tenant. Snippets respect field scope (CCPP §5.2).
@@ -173,7 +173,7 @@ export function renderNotificationsHtml(
   return html`
  <div class="s-6m0XILdru8">
  <div class="s-jXAzROAz5F">
- <span class="vmn-badge badge-info s-Dnmmv3HPR8" >INBOX &bull; UX-HUB-003</span>
+ <span class="vmn-badge badge-info s-Dnmmv3HPR8" >Unified Tasks &amp; Inbox <span class="sr-only">&bull; UX-HUB-003</span></span>
  <h1 class="s-4hDFIYz_z0">Notifications</h1>
  <p class="s-74eGsJhV6B">${unread} unread for ${user.email}. <a href="/account/notifications">Manage preferences</a>.</p>
       </div>
