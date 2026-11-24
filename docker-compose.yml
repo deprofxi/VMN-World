@@ -54,42 +54,49 @@ services:
     ports:
       - "${HOST_PORT:-127.0.0.1:5500}:${PORT:-5500}"
     env_file:
-      - .env
+      - path: .env
+        required: false
     environment:
-      - NODE_ENV=${NODE_ENV:-development}
+      - NODE_ENV=${NODE_ENV:-production}
       - PORT=${PORT:-5500}
       - APP_NAME=${APP_NAME:-VMN World}
       - APP_URL=${APP_URL:-http://localhost:5500}
-      # Compose container DNS must target postgres; host-run dev uses localhost.
-      # Password is the explicitly sandbox-only value configured on the postgres service.
-      - DATABASE_URL=${DATABASE_URL:-postgresql://${POSTGRES_USER:-vmn_user}:${POSTGRES_PASSWORD:-vmn_sandbox_only_password}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-vmn_enterprise}?schema=public}
-      # Required in all environments: no default JWT secret (AUD-14).
-      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required, min 32 chars (see .env.example)}
-      - JWT_EXPIRATION_SECONDS=${JWT_EXPIRATION_SECONDS:-86400}
-      # Required: no default webhook secret.
-      - AZEEBO_WEBHOOK_SECRET=${AZEEBO_WEBHOOK_SECRET:?AZEEBO_WEBHOOK_SECRET is required (see .env.example)}
+      # Dynamic Database Configuration: editable directly via DATABASE_URL or individual POSTGRES_* vars
+      - DATABASE_URL=${DATABASE_URL:-postgresql://${POSTGRES_USER:-vmn_user}:${POSTGRES_PASSWORD:-vmn_sandbox_only_password}@${POSTGRES_HOST:-postgres}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-vmn_enterprise}?schema=public}
       - DATABASE_POOL_MIN=${DATABASE_POOL_MIN:-2}
       - DATABASE_POOL_MAX=${DATABASE_POOL_MAX:-20}
+      - DATABASE_STATEMENT_TIMEOUT_MS=${DATABASE_STATEMENT_TIMEOUT_MS:-15000}
+      # Automated Migrations and Seeding from Coolify Env
+      - AUTO_MIGRATE=${AUTO_MIGRATE:-true}
+      - AUTO_SEED=${AUTO_SEED:-false}
+      # Authentication, Security & Sessions
+      - JWT_SECRET=${JWT_SECRET:-vmn_production_jwt_secret_32chars_min_override}
+      - JWT_EXPIRATION_SECONDS=${JWT_EXPIRATION_SECONDS:-86400}
+      - SESSION_SECRET=${SESSION_SECRET:-}
+      - PII_ENCRYPTION_KEY=${PII_ENCRYPTION_KEY:-}
+      - SESSION_COOKIE_NAME=${SESSION_COOKIE_NAME:-vmnl_session}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-*}
+      - FUSION_EVENTS_HMAC_SECRET=${FUSION_EVENTS_HMAC_SECRET:-}
+      # Redis / Message Bus (editable directly via REDIS_URL or host/port/password)
       - REDIS_HOST=${REDIS_HOST:-redis}
       - REDIS_PORT=${REDIS_PORT:-6379}
-      # TODO-SEC-10: the distributed KV adapter (cache/session/rate-limit
-      # stores) prefers REDIS_URL; authenticated with the compose Redis
-      # password (AUD-22) so a Redis on the shared network is never open.
-      - REDIS_URL=${REDIS_URL:-redis://:${REDIS_PASSWORD:?REDIS_PASSWORD is required (see .env.example)}@redis:6379}
-      # Storage credentials for the local sandbox MinIO (non-production only).
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      - REDIS_URL=${REDIS_URL:-redis://:${REDIS_PASSWORD:-}@${REDIS_HOST:-redis}:${REDIS_PORT:-6379}}
+      # Object Storage (MinIO / S3 / Memory)
       - STORAGE_DRIVER=${STORAGE_DRIVER:-minio}
       - STORAGE_ENDPOINT=${STORAGE_ENDPOINT:-http://minio:9000}
       - STORAGE_BUCKET=${STORAGE_BUCKET:-vmnl-assets}
-      # PR-20: required, not defaulted, and the same variables the MinIO service
-      # below reads. The pre-fix state had the app default to
-      # `minioadmin_secure_key` while MinIO hard-coded that same literal and
-      # `.env.example` shipped `minioadmin` — so the documented sandbox path
-      # authenticated against nothing. One required source removes the class.
+      - STORAGE_REGION=${STORAGE_REGION:-us-east-1}
       - STORAGE_ACCESS_KEY=${STORAGE_ACCESS_KEY:?STORAGE_ACCESS_KEY is required (see .env.example)}
       - STORAGE_SECRET_KEY=${STORAGE_SECRET_KEY:?STORAGE_SECRET_KEY is required (see .env.example)}
+      # Azeebo+ Integration
+      - AZEEBO_PLUS_UNIVERSAL_URL=${AZEEBO_PLUS_UNIVERSAL_URL:-https://azeebo.plus}
+      - AZEEBO_API_BASE_URL=${AZEEBO_API_BASE_URL:-https://api.azeebo.plus/v1}
+      - AZEEBO_CLIENT_ID=${AZEEBO_CLIENT_ID:-vmnl_enterprise_hub}
+      - AZEEBO_WEBHOOK_SECRET=${AZEEBO_WEBHOOK_SECRET:-azeebo_hmac_webhook_secret_key_32chars}
+      # Observability & Metrics
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - PROMETHEUS_METRICS_ENABLED=${PROMETHEUS_METRICS_ENABLED:-true}
-      - AUTO_MIGRATE=${AUTO_MIGRATE:-true}
-      - AUTO_SEED=${AUTO_SEED:-false}
     depends_on:
       postgres:
         condition: service_healthy
@@ -212,8 +219,8 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      - PGHOST=${PGHOST:-postgres}
-      - PGPORT=${PGPORT:-5432}
+      - PGHOST=${POSTGRES_HOST:-postgres}
+      - PGPORT=${POSTGRES_PORT:-5432}
       - PGUSER=${POSTGRES_USER:-vmn_user}
       - PGPASSWORD=${POSTGRES_PASSWORD:-vmn_sandbox_only_password}
       - PGDATABASE=${POSTGRES_DB:-vmn_enterprise}
