@@ -331,15 +331,6 @@ export function renderMasterLayout(
       ).join("\n")}
     </nav>
     <div class="vmn-header-controls">
-      <!-- Persona Switcher -->
-      <select id="vmn-persona-switcher" class="vmn-persona-select" aria-label="Simulate Persona Role" title="Simulate Persona Role">
-        <option value="visitor" ${selectedPersona === "visitor" ? "selected" : ""}>Role: Visitor</option>
-        <option value="applicant" ${selectedPersona === "applicant" ? "selected" : ""}>Role: Applicant (AFCA)</option>
-        <option value="talent" ${selectedPersona === "talent" ? "selected" : ""}>Role: Talent (Agreement)</option>
-        <option value="client" ${selectedPersona === "client" ? "selected" : ""}>Role: Client (Sponsor)</option>
-        <option value="operator" ${selectedPersona === "operator" ? "selected" : ""}>Role: Operator (MCR)</option>
-      </select>
-
       <!-- Command Palette Quick Jump Trigger -->
       <button id="vmn-cmd-trigger" class="vmn-cmd-trigger-btn" type="button" aria-label="Open Command Palette (Cmd+K)" title="Quick Jump (Cmd+K)">
         ${renderIcon("search", { size: 14 })}
@@ -366,12 +357,6 @@ export function renderMasterLayout(
       <a href="/workspace" class="btn btn-sm btn-outline text-xs" title="Enterprise Desks Catalog (48 Specialist Cockpits)">
         <span>Desks (48)</span>
       </a>`}
-
-      <!-- Logo Upload / Custom Branding Trigger -->
-      <button id="vmn-logo-modal-trigger" class="btn btn-sm btn-outline vmn-logo-upload-btn" type="button" aria-label="Brand Logo Settings" title="Upload Custom Logo">
-        ${renderIcon("settings", { size: 14 })}
-        <span>Logo</span>
-      </button>
 
       <!-- Theme Switcher -->
       <button id="vmn-theme-toggle" class="vmn-theme-toggle-btn" type="button" aria-label="Toggle Theme" title="Toggle Light / Dark MCR Theme">

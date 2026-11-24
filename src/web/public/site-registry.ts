@@ -41,10 +41,8 @@ export const PRIMARY_NAV: readonly NavEntry[] = [
   { href: "/creative-economy-hub-overview", label: "Hub", hint: "Talent, production, academy" },
   { href: "/workspace", label: "Workspaces", hint: "Broadcast & hub operations" },
   { href: "/broadcast/screens", label: "Broadcast Consoles", hint: "Operational screens catalog" },
+  { href: "/portal", label: "Portals", hint: "Counterparty & client gateways" },
   { href: "/azeebo/gateway", label: "Azeebo+", hint: "Federated streaming gateway" },
-  { href: "/prototypes", label: "Prototypes", hint: "R1.1 screens & scenarios" },
-  { href: "/docs", label: "API Docs", hint: "OpenAPI specification" },
-  { href: "/styleguide", label: "Styleguide", hint: "Canonical R1.1 tokens" },
 ];
 
 export const COMMAND_CATEGORIES = {
@@ -93,6 +91,24 @@ export interface SiteDestination {
  * promoting one of these into `PRIMARY_NAV` later cannot list it twice.
  */
 const EXTRA_DESTINATIONS: readonly SiteDestination[] = [
+  {
+    category: COMMAND_CATEGORIES.primary,
+    title: "Prototypes",
+    url: "/prototypes",
+    hint: "R1.1 screens & scenarios",
+  },
+  {
+    category: COMMAND_CATEGORIES.primary,
+    title: "API Docs",
+    url: "/docs",
+    hint: "OpenAPI specification",
+  },
+  {
+    category: COMMAND_CATEGORIES.primary,
+    title: "Styleguide",
+    url: "/styleguide",
+    hint: "Canonical R1.1 tokens",
+  },
   {
     category: COMMAND_CATEGORIES.primary,
     title: "Broadcast Executive Dashboard",
