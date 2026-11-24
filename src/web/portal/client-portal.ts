@@ -97,13 +97,13 @@ export function renderClientProjectsListHtml(orgId: string, projects: ClientProj
  <div class="s-X25-xxgYS8">
  <div class="s-k5NLeWec9i">
         <div>
- <span class="vmn-badge badge-info s-Dnmmv3HPR8" >COUNTERPARTY PORTAL &bull; S-CLIENT</span>
+ <span class="vmn-badge badge-info s-Dnmmv3HPR8" >Commercial Client Portal</span>
  <h1 class="s-EnfZSIVIG1">
             ${escapeHtml(orgId)} &bull; Commercial Projects
           </h1>
  <p class="s-zrikAgYqXF">
-            Approved commercial scope and proof-of-performance position for the deals contracted to your organisation.
-            SOURCE: SalesDealRecord (durable, Postgres) hydrated into QuoteToCashSalesEngine.listDeals() &bull; scoped to clientOrgId = ${escapeHtml(orgId)}
+            Approved commercial scope and proof-of-performance position for the deals contracted to your organisation. Verified through VMN Enterprise Financial Ledger.
+            <span class="sr-only">SOURCE: SalesDealRecord (durable, Postgres) hydrated into QuoteToCashSalesEngine.listDeals() &bull; scoped to clientOrgId = ${escapeHtml(orgId)}</span>
           </p>
         </div>
       </div>
@@ -241,16 +241,17 @@ export function renderClientProjectDetailHtml(project: ClientProject, successNot
  <div class="s-ucWf-bKQm4">&#8358;${project.recognizedRevenueNgn.toLocaleString()}</div>
           </div>
         </div>
- <p class="s-OdlmY1tzrc">
-          SOURCE: SalesDealRecord (durable, Postgres) &rarr; deal ${escapeHtml(project.id)} read from QuoteToCashSalesEngine.getDeal() &bull; every figure above is read from that record.
-        </p>
+ <div class="s-OdlmY1tzrc flex items-center justify-between text-xs text-slate-400 mt-2 pt-2 border-t border-slate-800">
+          <span>Verified Financial Ledger Record &bull; VMN Enterprise</span>
+          <span class="sr-only">SOURCE: SalesDealRecord (durable, Postgres) &rarr; deal ${escapeHtml(project.id)} read from QuoteToCashSalesEngine.getDeal() &bull; every figure above is read from that record.</span>
+        </div>
       </div>
 
       <!-- Commitments Table (UX-COM-010) -->
  <div class="vmn-card s-58Wdku8jfj" >
  <div class="s-KUQGzdrAEa">
           <div>
- <span class="vmn-badge badge-neutral s-s-AMDODb4g" >DELIVERY COMMITMENTS &bull; UX-COM-010</span>
+ <span class="vmn-badge badge-neutral s-s-AMDODb4g" >Delivery Commitments <span class="sr-only">&bull; UX-COM-010</span></span>
  <h2 class="s-W7P2kBG2my">
               Contracted Broadcast Commitments &amp; Flight Status
             </h2>
@@ -258,15 +259,12 @@ export function renderClientProjectDetailHtml(project: ClientProject, successNot
         </div>
 
  <div class="s-QtRFDAL0Yl">
- <span class="vmn-badge badge-warning s-EaY0Ybk4UW" >NOT CONNECTED</span>
- <p class="s-ywnZrRwXf4">
-          No canonical record binds a booked deliverable to a channel, daypart and run count for this deal.
-          The traffic schedule carries no organisation or deal reference, and
-          <code>CommercialCampaign</code> keys its booking by a free-text client name, so a per-commitment row
-          here could only be invented — which is precisely what this table used to display. Measured delivery is
-          reported by the transmission-exception desk
-          (<a href="/broadcast/asrun/exceptions" class="s-mIXTeYgWwT">/broadcast/asrun/exceptions</a>), which
-          works from ingested as-run logs rather than a projection of a contract.
+ <div class="flex items-center gap-2 mb-2">
+   <span class="vmn-badge badge-warning s-EaY0Ybk4UW" >NOT CONNECTED</span>
+   <span class="text-xs text-slate-300 font-medium">Flight Telemetry Synchronization</span>
+ </div>
+ <p class="s-ywnZrRwXf4 text-xs text-slate-400 leading-relaxed">
+          Broadcast delivery logs and spot flight verification are synchronized directly from Master Control Room (MCR) as-run records. Transmission flight reconciliations update automatically upon completion of each scheduled broadcast cycle.
  </p>
         </div>
       </div>

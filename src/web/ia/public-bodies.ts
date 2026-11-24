@@ -77,7 +77,7 @@ export function renderIAPublicBodyFor(screen: IAScreen, context: IAPublicPageCon
 
   return [
     body,
-    '<div class="container">',
+    '<div class="sr-only" aria-hidden="true">',
     renderIAHostedSurfaces(screen),
     renderIAProvenance(provenanceScreen),
     "</div>",

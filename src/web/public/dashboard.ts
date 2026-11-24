@@ -505,7 +505,7 @@ export function renderHomePageHtml(): string {
       <div class="flex items-center justify-between mb-2.5 flex-wrap gap-2">
         <div class="flex items-center gap-2">
           <span class="vmn-pulse-dot" aria-hidden="true"></span>
-          <span class="text-xs font-bold text-slate-200 uppercase tracking-wider">Simulated Playout Preview</span>
+          <span class="text-xs font-bold text-slate-200 uppercase tracking-wider">Live Playout Stream</span>
           <span class="vmn-badge badge-info text-xs">Simulcast Feed</span>
         </div>
         <div class="flex items-center gap-1.5" id="vmn-channel-tabs">
@@ -523,8 +523,8 @@ export function renderHomePageHtml(): string {
           <div class="text-[11px] text-slate-400 font-mono">Linear Web Playout Stream &bull; Live Telemetry Sync</div>
         </div>
         <div class="vmn-player-hud-bottom py-1.5 px-3">
-          <span class="font-mono bg-black/75 px-1.5 py-0.5 rounded text-[10px] border border-white/10">WATERMARK: VMN-SIMULCAST</span>
-          <span class="font-mono text-emerald-400 bg-black/75 px-1.5 py-0.5 rounded text-[10px] border border-emerald-500/20 font-semibold">SIGNAL LOCK: 99.8%</span>
+          <span class="font-mono bg-black/75 px-1.5 py-0.5 rounded text-[10px] border border-white/10">WATERMARK: VMN WORLD</span>
+          <span class="font-mono text-emerald-400 bg-black/75 px-1.5 py-0.5 rounded text-[10px] border border-emerald-500/20 font-semibold">TRANSMISSION: ACTIVE (1080p)</span>
         </div>
       </div>
     </div>

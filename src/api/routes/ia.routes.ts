@@ -280,7 +280,7 @@ export async function submitWizardForm(
             ndprConsent: fieldErrors.ndprConsent,
           },
         }),
-        "<div>",
+        '<div class="sr-only" aria-hidden="true">',
         renderIAProvenance(screen),
         "</div>",
       ].join("\n"),

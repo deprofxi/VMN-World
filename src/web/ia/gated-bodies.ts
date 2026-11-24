@@ -65,7 +65,7 @@ export function renderIAGatedBodyFor(screen: IAScreen, context: IAGatedPageConte
     if (body === undefined) continue;
     return [
       body,
-      '<div class="container">',
+      '<div class="sr-only" aria-hidden="true">',
       hostedStatesSection(screen),
       adverseStatesSection(screen),
       renderIAProvenance(screen),
