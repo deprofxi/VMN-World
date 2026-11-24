@@ -360,6 +360,9 @@ describe("Phase 7: Public Digital Surfaces & User Experience", () => {
       expect(channelsHtml).toContain("Carriage details unverified");
       expect(channelsHtml).toContain("Live transmission status is not available from a verified source");
       expect(channelsHtml).not.toContain("StarTimes DTT 428");
+      expect(homeHtml).toContain("/media-and-audience-overview?channel=NXTR");
+      expect(channelsHtml).toContain("/media-and-audience-overview?channel=NXTR");
+      expect(channelsHtml).not.toContain("data-inspect-title");
     });
 
     it("renders Advertising & Sponsorship page (UX-PUB-009) with rate cards and packages", () => {

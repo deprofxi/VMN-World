@@ -541,7 +541,7 @@ export function renderHomePageHtml(): string {
       </div>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5">
         ${CHANNELS_PREVIEW.map((ch) => `
-        <div class="card p-3 rounded-lg flex flex-col justify-between bg-slate-900/60 border border-slate-800" data-inspect-title="${ch.inspectTitle}">
+        <div class="card p-3 rounded-lg flex flex-col justify-between bg-slate-900/60 border border-slate-800" id="channel-${escapeHtml(ch.code.toLowerCase())}">
           <div>
             <div class="flex justify-between items-center mb-1">
               <span class="vmn-badge badge-info text-xs font-semibold">${ch.genre}</span>
@@ -554,7 +554,7 @@ export function renderHomePageHtml(): string {
           </div>
           <div class="flex justify-between items-center border-t border-slate-800 pt-2">
             <span class="font-mono text-xs text-muted">Carriage details unverified</span>
-            <a href="/media-and-audience-overview" class="btn btn-outline btn-sm text-xs">Profile &rarr;</a>
+            <a href="/media-and-audience-overview?channel=${escapeHtml(ch.code)}" class="btn btn-outline btn-sm text-xs">Profile &rarr;</a>
           </div>
         </div>`).join("")}
       </div>
@@ -568,7 +568,7 @@ export function renderChannelsPageHtml(): string {
     const pub = PUBLIC_CHANNELS.find((p) => p.code === c.code);
 
     return `
-      <div class="card vmn-interactive-row bg-[#080c14] border border-[#1a2234] rounded-[10px] flex flex-col justify-between p-6" data-inspect-title="${escapeHtml(c.name)} (${escapeHtml(c.code)})">
+      <div class="card vmn-interactive-row bg-[#080c14] border border-[#1a2234] rounded-[10px] flex flex-col justify-between p-6" id="channel-${escapeHtml(c.code.toLowerCase())}">
         <div>
           <div class="s-wrzqCFgz1Y s-3tjrZ733J3">
             <span class="vmn-badge badge-info">Channel profile</span>
@@ -597,8 +597,8 @@ export function renderChannelsPageHtml(): string {
           </div>
         </div>
         <div class="s-7YQOhpfSlA s--ZaKC-MA5J">
-          <a href="/media-and-audience-overview" class="btn btn-outline btn-sm">Channel Detail &rarr;</a>
-          <a href="/api/v1/broadcast/epg/${escapeHtml(c.code)}" class="btn btn-outline btn-sm" target="_blank">XMLTV Feed Status</a>
+          <a href="/media-and-audience-overview?channel=${escapeHtml(c.code)}" class="btn btn-outline btn-sm">Channel Detail &rarr;</a>
+          <a href="/schedule" class="btn btn-outline btn-sm">Broadcast Schedule &rarr;</a>
         </div>
       </div>
     `;

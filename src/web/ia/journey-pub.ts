@@ -10,6 +10,8 @@
 
 import { escapeHtml } from "../components/index.js";
 import { PUBLIC_CHANNELS } from "../public/channels.js";
+import { renderChannelDetailPageHtml } from "../public/surface-a.js";
+import { resolveChannelCode } from "../../modules/broadcast/channels/index.js";
 import {
   renderAboutPageHtml,
   renderAccessibilityPageHtml,
@@ -216,7 +218,7 @@ function renderOneCircleBody(): string {
 function renderMediaAudienceBody(): string {
   const channelCards = PUBLIC_CHANNELS.map(
     (channel) => `
-      <li class="card mb-4">
+      <li class="card mb-4" id="channel-${escapeHtml(channel.code.toLowerCase())}">
         <div class="flex flex-wrap gap-2 items-center mb-2">
           <span class="status-chip badge-neutral">${escapeHtml(channel.code)}</span>
           <span class="status-chip badge-provisional">Carriage unverified</span>
@@ -229,6 +231,9 @@ function renderMediaAudienceBody(): string {
           Programming, transmission format and operating status are not verified here; the profile
           above is the published extent of this channel's public record.
         </p>
+        <div class="mt-3">
+          <a class="btn btn-outline btn-sm" href="/media-and-audience-overview?channel=${escapeHtml(channel.code)}">Channel Profile & Live Player &rarr;</a>
+        </div>
       </li>
     `.trim()
   ).join("\n");
@@ -837,7 +842,14 @@ const BODIES: Readonly<Record<string, (context: IAPublicPageContext) => string>>
   "PUB-002": () => renderAboutPageHtml(),
   "PUB-003": () => renderEcosystemBody(),
   "PUB-004": () => renderOneCircleBody(),
-  "PUB-005": () => renderMediaAudienceBody(),
+  "PUB-005": (context) => {
+    const channelQuery = context?.query?.get("channel") || context?.query?.get("code") || "";
+    const resolvedCode = channelQuery ? resolveChannelCode(channelQuery) : undefined;
+    if (resolvedCode === "NXTR" || resolvedCode === "ORIS" || resolvedCode === "IMBD") {
+      return renderChannelDetailPageHtml(resolvedCode);
+    }
+    return renderMediaAudienceBody();
+  },
   "PUB-006": () => renderHubPageHtml(),
   "PUB-007": () => renderNewsBody(),
   "PUB-008": () => renderNewsDetailBody(),

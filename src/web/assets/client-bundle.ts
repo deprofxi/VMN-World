@@ -845,7 +845,11 @@ export const CLIENT_BOOTSTRAP_JS = `(function() {
   }
 
   document.addEventListener("click", function(e) {
+    var interactive = e.target && e.target.closest ? e.target.closest("a[href], button, input, select, textarea") : null;
     var trigger = e.target && e.target.closest ? e.target.closest("[data-inspect-title]") : null;
+    if (interactive && interactive !== trigger && !interactive.hasAttribute("data-inspect-title")) {
+      return;
+    }
     if (trigger) {
       e.preventDefault();
       var title = trigger.getAttribute("data-inspect-title");

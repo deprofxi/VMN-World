@@ -214,4 +214,25 @@ describe("PUB journey truthfulness", () => {
       expect(body).not.toContain("vmnl_session");
     }
   });
+
+  it("links channel cards directly to their dedicated channel profiles without inspect pop-ups", () => {
+    const screen = getIAScreen("PUB-005")!;
+    const body = renderIAPublicBody(screen, context(screen.route))!;
+    expect(body).toContain("/media-and-audience-overview?channel=NXTR");
+    expect(body).toContain("/media-and-audience-overview?channel=ORIS");
+    expect(body).toContain("/media-and-audience-overview?channel=IMBD");
+    expect(body).not.toContain("data-inspect-title");
+  });
+
+  it("renders live player channel detail page when requested with channel parameter", () => {
+    const renderedNxtr = render("/media-and-audience-overview?channel=NXTR");
+    expect(renderedNxtr.status).toBe(200);
+    expect(renderedNxtr.html).toContain("Nigezie Xtreme Linear Broadcast");
+    expect(renderedNxtr.html).toContain("Live Broadcast");
+    expect(renderedNxtr.html).toContain("/media-and-audience-overview");
+
+    const renderedOris = render("/media-and-audience-overview?channel=ORIS");
+    expect(renderedOris.status).toBe(200);
+    expect(renderedOris.html).toContain("Orisun — The Source");
+  });
 });
