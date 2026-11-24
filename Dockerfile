@@ -27,13 +27,14 @@ RUN corepack enable
 
 # PR-19: a hard COPY, not `pnpm-lock.yaml*`. A glob lets a missing lockfile
 # build an image from resolved-at-build-time versions with no error.
-COPY package.json pnpm-lock.yaml tsconfig.json prisma.config.ts ./
+COPY package.json pnpm-lock.yaml tsconfig.json prisma.config.ts vite.config.ts ./
 COPY prisma ./prisma/
 
 RUN pnpm install --frozen-lockfile
 
 COPY src ./src/
 COPY tests ./tests/
+COPY scripts ./scripts/
 
 # PR-19: the client is generated during the build and carried into the runtime
 # stage below. Without this the app cannot start from the image at all, because

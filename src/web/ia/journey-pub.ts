@@ -882,7 +882,7 @@ export function renderIAPublicPage(screen: IAScreen, context: IAPublicPageContex
   }
   return [
     body,
-    '<div class="container">',
+    '<div class="sr-only" aria-hidden="true">',
     renderIAHostedSurfaces(screen),
     renderIAProvenance(screen),
     "</div>",

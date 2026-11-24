@@ -304,7 +304,7 @@ export function renderMasterLayout(
   <meta name="twitter:image" content="${escapeHtml(seo.openGraph["og:image"] || "")}">
   <link rel="icon" href="/favicon.ico" type="image/x-icon">
   <link rel="stylesheet" href="/assets/styles.css">
-  ${effectiveShell === "public" || effectiveShell === "portal" ? '<link rel="stylesheet" href="/assets/tailwind.css">' : ""}
+  ${effectiveShell === "public" || effectiveShell === "portal" || effectiveShell === "identity" ? '<link rel="stylesheet" href="/assets/tailwind.css">' : ""}
   <!-- No-JS fallback for the mobile chrome: the stylesheet collapses the header
        nav into a drawer below 1200px, and the drawer is built by /assets/app.js
        from that same nav. Without scripting there is no drawer, so the nav must
