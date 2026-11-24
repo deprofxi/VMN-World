@@ -318,8 +318,8 @@ export function renderMasterLayout(
   <header class="vmn-navbar">
     <div class="flex items-center gap-3">
       <a href="/" class="vmn-brand-group" id="vmn-header-brand-group">
-        <img id="vmn-header-logo-img" class="vmn-brand-logo-img hidden h-7 w-auto" src="" alt="VMNL Logo" />
-        <span id="vmn-header-logo-badge" class="vmn-brand-logo">VMNL</span>
+        <img id="vmn-header-logo-img" class="vmn-brand-logo-img hidden h-7 w-auto" src="" alt="VMN World Logo" />
+        <span id="vmn-header-logo-badge" class="vmn-brand-logo">VMN World</span>
         <span class="vmn-brand-title">Virtual Media Network Limited</span>
       </a>
       <span class="vmn-status-beacon" title="Network Playout &amp; Broadcast Telemetry Nominal"><span class="vmn-pulse-dot" aria-hidden="true"></span>LIVE BROADCAST</span>
@@ -412,14 +412,14 @@ export function renderMasterLayout(
     <div class="vmn-footer-inner flex flex-col md:flex-row justify-between gap-6 mb-4 text-left">
       <div class="max-w-sm">
         <div class="flex items-center gap-2 mb-2">
-          <img id="vmn-footer-logo-img" class="vmn-brand-logo-img hidden h-6 w-auto" src="" alt="VMNL Logo" />
-          <span id="vmn-footer-logo-badge" class="vmn-brand-logo font-bold text-xs px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-500/30">VMNL</span>
+          <img id="vmn-footer-logo-img" class="vmn-brand-logo-img hidden h-6 w-auto" src="" alt="VMN World Logo" />
+          <span id="vmn-footer-logo-badge" class="vmn-brand-logo font-bold text-xs px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-500/30">VMN World</span>
           <span class="font-bold text-slate-200 text-sm">Virtual Media Network Limited</span>
         </div>
         <p class="text-xs text-slate-400 mb-2">Nigeria's premier broadcast television, creative hub, and streaming ecosystem.</p>
         <div class="flex items-center gap-2 text-xs">
           <button id="vmn-footer-logo-trigger" class="btn btn-xs btn-outline" type="button">Customize Logo</button>
-          <span>&copy; ${new Date().getUTCFullYear()} VMNL</span>
+          <span>&copy; ${new Date().getUTCFullYear()} VMN World</span>
         </div>
       </div>
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">

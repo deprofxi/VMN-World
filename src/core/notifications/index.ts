@@ -64,7 +64,7 @@ export class NotificationService {
    * Dispatches transactional email via SMTP/SES or Sandbox fallback.
    */
   public async sendEmail(options: EmailDispatchOptions): Promise<NotificationResult> {
-    const _from = options.from || process.env.EMAIL_FROM || "no-reply@vmng.tv";
+    const _from = options.from || process.env.EMAIL_FROM || "no-reply@vmnworld.tv";
     const messageId = `msg-eml-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 6)}`;
     const now = new Date();
 
