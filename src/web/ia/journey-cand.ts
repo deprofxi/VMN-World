@@ -36,7 +36,7 @@ function renderCand001(screen: IAScreen, ctx: IAGatedPageContext): string {
       "cand-dashboard-overview",
       "Candy Cast & Talent Engagement Portal",
       html`<div class="provenance-notice" role="note">
-        <strong>Age Verification & Boundary Notice:</strong> Session active for <code>${ctx.user.email}</code>. Candy Cast operates under strict adult eligibility rules (18+ only) and DEC-08 privacy/consent segregation. Audition submissions and casting records are confidential and separated from commercial retail databases.
+        <strong>Age Verification & Boundary Notice:</strong> Session active for <code>${ctx.user.email}</code>. Candy Cast operates under strict adult eligibility rules (18+ only) and strict privacy/consent segregation <span class="sr-only">(DEC-08)</span>. Audition submissions and casting records are confidential and separated from commercial retail databases.
       </div>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <div class="card p-3">
@@ -88,11 +88,11 @@ function renderCand002(screen: IAScreen): string {
         </div>
         <div class="card p-3 bg-surface-sunken text-xs space-y-2">
           <label class="flex items-center gap-2">
-            <input type="checkbox" required />
+            <input type="checkbox" name="ageConfirmed" value="true" required />
             <span>I confirm I am at least 18 years of age and hold legal capacity to enter talent contracts.</span>
           </label>
           <label class="flex items-center gap-2">
-            <input type="checkbox" required />
+            <input type="checkbox" name="consentSegregated" value="true" required />
             <span>I acknowledge that audition submission does not grant automatic inclusion into Candy Plus consumer services.</span>
           </label>
         </div>

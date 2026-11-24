@@ -244,7 +244,8 @@ describe("TSK-29: mutating-route ↔ guard parity (CA-31)", () => {
     // (the same number is recorded in docs/security/route-authorization-coverage.md).
     // 75 as of TSK-14: the review-request /resolve and /transition routes are the two
     // paths that can change a RightsRecord, so both are guarded update:rights.
-    expect(ROUTE_GUARDS.length).toBe(75);
+    // 77: 75 as of TSK-14 + POST /api/v1/candy/audition and POST /api/v1/creators/portfolio (create:talent).
+    expect(ROUTE_GUARDS.length).toBe(77);
   });
 
   it("has no duplicate method+pathname guard entries", () => {

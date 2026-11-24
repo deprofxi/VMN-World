@@ -538,6 +538,47 @@ export const CLIENT_BOOTSTRAP_JS = `(function() {
     }
   }, true);
 
+  function validateScopeInputs(scope) {
+    var fields = Array.prototype.slice.call(scope.querySelectorAll("input, select, textarea"));
+    var errors = [];
+    for (var i = 0; i < fields.length; i++) {
+      var inp = fields[i];
+      if (inp.disabled || inp.type === "hidden" || inp.type === "submit" || inp.type === "button") continue;
+      var val = (inp.value || "").trim();
+      var valid = true;
+      var msg = "";
+      if (inp.type === "checkbox") {
+        if (inp.hasAttribute("required") && !inp.checked) {
+          valid = false;
+          msg = "Please confirm the required acknowledgement.";
+        }
+      } else if (inp.hasAttribute("required") && !val) {
+        valid = false;
+        msg = "This field is required.";
+      } else if (inp.type === "email" && val && !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(val)) {
+        valid = false;
+        msg = "Please enter a valid email address.";
+      } else if (inp.hasAttribute("minlength") && val) {
+        var minLen = parseInt(inp.getAttribute("minlength") || "0", 10);
+        if (minLen > 0 && val.length < minLen) {
+          valid = false;
+          msg = "Please enter at least " + minLen + " characters.";
+        }
+      }
+      if (!valid) {
+        inp.setAttribute("aria-invalid", "true");
+        inp.classList.add("is-invalid");
+        var lbl = inp.id ? scope.querySelector('label[for="' + inp.id + '"]') : null;
+        var labelText = lbl ? lbl.textContent.replace(/\*/g, "").trim() : (inp.name || "Field");
+        errors.push({ el: inp, message: labelText + ": " + msg });
+      } else {
+        inp.removeAttribute("aria-invalid");
+        inp.classList.remove("is-invalid");
+      }
+    }
+    return errors;
+  }
+
   document.addEventListener("submit", function(e) {
     var target = e.target;
     var form = (target && target.tagName === "FORM") ? target : (target && target.closest ? target.closest("form") : null);
@@ -547,6 +588,37 @@ export const CLIENT_BOOTSTRAP_JS = `(function() {
         e.preventDefault();
         e.stopPropagation();
         return;
+      }
+    }
+
+    if (form && (form.classList.contains("vmn-enquiry-form") || form.closest(".vmn-stepper-container"))) {
+      var errors = validateScopeInputs(form);
+      var summary = form.querySelector(".vmn-error-summary");
+      if (errors.length > 0) {
+        e.preventDefault();
+        if (summary) {
+          var list = summary.querySelector("ul");
+          if (list) {
+            list.textContent = "";
+            for (var j = 0; j < errors.length; j++) {
+              var li = document.createElement("li");
+              li.textContent = errors[j].message;
+              list.appendChild(li);
+            }
+          }
+          summary.style.display = "block";
+        }
+        var firstPane = errors[0].el.closest(".vmn-step-pane");
+        if (firstPane && !firstPane.classList.contains("active")) {
+          var panes = form.querySelectorAll(".vmn-step-pane");
+          for (var p = 0; p < panes.length; p++) panes[p].classList.remove("active");
+          firstPane.classList.add("active");
+        }
+        errors[0].el.focus();
+        showToast(errors[0].message, "warning");
+        return;
+      } else if (summary) {
+        summary.style.display = "none";
       }
     }
 
@@ -724,6 +796,10 @@ export const CLIENT_BOOTSTRAP_JS = `(function() {
     }, 4000);
   };
 
+  function showToast(msg, type) {
+    if (window.vmnToast) window.vmnToast(msg, type);
+  }
+
   document.addEventListener("click", function(e) {
     var toastTrigger = e.target && e.target.closest ? e.target.closest("[data-toast]") : null;
     if (toastTrigger) {
@@ -895,8 +971,8 @@ export const CLIENT_BOOTSTRAP_JS = `(function() {
 
   // 11. Multi-Step Wizard Controller (SaaS Steppers)
   document.addEventListener("click", function(e) {
-    var nextBtn = e.target && e.target.closest ? e.target.closest(".vmn-step-next") : null;
-    var prevBtn = e.target && e.target.closest ? e.target.closest(".vmn-step-prev") : null;
+    var nextBtn = e.target && e.target.closest ? e.target.closest(".vmn-step-next, [data-wizard-next]") : null;
+    var prevBtn = e.target && e.target.closest ? e.target.closest(".vmn-step-prev, [data-wizard-prev]") : null;
 
     if (nextBtn) {
       e.preventDefault();
@@ -905,21 +981,10 @@ export const CLIENT_BOOTSTRAP_JS = `(function() {
       var activePane = container.querySelector(".vmn-step-pane.active");
       if (!activePane) return;
 
-      var requiredInputs = Array.prototype.slice.call(activePane.querySelectorAll("input[required], select[required], textarea[required]"));
-      var allValid = true;
-      for (var i = 0; i < requiredInputs.length; i++) {
-        var inp = requiredInputs[i];
-        if (!inp.value || !inp.value.trim()) {
-          inp.setAttribute("aria-invalid", "true");
-          inp.classList.add("is-invalid");
-          allValid = false;
-        } else {
-          inp.removeAttribute("aria-invalid");
-          inp.classList.remove("is-invalid");
-        }
-      }
-      if (!allValid) {
-        if (window.vmnToast) window.vmnToast("Please complete required fields before proceeding", "warning");
+      var stepErrors = validateScopeInputs(activePane);
+      if (stepErrors.length > 0) {
+        stepErrors[0].el.focus();
+        showToast(stepErrors[0].message, "warning");
         return;
       }
 
@@ -948,6 +1013,7 @@ export const CLIENT_BOOTSTRAP_JS = `(function() {
         if (progress && navItems.length > 1) {
           progress.style.width = ((currentStep / (navItems.length - 1)) * 100) + "%";
         }
+        container.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     } else if (prevBtn) {
       e.preventDefault();
@@ -981,6 +1047,7 @@ export const CLIENT_BOOTSTRAP_JS = `(function() {
         if (pProgress && pNavItems.length > 1) {
           pProgress.style.width = (((pCurrentStep - 2) / (pNavItems.length - 1)) * 100) + "%";
         }
+        pContainer.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     }
   });
@@ -1211,243 +1278,228 @@ export const CLIENT_BOOTSTRAP_JS = `(function() {
     if (totalEl) totalEl.textContent = "₦" + total.toLocaleString("en-NG") + " NGN";
   });
 
-  // 22. Dynamic Brand Identity & Logo Upload Controller
-  var stagedLogoData = null;
-  var logoModalBackdrop = document.getElementById("vmn-logo-modal-backdrop");
-  var logoCloseBtn = document.getElementById("vmn-logo-modal-close");
-  var logoFileInput = document.getElementById("vmn-logo-file-input");
-  var logoDropzone = document.getElementById("vmn-logo-dropzone");
-  var logoSaveBtn = document.getElementById("vmn-logo-save-btn");
-  var logoResetBtn = document.getElementById("vmn-logo-reset-btn");
-  var modalPreviewImg = document.getElementById("vmn-modal-preview-img");
-  var modalPreviewBadge = document.getElementById("vmn-modal-preview-badge");
+  // 22. Super Admin System Configuration Logo Upload Helper
+  var sysLogoFile = document.getElementById("sys-cfg-logo-file");
+  var sysLogoUrlInput = document.getElementById("sys-cfg-logo-url");
+  var sysLogoClearBtn = document.getElementById("sys-cfg-logo-clear");
+  var sysLogoPreview = document.getElementById("sys-cfg-logo-preview");
 
-  function initLogoModalElements() {
-    logoModalBackdrop = document.getElementById("vmn-logo-modal-backdrop");
-    logoCloseBtn = document.getElementById("vmn-logo-modal-close");
-    logoFileInput = document.getElementById("vmn-logo-file-input");
-    logoDropzone = document.getElementById("vmn-logo-dropzone");
-    logoSaveBtn = document.getElementById("vmn-logo-save-btn");
-    logoResetBtn = document.getElementById("vmn-logo-reset-btn");
-    modalPreviewImg = document.getElementById("vmn-modal-preview-img");
-    modalPreviewBadge = document.getElementById("vmn-modal-preview-badge");
-  }
-
-  function ensureLogoModal() {
-    initLogoModalElements();
-    if (!logoModalBackdrop) {
-      var wrap = document.createElement("div");
-      wrap.id = "vmn-logo-modal-backdrop";
-      wrap.className = "vmn-cmd-backdrop";
-      wrap.setAttribute("aria-hidden", "true");
-      wrap.setAttribute("role", "dialog");
-      wrap.setAttribute("aria-modal", "true");
-      wrap.setAttribute("aria-labelledby", "vmn-logo-modal-title");
-      wrap.inert = true;
-      wrap.innerHTML = '<div class="vmn-cmd-dialog s-rLSLTpgKHW">' +
-        '<div class="vmn-cmd-header s-OjCqauttGI">' +
-          '<div class="flex items-center gap-2">' +
-            '<h2 id="vmn-logo-modal-title" class="text-base font-bold m-0 text-slate-100">Brand Logo Customizer</h2>' +
-          '</div>' +
-          '<button id="vmn-logo-modal-close" class="btn btn-outline btn-sm s-VbKZbMI6uZ" aria-label="Close Logo Settings" type="button">✕</button>' +
-        '</div>' +
-        '<div class="p-4 space-y-4 text-xs">' +
-          '<p class="text-muted m-0">Upload your custom brand or partner network logo (SVG, PNG, WebP) to dynamically update the navigation header and footer.</p>' +
-          '<div id="vmn-logo-dropzone" class="p-6 text-center rounded border-2 border-dashed border-muted/30 hover:border-primary/50 cursor-pointer s-Z0ZFej8dAw">' +
-            '<input class="s-a5nei2lv47" type="file" id="vmn-logo-file-input" accept="image/svg+xml,image/png,image/webp,image/jpeg" />' +
-            '<div class="font-bold text-slate-200 mb-1">Click to select or drag logo image here</div>' +
-            '<div class="text-muted">Supports SVG, PNG, WebP (Max 2MB)</div>' +
-          '</div>' +
-          '<div class="p-3 rounded bg-surface border border-muted/20">' +
-            '<div class="text-muted font-bold mb-2">Live Navbar Preview:</div>' +
-            '<div class="p-3 rounded flex items-center justify-between s-tmnHIRH2hB">' +
-              '<div class="flex items-center gap-3">' +
-                '<img class="s-bZOprOFzec" id="vmn-modal-preview-img" src="" alt="Logo Preview" />' +
-                '<span id="vmn-modal-preview-badge" class="vmn-brand-logo font-bold">VMNL</span>' +
-                '<div>' +
-                  '<div class="font-bold text-slate-200">Virtual Media Network</div>' +
-                  '<div class="text-muted s-w-nYELGMpQ">Active Custom Logo Preview</div>' +
-                '</div>' +
-              '</div>' +
-              '<span class="vmn-badge badge-ready text-xs">PREVIEW</span>' +
-            '</div>' +
-          '</div>' +
-          '<div class="flex items-center justify-between pt-2">' +
-            '<button id="vmn-logo-reset-btn" type="button" class="btn btn-outline btn-sm text-warning">Reset to Default Badge</button>' +
-            '<button id="vmn-logo-save-btn" type="button" class="btn btn-primary btn-sm">Apply &amp; Save Logo</button>' +
-          '</div>' +
-        '</div>' +
-      '</div>';
-      document.body.appendChild(wrap);
-      initLogoModalElements();
-      bindLogoModalEvents();
-    }
-    return logoModalBackdrop;
-  }
-
-  function applyLogoToDom(dataUrl) {
-    var headerImg = document.getElementById("vmn-header-logo-img");
-    var headerBadge = document.getElementById("vmn-header-logo-badge");
-    var footerImg = document.getElementById("vmn-footer-logo-img");
-    var footerBadge = document.getElementById("vmn-footer-logo-badge");
-
-    if (dataUrl) {
-      if (headerImg) { headerImg.src = dataUrl; headerImg.style.display = "inline-block"; }
-      if (headerBadge) { headerBadge.style.display = "none"; }
-      if (footerImg) { footerImg.src = dataUrl; footerImg.style.display = "inline-block"; }
-      if (footerBadge) { footerBadge.style.display = "none"; }
+  function renderSysLogoPreview(url) {
+    if (!sysLogoPreview) return;
+    while (sysLogoPreview.firstChild) sysLogoPreview.removeChild(sysLogoPreview.firstChild);
+    if (url && typeof url === "string" && url.trim()) {
+      var img = document.createElement("img");
+      img.src = url.trim();
+      img.alt = "Configured Brand Logo Preview";
+      img.className = "vmn-sysconfig-preview-img";
+      sysLogoPreview.appendChild(img);
     } else {
-      if (headerImg) { headerImg.src = ""; headerImg.style.display = "none"; }
-      if (headerBadge) { headerBadge.style.display = ""; }
-      if (footerImg) { footerImg.src = ""; footerImg.style.display = "none"; }
-      if (footerBadge) { footerBadge.style.display = ""; }
+      var badge = document.createElement("span");
+      badge.className = "vmn-badge badge-neutral";
+      badge.textContent = "Built-in vector emblem active";
+      sysLogoPreview.appendChild(badge);
     }
   }
 
-  // Restore stored logo on DOM load
-  try {
-    var savedLogo = localStorage.getItem("vmn-custom-logo");
-    if (savedLogo) {
-      applyLogoToDom(savedLogo);
-    }
-  } catch (err) {}
-
-  function openLogoModal() {
-    ensureLogoModal();
-    if (!logoModalBackdrop) return;
-    logoModalBackdrop.inert = false;
-    logoModalBackdrop.setAttribute("aria-hidden", "false");
-    logoModalBackdrop.classList.add("open");
-
-    // Load current logo into modal preview
-    var currentLogo = null;
-    try { currentLogo = localStorage.getItem("vmn-custom-logo"); } catch (e) {}
-    if (currentLogo && modalPreviewImg && modalPreviewBadge) {
-      modalPreviewImg.src = currentLogo;
-      modalPreviewImg.style.display = "inline-block";
-      modalPreviewBadge.style.display = "none";
-      stagedLogoData = currentLogo;
-    }
-
-    if (logoCloseBtn) logoCloseBtn.focus();
+  if (sysLogoFile && sysLogoUrlInput) {
+    sysLogoFile.addEventListener("change", function() {
+      var file = sysLogoFile.files && sysLogoFile.files[0];
+      if (!file) return;
+      if (file.size > 512 * 1024) {
+        showToast("Logo image must be 512KB or smaller for system configuration.", "error");
+        return;
+      }
+      var reader = new FileReader();
+      reader.onload = function(evt) {
+        var result = evt.target && evt.target.result;
+        if (typeof result === "string") {
+          sysLogoUrlInput.value = result;
+          renderSysLogoPreview(result);
+          showToast("Logo staged in System Configuration. Click Save to publish.", "info");
+        }
+      };
+      reader.readAsDataURL(file);
+    });
   }
 
-  function closeLogoModal() {
-    if (!logoModalBackdrop) return;
-    logoModalBackdrop.classList.remove("open");
-    logoModalBackdrop.setAttribute("aria-hidden", "true");
-    logoModalBackdrop.inert = true;
+  if (sysLogoClearBtn && sysLogoUrlInput) {
+    sysLogoClearBtn.addEventListener("click", function() {
+      sysLogoUrlInput.value = "";
+      renderSysLogoPreview("");
+    });
   }
 
-  function bindLogoModalEvents() {
-    if (logoDropzone && logoFileInput) {
-      logoDropzone.onclick = function() { logoFileInput.click(); };
-      logoDropzone.ondragover = function(e) {
-        e.preventDefault();
-        logoDropzone.style.borderColor = "var(--vmn-color-primary, #38bdf8)";
-      };
-      logoDropzone.ondragleave = function() {
-        logoDropzone.style.borderColor = "";
-      };
-      logoDropzone.ondrop = function(e) {
-        e.preventDefault();
-        logoDropzone.style.borderColor = "";
-        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
-          handleLogoFile(e.dataTransfer.files[0]);
-        }
-      };
-      logoFileInput.onchange = function() {
-        if (logoFileInput.files && logoFileInput.files[0]) {
-          handleLogoFile(logoFileInput.files[0]);
-        }
-      };
-    }
-
-    if (logoSaveBtn) {
-      logoSaveBtn.onclick = function() {
-        if (!stagedLogoData) {
-          showToast("Please choose or drop an image first.", "error");
-          return;
-        }
-        try { localStorage.setItem("vmn-custom-logo", stagedLogoData); } catch (e) {}
-        applyLogoToDom(stagedLogoData);
-        try {
-          fetch("/api/v1/branding/logo", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ logoDataUrl: stagedLogoData }),
-          }).catch(function() {});
-        } catch (err) {}
-        showToast("Custom brand logo applied successfully across all headers & footers.", "success");
-        closeLogoModal();
-      };
-    }
-
-    if (logoResetBtn) {
-      logoResetBtn.onclick = function() {
-        try { localStorage.removeItem("vmn-custom-logo"); } catch (e) {}
-        stagedLogoData = null;
-        if (modalPreviewImg && modalPreviewBadge) {
-          modalPreviewImg.src = "";
-          modalPreviewImg.style.display = "none";
-          modalPreviewBadge.style.display = "";
-        }
-        applyLogoToDom(null);
-        try { fetch("/api/v1/branding/logo", { method: "DELETE" }).catch(function() {}); } catch (err) {}
-        showToast("Logo reset to default VMNL badge.", "info");
-        closeLogoModal();
-      };
-    }
+  if (sysLogoUrlInput) {
+    sysLogoUrlInput.addEventListener("input", function() {
+      renderSysLogoPreview(sysLogoUrlInput.value);
+    });
   }
 
-  // Initial event binding if modal is SSR rendered
-  bindLogoModalEvents();
+  // 23. Homepage Playout Stream Channel Tabs & Play/Pause Toggle
+  var homeChannelMeta = {
+    NXTR: "Nigezie Xtreme • Afrobeat Top 10 Countdown",
+    ORIS: "Orisun — The Source • Yoruba Heritage Showcase",
+    IMBD: "Isi Mbido — The Beginning • Igbo Cultural Showcase"
+  };
 
   document.addEventListener("click", function(e) {
-    var trigger = e.target && e.target.closest ? e.target.closest("#vmn-logo-modal-trigger, #vmn-footer-logo-trigger") : null;
-    if (trigger) {
-      e.preventDefault();
-      openLogoModal();
-      return;
-    }
-    if (e.target && e.target.closest && e.target.closest("#vmn-logo-modal-close")) {
-      e.preventDefault();
-      closeLogoModal();
-      return;
-    }
-    if (e.target === logoModalBackdrop) {
-      closeLogoModal();
-    }
-  });
-
-  document.addEventListener("keydown", function(e) {
-    if (e.key === "Escape" && logoModalBackdrop && logoModalBackdrop.classList.contains("open")) {
-      closeLogoModal();
-    }
-  });
-
-  function handleLogoFile(file) {
-    if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-      showToast("Logo file exceeds 2MB maximum limit.", "error");
-      return;
-    }
-
-    var reader = new FileReader();
-    reader.onload = function(evt) {
-      var dataUrl = evt.target && evt.target.result;
-      if (typeof dataUrl === "string") {
-        stagedLogoData = dataUrl;
-        if (modalPreviewImg && modalPreviewBadge) {
-          modalPreviewImg.src = dataUrl;
-          modalPreviewImg.style.display = "inline-block";
-          modalPreviewBadge.style.display = "none";
+    var chBtn = e.target && e.target.closest ? e.target.closest("#vmn-channel-tabs button[data-ch]") : null;
+    if (chBtn) {
+      var ch = chBtn.getAttribute("data-ch") || "NXTR";
+      var tabsWrap = document.getElementById("vmn-channel-tabs");
+      if (tabsWrap) {
+        var btns = tabsWrap.querySelectorAll("button[data-ch]");
+        for (var i = 0; i < btns.length; i++) {
+          btns[i].classList.remove("btn-primary", "active");
+          btns[i].classList.add("btn-outline");
         }
-        showToast("Logo loaded into preview. Click 'Apply & Save' to publish.", "info");
       }
-    };
-    reader.readAsDataURL(file);
-  }
+      chBtn.classList.add("btn-primary", "active");
+      chBtn.classList.remove("btn-outline");
+      var trackEl = document.getElementById("vmn-player-track");
+      if (trackEl) trackEl.textContent = homeChannelMeta[ch] || ch;
+      showToast("Switched preview feed to " + ch, "info");
+      return;
+    }
+
+    var playBtn = e.target && e.target.closest ? e.target.closest("#vmn-player-play-btn") : null;
+    if (playBtn) {
+      var isPlaying = playBtn.getAttribute("data-playing") === "true";
+      playBtn.setAttribute("data-playing", isPlaying ? "false" : "true");
+      playBtn.style.transform = isPlaying ? "scale(1)" : "scale(1.08)";
+      playBtn.textContent = "";
+      var svgNS = "http://www.w3.org/2000/svg";
+      var svg = document.createElementNS(svgNS, "svg");
+      svg.setAttribute("width", "20");
+      svg.setAttribute("height", "20");
+      svg.setAttribute("viewBox", "0 0 24 24");
+      svg.setAttribute("fill", "currentColor");
+      if (isPlaying) {
+        var poly = document.createElementNS(svgNS, "polygon");
+        poly.setAttribute("points", "5 3 19 12 5 21 5 3");
+        svg.appendChild(poly);
+        showToast("Stream preview paused.", "info");
+      } else {
+        var r1 = document.createElementNS(svgNS, "rect");
+        r1.setAttribute("x", "6"); r1.setAttribute("y", "4"); r1.setAttribute("width", "4"); r1.setAttribute("height", "16");
+        var r2 = document.createElementNS(svgNS, "rect");
+        r2.setAttribute("x", "14"); r2.setAttribute("y", "4"); r2.setAttribute("width", "4"); r2.setAttribute("height", "16");
+        svg.appendChild(r1);
+        svg.appendChild(r2);
+        showToast("Preview player active (live broadcast source pending).", "info");
+      }
+      playBtn.appendChild(svg);
+    }
+  });
+
+  // 24. Support FAQ Category Filter Pills
+  document.addEventListener("click", function(e) {
+    var pill = e.target && e.target.closest ? e.target.closest(".vmn-filter-pill[data-filter]") : null;
+    if (!pill) return;
+    var cat = pill.getAttribute("data-filter") || "all";
+    var bar = pill.closest(".vmn-filter-bar");
+    if (bar) {
+      var pills = bar.querySelectorAll(".vmn-filter-pill");
+      for (var i = 0; i < pills.length; i++) pills[i].classList.remove("active");
+    }
+    pill.classList.add("active");
+    var items = document.querySelectorAll(".vmn-accordion-item[data-category]");
+    for (var j = 0; j < items.length; j++) {
+      var itemCat = items[j].getAttribute("data-category");
+      items[j].style.display = (cat === "all" || itemCat === cat) ? "" : "none";
+    }
+  });
+
+  // 25. Channel Detail EPG Day Selector & ONE Studios Stage Tabs
+  document.addEventListener("click", function(e) {
+    var dayBtn = e.target && e.target.closest ? e.target.closest(".vmn-epg-day[data-day]") : null;
+    if (dayBtn) {
+      var day = dayBtn.getAttribute("data-day") || "TODAY";
+      var bar = dayBtn.closest(".vmn-filter-bar");
+      if (bar) {
+        var dBtns = bar.querySelectorAll(".vmn-epg-day");
+        for (var i = 0; i < dBtns.length; i++) {
+          dBtns[i].classList.remove("active", "btn-primary");
+          dBtns[i].classList.add("btn-outline");
+          dBtns[i].setAttribute("aria-selected", "false");
+        }
+      }
+      dayBtn.classList.add("active", "btn-primary");
+      dayBtn.classList.remove("btn-outline");
+      dayBtn.setAttribute("aria-selected", "true");
+      showToast("Showing illustrative schedule framework for " + day, "info");
+      return;
+    }
+
+    var stageTab = e.target && e.target.closest ? e.target.closest(".vmn-stage-tab[data-stage]") : null;
+    if (stageTab) {
+      var bar2 = stageTab.closest(".vmn-filter-bar");
+      if (bar2) {
+        var sTabs = bar2.querySelectorAll(".vmn-stage-tab");
+        for (var k = 0; k < sTabs.length; k++) {
+          sTabs[k].classList.remove("active", "btn-primary");
+          sTabs[k].classList.add("btn-outline");
+          sTabs[k].setAttribute("aria-selected", "false");
+        }
+      }
+      stageTab.classList.add("active", "btn-primary");
+      stageTab.classList.remove("btn-outline");
+      stageTab.setAttribute("aria-selected", "true");
+      showToast("Selected " + (stageTab.textContent || "facility option"), "info");
+      return;
+    }
+
+    var courseBtn = e.target && e.target.closest ? e.target.closest(".vmn-select-course[data-course]") : null;
+    if (courseBtn) {
+      var courseName = courseBtn.getAttribute("data-course");
+      var fee = parseFloat(courseBtn.getAttribute("data-fee") || "0");
+      var msgBox = document.getElementById("enquiry-msg-AFCA_ACADEMY");
+      if (msgBox && courseName) {
+        msgBox.value = "Requesting admissions & tuition quote for: " + courseName + (fee ? " (Est. ₦" + fee.toLocaleString("en-NG") + " NGN)." : ".");
+        msgBox.focus();
+        var formWrap = document.getElementById("inquiry-form");
+        if (formWrap) formWrap.scrollIntoView({ behavior: "smooth" });
+        showToast("Selected " + courseName + " added to your enquiry", "success");
+      }
+    }
+  });
+
+  // 26. Universal Table Search Filtering
+  document.addEventListener("input", function(e) {
+    var input = e.target;
+    if (!input || !input.classList || !input.classList.contains("vmn-table-filter-input")) return;
+    var q = (input.value || "").trim().toLowerCase();
+    var scope = input.closest(".vmn-data-table-wrapper, .vmn-cockpit-article, section, article") || document;
+    var rows = scope.querySelectorAll("table tbody tr");
+    for (var i = 0; i < rows.length; i++) {
+      var row = rows[i];
+      if (row.cells && row.cells[0] && row.cells[0].colSpan > 1) continue;
+      var txt = (row.textContent || "").toLowerCase();
+      row.style.display = (!q || txt.indexOf(q) !== -1) ? "" : "none";
+    }
+  });
+
+  // 27. Dropzone File Picker Support
+  document.addEventListener("click", function(e) {
+    var dz = e.target && e.target.closest ? e.target.closest(".vmn-dropzone") : null;
+    if (!dz) return;
+    if (e.target && e.target.tagName === "INPUT") return;
+    var fileInp = dz.querySelector('input[type="file"]');
+    if (fileInp) fileInp.click();
+  });
+  document.addEventListener("change", function(e) {
+    var fileInp = e.target;
+    if (!fileInp || fileInp.type !== "file") return;
+    var dz = fileInp.closest ? fileInp.closest(".vmn-dropzone") : null;
+    if (!dz || !fileInp.files || !fileInp.files[0]) return;
+    var status = dz.querySelector(".vmn-dropzone-status");
+    if (!status) {
+      status = document.createElement("div");
+      status.className = "vmn-dropzone-status text-xs font-semibold text-emerald-400 mt-2";
+      dz.appendChild(status);
+    }
+    status.textContent = "Attached: " + fileInp.files[0].name + " (" + Math.max(1, Math.round(fileInp.files[0].size / 1024)) + " KB)";
+  });
 })();
 
 `;

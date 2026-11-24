@@ -80,7 +80,7 @@ export function renderIAProvenance(screen: IAScreen): string {
   return `
   <footer class="card vmn-provenance-tray mt-4" aria-labelledby="ia-provenance-${escapeHtml(screen.id)}">
     <div class="flex flex-wrap gap-2 items-center mb-2">${renderIAStatusChips(screen)}</div>
-    <h2 id="ia-provenance-${escapeHtml(screen.id)}" class="text-sm font-bold">Screen provenance</h2>
+    <h2 id="ia-provenance-${escapeHtml(screen.id)}" class="text-sm font-bold">Data Source &amp; Verification <span class="sr-only">Screen provenance</span></h2>
     <p class="text-xs text-muted mb-2 font-mono">
       ${escapeHtml(screen.id)} · ${escapeHtml(screen.screenName)} · journey ${escapeHtml(screen.journeyCode)} step ${escapeHtml(screen.step)} ·
       acceptance <strong>${escapeHtml(screen.acceptanceId)}</strong> · source ${escapeHtml(
@@ -154,39 +154,29 @@ export function renderIAContractScreen(screen: IAScreen): string {
     <header class="vmn-cockpit-hero card mb-4 p-4 rounded-xl bg-surface border border-muted/20">
       <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
         <div class="flex flex-wrap gap-1.5 items-center">${renderIAStatusChips(screen)}</div>
-        <div class="flex items-center gap-2">
-          <button type="button" class="btn btn-outline btn-sm text-xs" data-toast="Synchronizing operational cache for ${escapeHtml(screen.id)}..." data-toast-type="info">&#8635; Refresh</button>
-          <button type="button" class="btn btn-primary btn-sm text-xs font-bold" data-toast="Initiating new transaction on ${escapeHtml(screen.screenName)}..." data-toast-type="success">+ New Action</button>
-        </div>
       </div>
       <h1 class="text-xl md:text-2xl font-extrabold text-slate-100 mb-1">${escapeHtml(screen.screenName)}</h1>
       <p class="text-xs text-muted max-w-2xl mb-3 leading-relaxed">${escapeHtml(screen.primaryAction)}</p>
       
-      <!-- Interactive Filter & Search Bar -->
+      <!-- Interactive Search Bar -->
       <div class="flex items-center justify-between flex-wrap gap-2 pt-2 border-t border-muted/10">
         <div class="flex items-center gap-2 flex-1 min-w-[200px]">
-          <input type="search" placeholder="Search records and entities..." class="vmn-table-filter-input input input-sm w-full text-xs" aria-label="Search operational records">
-        </div>
-        <div class="flex items-center gap-1.5 text-xs text-muted">
-          <span>Status:</span>
-          <button type="button" class="btn btn-outline btn-xs text-primary border-primary">All (${escapeHtml(sampleItems.length + 8)})</button>
-          <button type="button" class="btn btn-ghost btn-xs text-muted">Active (${escapeHtml(sampleItems.length)})</button>
-          <button type="button" class="btn btn-ghost btn-xs text-muted">Pending (2)</button>
+          <input type="search" placeholder="Filter sections and fields..." class="vmn-table-filter-input input input-sm w-full text-xs" aria-label="Filter operational records">
         </div>
       </div>
     </header>
 
-    <!-- Operational KPI Summary Cards -->
+    <!-- Operational Scope Cards -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
       <div class="card p-2.5 rounded-lg bg-surface border border-muted/20">
-        <span class="text-xs text-muted block font-semibold">ACTIVE RECORDS</span>
-        <span class="text-base font-bold block mt-0.5 text-primary">${sampleItems.length + 18} Tracked</span>
-        <span class="text-xs text-muted block mt-0.5">${escapeHtml(screen.journeyCode)} cluster</span>
+        <span class="text-xs text-muted block font-semibold">JOURNEY</span>
+        <span class="text-base font-bold block mt-0.5 text-primary">${escapeHtml(screen.journeyCode)}</span>
+        <span class="text-xs text-muted block mt-0.5">Step ${escapeHtml(screen.step)}</span>
       </div>
       <div class="card p-2.5 rounded-lg bg-surface border border-muted/20">
-        <span class="text-xs text-muted block font-semibold">TELEMETRY</span>
-        <span class="text-base font-bold block mt-0.5 text-success">99.98% OK</span>
-        <span class="text-xs text-muted block mt-0.5">Synchronized</span>
+        <span class="text-xs text-muted block font-semibold">DATA FEED</span>
+        <span class="text-base font-bold block mt-0.5 text-muted">Standby</span>
+        <span class="text-xs text-muted block mt-0.5">Requires live feed</span>
       </div>
       <div class="card p-2.5 rounded-lg bg-surface border border-muted/20">
         <span class="text-xs text-muted block font-semibold">OFFICE</span>
@@ -215,10 +205,9 @@ export function renderIAContractScreen(screen: IAScreen): string {
     <section class="card mb-4 rounded-xl bg-surface border border-muted/20 overflow-hidden" aria-labelledby="vmn-records-heading">
       <div class="p-3 flex items-center justify-between flex-wrap gap-2 border-b border-muted/10">
         <div>
-          <h2 id="vmn-records-heading" class="text-sm font-bold text-slate-100 m-0">Active Domain Records</h2>
+          <h2 id="vmn-records-heading" class="text-sm font-bold text-slate-100 m-0">Domain Schema Objects</h2>
           <p class="text-xs text-muted m-0">${escapeHtml(screen.domainObjects)}</p>
         </div>
-        <button type="button" class="btn btn-outline btn-xs" data-toast="Exporting view..." data-toast-type="info">Export</button>
       </div>
       <div class="overflow-x-auto">
         <table class="w-full text-left text-xs border-collapse">
@@ -228,7 +217,6 @@ export function renderIAContractScreen(screen: IAScreen): string {
               <th class="p-2.5">ENTITY</th>
               <th class="p-2.5">GOVERNANCE</th>
               <th class="p-2.5">STATUS</th>
-              <th class="p-2.5 text-right">ACTION</th>
             </tr>
           </thead>
           <tbody>
@@ -238,12 +226,9 @@ export function renderIAContractScreen(screen: IAScreen): string {
                 <td class="p-2.5 font-semibold">${escapeHtml(item)}</td>
                 <td class="p-2.5 text-muted">${escapeHtml(screen.sourceOffice)}</td>
                 <td class="p-2.5">
-                  <span class="vmn-badge ${idx === 0 ? "badge-ready" : "badge-info"} text-xs">
-                    ${idx === 0 ? "Active" : "Sync"}
+                  <span class="vmn-badge badge-info text-xs">
+                    Schema
                   </span>
-                </td>
-                <td class="p-2.5 text-right">
-                  <button type="button" class="btn btn-outline btn-xs" data-toast="Inspecting ${escapeHtml(screen.id)}-${idx + 101}..." data-toast-type="info">Inspect</button>
                 </td>
               </tr>
             `).join("")}

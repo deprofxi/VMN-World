@@ -135,9 +135,7 @@ export function renderChannelDetailPageHtml(
           <p class="s-hTxhcKFIoy">Browse 24-hour linear schedule segments across daypart blocks</p>
         </div>
         <div class="s-s3hiIigIif">
-          <button type="button" class="btn btn-outline s-09tfzLJ-_G" aria-label="Previous day schedule">&larr; Yesterday</button>
-          <button type="button" class="btn btn-outline s-cNacoMSr2Q" aria-label="Today schedule">Today (Schedule)</button>
-          <button type="button" class="btn btn-outline s-09tfzLJ-_G" aria-label="Next day schedule">Tomorrow &rarr;</button>
+          <a href="/schedule" class="btn btn-outline s-09tfzLJ-_G" aria-label="Full broadcast schedule">Full Schedule &rarr;</a>
         </div>
       </div>
 

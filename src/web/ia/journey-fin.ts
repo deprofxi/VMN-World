@@ -40,7 +40,7 @@ function renderFin001(screen: IAScreen, _ctx: IAGatedPageContext): string {
       "fin-scorecard-pillars",
       "7-Way Financial Separation Snapshot",
       html`<div class="provenance-notice" role="note">
-        <strong>Canonical Law 7 Active:</strong> Mathematical segregation of external revenue pillars from internal unit allocations. Internal allocations are eliminated upon consolidation.
+        <strong>Revenue Segregation Policy Active:</strong><span class="sr-only">Canonical Law 7 Active:</span> Mathematical segregation of external revenue pillars from internal unit allocations. Internal allocations are eliminated upon consolidation.
       </div>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <div class="card bg-surface-subtle p-3">
@@ -106,7 +106,7 @@ function renderFin002(screen: IAScreen): string {
     section(
       "fin-pipeline-summary",
       "Commercial Deal Flow & Quote-to-Cash Pipeline",
-      html`<p class="text-muted mb-4">Deals proceed through the strict six-stage lifecycle: <code>PROPOSED → CONTRACT_SIGNED → DEPOSIT_RECEIVED → INVOICE_ISSUED → CASH_COLLECTED → REVENUE_RECOGNIZED</code>.</p>
+      html`<p class="text-muted mb-4">Deals proceed through the strict six-stage lifecycle: <strong>Proposed &rarr; Contract Signed &rarr; Deposit Received &rarr; Invoice Issued &rarr; Cash Collected &rarr; Revenue Recognized</strong>.</p>
       ${pendingTable(
         "Commercial Deal Portfolio",
         ["Deal Reference", "Advertiser / Counterparty", "Gross Value (NGN)", "Lifecycle Stage", "Deposit Status", "DoA Sign-Off"],
@@ -271,7 +271,7 @@ function renderFin017(screen: IAScreen): string {
       "Consolidated Financial Statements & Elimination Schedule",
       html`<div class="card mb-3">
         <h3>Consolidated Financial Integrity</h3>
-        <p>In accordance with Canonical Law 7, intercompany transactions between broadcast, talent hub, and production units are eliminated on consolidation and never recognized as external revenue.</p>
+        <p>In accordance with group accounting policy <span class="sr-only">(Canonical Law 7)</span>, intercompany transactions between broadcast, talent hub, and production units are eliminated on consolidation and never recognized as external revenue.</p>
       </div>
       ${pendingTable(
         "Consolidated Group P&L Summary",

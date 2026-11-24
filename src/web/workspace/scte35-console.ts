@@ -37,14 +37,14 @@ export function renderScte35ConsoleHtml(ctx: Scte35ConsoleContext): string {
         <a href="/" class="text-muted no-underline">Home</a> <span>&gt;</span>
         <a href="/workspace" class="text-muted no-underline">Workspaces</a> <span>&gt;</span>
         <a href="/broadcast/dashboard" class="text-muted no-underline">Broadcast MCR</a> <span>&gt;</span>
-        <span aria-current="page" class="text-primary font-mono font-semibold">SCTE-35 DPI Injector</span>
+        <span aria-current="page" class="text-primary font-mono font-semibold">Commercial Ad Cue Injector</span>
       </nav>
       <div class="flex items-center gap-2">
         <span class="vmn-badge badge-ready font-mono text-xs flex items-center gap-1">
           <span class="vmn-pulse-dot" aria-hidden="true"></span>
           UDP MULTIPLEXER LINKED
         </span>
-        <span class="font-mono text-xs text-muted">SMPTE-2022</span>
+        <span class="font-mono text-xs text-muted">Broadcast Transport</span>
       </div>
     </div>
 
@@ -59,7 +59,7 @@ export function renderScte35ConsoleHtml(ctx: Scte35ConsoleContext): string {
           <a href="/broadcast/dashboard" class="btn btn-outline btn-sm text-xs">&larr; MCR Dashboard</a>
         </div>
       </div>
-      <h1 class="text-xl md:text-2xl font-extrabold text-slate-100 mb-1">Live SCTE-35 Cue Inserter &amp; Headend Controller</h1>
+      <h1 class="text-xl md:text-2xl font-extrabold text-slate-100 mb-1">Live Commercial Ad Cue Inserter &amp; Headend Controller <span class="sr-only">Live SCTE-35 Cue Inserter &amp; Headend Controller</span></h1>
       <p class="text-xs text-muted max-w-2xl mb-3 leading-relaxed">
         ANSI/SCTE-35 Digital Ad Insertion: Delivers frame-accurate commercial splice cue signals directly to broadcast playout multiplexers.
       </p>
@@ -96,7 +96,7 @@ export function renderScte35ConsoleHtml(ctx: Scte35ConsoleContext): string {
       <div class="flex items-center justify-between mb-3 border-b border-muted/10 pb-2">
         <div>
           <h2 class="text-base font-bold text-slate-100 m-0">Armed Playout Splice Cue Trigger</h2>
-          <p class="text-xs text-muted m-0">Triggers an immediate SCTE-35 splice out message over UDP to the headend multiplexer</p>
+          <p class="text-xs text-muted m-0">Triggers an immediate commercial break cue to the broadcast headend multiplexer</p>
         </div>
         <span class="vmn-badge badge-warning text-xs font-mono">HIGH-IMPACT LIVE CONTROL</span>
       </div>
@@ -142,7 +142,7 @@ export function renderScte35ConsoleHtml(ctx: Scte35ConsoleContext): string {
     <section class="card mb-4 rounded-xl bg-surface border border-muted/20 overflow-hidden">
       <div class="p-3 flex items-center justify-between flex-wrap gap-2 border-b border-muted/10">
         <div>
-          <h2 class="text-sm font-bold text-slate-100 m-0">Recent SCTE-35 Ingestion &amp; Playout History</h2>
+          <h2 class="text-sm font-bold text-slate-100 m-0">Recent Ad Cue &amp; Playout History</h2>
           <p class="text-xs text-muted m-0">Transmitted splice section packets logged with timestamp and event ID</p>
         </div>
       </div>
@@ -155,7 +155,7 @@ export function renderScte35ConsoleHtml(ctx: Scte35ConsoleContext): string {
               <th class="p-2.5">CHANNEL</th>
               <th class="p-2.5">DURATION</th>
               <th class="p-2.5">TIMESTAMP</th>
-              <th class="p-2.5">UDP STATUS</th>
+              <th class="p-2.5">DELIVERY STATUS</th>
             </tr>
           </thead>
           <tbody>

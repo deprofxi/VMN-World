@@ -82,7 +82,7 @@ export function renderHeadspaceIntelligenceHtml(snapshot: HeadspaceDeskSnapshot 
  <div class="vmn-card s-OAPQ4AS9-O" >
  <div class="s-cU3Cr5m8eq">Knowledge Documents</div>
  <div class="s-ykrP-ZIQ8m">${escapeHtml(total)}</div>
- <div class="s-_tdYXnR5PA">Canonical, search-indexed</div>
+ <div class="s-_tdYXnR5PA">Verified, search-indexed</div>
         </div>
  <div class="vmn-card s-OAPQ4AS9-O" >
  <div class="s-cU3Cr5m8eq">Categories in Use</div>
@@ -280,7 +280,7 @@ export function renderAgenticOsConsoleHtml(snapshot: AgenticOsDeskSnapshot | und
  <div class="s-ykrP-ZIQ8m">${escapeHtml(agents.length)}</div>
         </div>
  <div class="vmn-card s-OAPQ4AS9-O" >
- <div class="s-cU3Cr5m8eq">Pending HITL Proposals</div>
+ <div class="s-cU3Cr5m8eq">Pending Human Review</div>
  <div class="s-5bXu9tLBIv">${snapshot?.pendingProposals ?? 0}</div>
         </div>
  <div class="vmn-card s-OAPQ4AS9-O" >

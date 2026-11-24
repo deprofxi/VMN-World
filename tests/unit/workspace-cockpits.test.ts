@@ -62,8 +62,19 @@ describe("Navigation Overhaul: Workstation Rail & Header Menus", () => {
     expect(layout).toContain("Gate: Locked &bull; Supervised");
   });
 
-  it("renders the Desks (48) mega-menu dropdown in header controls", () => {
-    const layout = renderMasterLayout("Test Page", "<div>Content</div>", "/");
+  it("renders the Desks (48) mega-menu dropdown for signed-in operators and omits it anonymously", () => {
+    const anonLayout = renderMasterLayout("Test Page", "<div>Content</div>", "/");
+    expect(anonLayout).not.toContain("Desks (48)");
+    expect(anonLayout).not.toContain('id="vmn-desks-dropdown"');
+
+    const layout = renderMasterLayout("Test Page", "<div>Content</div>", "/", {
+      sessionUser: {
+        userId: "usr_test_op",
+        personId: "per_test_op",
+        email: "op@vmnl.ng",
+        roles: ["BroadcastOperationsManager"],
+      },
+    });
     expect(layout).toContain('id="vmn-desks-dropdown"');
     expect(layout).toContain('id="vmn-desks-trigger"');
     expect(layout).toContain("Desks (48)");

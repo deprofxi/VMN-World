@@ -249,6 +249,7 @@ export function renderSignInHtml(options?: {
         </div>
       </div>
 
+      ${process.env.NODE_ENV === "test" || process.env.AUTH_BYPASS_ENABLED === "true" ? `
       <!-- Sandbox One-Click Role Selector -->
       <details class="vmn-sandbox-drawer mt-6 text-center text-xs" id="sandbox-roles">
         <summary class="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-slate-800 bg-slate-900/60 text-slate-300 hover:bg-slate-800 hover:text-white transition-colors select-none">
@@ -268,7 +269,7 @@ export function renderSignInHtml(options?: {
             ${personasHtml}
           </div>
         </div>
-      </details>
+      </details>` : ""}
 
       <div class="sr-only" aria-hidden="true">
         ${options?.hostedStatesHtml ?? renderSignInHostedStates()}
@@ -459,12 +460,21 @@ export function renderWorkspaceSelectionHtml(
   }> = [
     {
       role: "SuperAdmin",
+      title: "Enterprise System Configuration",
+      friendlySubtitle: "Super Admin Control Plane",
+      subtitle: "SYS-CFG-001",
+      url: "/admin/system-config",
+      icon: "settings",
+      description: "Configure network brand identity, security & audit governance thresholds, broadcast safeguards, and global operational notices (SuperAdmin only).",
+    },
+    {
+      role: "SuperAdmin",
       title: "Executive & Admin Console",
-      friendlySubtitle: "System Configuration & Governance Suite",
+      friendlySubtitle: "Feature Flags & Governance Suite",
       subtitle: "UX-ADM-001 to 004",
       url: "/admin/feature-flags",
       icon: "shield",
-      description: "Feature flag toggles, master system configuration, chained audit logs, and enterprise-wide governance.",
+      description: "Feature flag toggles, chained audit logs, and enterprise-wide governance.",
     },
     {
       role: "MCRSupervisor",

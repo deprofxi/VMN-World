@@ -94,7 +94,7 @@ export function projectVtmPaymentVisibility(engine: VirtualTalentManagementEngin
       {
         gate: "CONTRACT_EXECUTION",
         status: c.isFullySigned ? "SATISFIED" : "OPEN",
-        note: c.isFullySigned ? "Talent and client signatures recorded (UX-VTM-010 seal)." : "Awaiting dual signature — escrow deposit is blocked until fully signed.",
+        note: c.isFullySigned ? "Talent and client signatures recorded (dual-signature seal)." : "Awaiting dual signature — escrow deposit is blocked until fully signed.",
       },
       {
         gate: "IDENTITY_VERIFICATION",
@@ -108,13 +108,13 @@ export function projectVtmPaymentVisibility(engine: VirtualTalentManagementEngin
           c.milestones.length === 0
             ? "No milestones defined — define milestone schedule before deployment."
             : awaitingEscrowNgn > 0
-              ? `${formatNgn(awaitingEscrowNgn)} of milestone value is not yet escrowed (no payment protection — canonical law 9).`
+              ? `${formatNgn(awaitingEscrowNgn)} of milestone value is not yet escrowed (payment protection requires escrow deposit).`
               : "All milestone value held or released through escrow.",
       },
       {
         gate: "RIGHTS_CLEARANCE",
         status: "REVIEW_REQUIRED",
-        note: "VTM holds no rights truth. Confirm the rights register clearance for the engagement window/territory before any exploitation (canonical laws 4 & 8).",
+        note: "Confirm the rights register clearance for the engagement window and territory before any commercial distribution.",
       },
     ];
 
@@ -193,7 +193,7 @@ export function renderVtmPaymentVisibilityHtml(projection: VtmPaymentVisibilityP
 
   const contractSections =
     projection.contracts.length === 0
- ? `<div class="vmn-card s-Cs0JleIJbl" ><p class="s-74eGsJhV6B">No VTM contracts exist yet. Payment visibility projects the canonical contract engine — create a contract through the VTM workbench.</p></div>`
+ ? `<div class="vmn-card s-Cs0JleIJbl" ><p class="s-74eGsJhV6B">No talent contracts exist yet. Create a contract through the talent workbench to track payment milestones.</p></div>`
       : projection.contracts
           .map(
             (c) => `

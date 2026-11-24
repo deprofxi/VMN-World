@@ -154,13 +154,13 @@ registered as TSK-59.
 | `DateTime` columns | **113** | `prisma/schema.prisma` — 110 at the 2026-10-17 pin, +3 on 2026-11-19: `InAppNotificationRecord.createdAt`/`readAt` and `NotificationPreferenceRecord.updatedAt` (the in-app inbox and its dispatch gate, UX-HUB-003 / UX-SYS-012). `readAt` is nullable and written from the domain record, never re-derived, because a notification that comes back unread after a restart is the defect the row removes |
 | …with `@default(now())` | 26 | `grep -c "@default(now())" prisma/schema.prisma` |
 | …with `@updatedAt` | 18 | `grep -c "@updatedAt" prisma/schema.prisma` |
-| `new Date()` lines in `src/` | 311 | `grep -rn "new Date()" --include='*.ts' src/ \| wc -l` — re-measured 2026-11-22 (+8 across playout automation adapters, automated banking gateway, SCTE-35 coordinator, and Azeebo+ federation SSO; 303 at the 2026-11-21 pin) |
-| `.toISOString()` lines | 132 | §7 — re-measured 2026-11-21 (+16 across route responses and state serialization; 116 at the 2026-11-19 pin) |
-| `Date.now()` lines | 170 | §7 — re-measured 2026-11-22 (+3 across session nonce generators and heartbeat timestamps; 167 at the 2026-11-21 pin) |
+| `new Date()` lines in `src/` | 314 | `grep -rn "new Date()" --include='*.ts' src/ \| wc -l` — re-measured 2026-11-24 |
+| `.toISOString()` lines | 137 | §7 — re-measured 2026-11-24 |
+| `Date.now()` lines | 172 | §7 — re-measured 2026-11-24 |
 
 Counts are **matching lines**, the rule `grep -rn … | wc -l` applies, not total occurrences.
 
-There is no clock abstraction: timestamps are taken from the process clock at 311 `new Date()` lines,
+There is no clock abstraction: timestamps are taken from the process clock at 314 `new Date()` lines,
 which is why
 every lifecycle test in `tests/` that needs a window boundary injects explicit ISO dates into the
 fixture rather than relying on wall time (`tests/unit/broadcast-schedule-lifecycle.test.ts`,

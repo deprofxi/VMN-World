@@ -104,7 +104,7 @@ export function renderAccessAdminConsoleHtml(projection: AccessMatrixProjection,
       </div>
 
  <div class="vmn-card s-QTA1yfp9QZ" >
- <h2 class="s-X-3ntabRj3">Role → Resource Grant Matrix (canonical)</h2>
+ <h2 class="s-X-3ntabRj3">Role &amp; Resource Permissions Matrix</h2>
  <div class="table-container s-QtRFDAL0Yl" >
  <table class="s-yaXxTqlt-j">
             <thead>

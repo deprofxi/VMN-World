@@ -73,7 +73,7 @@ export function renderGovernanceGrcDeskHtml(ctx: GovernanceGrcContext): string {
       <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
         <div class="flex items-center gap-2">
           <span class="vmn-badge badge-info text-xs font-mono">RISK REGISTER</span>
-          <span class="vmn-badge badge-outline text-xs font-mono">NDPR / GDPR PRIVACY</span>
+          <span class="vmn-badge badge-outline text-xs font-mono">DATA PRIVACY &amp; COMPLIANCE</span>
         </div>
         <div class="flex items-center gap-2">
           <a href="#new-risk-modal" class="btn btn-primary btn-sm text-xs font-bold">+ Log New Enterprise Risk</a>
@@ -97,7 +97,7 @@ export function renderGovernanceGrcDeskHtml(ctx: GovernanceGrcContext): string {
           <span class="text-xs text-muted block mt-0.5">SLA compliant</span>
         </div>
         <div class="p-2.5 rounded-lg bg-slate-900/60 border border-muted/10">
-          <span class="text-xs text-muted block font-semibold">PRIVACY (DSAR) QUEUE</span>
+          <span class="text-xs text-muted block font-semibold">DATA PRIVACY REQUESTS (DSAR)</span>
           <span class="text-base font-bold block mt-0.5 text-slate-100">0 Overdue</span>
           <span class="text-xs text-muted block mt-0.5">30-day window OK</span>
         </div>

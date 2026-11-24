@@ -236,7 +236,7 @@ export function renderVtmMarketplaceHtml(opportunities: Array<{
       </header>
 
  <div class="s-sWhhVoBuXm">
-        ${cards}
+        ${cards || `<div class="card p-6"><p class="text-sm text-muted">No active casting opportunities or talent briefs are published for your profile right now.</p></div>`}
       </div>
     </article>
   `;

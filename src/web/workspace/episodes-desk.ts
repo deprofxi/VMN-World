@@ -96,7 +96,7 @@ export function renderEpisodesDeskHtml(ctx: EpisodesDeskContext): string {
       <div class="p-3 flex items-center justify-between flex-wrap gap-2 border-b border-muted/10">
         <div>
           <h2 class="text-sm font-bold text-slate-100 m-0">Broadcast Episodes Registry</h2>
-          <p class="text-xs text-muted m-0">Canonical BroadcastEpisode records with linked digital video master assets</p>
+          <p class="text-xs text-muted m-0">Broadcast episode records with linked master video assets</p>
         </div>
       </div>
 

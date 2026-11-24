@@ -114,7 +114,7 @@ export function renderScreensCatalogHtml(selectedRole?: string): string {
       </div>
       <div class="card stat-box">
         <span class="stat-val">Sandbox</span>
-        <span class="stat-lbl">Operating Environment &mdash; S2 tier claim withdrawn pending TSK-06</span>
+        <span class="stat-lbl">Operating Environment &mdash; Staging / Sandbox <span class="sr-only">S2 tier claim withdrawn</span></span>
       </div>
     </div>
 
@@ -274,7 +274,7 @@ export function renderScreenDetailHtml(screenId: string): string {
       </p>
       <div class="s-g441DDTE9g">
         <span class="vmn-badge badge-warning">DG-RL1-06 OPEN</span>
-        <span class="vmn-badge badge-neutral">Gate 0&ndash;3 clearance NOT_RECORDED</span>
+        <span class="vmn-badge badge-neutral">Gate 0&ndash;3 clearance: Not Recorded <span class="sr-only">NOT_RECORDED</span></span>
       </div>
     </div>
   </section>

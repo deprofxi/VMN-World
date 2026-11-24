@@ -218,7 +218,7 @@ function renderMcrCockpit(): string {
             <div class="text-xs text-muted mt-1 font-mono">1080i50 / 50Hz • SOM 14:28:42:18</div>
           </div>
           <div class="flex justify-between text-xs text-muted">
-            <span>SCTE-35: <strong>PID 0x0104</strong></span>
+            <span>Ad Cue Stream: <strong>PID 0x0104</strong></span>
             <span>Carriage: <strong>StarTimes DTT</strong></span>
           </div>
         </div>
@@ -245,7 +245,7 @@ function renderMcrCockpit(): string {
             <div class="text-xs text-muted mt-1 font-mono">1080i50 / 50Hz • SOM 14:28:42:18</div>
           </div>
           <div class="flex justify-between text-xs text-muted">
-            <span>SCTE-35: <strong>PID 0x0104</strong></span>
+            <span>Ad Cue Stream: <strong>PID 0x0104</strong></span>
             <span>Carriage: <strong>StarTimes DTH</strong></span>
           </div>
         </div>
@@ -272,7 +272,7 @@ function renderMcrCockpit(): string {
             <div class="text-xs text-muted mt-1 font-mono">1080i50 / 50Hz • SOM 14:28:42:18</div>
           </div>
           <div class="flex justify-between text-xs text-muted">
-            <span>SCTE-35: <strong>PID 0x0104</strong></span>
+            <span>Ad Cue Stream: <strong>PID 0x0104</strong></span>
             <span>Carriage: <strong>StarTimes DTT</strong></span>
           </div>
         </div>
@@ -299,8 +299,8 @@ function renderMcrCockpit(): string {
 
         <!-- SCTE-35 DPI Cue Trigger -->
         <div class="card p-3 s-3zot8ocgAl">
-          <h4 class="font-bold text-sm mb-2">Digital Ad Insertion (ANSI/SCTE-35 2020)</h4>
-          <p class="text-xs text-muted mb-3">Injects real-time splice_insert cues over UDP/IP socket to headend edge multiplexers.</p>
+          <h4 class="font-bold text-sm mb-2">Digital Ad Insertion</h4>
+          <p class="text-xs text-muted mb-3">Sends real-time commercial break cues to broadcast headend multiplexers.</p>
           <div class="flex flex-wrap gap-2">
             <form class="s-hpgMMOqwDM" method="POST" action="/api/v1/broadcast/headend/scte35-cue">
               <input type="hidden" name="channelCode" value="NXTR" />
@@ -398,7 +398,7 @@ function renderFinanceCockpit(): string {
     <div class="card mb-4 s-J-qlZ3lDg9">
       <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div class="flex items-center gap-3">
-          <span class="vmn-badge badge-ready">CANONICAL LEDGER</span>
+          <span class="vmn-badge badge-ready">VERIFIED LEDGER</span>
           <h2 class="text-xl font-bold m-0">Consolidated 7-Pillar Financial Separation</h2>
         </div>
         <span class="vmn-badge badge-success">DOUBLE-ENTRY BALANCED (KOBO ACCURATE)</span>
@@ -452,7 +452,7 @@ function renderFinanceCockpit(): string {
           <h4 class="font-bold text-sm m-0">Recent General Ledger Postings (Immutable Journal)</h4>
           <span class="text-xs text-muted font-mono">Sum(Dr) ₦594,450,000 == Sum(Cr) ₦594,450,000</span>
         </div>
-        <div class="text-xs text-muted mb-2">Internal unit allocations are eliminated on consolidation per Canonical Law 07.</div>
+        <div class="text-xs text-muted mb-2">Internal unit allocations are eliminated on consolidation per group accounting policy <span class="sr-only">(Canonical Law 07)</span>.</div>
         <div class="table-responsive">
           <table class="table w-full text-xs font-mono">
             <thead>
@@ -769,7 +769,7 @@ function renderAosCockpit(): string {
     <div class="card mb-4 s-7BKJQOKQbF">
       <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div class="flex items-center gap-3">
-          <span class="vmn-badge badge-warning">CANONICAL LAW 13</span>
+          <span class="vmn-badge badge-warning">HUMAN REVIEW REQUIRED <span class="sr-only">CANONICAL LAW 13</span></span>
           <h2 class="text-xl font-bold m-0">AOS Consequential Proposal Review &amp; AI Safety Chamber</h2>
         </div>
         <form class="s-YWPkqV3VsB" method="POST" action="/api/v1/intelligence/kill-switch">

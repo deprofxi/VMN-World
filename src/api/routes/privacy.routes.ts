@@ -45,6 +45,23 @@ function sendProblem(res: RouteContext["res"], status: number, title: string, de
   res.end(JSON.stringify({ type: `https://vmnl.ng/problems/${type}`, title, status, detail, ...extensions }));
 }
 
+function requireAuthenticatedUser(
+  req: RouteContext["req"],
+  res: RouteContext["res"],
+  user: RouteContext["user"],
+  returnUrl: string
+): NonNullable<RouteContext["user"]> | null {
+  if (user) return user;
+  const accept = String(req?.headers?.accept || "");
+  if (accept.includes("text/html")) {
+    res.writeHead(302, { Location: `/sign-in?returnUrl=${encodeURIComponent(returnUrl)}` });
+    res.end();
+    return null;
+  }
+  sendJson(res, 401, { error: "Authentication Required", message: "Please sign in to access this page." });
+  return null;
+}
+
 export const privacyRoutes: DomainRoute[] = [
   {
     method: "POST",
@@ -258,29 +275,15 @@ export const privacyRoutes: DomainRoute[] = [
   {
     method: "GET",
     pathname: "/portal/client",
-    handle: async ({ res, user }: RouteContext) => {
-      const orgId = user?.tenantId || "org_demo_client";
-      const body = renderClientProjectsListHtml(orgId, [
-        {
-          id: "prj_festive_2026",
-          orgId,
-          title: "Festive Season Multi-Channel Campaign 2026",
-          commercialRef: "DEAL-2026-44",
-          stage: "CONTRACT_SIGNED",
-          status: "ACTIVE",
-          contractValueNgn: 45000000,
-          depositAmountNgn: 15000000,
-          invoicedAmountNgn: 45000000,
-          cashCollectedAmountNgn: 15000000,
-          recognizedRevenueNgn: 31500000,
-          proofOfPerformanceVerified: true,
-          proofDocumentUrl: "/api/v1/commercial/deals/DEAL-2026-44/proof-certificate",
-          openedOn: "2026-11-01",
-        },
-      ]);
+    handle: async ({ req, res, user }: RouteContext) => {
+      const authed = requireAuthenticatedUser(req, res, user, "/portal/client");
+      if (!authed) return true;
+
+      const orgId = authed.tenantId || authed.userId;
+      const body = renderClientProjectsListHtml(orgId, []);
 
       const html = renderMasterLayout("Client & Advertiser Portal | VMN Enterprise", body, "/portal/client", {
-        sessionUser: user || null,
+        sessionUser: authed,
         shell: "portal",
       });
 
@@ -295,30 +298,14 @@ export const privacyRoutes: DomainRoute[] = [
   {
     method: "GET",
     pathname: "/portal/vtm",
-    handle: async ({ res, user }: RouteContext) => {
-      const body = renderVtmMarketplaceHtml([
-        {
-          id: "opp_lead_actress",
-          title: "Lead Actress - Lagos Rush Season 3",
-          production: "VMN OneStudios",
-          category: "Lead Dramatic Role",
-          matchScore: 98,
-          budgetPerDayNgn: 450000,
-          buyoutTier: "REGIONAL_PAYTV",
-        },
-        {
-          id: "opp_voiceover_telecom",
-          title: "Voice-over Artist (Hausa/English) - 5G National Campaign",
-          production: "MTN Commercial Productions",
-          category: "Voice Talent",
-          matchScore: 94,
-          budgetPerDayNgn: 250000,
-          buyoutTier: "GLOBAL_ALL_MEDIA",
-        },
-      ]);
+    handle: async ({ req, res, user }: RouteContext) => {
+      const authed = requireAuthenticatedUser(req, res, user, "/portal/vtm");
+      if (!authed) return true;
+
+      const body = renderVtmMarketplaceHtml([]);
 
       const html = renderMasterLayout("VTM Talent Marketplace | VMN Enterprise", body, "/portal/vtm", {
-        sessionUser: user || null,
+        sessionUser: authed,
         shell: "portal",
       });
 
@@ -333,10 +320,13 @@ export const privacyRoutes: DomainRoute[] = [
   {
     method: "GET",
     pathname: "/workspace/afca",
-    handle: async ({ res, user }: RouteContext) => {
+    handle: async ({ req, res, user }: RouteContext) => {
+      const authed = requireAuthenticatedUser(req, res, user, "/workspace/afca");
+      if (!authed) return true;
+
       const body = renderLearningPlanHtml("AFCA-CRS-101");
       const html = renderMasterLayout("AFCA Learning Plan & Curriculum | VMN Enterprise", body, "/workspace/afca", {
-        sessionUser: user || null,
+        sessionUser: authed,
         shell: "work",
       });
 
@@ -347,10 +337,13 @@ export const privacyRoutes: DomainRoute[] = [
   {
     method: "GET",
     pathname: "/workspace/afca/assignments",
-    handle: async ({ res, user }: RouteContext) => {
+    handle: async ({ req, res, user }: RouteContext) => {
+      const authed = requireAuthenticatedUser(req, res, user, "/workspace/afca/assignments");
+      if (!authed) return true;
+
       const body = renderAssignmentSubmissionHtml("ASN-CINEMA-01");
       const html = renderMasterLayout("Submit Assignment | AFCA Academy", body, "/workspace/afca/assignments", {
-        sessionUser: user || null,
+        sessionUser: authed,
         shell: "work",
       });
 
@@ -361,10 +354,13 @@ export const privacyRoutes: DomainRoute[] = [
   {
     method: "GET",
     pathname: "/workspace/afca/grading",
-    handle: async ({ res, user }: RouteContext) => {
+    handle: async ({ req, res, user }: RouteContext) => {
+      const authed = requireAuthenticatedUser(req, res, user, "/workspace/afca/grading");
+      if (!authed) return true;
+
       const body = renderFacultyGradingRubricHtml("SUB-2026-001");
       const html = renderMasterLayout("Faculty Grading Rubric | AFCA Academy", body, "/workspace/afca/grading", {
-        sessionUser: user || null,
+        sessionUser: authed,
         shell: "work",
       });
 

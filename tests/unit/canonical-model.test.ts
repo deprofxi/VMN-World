@@ -355,9 +355,10 @@ describe("data-dictionary.md §4–§7: money, time, identifiers, codes", () => 
     // automated banking rails, SCTE-35 coordinator, and Azeebo+ federation SSO:
     // +8 `new Date()` lines, +9 `.toISOString()` lines, +3 `Date.now()` lines.
     // The document is updated to the same numbers in the same change.
-    expect(occurrences("new Date()")).toBe(311);
-    expect(occurrences(".toISOString()")).toBe(132);
-    expect(occurrences("Date.now()")).toBe(170);
+    // UX & User Portal Fixes: re-measured 2026-11-24.
+    expect(occurrences("new Date()")).toBe(314);
+    expect(occurrences(".toISOString()")).toBe(137);
+    expect(occurrences("Date.now()")).toBe(172);
 
     expect((schema.match(/@default\(uuid\(\)\)/g) ?? []).length).toBe(27);
     const uuidSites = occurrences("randomUUID()");

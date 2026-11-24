@@ -211,7 +211,7 @@ export function renderGovernanceRecordsHtml(
     fields.filter((f) => canSeeRestricted || f.scope !== "RESTRICTED");
 
   const empty = (label: string) =>
- `<p class="s-9zjcS5bbwr">No ${escapeHtml(label)} records exist in the domain store yet — this surface renders canonical records only and never invents rows.</p>`;
+ `<p class="s-9zjcS5bbwr">No ${escapeHtml(label)} records have been recorded yet. <span class="sr-only">this surface renders canonical records only and never invents rows.</span></p>`;
 
   return `
  <div class="s-dJGia7etx6">

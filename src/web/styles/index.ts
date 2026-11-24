@@ -586,8 +586,20 @@ export const CANONICAL_STYLESHEET = `
   footer.vmn-footer a {
     color: #E2E8F0 !important;
     text-underline-offset: 3px;
+    display: inline-block;
+    padding: 3px 0;
   }
   footer.vmn-footer a:hover { color: #FFFFFF !important; }
+  .vmn-footer-inner {
+    max-width: 1280px;
+    margin: 0 auto 16px;
+  }
+  .vmn-footer-bottom {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding-top: 12px;
+    border-top: 1px solid rgba(148, 163, 184, 0.2);
+  }
 
   /* -------------------------------------------------------------------------- */
   /* 3. Utility Classes (closes DS-02)                                         */
@@ -3807,6 +3819,661 @@ export const CANONICAL_STYLESHEET = `
     transform: translateY(-2px);
     border-color: rgba(56, 189, 248, 0.35);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  }
+
+  /* ==========================================================================
+     Enterprise Header, Footer & System Configuration Shell (R4.0 Rework)
+     ========================================================================== */
+  header.vmn-navbar {
+    display: block;
+    padding: 0;
+    background: linear-gradient(180deg, rgba(14, 36, 30, 0.97) 0%, rgba(10, 17, 25, 0.95) 100%);
+    backdrop-filter: blur(18px) saturate(180%);
+    -webkit-backdrop-filter: blur(18px) saturate(180%);
+    border-bottom: 1px solid rgba(255, 184, 0, 0.34);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 12px 32px -18px rgba(0, 0, 0, 0.78);
+  }
+  :root[data-theme="dark"] header.vmn-navbar {
+    background: linear-gradient(180deg, rgba(10, 26, 22, 0.97) 0%, rgba(6, 10, 16, 0.96) 100%);
+  }
+  .vmn-navbar-inner {
+    max-width: var(--vmn-content-max, 1440px);
+    margin: 0 auto;
+    padding: 10px clamp(16px, 2.4vw, 32px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .vmn-navbar-brand-zone {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+  .vmn-brand-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    text-decoration: none;
+    color: #FFFFFF;
+  }
+  .vmn-brand-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    color: #34D399;
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(255, 184, 0, 0.32);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    flex-shrink: 0;
+  }
+  .vmn-brand-logo-img {
+    height: 32px;
+    width: auto;
+    max-width: 140px;
+    object-fit: contain;
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+  .vmn-brand-stack {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+    min-width: 0;
+  }
+  .vmn-brand-logo {
+    font-size: 1.05rem;
+    font-weight: 850;
+    letter-spacing: 0.05em;
+    color: #FFB800;
+  }
+  .vmn-brand-logo::after {
+    width: 24px;
+    height: 2px;
+    margin-top: 2px;
+  }
+  .vmn-brand-title {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #CBD5E1;
+    white-space: nowrap;
+  }
+  header.vmn-navbar .vmn-status-beacon {
+    font-size: 0.68rem;
+    padding: 4px 10px;
+    white-space: nowrap;
+    background: rgba(16, 185, 129, 0.12);
+    border-color: rgba(52, 211, 153, 0.32);
+    color: #6EE7B7;
+  }
+
+  header.vmn-navbar nav.vmn-nav-links {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 4px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 9999px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+  header.vmn-navbar nav.vmn-nav-links a {
+    border-radius: 9999px;
+    padding: 0 13px;
+    min-height: 36px;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: #E2E8F0;
+    transition: color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
+  }
+  header.vmn-navbar nav.vmn-nav-links a:hover {
+    color: #FFFFFF;
+    background: rgba(255, 255, 255, 0.11);
+  }
+  header.vmn-navbar nav.vmn-nav-links a.active {
+    color: #FFFFFF !important;
+    background: linear-gradient(135deg, rgba(23, 76, 60, 0.92), rgba(14, 43, 32, 0.96));
+    box-shadow: inset 0 0 0 1px rgba(255, 184, 0, 0.45), 0 4px 12px -4px rgba(0, 0, 0, 0.65);
+  }
+
+  .vmn-header-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+  }
+  .vmn-cmd-trigger-btn,
+  .vmn-nav-dropdown-trigger,
+  .vmn-theme-toggle-btn,
+  .vmn-hamburger-btn {
+    min-height: 44px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #F1F5F9;
+    text-decoration: none;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+  .vmn-nav-dropdown-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 12px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .vmn-cmd-trigger-btn:hover,
+  .vmn-nav-dropdown-trigger:hover,
+  .vmn-theme-toggle-btn:hover,
+  .vmn-hamburger-btn:hover {
+    background: rgba(255, 255, 255, 0.14);
+    border-color: rgba(255, 184, 0, 0.55);
+    color: #FFFFFF;
+  }
+  .vmn-mega-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .vmn-mega-list a {
+    display: flex;
+    align-items: center;
+    padding: 6px 9px;
+    border-radius: 6px;
+    text-decoration: none !important;
+    font-family: var(--vmn-font-mono);
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: #CBD5E1 !important;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+  }
+  .vmn-mega-list a:hover,
+  .vmn-mega-list a:focus-visible {
+    background: rgba(56, 189, 248, 0.14);
+    border-color: rgba(56, 189, 248, 0.35);
+    color: #FFFFFF !important;
+    outline: none;
+  }
+  .vmn-auth-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .vmn-auth-nav .btn,
+  .vmn-auth-nav .vmn-user-badge {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 10px;
+    padding: 0 12px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .vmn-signin-cta {
+    background: linear-gradient(135deg, #10B981, #059669);
+    border: 1px solid rgba(167, 243, 208, 0.35);
+    color: #041E16 !important;
+    font-weight: 700 !important;
+    padding-inline: 16px !important;
+  }
+  .vmn-signin-cta:hover {
+    filter: brightness(1.06);
+  }
+  .vmn-user-badge {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: #F8FAFC !important;
+  }
+  .vmn-admin-pill {
+    border-color: rgba(255, 184, 0, 0.45) !important;
+    color: #FDE68A !important;
+    background: rgba(255, 184, 0, 0.1) !important;
+  }
+  .vmn-admin-pill:hover {
+    background: rgba(255, 184, 0, 0.2) !important;
+    color: #FFFFFF !important;
+  }
+
+  .vmn-maintenance-banner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: linear-gradient(90deg, rgba(255, 184, 0, 0.18), rgba(23, 76, 60, 0.28));
+    border-bottom: 1px solid rgba(255, 184, 0, 0.4);
+    color: var(--vmn-color-text-main);
+    font-size: 0.84rem;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  @media (max-width: 1380px) {
+    header.vmn-navbar .vmn-brand-title { display: none; }
+  }
+  @media (max-width: 1200px) {
+    header.vmn-navbar nav.vmn-nav-links { display: none; }
+    .vmn-hamburger-btn { display: inline-flex; }
+  }
+  @media (max-width: 760px) {
+    header.vmn-navbar .vmn-status-beacon { display: none; }
+    .vmn-auth-nav .vmn-user-badge,
+    .vmn-desks-link { display: none; }
+    .vmn-navbar-inner { padding: 8px 14px; gap: 8px; }
+  }
+
+  /* Architectural Editorial Footer */
+  footer.vmn-footer {
+    position: relative;
+    background:
+      radial-gradient(ellipse at 12% 0%, rgba(23, 76, 60, 0.22), transparent 34rem),
+      linear-gradient(180deg, #090e16 0%, #04060a 100%);
+    color: #CBD5E1;
+    border-top: 1px solid rgba(255, 184, 0, 0.28);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    padding: clamp(32px, 4vw, 48px) clamp(16px, 2.4vw, 32px) calc(28px + env(safe-area-inset-bottom, 0px));
+    margin-top: auto;
+    text-align: left;
+  }
+  .vmn-footer-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: minmax(250px, 1.3fr) 2.2fr;
+    gap: clamp(24px, 4vw, 56px);
+    align-items: start;
+  }
+  .vmn-footer-brand {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .vmn-footer-brand-lockup {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none !important;
+    width: fit-content;
+  }
+  .vmn-footer-company {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #F8FAFC;
+  }
+  .vmn-footer-tagline {
+    margin: 0;
+    font-size: 0.84rem;
+    line-height: 1.55;
+    color: #94A3B8;
+    max-width: 38ch;
+  }
+  .vmn-footer-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+    font-size: 0.78rem;
+  }
+  .vmn-footer-contact {
+    color: #38BDF8 !important;
+    font-weight: 600;
+    text-decoration: none !important;
+  }
+  .vmn-footer-contact:hover {
+    text-decoration: underline !important;
+  }
+  .vmn-footer-region {
+    color: #94A3B8;
+    font-family: var(--vmn-font-mono);
+    font-size: 0.72rem;
+    padding: 3px 9px;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+  }
+  .vmn-footer-nav {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(110px, 1fr));
+    gap: 24px 18px;
+  }
+  .vmn-footer-col {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .vmn-footer-heading {
+    margin: 0 0 8px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #E2E8F0;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(255, 184, 0, 0.22);
+  }
+  footer.vmn-footer .vmn-footer-col a {
+    color: #CBD5E1 !important;
+    text-decoration: none;
+    font-size: 0.82rem;
+    font-weight: 500;
+    padding: 5px 0;
+    min-height: 32px;
+    display: inline-flex;
+    align-items: center;
+    transition: color 0.14s ease, transform 0.14s ease;
+  }
+  footer.vmn-footer .vmn-footer-col a:hover {
+    color: #FFFFFF !important;
+    text-decoration: underline;
+    transform: translateX(2px);
+  }
+  .vmn-footer-bottom {
+    max-width: 1280px;
+    margin: 28px auto 0;
+    padding-top: 16px;
+    border-top: 1px solid rgba(148, 163, 184, 0.18);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px 20px;
+    font-size: 0.76rem;
+    color: #94A3B8;
+  }
+  .vmn-footer-disclosure {
+    color: #94A3B8;
+  }
+  @media (max-width: 900px) {
+    .vmn-footer-inner { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 640px) {
+    .vmn-footer-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  /* Super Admin System Configuration Console */
+  .vmn-admin-suite-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px;
+    background: var(--vmn-surface);
+    border: 1px solid var(--vmn-color-border);
+    border-radius: 12px;
+  }
+  .vmn-admin-suite-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 14px;
+    border-radius: 8px;
+    font-size: 0.84rem;
+    font-weight: 600;
+    text-decoration: none !important;
+    color: var(--vmn-color-text-muted) !important;
+    border: 1px solid transparent;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+  .vmn-admin-suite-link:hover {
+    color: var(--vmn-color-text-main) !important;
+    background: var(--vmn-surface-accent);
+  }
+  .vmn-admin-suite-link.active {
+    color: #FFFFFF !important;
+    background: var(--vmn-color-primary);
+    border-color: rgba(255, 184, 0, 0.45);
+  }
+  .vmn-sysconfig-hero {
+    padding: clamp(20px, 3vw, 28px);
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--vmn-color-secondary) 0%, #0E2B20 100%);
+    border: 1px solid rgba(255, 184, 0, 0.28);
+    color: #F8FAFC;
+  }
+  .vmn-sysconfig-hero-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .vmn-sysconfig-badges {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .vmn-sysconfig-badges .vmn-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .vmn-sysconfig-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    font-size: 0.78rem;
+    color: #CBD5E1;
+  }
+  .vmn-sysconfig-title {
+    margin: 0 0 6px;
+    font-size: clamp(1.35rem, 1.1rem + 1vw, 1.8rem);
+    font-weight: 800;
+    color: #FFFFFF;
+  }
+  .vmn-sysconfig-subtitle {
+    margin: 0;
+    font-size: 0.88rem;
+    line-height: 1.55;
+    color: #E2E8F0;
+    max-width: 72ch;
+  }
+  .vmn-sysconfig-alert {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    margin-bottom: 18px;
+    font-size: 0.88rem;
+    font-weight: 600;
+  }
+  .vmn-sysconfig-alert-success {
+    background: var(--vmn-color-success-bg);
+    color: var(--vmn-color-success-text);
+    border: 1px solid var(--vmn-color-success-border);
+  }
+  .vmn-sysconfig-alert-info {
+    background: var(--vmn-color-info-bg);
+    color: var(--vmn-color-info-text);
+    border: 1px solid var(--vmn-color-info-border);
+  }
+  .vmn-sysconfig-alert-error {
+    background: var(--vmn-color-live-bg);
+    color: var(--vmn-color-live-text);
+    border: 1px solid var(--vmn-color-live-border);
+  }
+  .vmn-sysconfig-grid,
+  .vmn-sysconfig-bottom-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+  @media (max-width: 900px) {
+    .vmn-sysconfig-grid,
+    .vmn-sysconfig-bottom-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .vmn-sysconfig-card {
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .vmn-sysconfig-card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 0 0 12px;
+    width: 100%;
+    border-bottom: 1px solid var(--vmn-color-border);
+  }
+  .vmn-sysconfig-card-header strong {
+    display: block;
+    font-size: 1rem;
+    color: var(--vmn-color-text-main);
+  }
+  .vmn-sysconfig-card-header small {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 400;
+    color: var(--vmn-color-text-muted);
+    margin-top: 2px;
+  }
+  .vmn-sysconfig-card-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--vmn-surface-accent);
+    color: var(--vmn-color-focus);
+    flex-shrink: 0;
+  }
+  .vmn-sysconfig-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .vmn-sysconfig-row-2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  @media (max-width: 560px) {
+    .vmn-sysconfig-row-2 { grid-template-columns: 1fr; }
+  }
+  .vmn-sysconfig-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 12px 14px;
+    min-height: 52px;
+    border-radius: 10px;
+    background: var(--vmn-surface-sunken);
+    border: 1px solid var(--vmn-color-border);
+    cursor: pointer;
+  }
+  .vmn-sysconfig-toggle:hover {
+    border-color: var(--vmn-color-control-border);
+  }
+  .vmn-sysconfig-toggle-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .vmn-sysconfig-toggle-title {
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: var(--vmn-color-text-main);
+  }
+  .vmn-sysconfig-toggle-desc {
+    font-size: 0.76rem;
+    color: var(--vmn-color-text-muted);
+  }
+  .vmn-sysconfig-checkbox {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+  .vmn-sysconfig-logo-tools {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 6px;
+  }
+  .vmn-sysconfig-upload-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    min-height: 44px;
+  }
+  .vmn-sysconfig-logo-preview {
+    margin-top: 8px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: var(--vmn-surface-sunken);
+    border: 1px dashed var(--vmn-color-control-border);
+    display: flex;
+    align-items: center;
+    min-height: 52px;
+  }
+  .vmn-sysconfig-preview-img {
+    max-height: 36px;
+    width: auto;
+    object-fit: contain;
+  }
+  .vmn-sysconfig-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 18px;
+  }
+  .vmn-sysconfig-actions .btn {
+    min-height: 48px;
+    padding: 0 24px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .vmn-sysconfig-posture-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .vmn-sysconfig-posture-item {
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: var(--vmn-surface-sunken);
+    border: 1px solid var(--vmn-color-border);
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .vmn-sysconfig-posture-item span {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--vmn-color-text-muted);
+  }
+  .vmn-sysconfig-posture-item strong {
+    font-size: 0.88rem;
+    font-family: var(--vmn-font-mono);
+    color: var(--vmn-color-text-main);
+  }
+  .vmn-sysconfig-danger-card {
+    border-color: rgba(245, 158, 11, 0.35) !important;
   }
 
   /* AUD-20: utility classes migrated from static inline style attributes

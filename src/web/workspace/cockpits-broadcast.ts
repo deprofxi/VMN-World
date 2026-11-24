@@ -217,8 +217,8 @@ export function renderIngestCockpit(): string {
     <div class="card mb-4 p-4 rounded-xl bg-surface border border-muted/20">
       <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div class="flex items-center gap-3">
-          <span class="vmn-badge badge-ready font-mono text-xs">MEDIA INGEST</span>
-          <h2 class="text-xl font-bold m-0 text-slate-100">Broadcast Media Ingest, Transcode &amp; QC Slating</h2>
+          <span class="vmn-badge badge-ready font-mono text-xs">MEDIA UPLOAD</span>
+          <h2 class="text-xl font-bold m-0 text-slate-100">Broadcast Media Upload, Transcoding &amp; Quality Control</h2>
         </div>
         <div class="flex items-center gap-2">
           <a href="/workspace/content/media-picker" class="btn btn-primary btn-sm text-xs font-bold">
@@ -253,7 +253,7 @@ export function renderIngestCockpit(): string {
       <!-- Ingest Register & Slating Table -->
       <div class="card p-3 rounded-lg bg-slate-950/60 border border-muted/10 mb-4">
         <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
-          <span class="text-xs font-bold text-slate-200">Broadcast Master Media Register (DAM Ingest)</span>
+          <span class="text-xs font-bold text-slate-200">Broadcast Master Media Register</span>
           <span class="vmn-badge badge-outline text-xs">MinIO S3 Secured</span>
         </div>
         <div class="table-responsive">
@@ -265,7 +265,7 @@ export function renderIngestCockpit(): string {
                 <th class="py-2">Format / Codec</th>
                 <th class="py-2">Resolution</th>
                 <th class="py-2">QC Audio</th>
-                <th class="py-2">Provenance</th>
+                <th class="py-2">Data Source</th>
                 <th class="py-2 text-right">Status</th>
               </tr>
             </thead>
@@ -313,7 +313,7 @@ export function renderIngestCockpit(): string {
 
       <!-- Quick Media Register Form -->
       <div class="card p-3 rounded-lg bg-slate-900/40 border border-muted/10 text-xs">
-        <h3 class="font-bold text-slate-200 mb-2">Ingest New Broadcast Master Asset</h3>
+        <h3 class="font-bold text-slate-200 mb-2">Upload New Broadcast Master Asset</h3>
         <form method="POST" action="/api/v1/cms/media-assets" class="grid grid-cols-1 md:grid-cols-4 gap-3">
           <div>
             <label class="block text-muted mb-1 font-semibold">Asset Title</label>
@@ -324,7 +324,7 @@ export function renderIngestCockpit(): string {
             <input type="text" name="assetKey" required placeholder="masters/2026/ep05.mov" class="w-full p-2 rounded bg-slate-950 border border-muted/30 text-slate-100 text-xs font-mono" />
           </div>
           <div>
-            <label class="block text-muted mb-1 font-semibold">MIME Format</label>
+            <label class="block text-muted mb-1 font-semibold">Media Format</label>
             <select name="mimeType" class="w-full p-2 rounded bg-slate-950 border border-muted/30 text-slate-100 text-xs">
               <option value="video/quicktime">video/quicktime (Apple ProRes)</option>
               <option value="video/mp4">video/mp4 (H.264 / AVC)</option>
@@ -339,7 +339,7 @@ export function renderIngestCockpit(): string {
             <input type="hidden" name="virusScanPassed" value="true" />
             <button type="submit" class="btn btn-primary w-full text-xs font-bold" data-toast="Broadcast asset registered in DAM vault" data-toast-type="success">
               ${renderIcon("check", { size: 14 })}
-              <span>Register Ingest Master</span>
+              <span>Register Master Asset</span>
             </button>
           </div>
         </form>
@@ -403,7 +403,7 @@ export function renderScteCockpit(): string {
       </div>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
         <div class="p-3 rounded-lg bg-slate-900/60 border border-muted/10">
-          <span class="text-xs text-muted block font-semibold">UDP TARGET</span>
+          <span class="text-xs text-muted block font-semibold">STREAM TARGET</span>
           <span class="text-lg font-bold block mt-1 text-primary">127.0.0.1:1234</span>
           <span class="text-xs text-muted block mt-0.5">Headend MCO</span>
         </div>
@@ -454,7 +454,7 @@ export function renderScteCockpit(): string {
             </div>
             <button type="submit" class="btn btn-primary w-full text-xs font-bold" data-confirm="Confirm immediate SCTE-35 splice insertion? Playout multiplexer will switch to commercial insert." data-toast="SCTE-35 splice cue dispatched to UDP headend multiplexer" data-toast-type="success">
               ${renderIcon("send", { size: 14 })}
-              <span>Inject SCTE-35 Splice Out</span>
+              <span>Trigger Commercial Break Cue</span>
             </button>
           </form>
         </div>

@@ -635,7 +635,7 @@ export function renderGearCockpit(): string {
                 <td class="font-bold text-slate-100">Sound Devices 888 16-Ch Audio Recorder</td>
                 <td class="font-mono text-muted">SN: SD-888-04</td>
                 <td class="text-slate-200">Field Sound Unit 1</td>
-                <td><span class="vmn-badge badge-success text-xs">SMPTE TIMECODE JAMMED</span></td>
+                <td><span class="vmn-badge badge-success text-xs">TIMECODE SYNCHRONIZED</span></td>
                 <td class="font-mono text-slate-300">₦12,000,000</td>
                 <td class="text-right"><span class="vmn-badge badge-warning text-xs">CHECKED OUT</span></td>
               </tr>

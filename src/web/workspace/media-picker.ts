@@ -130,7 +130,7 @@ export function renderMediaPickerHtml(projection: MediaPickerProjection): string
     return `
  <section class="card s-kqRH8I4df0" aria-labelledby="media-picker-heading" >
     <h2 id="media-picker-heading">Approved Media Picker</h2>
-    <p data-testid="media-picker-empty">No approved media assets are registered yet. Upload media assets through the media ingestion workstation to make them available here once security and MIME validation checks are verified.</p>
+    <p data-testid="media-picker-empty">No approved media assets are registered yet. Upload media assets through the media ingestion workstation to make them available here once security and file-format validation checks are verified.</p>
   </section>`;
   }
 
@@ -178,7 +178,7 @@ export function renderMediaPickerHtml(projection: MediaPickerProjection): string
             <th scope="col">Select</th>
             <th scope="col">Asset</th>
             <th scope="col">Type / Size</th>
-            <th scope="col">Provenance</th>
+            <th scope="col">Data Source</th>
             <th scope="col">Access state</th>
           </tr>
         </thead>

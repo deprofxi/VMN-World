@@ -81,7 +81,7 @@ export function renderRightsDeskHtml(ctx: RightsDeskContext): string {
         <div class="p-2.5 rounded-lg bg-slate-900/60 border border-muted/10">
           <span class="text-xs text-muted block font-semibold">EXPIRED / BLOCKED</span>
           <span class="text-base font-bold block mt-0.5 text-red-400">${escapeHtml(expiredCount)} Blocked</span>
-          <span class="text-xs text-muted block mt-0.5">Fail-closed playout</span>
+          <span class="text-xs text-muted block mt-0.5">Protected playout enforcement</span>
         </div>
       </div>
     </header>
@@ -93,7 +93,7 @@ export function renderRightsDeskHtml(ctx: RightsDeskContext): string {
       <div class="p-3 flex items-center justify-between flex-wrap gap-2 border-b border-muted/10">
         <div>
           <h2 class="text-sm font-bold text-slate-100 m-0">Governed Rights Registry</h2>
-          <p class="text-xs text-muted m-0">Canonical RightsRecord rows backing linear playout and VOD distribution</p>
+          <p class="text-xs text-muted m-0">Verified rights clearances backing linear broadcast and streaming distribution</p>
         </div>
       </div>
 
@@ -185,10 +185,10 @@ export function renderRightsDeskHtml(ctx: RightsDeskContext): string {
         <div>
           <label class="block font-semibold text-slate-200 mb-1" for="rightsType">Rights Grant Type *</label>
           <select id="rightsType" name="rightsType" required class="input input-sm w-full bg-slate-900 border border-muted/20 rounded px-2.5 py-1.5 text-slate-100 text-xs font-mono">
-            <option value="BROADCAST_LINEAR">BROADCAST_LINEAR (Linear DTT / DTH)</option>
-            <option value="DIGITAL_STREAMING">DIGITAL_STREAMING (FAST / OTT / Azeebo+)</option>
-            <option value="SYNDICATION">SYNDICATION (Sub-licensing &amp; Secondary Feeds)</option>
-            <option value="DERIVATIVE">DERIVATIVE (Clips, Soundtracks &amp; Formats)</option>
+            <option value="BROADCAST_LINEAR">Linear Broadcast (DTT / DTH)</option>
+            <option value="DIGITAL_STREAMING">Digital Streaming (FAST / OTT / Azeebo+)</option>
+            <option value="SYNDICATION">Syndication (Sub-licensing &amp; Secondary Feeds)</option>
+            <option value="DERIVATIVE">Derivative (Clips, Soundtracks &amp; Formats)</option>
           </select>
         </div>
 

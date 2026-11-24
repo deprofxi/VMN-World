@@ -38,6 +38,7 @@ import { SevenWayLedgerEngine, hydrateLedgerEngine } from "../modules/finance/le
 import { PlayoutExportEngine } from "../modules/broadcast/export/index.js";
 import { handleApiRequest, RequestHandlerContext } from "./router.js";
 import { loadConfig } from "../core/config/index.js";
+import { hydrateSystemConfigFromKv } from "../core/config/system-config.js";
 import { getAuditHealth, restoreAuditChainFromKv, setAuditDegradationListener } from "../core/audit/index.js";
 import { assertSharedKvBackendForEnvironment, configureRedisAdapterFactory, resolveKeyValueAdapter } from "../core/cache/index.js";
 import { useKeyValueAdapterForAuthStores } from "../core/auth/index.js";
@@ -344,6 +345,7 @@ export function createApiServer(port?: number, envOverrides: Record<string, stri
         await refreshRiskIssueIndex();
         await refreshDestinationIndex();
         await hydrateBrandsFromDatabase();
+        await hydrateSystemConfigFromKv();
         const content = await refreshContentIndex();
         const sponsorship = await hydrateSponsorshipEngine(sponsorshipEngine);
         // TSK-60 box 3: the counterparty portal projects this instance, so it

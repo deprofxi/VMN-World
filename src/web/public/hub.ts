@@ -565,8 +565,8 @@ function renderVerticalDomainSection(vertical: HubVertical): string {
               SAMPLE ONLY — NO ISSUED CREDENTIAL
             </div>
             <div class="s-smrs69HMBJ">
-              <a href="/verify/cert/AFCA-2026-0042" class="btn btn-outline btn-sm s--zUf_5R1zr">
-                ${renderIcon("document", { size: 16 })} Certificate lookup information &rarr;
+              <a href="/verify/afca" class="btn btn-outline btn-sm s--zUf_5R1zr">
+                ${renderIcon("document", { size: 16 })} Certificate lookup &rarr;
               </a>
             </div>
           </div>

@@ -180,11 +180,12 @@ export function renderAdmissionsApplicationHtml(initialTrack?: string): string {
                 <input type="url" id="portfolioUrl" name="portfolioUrl" placeholder="https://vimeo.com/showreel/..." class="input s-UPrN9pHjcM s-1qG5mzS73L" />
               </div>
 
-              <!-- Dropzone Upload Surface Mock -->
-              <div class="vmn-dropzone s-vxMshhk8nC">
+              <!-- Dropzone Upload Surface -->
+              <div class="vmn-dropzone s-vxMshhk8nC cursor-pointer" role="button" tabindex="0" aria-label="Attach treatment PDF or script draft">
+                <input type="file" id="apply-treatment-file" class="sr-only" accept=".pdf,.doc,.docx,.zip" />
                 <div class="s-l8PYDZV7eA">&#8682;</div>
-                <div class="s-YXzpjH-v6x">Drag and drop supporting treatment PDF or script draft</div>
-                <div class="s-AABDHlDgnE">Maximum size 25MB • PDF, DOCX, or ZIP</div>
+                <div class="s-YXzpjH-v6x">Click or drag to select supporting treatment PDF or script draft</div>
+                <div class="s-AABDHlDgnE">Maximum size 25MB • PDF, DOCX, or ZIP (or paste link above)</div>
               </div>
 
               <div class="s-wzvsZWh_8m">

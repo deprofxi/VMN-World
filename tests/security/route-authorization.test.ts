@@ -268,8 +268,9 @@ describe("AUD-01: Centralized Route Authorization", () => {
   });
 
   it("allows authenticated self-service privacy requests without audit-role escalation", async () => {
+    const subjectUserId = `usr-privacy-subject-${Date.now()}`;
     const subjectToken = signSessionToken({
-      userId: "usr-privacy-subject",
+      userId: subjectUserId,
       personId: "per-privacy-subject",
       email: "subject@example.ng",
       roles: ["Operator"],
@@ -295,7 +296,7 @@ describe("AUD-01: Centralized Route Authorization", () => {
       headers: { Authorization: `Bearer ${subjectToken}` },
     });
     expect(status.statusCode).toBe(200);
-    expect(status.body.request.userId).toBe("usr-privacy-subject");
+    expect(status.body.request.userId).toBe(subjectUserId);
 
     const mismatched = await makeRequest(boundPort, "/api/v1/privacy/export-request", {
       method: "POST",

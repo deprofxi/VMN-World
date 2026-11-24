@@ -329,3 +329,46 @@ export function renderPoaVerificationHtml(result: {
 </section>
   `.trim();
 }
+
+export function renderVerificationLookupHtml(kind: "afca" | "poa"): string {
+  const isAfca = kind === "afca";
+  const title = isAfca ? "AFCA Certificate Lookup" : "Proof-of-Air Verification Lookup";
+  const subtitle = isAfca
+    ? "Enter an AFCA Academy graduate certificate ID to check whether a verified credential exists in this registry."
+    : "Enter a Proof-of-Air certificate ID to verify recorded linear broadcast delivery details.";
+  const action = isAfca ? "/verify/afca" : "/verify/poa";
+  const placeholder = isAfca ? "e.g. AFCA-2026-0001" : "e.g. POA-DEAL-001";
+
+  return `
+<section class="vmn-verification-container container py-8 max-w-2xl mx-auto">
+  <nav aria-label="Breadcrumb" class="text-xs text-muted mb-4">
+    <a href="/" class="text-muted">Home</a> &gt;
+    <a href="/support" class="text-muted">Support</a> &gt;
+    <span aria-current="page">${escapeHtml(title)}</span>
+  </nav>
+  <div class="vmn-card card p-6 rounded-2xl">
+    <span class="vmn-badge badge-info mb-2">${isAfca ? "Academy Registry" : "Broadcast Compliance"}</span>
+    <h1 class="text-2xl font-bold mb-2">${escapeHtml(title)}</h1>
+    <p class="text-sm text-muted mb-6">${escapeHtml(subtitle)}</p>
+    <form method="GET" action="${action}" class="flex flex-col sm:flex-row gap-3">
+      <label for="verify-cert-id" class="sr-only">Certificate Identifier</label>
+      <input
+        id="verify-cert-id"
+        name="id"
+        type="text"
+        required
+        placeholder="${escapeHtml(placeholder)}"
+        class="vmn-input flex-1 px-3 py-2 rounded-lg"
+      />
+      <button type="submit" class="btn btn-primary">Verify Record</button>
+    </form>
+    <div class="mt-6 pt-4 border-t border-slate-800 flex flex-wrap gap-3 text-xs">
+      <a href="/support" class="btn btn-outline btn-sm">&larr; Back to Help Center</a>
+      <a href="${isAfca ? "/hub/afca" : "/media-and-audience-overview"}" class="btn btn-outline btn-sm">
+        ${isAfca ? "Explore AFCA Academy" : "Explore Linear Channels"}
+      </a>
+    </div>
+  </div>
+</section>
+  `.trim();
+}

@@ -319,7 +319,7 @@ export function renderBankreconCockpit(): string {
         <div class="p-3 rounded-lg bg-slate-900/60 border border-muted/10">
           <span class="text-xs text-muted block font-semibold">BANK FEED TYPE</span>
           <span class="text-lg font-bold block mt-1 text-primary">Standard Bank Statement (MT940 / CAMT.053)</span>
-          <span class="text-xs text-muted block mt-0.5">Direct SFTP Feed</span>
+          <span class="text-xs text-muted block mt-0.5">Direct Automated Bank Feed</span>
         </div>
         <div class="p-3 rounded-lg bg-slate-900/60 border border-muted/10">
           <span class="text-xs text-muted block font-semibold">KOBO ACCURACY</span>
@@ -509,17 +509,17 @@ export function renderPrivacyCockpit(): string {
       <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div class="flex items-center gap-3">
           <span class="vmn-badge badge-ready font-mono text-xs">DATA PRIVACY</span>
-          <h2 class="text-xl font-bold m-0 text-slate-100">Data Privacy, Consent &amp; ROPA Register (NDPR)</h2>
+          <h2 class="text-xl font-bold m-0 text-slate-100">Data Privacy &amp; Processing Register</h2>
         </div>
       </div>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
         <div class="p-3 rounded-lg bg-slate-900/60 border border-muted/10">
-          <span class="text-xs text-muted block font-semibold">NDPR ROPA REGISTER</span>
+          <span class="text-xs text-muted block font-semibold">DATA PROCESSING REGISTER</span>
           <span class="text-lg font-bold block mt-1 text-success">Compliant</span>
           <span class="text-xs text-muted block mt-0.5">Article 30 Records Filed</span>
         </div>
         <div class="p-3 rounded-lg bg-slate-900/60 border border-muted/10">
-          <span class="text-xs text-muted block font-semibold">DSAR REQUESTS</span>
+          <span class="text-xs text-muted block font-semibold">DATA PRIVACY REQUESTS (DSAR)</span>
           <span class="text-lg font-bold block mt-1 text-slate-100">0 Overdue</span>
           <span class="text-xs text-muted block mt-0.5">30-Day Statutory Limit</span>
         </div>
@@ -547,7 +547,7 @@ export function renderSecurityCockpit(): string {
       <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div class="flex items-center gap-3">
           <span class="vmn-badge badge-ready font-mono text-xs">CYBERSECURITY</span>
-          <h2 class="text-xl font-bold m-0 text-slate-100">Security, Audit Logging &amp; RBAC Console</h2>
+          <h2 class="text-xl font-bold m-0 text-slate-100">Security, Audit Logging &amp; Access Control Console</h2>
         </div>
         <div class="flex items-center gap-2">
           <a href="/workspace/admin/users" class="btn btn-outline btn-sm text-xs font-bold">Manage Users &rarr;</a>
@@ -567,7 +567,7 @@ export function renderSecurityCockpit(): string {
         <div class="p-3 rounded-lg bg-slate-900/60 border border-muted/10">
           <span class="text-xs text-muted block font-semibold">SESSION INTEGRITY</span>
           <span class="text-lg font-bold block mt-1 text-primary">Cryptographic Seal</span>
-          <span class="text-xs text-muted block mt-0.5">Stateless HMAC-SHA256 &bull; Revocable</span>
+          <span class="text-xs text-muted block mt-0.5">Cryptographically Signed &bull; Revocable</span>
         </div>
         <div class="p-3 rounded-lg bg-slate-900/60 border border-muted/10">
           <span class="text-xs text-muted block font-semibold">AUDIT LOG ENTRIES</span>

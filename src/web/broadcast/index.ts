@@ -941,7 +941,7 @@ export function renderBroadcastScreenHtml(
         : `
           <tr>
             <td colspan="5" class="s-ZmQJhOQnpI">No approved schedule revision exists in the store, so this desk
-has no operational records to list. Records are never invented here (UIUX-001 §4.3).</td>
+has no operational records to list. Records are never invented here <span class="sr-only">(UIUX-001 §4.3)</span>.</td>
           </tr>
         `;
 

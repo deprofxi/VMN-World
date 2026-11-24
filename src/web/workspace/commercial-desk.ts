@@ -163,7 +163,7 @@ export function renderCommercialDealsDeskHtml(ctx: CommercialDeskContext): strin
       <div class="flex items-center justify-between mb-3 border-b border-muted/10 pb-2">
         <div>
           <h2 class="text-base font-bold text-slate-100 m-0">Register New Commercial Deal</h2>
-          <p class="text-xs text-muted m-0">Establish a canonical SalesDealRecord contract in the Quote-to-Cash ledger</p>
+          <p class="text-xs text-muted m-0">Create a commercial deal record in the sales and billing ledger</p>
         </div>
         <span class="vmn-badge badge-info text-xs font-mono">CREATE DEAL</span>
       </div>

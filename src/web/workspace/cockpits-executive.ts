@@ -96,8 +96,8 @@ export function renderIamCockpit(): string {
           <span class="text-xs text-muted block mt-0.5">Across 4 Tenants</span>
         </div>
         <div class="p-3 rounded-lg bg-slate-900/60 border border-muted/10">
-          <span class="text-xs text-muted block font-semibold">RBAC ROLE MATRIX</span>
-          <span class="text-lg font-bold block mt-1 text-primary">28 Canonical Roles</span>
+          <span class="text-xs text-muted block font-semibold">ROLE PERMISSIONS MATRIX</span>
+          <span class="text-lg font-bold block mt-1 text-primary">28 Enterprise Roles</span>
           <span class="text-xs text-muted block mt-0.5">Zero Wildcards</span>
         </div>
         <div class="p-3 rounded-lg bg-slate-900/60 border border-muted/10">
@@ -218,7 +218,7 @@ export function renderRiskCockpit(): string {
           <span class="text-xs text-muted block mt-0.5">Mitigations Assigned</span>
         </div>
         <div class="p-3 rounded-lg bg-slate-900/60 border border-muted/10">
-          <span class="text-xs text-muted block font-semibold">NDPR PRIVACY SLA</span>
+          <span class="text-xs text-muted block font-semibold">DATA PRIVACY SLA</span>
           <span class="text-lg font-bold block mt-1 text-success">100% On-Time</span>
           <span class="text-xs text-muted block mt-0.5">0 Overdue DSARs</span>
         </div>

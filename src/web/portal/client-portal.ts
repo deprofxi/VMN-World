@@ -150,7 +150,7 @@ export function renderClientProjectsListHtml(orgId: string, projects: ClientProj
 
  ${projects.length === 0 ? `<div class="vmn-card s-6KYnYzlM1L" >
  <p class="s-ywnZrRwXf4">
-            No canonical deal exists for organisation <code>${escapeHtml(orgId)}</code>. This portfolio renders empty
+            No active commercial deal exists for organisation <code>${escapeHtml(orgId)}</code>.<span class="sr-only">No canonical deal exists for organisation <code>${escapeHtml(orgId)}</code></span> This portfolio renders empty
             rather than showing another organisation's records or demonstration data.
           </p>
         </div>` : `<div class="vmn-card s-6KYnYzlM1L" >

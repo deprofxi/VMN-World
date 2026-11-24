@@ -67,7 +67,7 @@ export function renderPartnerPortalHtml(snapshot: PartnerPortalSnapshot | undefi
             Strategic Partner &amp; Broadcaster Counterparty Desk
           </h1>
  <p class="s-zrikAgYqXF">
-            Organisation: <strong>${escapeHtml(snapshot?.partnerName || orgId)}</strong> &bull; Portal ID: <code>${escapeHtml(orgId)}</code> &bull; Scope: canonical deals for YOUR organisation only
+            Organisation: <strong>${escapeHtml(snapshot?.partnerName || orgId)}</strong> &bull; Portal ID: <code>${escapeHtml(orgId)}</code> &bull; Scope: active deals for your organisation only
           </p>
         </div>
       </div>
@@ -342,7 +342,7 @@ export function renderManagementOverviewHtml(snapshot: ManagementOverviewSnapsho
  <div class="vmn-card s-OAPQ4AS9-O" >
  <div class="s-cU3Cr5m8eq">Linear Channels Under Management</div>
  <div class="s-6AmaNpUFld">${snapshot?.broadcastChannels ?? 0}</div>
- <div class="s-_tdYXnR5PA">Canonical channel registry</div>
+ <div class="s-_tdYXnR5PA">Verified channel directory</div>
         </div>
  <div class="vmn-card s-OAPQ4AS9-O" >
  <div class="s-cU3Cr5m8eq">Open Carriage Incidents</div>

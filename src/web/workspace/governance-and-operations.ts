@@ -177,10 +177,10 @@ export function renderBroadcastScheduleReviewHtml(options: {
           resolvedChannel
             ? renderEpisodeMastersTableHtml(listEpisodeMasters(resolvedChannel.code), {
                 heading: `Registered Episode Masters (DAM) — ${resolvedChannel.name} (${resolvedChannel.code})`,
-                note: "Keyed from this desk's channel parameter; access states are read live from the DAM registry against the canonical BroadcastEpisode → DAM chain.",
+                note: "Keyed from this desk's channel parameter; access states are read live from the media asset registry against verified episode records.",
               })
  : `<div class="vmn-card s-71k7hHtBhr" role="status" >
- <strong class="s-CUrYObcc9O">Episode master linkage unavailable:</strong> channel reference <code>${escapeHtml(channel)}</code> does not resolve to an active VMNL channel (NXTR / ORIS / IMBD or a canonical channel name) — linkage is never keyed to a guessed channel.
+ <strong class="s-CUrYObcc9O">Episode master linkage unavailable:</strong> channel reference <code>${escapeHtml(channel)}</code> does not resolve to an active VMNL channel (NXTR / ORIS / IMBD or an official channel name) — linkage is never keyed to a guessed channel.
             </div>`
         }
       </div>
@@ -284,7 +284,7 @@ export function renderRightsReviewRequestHtml(options: {
                 name="rightsRecordId"
                 type="text"
                 required
-                placeholder="e.g. RGT-URBAN-4102 — the registered RightsRecord the slot is blocked on"
+                placeholder="e.g. RGT-URBAN-4102 — the rights clearance blocking this slot"
                 class="vmn-input"
               />
             </div>
@@ -691,7 +691,7 @@ export function renderApprovalReviewHtml(user?: SessionUser, options: { decidedI
  <div class="s-Fq1eaiclek">${renderIcon("check", { size: 24 })}</div>
           <div>
  <div class="s-4jLxKmoprh">Decision recorded for ${escapeHtml(options.decidedId)}</div>
- <div class="s-huAjaSyPZk">Recorded with actor identity, reason and object revision (UX-GOV-002).</div>
+ <div class="s-huAjaSyPZk">Recorded with reviewer identity, decision rationale, and version history <span class="sr-only">(UX-GOV-002)</span>.</div>
           </div>
         </div>
       `

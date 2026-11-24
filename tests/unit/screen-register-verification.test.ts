@@ -331,9 +331,8 @@ for (const e of expanded) {
  * `tests/integration/ia-routing.test.ts` and the IA route set is counted by
  * `tests/unit/ia-registry.test.ts`.
  */
-// 104 → 108: added enterprise portal gateway and client/vtm portal paths
-// which answer 200 text/html to an authorised operator.
-const HTML_SURFACES_PIN = 108;
+// 108 → 112: added /verify/afca, /verify/poa, and browser-HTML portal surfaces answering 200 text/html.
+const HTML_SURFACES_PIN = 112;
 
 let app: ApiServerInstance | undefined;
 let port = 0;

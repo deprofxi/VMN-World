@@ -113,6 +113,7 @@ import {
   renderAttributionConsoleHtml,
   renderAfcaVerificationHtml,
   renderPoaVerificationHtml,
+  renderVerificationLookupHtml,
   matchBroadcastScreen,
   renderBroadcastScreenHtml,
   isRoleAuthorizedForScreen,
@@ -321,6 +322,14 @@ import {
   assertFeatureEnabled,
 } from "../core/feature-flags/index.js";
 import { renderAdminFeatureFlagsHtml } from "../web/public/admin-feature-flags.js";
+import { renderSystemConfigHtml } from "../web/workspace/system-config.js";
+import {
+  getSystemConfig,
+  updateSystemConfig,
+  resetSystemConfig,
+  parseSystemConfigInput,
+  getEnvironmentPosture,
+} from "../core/config/system-config.js";
 import { projectAccessMatrix, renderAccessAdminConsoleHtml, renderSourceMappingsConsoleHtml } from "../web/workspace/admin-consoles.js";
 import { projectMediaPicker, renderMediaPickerHtml } from "../web/workspace/media-picker.js";
 import { projectContentEditorForm, renderContentEditorFormHtml } from "../web/workspace/content-editor.js";
@@ -721,6 +730,60 @@ export async function sendHtml(res: ServerResponse, statusCode: number, html: st
   }
 }
 
+function wantsHtmlResponse(req: IncomingMessage): boolean {
+  const accept = String(req.headers["accept"] || "");
+  return accept.includes("text/html");
+}
+
+function signApplicationReceipt(reference: string): string {
+  const secret = getConfig().JWT_SECRET;
+  const sig = crypto.createHmac("sha256", secret).update(`app-receipt:${reference}`).digest("base64url");
+  return `${reference}.${sig}`;
+}
+
+function verifyApplicationReceipt(req: IncomingMessage, reference: string): boolean {
+  if (!reference || !req.headers["cookie"]) return false;
+  const match = String(req.headers["cookie"]).match(/vmnl_app_receipt=([^;]+)/);
+  if (!match) return false;
+  const decoded = decodeURIComponent(match[1]);
+  const expected = signApplicationReceipt(reference);
+  const a = Buffer.from(decoded);
+  const b = Buffer.from(expected);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+function renderUserNoticePageHtml(options: {
+  badge: string;
+  badgeClass?: string;
+  title: string;
+  message: string;
+  primaryHref: string;
+  primaryLabel: string;
+  secondaryHref?: string;
+  secondaryLabel?: string;
+  details?: string[];
+  code?: string;
+}): string {
+  const detailsHtml = options.details && options.details.length > 0
+    ? `<ul class="text-sm text-slate-300 space-y-1 my-4 pl-5">${options.details.map((d) => `<li>${escapeHtml(d)}</li>`).join("")}</ul>`
+    : "";
+  return `
+    <article class="container py-8 max-w-2xl mx-auto">
+      <div class="card p-6 rounded-2xl">
+        <span class="vmn-badge ${escapeHtml(options.badgeClass || "badge-info")} mb-3">${escapeHtml(options.badge)}</span>
+        <h1 class="text-2xl font-bold mb-2">${escapeHtml(options.title)}</h1>
+        <p class="text-sm text-muted leading-relaxed mb-4">${escapeHtml(options.message)}</p>
+        ${detailsHtml}
+        ${options.code ? `<p class="sr-only">${escapeHtml(options.code)}</p>` : ""}
+        <div class="flex flex-wrap gap-3 mt-6">
+          <a href="${escapeHtml(options.primaryHref)}" class="btn btn-primary">${escapeHtml(options.primaryLabel)}</a>
+          ${options.secondaryHref ? `<a href="${escapeHtml(options.secondaryHref)}" class="btn btn-outline">${escapeHtml(options.secondaryLabel || "Back")}</a>` : ""}
+        </div>
+      </div>
+    </article>
+  `.trim();
+}
+
 /** The bearer/cookie session token a request carries, if any. */
 function sessionTokenFrom(req: IncomingMessage): string | undefined {
   const authHeader = req.headers["authorization"];
@@ -926,6 +989,8 @@ export const ROUTE_GUARDS: Array<{
   { pathname: "/api/v1/broadcast/rights/review-requests/:requestId/transition", method: "POST", action: "update", resource: "rights" },
   { pathname: "/api/v1/workspace/afca/assignments", method: "POST", action: "create", resource: "academy" },
   { pathname: "/api/v1/workspace/afca/grading", method: "POST", action: "update", resource: "academy" },
+  { pathname: "/api/v1/candy/audition", method: "POST", action: "create", resource: "talent" },
+  { pathname: "/api/v1/creators/portfolio", method: "POST", action: "create", resource: "talent" },
 ];
 
 /**
@@ -1239,6 +1304,7 @@ export async function handleApiRequest(
     // =========================================================================
     const ADMIN_ALIASES = new Map<string, string>([
       ["/admin/feature-flags", "/workspace/admin/feature-flags"],
+      ["/admin/system-config", "/workspace/admin/system-config"],
     ]);
     const canonicalPath = ADMIN_ALIASES.get(pathname) ?? pathname;
 
@@ -1345,6 +1411,16 @@ export async function handleApiRequest(
       user: sessionUser,
     });
     if (iaDispatched) return;
+
+    // Brand configuration mutations are restricted to SuperAdmin operators only
+    if (pathname === "/api/v1/branding/logo" && (method === "POST" || method === "DELETE")) {
+      const brandAdmin = assertRoutePermission(req, res, "update", "audit");
+      if (!brandAdmin) return;
+      if (!brandAdmin.roles.includes("SuperAdmin")) {
+        sendJson(res, 403, { error: "Forbidden", message: "SuperAdmin role required for brand configuration." });
+        return;
+      }
+    }
 
     // Modular Domain Route Dispatcher (AUD-24)
     const domainDispatched = await dispatchDomainRoute({
@@ -2503,8 +2579,20 @@ export async function handleApiRequest(
     // UX-APP-006: AFCA Application Status Tracker
     if (pathname.startsWith("/apply/status") && method === "GET") {
       const queryRef = pathname.replace("/apply/status", "").replace(/^\//, "").trim() || parsedUrl.searchParams.get("ref") || "";
-      const app = null; // Applicant status requires authenticated ownership; sequential references are not capabilities.
-      const html = renderMasterLayout("Application Status Tracker", renderApplicationStatusHtml(app, queryRef), "/apply");
+      const sessionUser = resolveSessionUser(req);
+      let app = null;
+      if (queryRef) {
+        const candidate = await AfcaAdmissionsService.getByReference(queryRef);
+        const hasReceiptCookie = verifyApplicationReceipt(req, queryRef);
+        const isAuthorizedUser =
+          sessionUser &&
+          (sessionUser.roles.some((r) => ["SuperAdmin", "AcademyDirector", "ExecutiveLeader"].includes(r)) ||
+            (candidate && candidate.email.toLowerCase() === sessionUser.email.toLowerCase()));
+        if (candidate && (hasReceiptCookie || isAuthorizedUser)) {
+          app = candidate;
+        }
+      }
+      const html = renderMasterLayout("Application Status Tracker", renderApplicationStatusHtml(app, queryRef), "/apply", { sessionUser: sessionUser || undefined });
       sendHtml(res, 200, html, { private: true });
       return;
     }
@@ -2525,15 +2613,27 @@ export async function handleApiRequest(
 
     // UX-AFCA-001 to 004: AFCA Academy LMS Learner Hub
     if ((pathname === "/workspace/afca" || pathname === "/workspace/afca/lms") && method === "GET") {
-      const html = renderMasterLayout("AFCA Learner Studio", renderAfcaLearnerDashboardHtml(), "/workspace");
-      sendHtml(res, 200, html);
+      const user = resolveSessionUser(req);
+      if (!user && wantsHtmlResponse(req)) {
+        res.writeHead(302, { Location: `/sign-in?returnUrl=${encodeURIComponent(pathname)}` });
+        res.end();
+        return;
+      }
+      const html = renderMasterLayout("AFCA Learner Studio", renderAfcaLearnerDashboardHtml(), "/workspace", { sessionUser: user || undefined });
+      sendHtml(res, 200, html, { private: Boolean(user) });
       return;
     }
 
     // UX-AFCA-005 to 006: AFCA Faculty Gradebook & Rubrics
     if (pathname === "/workspace/afca/gradebook" && method === "GET") {
-      const html = renderMasterLayout("AFCA Faculty Gradebook", renderAfcaGradebookHtml(), "/workspace");
-      sendHtml(res, 200, html);
+      const user = resolveSessionUser(req);
+      if (!user && wantsHtmlResponse(req)) {
+        res.writeHead(302, { Location: `/sign-in?returnUrl=${encodeURIComponent(pathname)}` });
+        res.end();
+        return;
+      }
+      const html = renderMasterLayout("AFCA Faculty Gradebook", renderAfcaGradebookHtml(), "/workspace", { sessionUser: user || undefined });
+      sendHtml(res, 200, html, { private: Boolean(user) });
       return;
     }
 
@@ -2541,10 +2641,20 @@ export async function handleApiRequest(
     if ((pathname === "/vtm/terms" || pathname === "/portal/vtm/terms") && method === "GET") {
       const sessionUser = resolveSessionUser(req);
       if (!sessionUser) {
+        if (wantsHtmlResponse(req)) {
+          res.writeHead(302, { Location: `/sign-in?returnUrl=${encodeURIComponent(pathname)}` });
+          res.end();
+          return;
+        }
         sendJson(res, 401, { error: "Unauthorized", message: "Sign in to access engagement terms." });
         return;
       }
       if (!sessionUser.roles.some((role) => ["SuperAdmin", "ExecutiveLeader", "FinanceController", "TalentManager"].includes(role))) {
+        if (wantsHtmlResponse(req)) {
+          const deniedHtml = renderMasterLayout("403 Forbidden | VTM", renderAccessDeniedHtml(sessionUser, "Talent / Finance Staff", pathname), pathname, { shell: "identity", sessionUser });
+          sendHtml(res, 403, deniedHtml, { private: true });
+          return;
+        }
         sendJson(res, 403, { error: "Forbidden", message: "Engagement terms access is restricted." });
         return;
       }
@@ -2575,10 +2685,20 @@ export async function handleApiRequest(
     if ((pathname === "/vtm/marketplace" || pathname === "/portal/vtm/marketplace") && method === "GET") {
       const marketplaceUser = pathname === "/portal/vtm/marketplace" ? resolveSessionUser(req) : undefined;
       if (pathname === "/portal/vtm/marketplace" && !marketplaceUser) {
+        if (wantsHtmlResponse(req)) {
+          res.writeHead(302, { Location: `/sign-in?returnUrl=${encodeURIComponent(pathname)}` });
+          res.end();
+          return;
+        }
         sendJson(res, 401, { error: "Unauthorized", message: "Sign in to access talent opportunities." });
         return;
       }
       if (pathname === "/portal/vtm/marketplace" && !marketplaceUser?.roles.some((role) => ["SuperAdmin", "ExecutiveLeader", "FinanceController", "TalentManager"].includes(role))) {
+        if (wantsHtmlResponse(req)) {
+          const deniedHtml = renderMasterLayout("403 Forbidden | VTM", renderAccessDeniedHtml(marketplaceUser ?? null, "Talent / Finance Staff", pathname), pathname, { shell: "identity", sessionUser: marketplaceUser });
+          sendHtml(res, 403, deniedHtml, { private: true });
+          return;
+        }
         sendJson(res, 403, { error: "Forbidden", message: "Talent opportunity access is restricted." });
         return;
       }
@@ -2619,10 +2739,35 @@ export async function handleApiRequest(
       const sessionUser = resolveSessionUser(req);
       const relationship = getClientOrgRelationship(sessionUser ?? null);
       if (relationship === "UNAUTHENTICATED") {
+        if (wantsHtmlResponse(req)) {
+          res.writeHead(302, { Location: `/sign-in?returnUrl=${encodeURIComponent(pathname)}` });
+          res.end();
+          return;
+        }
         sendJson(res, 401, { error: "Unauthorized", message: "Sign in to access client projects." });
         return;
       }
       if (relationship === "STAFF_ACCESS") {
+        if (wantsHtmlResponse(req)) {
+          const html = renderMasterLayout(
+            "Client Portal | VMNL",
+            renderUserNoticePageHtml({
+              badge: "Counterparty Onboarding Required",
+              badgeClass: "badge-warning",
+              title: "Client Organisation Portfolio Not Connected",
+              message: "Client project views require a verified organisation representative membership. Please contact your VMNL account manager to link your organisation.",
+              primaryHref: "/portal",
+              primaryLabel: "Back to Portals",
+              secondaryHref: "/contact?vertical=COMMERCIAL_ADVERTISING",
+              secondaryLabel: "Contact Account Team",
+              code: "ORGANISATION_RELATIONSHIP_UNAVAILABLE",
+            }),
+            pathname,
+            { shell: "portal", sessionUser: sessionUser || undefined }
+          );
+          sendHtml(res, 503, html, { private: true });
+          return;
+        }
         sendJson(res, 503, { error: "Service Unavailable", code: "ORGANISATION_RELATIONSHIP_UNAVAILABLE", message: "Client project access is disabled until canonical organisation membership and audited staff access are connected." });
         return;
       }
@@ -2661,10 +2806,35 @@ export async function handleApiRequest(
       const sessionUser = resolveSessionUser(req);
       const relationship = getClientOrgRelationship(sessionUser ?? null);
       if (relationship === "UNAUTHENTICATED") {
+        if (wantsHtmlResponse(req)) {
+          res.writeHead(302, { Location: `/sign-in?returnUrl=${encodeURIComponent(pathname)}` });
+          res.end();
+          return;
+        }
         sendJson(res, 401, { error: "Unauthorized", message: "Sign in to access client projects." });
         return;
       }
       if (relationship === "STAFF_ACCESS") {
+        if (wantsHtmlResponse(req)) {
+          const html = renderMasterLayout(
+            "Client Project | VMNL",
+            renderUserNoticePageHtml({
+              badge: "Counterparty Onboarding Required",
+              badgeClass: "badge-warning",
+              title: "Client Project View Unavailable",
+              message: "Project delivery tracking requires verified client organisation membership for this account.",
+              primaryHref: "/portal",
+              primaryLabel: "Back to Portals",
+              secondaryHref: "/contact?vertical=COMMERCIAL_ADVERTISING",
+              secondaryLabel: "Contact Account Team",
+              code: "ORGANISATION_RELATIONSHIP_UNAVAILABLE",
+            }),
+            pathname,
+            { shell: "portal", sessionUser: sessionUser || undefined }
+          );
+          sendHtml(res, 503, html, { private: true });
+          return;
+        }
         sendJson(res, 503, { error: "Service Unavailable", code: "ORGANISATION_RELATIONSHIP_UNAVAILABLE", message: "Client project access is disabled until canonical organisation membership and audited staff access are connected." });
         return;
       }
@@ -2860,8 +3030,13 @@ ${publicRoutes
     }
 
     // Public Verification Surfaces: AFCA Academy & Proof-of-Air
-    if (pathname.startsWith("/verify/afca/") && method === "GET") {
-      const certId = pathname.replace("/verify/afca/", "").trim();
+    if ((pathname === "/verify/afca" || pathname.startsWith("/verify/afca/")) && method === "GET") {
+      const certId = pathname.replace(/^\/verify\/afca\/?/, "").trim() || (parsedUrl.searchParams.get("id") || "").trim();
+      if (!certId) {
+        const html = renderMasterLayout("AFCA Certificate Lookup", renderVerificationLookupHtml("afca"), "/support");
+        sendHtml(res, 200, html);
+        return;
+      }
       const verification = context.afcaService.verifyCertificate(certId);
       const acceptsJson = (req.headers["accept"] || "").includes("application/json") || parsedUrl.searchParams.get("format") === "json";
       if (acceptsJson) {
@@ -2884,8 +3059,13 @@ ${publicRoutes
       return;
     }
 
-    if (pathname.startsWith("/verify/poa/") && method === "GET") {
-      const certId = pathname.replace("/verify/poa/", "").trim();
+    if ((pathname === "/verify/poa" || pathname.startsWith("/verify/poa/")) && method === "GET") {
+      const certId = pathname.replace(/^\/verify\/poa\/?/, "").trim() || (parsedUrl.searchParams.get("id") || "").trim();
+      if (!certId) {
+        const html = renderMasterLayout("Proof-of-Air Verification Lookup", renderVerificationLookupHtml("poa"), "/support");
+        sendHtml(res, 200, html);
+        return;
+      }
       const cert = getProofOfAirCertificate(certId);
       const validProof = cert?.isVerified === true && cert.carrierLockVerified === true;
       const acceptsJson = (req.headers["accept"] || "").includes("application/json") || parsedUrl.searchParams.get("format") === "json";
@@ -2928,6 +3108,11 @@ ${publicRoutes
       const knownDesk = ENTERPRISE_WORKSPACES.some((w) => w.key === deskKey.toLowerCase());
       if (knownDesk) {
         const user = resolveSessionUser(req);
+        if (!user && wantsHtmlResponse(req)) {
+          res.writeHead(302, { Location: `/sign-in?returnUrl=${encodeURIComponent(pathname)}` });
+          res.end();
+          return;
+        }
         const html = renderMasterLayout(`Workspace / ${deskKey}`, renderWorkspaceDeskHtml(deskKey), `/workspace/${deskKey}`, { sessionUser: user, shell: "work" });
         sendHtml(res, 200, html);
         return;
@@ -2946,8 +3131,44 @@ ${publicRoutes
       const html = renderMasterLayout(
         "Release Availability & Feature Flag Console (UX-ADM-004)",
         renderAdminFeatureFlagsHtml(domainFilter),
-        "/admin/feature-flags"
+        "/admin/feature-flags",
+        { sessionUser: user, shell: "work" }
       );
+      sendHtml(res, 200, html);
+      return;
+    }
+
+    // SuperAdmin-only Enterprise System Configuration Console
+    if ((pathname === "/admin/system-config" || pathname === "/workspace/admin/system-config") && method === "GET") {
+      const user = resolveSessionUser(req);
+      if (!user || !user.roles.includes("SuperAdmin")) {
+        res.writeHead(user ? 403 : 302, user ? { "Content-Type": "text/plain; charset=utf-8" } : { Location: `/sign-in?returnUrl=${encodeURIComponent(pathname)}` });
+        res.end(user ? "Forbidden" : undefined);
+        return;
+      }
+      const csrfToken = issueCsrfToken();
+      res.setHeader("Set-Cookie", csrfCookieHeader(csrfToken));
+      const saved = parsedUrl.searchParams.get("saved") === "1";
+      const reset = parsedUrl.searchParams.get("reset") === "1";
+      const errParam = parsedUrl.searchParams.get("error");
+      const notice = saved
+        ? { tone: "success" as const, message: "System configuration saved and recorded in the audit ledger." }
+        : reset
+        ? { tone: "info" as const, message: "System configuration restored to factory defaults." }
+        : errParam
+        ? { tone: "error" as const, message: errParam }
+        : undefined;
+      const body = renderSystemConfigHtml({
+        config: getSystemConfig(),
+        posture: getEnvironmentPosture(),
+        csrfToken,
+        user,
+        notice,
+      });
+      const html = renderMasterLayout("System Configuration | VMN Enterprise", body, "/admin/system-config", {
+        sessionUser: user,
+        shell: "work",
+      });
       sendHtml(res, 200, html);
       return;
     }
@@ -3493,6 +3714,11 @@ ${publicRoutes
       // SCR-19 tenant scoping: a non-staff caller may only see their own org.
       const relationship = getClientOrgRelationship(sessionUser);
       if (relationship === "UNAUTHENTICATED") {
+        if (wantsHtmlResponse(req)) {
+          res.writeHead(302, { Location: `/sign-in?returnUrl=${encodeURIComponent(pathname)}` });
+          res.end();
+          return;
+        }
         sendJson(res, 401, { error: "Unauthorized", message: "Sign in to access the partner portal." });
         return;
       }
@@ -3510,6 +3736,26 @@ ${publicRoutes
         sendHtml(res, 403, html, { private: true });
         return;
       }
+      if (wantsHtmlResponse(req)) {
+        const html = renderMasterLayout(
+          "Partner Ecosystem Portal | VMNL",
+          renderUserNoticePageHtml({
+            badge: "Partner Onboarding Required",
+            badgeClass: "badge-warning",
+            title: "Partner Portfolio Not Connected",
+            message: "Your partner organisation membership has not been linked yet. Reach out to our distribution team to connect your affiliate or carrier account.",
+            primaryHref: "/portal",
+            primaryLabel: "Back to Portals",
+            secondaryHref: "/contact?vertical=PARTNERSHIP",
+            secondaryLabel: "Partner Enquiry",
+            code: "ORGANISATION_RELATIONSHIP_UNAVAILABLE",
+          }),
+          pathname,
+          { shell: "portal", sessionUser: sessionUser || undefined }
+        );
+        sendHtml(res, 503, html, { private: true });
+        return;
+      }
       sendJson(res, 503, { error: "Service Unavailable", code: "ORGANISATION_RELATIONSHIP_UNAVAILABLE", message: "Partner portfolio access is disabled until a canonical organisation membership and audited access workflow are connected." });
       return;
     }
@@ -3518,11 +3764,41 @@ ${publicRoutes
     if (pathname.startsWith("/portal/creator") && method === "GET") {
       const sessionUser = resolveSessionUser(req);
       if (!sessionUser) {
+        if (wantsHtmlResponse(req)) {
+          res.writeHead(302, { Location: `/sign-in?returnUrl=${encodeURIComponent(pathname)}` });
+          res.end();
+          return;
+        }
         sendJson(res, 401, { error: "Unauthorized", message: "Sign in to access creator settlements." });
         return;
       }
       if (!sessionUser.roles.some((role) => ["SuperAdmin", "ExecutiveLeader", "FinanceController"].includes(role))) {
+        if (wantsHtmlResponse(req)) {
+          const deniedHtml = renderMasterLayout("403 Forbidden | Creator Portal", renderAccessDeniedHtml(sessionUser, "Verified Creator / Finance", pathname), pathname, { shell: "identity", sessionUser });
+          sendHtml(res, 403, deniedHtml, { private: true });
+          return;
+        }
         sendJson(res, 403, { error: "Forbidden", message: "Creator settlement ownership is not verified." });
+        return;
+      }
+      if (wantsHtmlResponse(req)) {
+        const html = renderMasterLayout(
+          "Creator & Rights Settlement Portal | VMNL",
+          renderUserNoticePageHtml({
+            badge: "Beneficiary Verification Required",
+            badgeClass: "badge-warning",
+            title: "Creator Settlement Account Not Linked",
+            message: "Royalty and rights settlement statements appear once your verified beneficiary profile is linked to this account.",
+            primaryHref: "/portal",
+            primaryLabel: "Back to Portals",
+            secondaryHref: "/contact?vertical=GENERAL_ENQUIRY",
+            secondaryLabel: "Contact Settlements Desk",
+            code: "BENEFICIARY_RELATIONSHIP_UNAVAILABLE",
+          }),
+          pathname,
+          { shell: "portal", sessionUser }
+        );
+        sendHtml(res, 503, html, { private: true });
         return;
       }
       sendJson(res, 503, { error: "Service Unavailable", code: "BENEFICIARY_RELATIONSHIP_UNAVAILABLE", message: "Creator settlement access is disabled until canonical beneficiary ownership is connected." });
@@ -3533,10 +3809,20 @@ ${publicRoutes
     if (pathname === "/portal/vtm/payment-visibility" && method === "GET") {
       const sessionUser = resolveSessionUser(req);
       if (!sessionUser) {
+        if (wantsHtmlResponse(req)) {
+          res.writeHead(302, { Location: `/sign-in?returnUrl=${encodeURIComponent(pathname)}` });
+          res.end();
+          return;
+        }
         sendJson(res, 401, { error: "Unauthorized", message: "Sign in to access VTM payment visibility." });
         return;
       }
       if (!sessionUser.roles.some((role) => ["SuperAdmin", "ExecutiveLeader", "FinanceController"].includes(role))) {
+        if (wantsHtmlResponse(req)) {
+          const deniedHtml = renderMasterLayout("403 Forbidden | VTM", renderAccessDeniedHtml(sessionUser, "Finance / Executive Staff", pathname), pathname, { shell: "identity", sessionUser });
+          sendHtml(res, 403, deniedHtml, { private: true });
+          return;
+        }
         sendJson(res, 403, { error: "Forbidden", message: "VTM payment visibility access is restricted." });
         return;
       }
@@ -3555,11 +3841,41 @@ ${publicRoutes
     if (pathname.startsWith("/portal/vendor") && method === "GET") {
       const sessionUser = resolveSessionUser(req);
       if (!sessionUser) {
+        if (wantsHtmlResponse(req)) {
+          res.writeHead(302, { Location: `/sign-in?returnUrl=${encodeURIComponent(pathname)}` });
+          res.end();
+          return;
+        }
         sendJson(res, 401, { error: "Unauthorized", message: "Sign in to access vendor procurement." });
         return;
       }
       if (!sessionUser.roles.some((role) => ["SuperAdmin", "ExecutiveLeader", "FinanceController"].includes(role))) {
+        if (wantsHtmlResponse(req)) {
+          const deniedHtml = renderMasterLayout("403 Forbidden | Vendor Portal", renderAccessDeniedHtml(sessionUser, "Verified Vendor / Finance", pathname), pathname, { shell: "identity", sessionUser });
+          sendHtml(res, 403, deniedHtml, { private: true });
+          return;
+        }
         sendJson(res, 403, { error: "Forbidden", message: "Vendor procurement access is restricted." });
+        return;
+      }
+      if (wantsHtmlResponse(req)) {
+        const html = renderMasterLayout(
+          "Vendor Procurement Portal | VMNL",
+          renderUserNoticePageHtml({
+            badge: "Vendor Onboarding Required",
+            badgeClass: "badge-warning",
+            title: "Vendor Procurement Account Not Linked",
+            message: "Purchase order and remittance tracking require a verified supplier relationship linked to your account.",
+            primaryHref: "/portal",
+            primaryLabel: "Back to Portals",
+            secondaryHref: "/contact?vertical=PARTNERSHIP",
+            secondaryLabel: "Vendor Onboarding Enquiry",
+            code: "COUNTERPARTY_RELATIONSHIP_UNAVAILABLE",
+          }),
+          pathname,
+          { shell: "portal", sessionUser }
+        );
+        sendHtml(res, 503, html, { private: true });
         return;
       }
       sendJson(res, 503, { error: "Service Unavailable", code: "COUNTERPARTY_RELATIONSHIP_UNAVAILABLE", message: "Vendor procurement access is disabled until canonical vendor ownership is connected." });
@@ -4061,35 +4377,157 @@ ${publicRoutes
       return;
     }
 
-    // 2.9 Commercial Enquiry Intake & Status Recovery (VS-RL1-01 / HX-01 / UX-PUB-025 / UX-COM-004)
-    if (pathname === "/api/v1/enquiries" && method === "POST") {
+    // 2.8b SuperAdmin-only Enterprise System Configuration API
+    if (pathname === "/api/v1/admin/system-config" && method === "GET") {
+      const user = requireFeatureFlagAdmin();
+      if (!user) return;
+      sendJson(res, 200, {
+        success: true,
+        config: getSystemConfig(),
+        posture: getEnvironmentPosture(),
+      });
+      return;
+    }
+
+    if (pathname === "/api/v1/admin/system-config" && (method === "POST" || method === "PATCH")) {
+      const user = assertRoutePermission(req, res, "update", "audit");
+      if (!user) return;
+      if (!user.roles.includes("SuperAdmin")) {
+        sendJson(res, 403, { error: "Forbidden", message: "SuperAdmin role required for system configuration." });
+        return;
+      }
+      const contentType = String(req.headers["content-type"] || "").toLowerCase();
+      const isForm = contentType.includes("application/x-www-form-urlencoded");
       try {
-        const contentType = req.headers["content-type"] || "";
-      let body: Record<string, unknown>;
-      if (contentType.includes("application/json")) {
-        const parsedBody = await parseJsonBody(req, pathname);
-        if (!parsedBody || typeof parsedBody !== "object" || Array.isArray(parsedBody)) {
-          sendJson(res, 422, { error: "Unprocessable Entity", message: "Request body must be a JSON object." });
+        let rawPayload: Record<string, unknown>;
+        if (isForm) {
+          const raw = await readFormBodyStash(req);
+          rawPayload = Object.fromEntries(new URLSearchParams(raw).entries());
+        } else {
+          rawPayload = await parseJsonBody(req, pathname);
+        }
+        const patch = parseSystemConfigInput(rawPayload, isForm);
+        const updated = updateSystemConfig(patch, {
+          userId: user.userId,
+          email: user.email,
+          ipAddress: clientIp,
+          userAgent: req.headers["user-agent"] || null,
+        });
+        const redirectTarget = typeof rawPayload.redirect === "string" && rawPayload.redirect.startsWith("/") && !rawPayload.redirect.startsWith("//")
+          ? rawPayload.redirect
+          : undefined;
+        if (isForm || redirectTarget) {
+          const dest = redirectTarget || "/admin/system-config";
+          res.writeHead(303, { Location: `${dest}?saved=1` });
+          res.end();
           return;
         }
-        body = parsedBody as Record<string, unknown>;
-      } else {
-        const raw = await parseRawBody(req, pathname);
-        body = Object.fromEntries(new URLSearchParams(raw).entries());
+        sendJson(res, 200, { success: true, config: updated });
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Invalid system configuration update";
+        if (isForm) {
+          res.writeHead(303, { Location: `/admin/system-config?error=${encodeURIComponent(msg)}` });
+          res.end();
+          return;
+        }
+        sendJson(res, 422, { error: "Unprocessable Entity", message: msg });
       }
+      return;
+    }
 
-      const normalizedBody = {
-        ...body,
-        ndprConsent: body.ndprConsent === "on" || body.ndprConsent === "true" || body.ndprConsent === true,
-      };
+    if (pathname === "/api/v1/admin/system-config/reset" && method === "POST") {
+      const user = assertRoutePermission(req, res, "update", "audit");
+      if (!user) return;
+      if (!user.roles.includes("SuperAdmin")) {
+        sendJson(res, 403, { error: "Forbidden", message: "SuperAdmin role required for system configuration." });
+        return;
+      }
+      const contentType = String(req.headers["content-type"] || "").toLowerCase();
+      const isForm = contentType.includes("application/x-www-form-urlencoded");
+      const raw = isForm ? await readFormBodyStash(req) : "";
+      const params = isForm ? new URLSearchParams(raw) : null;
+      const redirectTarget = params?.get("redirect");
+      const updated = resetSystemConfig({
+        userId: user.userId,
+        email: user.email,
+        ipAddress: clientIp,
+        userAgent: req.headers["user-agent"] || null,
+      });
+      if (isForm || (redirectTarget && redirectTarget.startsWith("/") && !redirectTarget.startsWith("//"))) {
+        const dest = redirectTarget && redirectTarget.startsWith("/") && !redirectTarget.startsWith("//") ? redirectTarget : "/admin/system-config";
+        res.writeHead(303, { Location: `${dest}?reset=1` });
+        res.end();
+        return;
+      }
+      sendJson(res, 200, { success: true, config: updated });
+      return;
+    }
+
+    // 2.9 Commercial Enquiry Intake & Status Recovery (VS-RL1-01 / HX-01 / UX-PUB-025 / UX-COM-004)
+    if (pathname === "/api/v1/enquiries" && method === "POST") {
+      const contentType = req.headers["content-type"] || "";
+      const isBrowserForm = !contentType.includes("application/json") && wantsHtmlResponse(req);
+      try {
+        let body: Record<string, unknown>;
+        if (contentType.includes("application/json")) {
+          const parsedBody = await parseJsonBody(req, pathname);
+          if (!parsedBody || typeof parsedBody !== "object" || Array.isArray(parsedBody)) {
+            sendJson(res, 422, { error: "Unprocessable Entity", message: "Request body must be a JSON object." });
+            return;
+          }
+          body = parsedBody as Record<string, unknown>;
+        } else {
+          const raw = await parseRawBody(req, pathname);
+          body = Object.fromEntries(new URLSearchParams(raw).entries());
+        }
+
+        const normalizedBody = {
+          ...body,
+          ndprConsent: body.ndprConsent === "on" || body.ndprConsent === "true" || body.ndprConsent === true,
+        };
         const parsed = SubmitEnquirySchema.safeParse(normalizedBody);
         if (!parsed.success) {
+          if (isBrowserForm) {
+            const html = renderMasterLayout(
+              "Check Your Enquiry — VMNL",
+              renderUserNoticePageHtml({
+                badge: "Validation Error",
+                badgeClass: "badge-error",
+                title: "Please review your enquiry details",
+                message: "Some required information was missing or formatted incorrectly.",
+                details: parsed.error.issues.map((i) => `${i.path.join(".") || "field"}: ${i.message}`),
+                primaryHref: "/contact",
+                primaryLabel: "Return to Contact Form",
+              }),
+              "/contact",
+              { sessionUser: resolveSessionUser(req) }
+            );
+            await sendHtml(res, 422, html);
+            return;
+          }
           sendJson(res, 422, { error: "Unprocessable Entity", issues: parsed.error.issues });
           return;
         }
         const headerIdempotencyKey = req.headers["x-idempotency-key"];
         const idempotencyKey = typeof headerIdempotencyKey === "string" ? headerIdempotencyKey : parsed.data.idempotencyKey;
         if (idempotencyKey !== undefined && (idempotencyKey.length < 1 || idempotencyKey.length > 200)) {
+          if (isBrowserForm) {
+            const html = renderMasterLayout(
+              "Check Your Enquiry — VMNL",
+              renderUserNoticePageHtml({
+                badge: "Validation Error",
+                badgeClass: "badge-error",
+                title: "Invalid submission key",
+                message: "Idempotency key must be between 1 and 200 characters.",
+                primaryHref: "/contact",
+                primaryLabel: "Return to Contact Form",
+              }),
+              "/contact",
+              { sessionUser: resolveSessionUser(req) }
+            );
+            await sendHtml(res, 422, html);
+            return;
+          }
           sendJson(res, 422, { error: "Unprocessable Entity", message: "Idempotency key must be between 1 and 200 characters." });
           return;
         }
@@ -4101,6 +4539,12 @@ ${publicRoutes
           clientIp
         );
 
+        if (isBrowserForm) {
+          res.writeHead(303, { Location: `/enquiries/${encodeURIComponent(result.enquiry.reference)}/receipt` });
+          res.end();
+          return;
+        }
+
         sendJson(res, result.duplicate ? 200 : 201, {
           status: "SUCCESS",
           duplicate: result.duplicate,
@@ -4109,6 +4553,23 @@ ${publicRoutes
         });
       } catch (err: any) {
         const statusCode = err.statusCode || (err.code === "FEATURE_DISABLED" ? 403 : 400);
+        if (isBrowserForm) {
+          const html = renderMasterLayout(
+            "Unable to Submit Enquiry — VMNL",
+            renderUserNoticePageHtml({
+              badge: "Submission Error",
+              badgeClass: "badge-error",
+              title: "We could not submit your enquiry",
+              message: err?.message || "Please check your entries and try again.",
+              primaryHref: "/contact",
+              primaryLabel: "Return to Contact Form",
+            }),
+            "/contact",
+            { sessionUser: resolveSessionUser(req) }
+          );
+          await sendHtml(res, statusCode, html);
+          return;
+        }
         sendJson(res, statusCode, {
           error: err.name || "Bad Request",
           message: err.message,
@@ -4165,8 +4626,9 @@ ${publicRoutes
     }
 
     if (pathname === "/api/v1/applications/submit" && method === "POST") {
+      const contentType = req.headers["content-type"] || "";
+      const isBrowserForm = !contentType.includes("application/json") && wantsHtmlResponse(req);
       try {
-        const contentType = req.headers["content-type"] || "";
         let body: any;
         if (contentType.includes("application/x-www-form-urlencoded")) {
           const formText = await parseRawBody(req, pathname);
@@ -4179,6 +4641,24 @@ ${publicRoutes
 
         const parsed = SubmitApplicationSchema.safeParse(body);
         if (!parsed.success) {
+          if (isBrowserForm) {
+            const html = renderMasterLayout(
+              "Check Your Application — AFCA Admissions",
+              renderUserNoticePageHtml({
+                badge: "Validation Error",
+                badgeClass: "badge-error",
+                title: "Please review your application details",
+                message: "Some required application fields were missing or invalid.",
+                details: parsed.error.issues.map((i) => `${i.path.join(".") || "field"}: ${i.message}`),
+                primaryHref: "/apply",
+                primaryLabel: "Return to Application Form",
+              }),
+              "/apply",
+              { sessionUser: resolveSessionUser(req) }
+            );
+            await sendHtml(res, 422, html);
+            return;
+          }
           sendJson(res, 422, { error: "Unprocessable Entity", issues: parsed.error.issues });
           return;
         }
@@ -4191,8 +4671,13 @@ ${publicRoutes
         });
 
         if (contentType.includes("application/x-www-form-urlencoded")) {
-          // Redirect to status tracker on browser form submit
-          res.writeHead(303, { Location: `/apply/status/${submission.reference}` });
+          // Issue signed receipt cookie so the submitting applicant can view /apply/status/:ref
+          const receipt = signApplicationReceipt(submission.reference);
+          const secureFlag = process.env.NODE_ENV === "production" ? "; Secure" : "";
+          res.writeHead(303, {
+            Location: `/apply/status/${encodeURIComponent(submission.reference)}`,
+            "Set-Cookie": `vmnl_app_receipt=${encodeURIComponent(receipt)}; Path=/apply/status; HttpOnly; SameSite=Lax; Max-Age=3600${secureFlag}`,
+          });
           res.end();
           return;
         }
@@ -4200,6 +4685,23 @@ ${publicRoutes
         sendJson(res, 201, { status: "SUCCESS", application: submission });
       } catch (err: any) {
         const status = err.statusCode || (err.message.includes("VMNL-FEATURE-DISABLED") ? 403 : 400);
+        if (isBrowserForm) {
+          const html = renderMasterLayout(
+            "Application Notice — AFCA Admissions",
+            renderUserNoticePageHtml({
+              badge: "Application Error",
+              badgeClass: "badge-error",
+              title: "We could not submit your application",
+              message: err?.message || "Please review your details and try again.",
+              primaryHref: "/apply",
+              primaryLabel: "Return to Application Form",
+            }),
+            "/apply",
+            { sessionUser: resolveSessionUser(req) }
+          );
+          await sendHtml(res, status, html);
+          return;
+        }
         sendJson(res, status, { error: "Application Error", message: err.message });
       }
       return;
@@ -6454,8 +6956,9 @@ ${publicRoutes
 
     // 4. Creative Hub Endpoints & CRM Inquiry Capture (DT-304, T-23)
     if (pathname === "/api/v1/hub/inquiries" && method === "POST") {
+      const contentType = req.headers["content-type"] || "";
+      const isBrowserForm = !contentType.includes("application/json") && wantsHtmlResponse(req);
       try {
-        const contentType = req.headers["content-type"] || "";
         let body: Record<string, unknown>;
         if (contentType.includes("application/json")) {
           body = await parseJsonBody(req, pathname);
@@ -6476,6 +6979,23 @@ ${publicRoutes
         // value arrives as "on" (form encoding) or true (JSON).
         const consentGiven = body.ndprConsent === "on" || body.ndprConsent === true || body.ndprConsent === "true";
         if (!consentGiven) {
+          if (isBrowserForm) {
+            const html = renderMasterLayout(
+              "Acknowledgement Required — VMNL Creative Hub",
+              renderUserNoticePageHtml({
+                badge: "Validation Error",
+                badgeClass: "badge-error",
+                title: "Submission acknowledgement is required",
+                message: "Please confirm the submission acknowledgement checkbox before sending your inquiry.",
+                primaryHref: "/creative-economy-hub-overview",
+                primaryLabel: "Return to Creative Hub",
+              }),
+              "/hub",
+              { sessionUser: resolveSessionUser(req) }
+            );
+            await sendHtml(res, 400, html);
+            return;
+          }
           sendJson(res, 400, {
             error: "Bad Request",
             message: "Submission acknowledgement is required before an inquiry can be recorded",
@@ -6488,6 +7008,23 @@ ${publicRoutes
         // becoming an unthrottled spam vector.
         const inquiryRate = await checkSharedRateLimit(`inquiry:${clientIp}`, 5, 60 * 60_000);
         if (!inquiryRate.allowed) {
+          if (isBrowserForm) {
+            const html = renderMasterLayout(
+              "Too Many Requests — VMNL Creative Hub",
+              renderUserNoticePageHtml({
+                badge: "Rate Limit",
+                badgeClass: "badge-warning",
+                title: "Too many inquiries submitted",
+                message: "Please wait a moment before sending another inquiry.",
+                primaryHref: "/creative-economy-hub-overview",
+                primaryLabel: "Return to Creative Hub",
+              }),
+              "/hub",
+              { sessionUser: resolveSessionUser(req) }
+            );
+            await sendHtml(res, 429, html);
+            return;
+          }
           sendJson(res, 429, {
             error: "Too Many Requests",
             message: "Inquiry rate limit exceeded. Please try again later.",
@@ -6520,20 +7057,220 @@ ${publicRoutes
                 Inquiry Received
               </h1>
  <p class="s-O3206_RXSG">
-                ${inquiry.acknowledgmentMessage}
+                ${escapeHtml(inquiry.acknowledgmentMessage)}
               </p>
  <div class="s-Ml473Qh3zh">
-                Environment-local Reference (not durable): <strong>${inquiry.id}</strong>
+                Inquiry Reference: <strong>${escapeHtml(inquiry.id)}</strong>
               </div>
               <a href="/creative-economy-hub-overview" class="btn btn-primary">&larr; Return to Creative Hub</a>
             </section>
             `,
             "/hub"
           );
-          sendHtml(res, 201, confirmationHtml);
+          await sendHtml(res, 201, confirmationHtml);
         }
       } catch (err: any) {
+        if (isBrowserForm) {
+          const html = renderMasterLayout(
+            "Unable to Submit Inquiry — VMNL Creative Hub",
+            renderUserNoticePageHtml({
+              badge: "Submission Error",
+              badgeClass: "badge-error",
+              title: "We could not submit your inquiry",
+              message: err?.message || "Please check your details and try again.",
+              primaryHref: "/creative-economy-hub-overview",
+              primaryLabel: "Return to Creative Hub",
+            }),
+            "/hub",
+            { sessionUser: resolveSessionUser(req) }
+          );
+          await sendHtml(res, 400, html);
+          return;
+        }
         sendJson(res, 400, { error: err.message });
+      }
+      return;
+    }
+
+    if (pathname === "/api/v1/candy/audition" && method === "POST") {
+      const user = assertRoutePermission(req, res, "create", "talent");
+      if (!user) return;
+      const contentType = req.headers["content-type"] || "";
+      const isBrowserForm = !contentType.includes("application/json") && wantsHtmlResponse(req);
+      try {
+        const body = contentType.includes("application/json")
+          ? await parseJsonBody(req, pathname)
+          : Object.fromEntries(new URLSearchParams(await parseRawBody(req, pathname)).entries());
+        const roleId = jsonTextField(body.roleId).trim() || "ROLE-01";
+        const reelUrl = jsonTextField(body.reelUrl).trim();
+        const ageConfirmed = body.ageConfirmed === "true" || body.ageConfirmed === "on" || body.ageConfirmed === true;
+        const consentSegregated = body.consentSegregated === "true" || body.consentSegregated === "on" || body.consentSegregated === true;
+        let validUrl = false;
+        try {
+          const parsedReel = new URL(reelUrl);
+          validUrl = parsedReel.protocol === "https:" || parsedReel.protocol === "http:";
+        } catch {
+          validUrl = false;
+        }
+        if (!validUrl || !ageConfirmed || !consentSegregated) {
+          if (isBrowserForm) {
+            const html = renderMasterLayout(
+              "Check Audition Submission — Candy Cast",
+              renderUserNoticePageHtml({
+                badge: "Validation Error",
+                badgeClass: "badge-error",
+                title: "Please complete all audition requirements",
+                message: "A valid audition reel URL, 18+ age confirmation, and segregated consent acknowledgement are required.",
+                primaryHref: "/candy/candy-cast-private-application",
+                primaryLabel: "Return to Audition Form",
+              }),
+              "/candy/candy-cast-private-application",
+              { sessionUser: user }
+            );
+            await sendHtml(res, 422, html);
+            return;
+          }
+          sendJson(res, 422, { error: "Unprocessable Entity", message: "Valid reelUrl, ageConfirmed, and consentSegregated are required." });
+          return;
+        }
+
+        const reference = `AUD-${Date.now()}`;
+        recordAuditLog({
+          userId: user.userId,
+          action: "candy.audition.submit",
+          resource: "talent",
+          resourceId: reference,
+          changes: { roleId, reelUrl, ageConfirmed, consentSegregated },
+          ipAddress: clientIp,
+          userAgent: req.headers["user-agent"] || null,
+        });
+
+        if (isBrowserForm) {
+          const html = renderMasterLayout(
+            "Audition Package Submitted — Candy Cast",
+            renderUserNoticePageHtml({
+              badge: "Audition Recorded",
+              badgeClass: "badge-success",
+              title: "Your audition package has been submitted",
+              message: `Reference ${reference} has been logged for casting review under ${roleId}.`,
+              primaryHref: "/candy/candy-cast-private-application",
+              primaryLabel: "Back to Candy Cast",
+              secondaryHref: "/portal",
+              secondaryLabel: "Go to Portals",
+            }),
+            "/candy/candy-cast-private-application",
+            { sessionUser: user }
+          );
+          await sendHtml(res, 201, html);
+          return;
+        }
+        sendJson(res, 201, { status: "SUCCESS", reference, roleId });
+      } catch (err: any) {
+        if (isBrowserForm) {
+          const html = renderMasterLayout(
+            "Submission Error — Candy Cast",
+            renderUserNoticePageHtml({
+              badge: "Error",
+              badgeClass: "badge-error",
+              title: "Could not submit audition package",
+              message: err?.message || "Please try again.",
+              primaryHref: "/candy/candy-cast-private-application",
+              primaryLabel: "Return to Audition Form",
+            }),
+            "/candy/candy-cast-private-application",
+            { sessionUser: user }
+          );
+          await sendHtml(res, 400, html);
+          return;
+        }
+        sendJson(res, 400, { error: err?.message || "Bad Request" });
+      }
+      return;
+    }
+
+    if (pathname === "/api/v1/creators/portfolio" && method === "POST") {
+      const user = assertRoutePermission(req, res, "create", "talent");
+      if (!user) return;
+      const contentType = req.headers["content-type"] || "";
+      const isBrowserForm = !contentType.includes("application/json") && wantsHtmlResponse(req);
+      try {
+        const body = contentType.includes("application/json")
+          ? await parseJsonBody(req, pathname)
+          : Object.fromEntries(new URLSearchParams(await parseRawBody(req, pathname)).entries());
+        const title = jsonTextField(body.title).trim();
+        const category = jsonTextField(body.category).trim() || "AUDIO";
+        if (!title) {
+          if (isBrowserForm) {
+            const html = renderMasterLayout(
+              "Check Portfolio Submission — Creator Onboarding",
+              renderUserNoticePageHtml({
+                badge: "Validation Error",
+                badgeClass: "badge-error",
+                title: "Creative work title is required",
+                message: "Please enter a title for your creative work before submitting for QC.",
+                primaryHref: "/workspace/talent/talent-profile-onboarding",
+                primaryLabel: "Return to Portfolio Form",
+              }),
+              "/workspace/talent/talent-profile-onboarding",
+              { sessionUser: user }
+            );
+            await sendHtml(res, 422, html);
+            return;
+          }
+          sendJson(res, 422, { error: "Unprocessable Entity", message: "title is required." });
+          return;
+        }
+
+        const reference = `PRT-${Date.now()}`;
+        recordAuditLog({
+          userId: user.userId,
+          action: "creators.portfolio.submit",
+          resource: "talent",
+          resourceId: reference,
+          changes: { title, category },
+          ipAddress: clientIp,
+          userAgent: req.headers["user-agent"] || null,
+        });
+
+        if (isBrowserForm) {
+          const html = renderMasterLayout(
+            "Portfolio Submitted — Creator Onboarding",
+            renderUserNoticePageHtml({
+              badge: "Submitted for QC",
+              badgeClass: "badge-success",
+              title: "Your creative work was submitted",
+              message: `Reference ${reference} for "${title}" (${category}) is queued for technical & rights review.`,
+              primaryHref: "/workspace/talent/talent-profile-onboarding",
+              primaryLabel: "Back to Creator Onboarding",
+              secondaryHref: "/portal",
+              secondaryLabel: "Go to Portals",
+            }),
+            "/workspace/talent/talent-profile-onboarding",
+            { sessionUser: user }
+          );
+          await sendHtml(res, 201, html);
+          return;
+        }
+        sendJson(res, 201, { status: "SUCCESS", reference, title, category });
+      } catch (err: any) {
+        if (isBrowserForm) {
+          const html = renderMasterLayout(
+            "Submission Error — Creator Onboarding",
+            renderUserNoticePageHtml({
+              badge: "Error",
+              badgeClass: "badge-error",
+              title: "Could not submit portfolio work",
+              message: err?.message || "Please try again.",
+              primaryHref: "/workspace/talent/talent-profile-onboarding",
+              primaryLabel: "Return to Portfolio Form",
+            }),
+            "/workspace/talent/talent-profile-onboarding",
+            { sessionUser: user }
+          );
+          await sendHtml(res, 400, html);
+          return;
+        }
+        sendJson(res, 400, { error: err?.message || "Bad Request" });
       }
       return;
     }

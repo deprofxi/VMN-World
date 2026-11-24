@@ -31,7 +31,7 @@ export function renderAdminUsersDeskHtml(ctx: AdminUsersContext): string {
         <a href="/" class="text-muted no-underline">Home</a> <span>&gt;</span>
         <a href="/workspace" class="text-muted no-underline">Workspaces</a> <span>&gt;</span>
         <a href="/workspace/admin/access" class="text-muted no-underline">Administration</a> <span>&gt;</span>
-        <span aria-current="page" class="text-primary font-mono font-semibold">User Identity &amp; RBAC</span>
+        <span aria-current="page" class="text-primary font-mono font-semibold">User Identity &amp; Access Control</span>
       </nav>
       <div class="flex items-center gap-2">
         <span class="vmn-badge badge-ready font-mono text-xs flex items-center gap-1">
@@ -47,7 +47,7 @@ export function renderAdminUsersDeskHtml(ctx: AdminUsersContext): string {
       <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
         <div class="flex items-center gap-2">
           <span class="vmn-badge badge-info text-xs font-mono">IAM &amp; SESSIONS</span>
-          <span class="vmn-badge badge-outline text-xs font-mono">28 CANONICAL ROLES</span>
+          <span class="vmn-badge badge-outline text-xs font-mono">28 ENTERPRISE ROLES</span>
         </div>
         <div class="flex items-center gap-2">
           <a href="#new-user-modal" class="btn btn-primary btn-sm text-xs font-bold">+ Provision Enterprise User</a>
@@ -73,7 +73,7 @@ export function renderAdminUsersDeskHtml(ctx: AdminUsersContext): string {
         </div>
         <div class="p-2.5 rounded-lg bg-slate-900/60 border border-muted/10">
           <span class="text-xs text-muted block font-semibold">ROLE TAXONOMY</span>
-          <span class="text-base font-bold block mt-0.5 text-slate-100">${escapeHtml(canonicalRoles.length)} Canonical</span>
+          <span class="text-base font-bold block mt-0.5 text-slate-100">${escapeHtml(canonicalRoles.length)} Standard</span>
           <span class="text-xs text-muted block mt-0.5">84 SuperAdmin rules</span>
         </div>
         <div class="p-2.5 rounded-lg bg-slate-900/60 border border-muted/10">
@@ -152,7 +152,7 @@ export function renderAdminUsersDeskHtml(ctx: AdminUsersContext): string {
       <div class="flex items-center justify-between mb-3 border-b border-muted/10 pb-2">
         <div>
           <h2 class="text-base font-bold text-slate-100 m-0">Provision New Enterprise User</h2>
-          <p class="text-xs text-muted m-0">Create identity record and bind canonical operational roles</p>
+          <p class="text-xs text-muted m-0">Create user identity and assign operational roles</p>
         </div>
         <span class="vmn-badge badge-info text-xs font-mono">NEW USER</span>
       </div>
@@ -171,7 +171,7 @@ export function renderAdminUsersDeskHtml(ctx: AdminUsersContext): string {
         </div>
 
         <div>
-          <label class="block font-semibold text-slate-200 mb-1" for="primaryRole">Primary Canonical Role *</label>
+          <label class="block font-semibold text-slate-200 mb-1" for="primaryRole">Primary Role *</label>
           <select id="primaryRole" name="primaryRole" required class="input input-sm w-full bg-slate-900 border border-muted/20 rounded px-2.5 py-1.5 text-slate-100 text-xs font-mono">
             ${canonicalRoles.map((role) => `<option value="${escapeHtml(role)}">${escapeHtml(role)}</option>`).join("")}
           </select>

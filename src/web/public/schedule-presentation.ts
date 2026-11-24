@@ -139,7 +139,7 @@ export function resolveNowAndNext(params: {
       available: false,
       channelCode: params.channelCode,
       reason: "NO_APPROVED_SCHEDULE",
-      message: "Schedule guide is being updated. An approved broadcast schedule for today is not yet published (UIUX-001 §3.4).",
+      message: "Schedule guide is being updated. An approved broadcast schedule for today is not yet published.",
     };
   }
   if (schedule.entries.length === 0) {

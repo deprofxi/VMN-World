@@ -52,7 +52,7 @@ export function renderAboutPageHtml(): string {
           </div>
           <div>
             <div class="s-uW7qP1pMQH">Governance Model</div>
-            <div class="s-JYafc2GRON">Truthful Provenance</div>
+            <div class="s-JYafc2GRON">Verified Data Sources</div>
           </div>
         </div>
       </section>
@@ -476,7 +476,7 @@ export function renderEnquiryContactHtml(preselectedVertical: string = "COMMERCI
             <div class="s-g2--ZVzXgB">
               <div class="s-_vhCzsFO1y">Transmission Notice</div>
               <p class="s-41dPoKfx8N">
-                Submissions in this prototype are processed by local mock stores and do not bind commercial availability, airtime spots, or rate quotes until confirmed by a signed formal contract.
+                Submitting this enquiry records your request for commercial review and does not bind airtime availability or commercial rates until confirmed by a signed formal contract.
               </p>
             </div>
 

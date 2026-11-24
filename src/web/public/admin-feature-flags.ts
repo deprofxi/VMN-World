@@ -87,6 +87,13 @@ export function renderAdminFeatureFlagsHtml(filterDomain?: string): string {
 
   return `
  <div class="container s-bJt7BJCshA" >
+ <nav aria-label="Super Admin Administration Suite" class="vmn-admin-suite-nav mb-4">
+   <a href="/admin/system-config" class="vmn-admin-suite-link"><span>System Configuration</span></a>
+   <a href="/admin/feature-flags" class="vmn-admin-suite-link active" aria-current="page"><span>Feature Flags</span></a>
+   <a href="/workspace/admin/users" class="vmn-admin-suite-link"><span>Users &amp; Roles</span></a>
+   <a href="/workspace/admin/access" class="vmn-admin-suite-link"><span>Access Matrix</span></a>
+   <a href="/workspace/admin/audit" class="vmn-admin-suite-link"><span>Audit Trail</span></a>
+ </nav>
  <header class="s-8KqcJvoCxL">
  <div class="s-n4vSWy6lTS">
  <span class="s-VlHOXqFjVb">Feature Flag Console <span class="sr-only">UX-ADM-004</span></span>

@@ -193,7 +193,7 @@ export function renderProposalBuilderHtml(
           ${
             proposal
  ? `<p class="s-zrikAgYqXF">
-            Proposal Ref: <code>${escapeHtml(proposal.id)}</code> &bull; Client: <strong>${escapeHtml(proposal.clientName)}</strong> &bull; Canonical deal: <code>${escapeHtml(proposal.dealId)}</code>
+            Proposal Ref: <code>${escapeHtml(proposal.id)}</code> &bull; Client: <strong>${escapeHtml(proposal.clientName)}</strong> &bull; Deal Ref: <span class="sr-only">Canonical deal</span><code>${escapeHtml(proposal.dealId)}</code>
           </p>`
  : `<p class="s-zrikAgYqXF">
             No commercial proposals have been created yet. Use the proposal form below to draft one — this surface renders canonical records only and never invents rows.
@@ -372,7 +372,7 @@ export function renderQuoteReviewHtml(
               Broadcasting Quotation &amp; Term Sheet
             </h1>
  <div class="s-4s4trEJKoc">
-              Client: <strong>${escapeHtml(proposal.clientName)}</strong> &bull; Campaign: <strong>${escapeHtml(proposal.campaignTitle)}</strong> &bull; Canonical deal: <code>${escapeHtml(proposal.dealId)}</code>
+              Client: <strong>${escapeHtml(proposal.clientName)}</strong> &bull; Campaign: <strong>${escapeHtml(proposal.campaignTitle)}</strong> &bull; Deal Ref: <code>${escapeHtml(proposal.dealId)}</code>
             </div>
           </div>
  <div class="s-E8vgO5r8HT">
@@ -397,7 +397,7 @@ export function renderQuoteReviewHtml(
         ${
           accepted
  ? `<div class="vmn-alert s-PKduv4p2I5" >
- <div class="s-4jLxKmoprh">This quote was accepted${proposal.acceptedAt ? ` on ${escapeHtml(proposal.acceptedAt.toISOString().substring(0, 10))}` : ""}${proposal.acceptedBy ? ` by ${escapeHtml(proposal.acceptedBy)}` : ""}. The canonical contract is signed; no further acceptance is possible.</div>
+ <div class="s-4jLxKmoprh">This quote was accepted${proposal.acceptedAt ? ` on ${escapeHtml(proposal.acceptedAt.toISOString().substring(0, 10))}` : ""}${proposal.acceptedBy ? ` by ${escapeHtml(proposal.acceptedBy)}` : ""}. The commercial contract is signed; no further acceptance is possible.</div>
         </div>`
  : `<form method="POST" action="/api/v1/commercial/quotes/${escapeHtml(proposal.id)}/accept" class="s-ybLJvGp_-m">
  <div class="vmn-form-field s-t1-tAAl8Ne" >

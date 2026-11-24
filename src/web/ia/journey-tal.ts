@@ -87,8 +87,9 @@ function renderTal002(screen: IAScreen, _ctx: IAGatedPageContext): string {
             <option value="WRITING">Screenplay & Narrative Script</option>
           </select>
         </div>
-        <div class="border border-dashed border-border p-4 text-center rounded">
-          <p class="text-sm">Drag and drop verified digital masters or click to browse (Max 500MB).</p>
+        <div class="vmn-dropzone border border-dashed border-border p-4 text-center rounded cursor-pointer">
+          <input type="file" id="portfolio-master-file" class="sr-only" accept="audio/*,video/*,.pdf,.zip" />
+          <p class="text-sm">Click to select verified digital masters (Max 500MB).</p>
         </div>
         <button type="submit" class="btn btn-primary">Submit for Technical & Rights QC</button>
       </form>`

@@ -97,7 +97,7 @@ export function sourceConflictResolver(props: {
       <span class="badge badge-warning">GOVERNANCE CONFLICT: ${props.conflictId}</span>
       <h3 class="font-bold text-base">${props.topic}</h3>
     </div>
-    <p class="text-xs text-muted mb-3">Model-as-final-judge is strictly prohibited by Canonical Law 13. Resolution routed to competent human authority: <strong>${props.competentOwner}</strong>.</p>
+    <p class="text-xs text-muted mb-3">Model-as-final-judge is strictly prohibited <span class="sr-only">(Canonical Law 13)</span>. Resolution routed to competent human authority: <strong>${props.competentOwner}</strong>.</p>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
       <div class="card p-3">
         <div class="text-xs font-bold text-muted">${props.primaryAuthority.id}</div>
@@ -293,7 +293,7 @@ export function agentExecutionProvenanceCard(props: {
 }): SafeHtml {
   return html`<div class="card p-4 mb-4" data-component="CMP-034">
     <div class="flex items-center justify-between mb-2">
-      <h3 class="text-base font-bold">Agent OS Execution Provenance</h3>
+      <h3 class="text-base font-bold">Agent Execution Audit Trail</h3>
       <span class="badge badge-info text-xs">Level ${props.capabilityLevel}</span>
     </div>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs mb-3">

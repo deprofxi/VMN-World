@@ -237,9 +237,9 @@ any of them as durable without checking the signal.
    persisted synchronously, and since TSK-18 the row is **staged, not fired away**: `recordAuditLog`
    calls `stageDurableWrite` (`:227`), whose persister is
    `core/database/repositories/release-critical.repository.ts:1061` `persistAuditLogEntry`. Every
-   HTTP request runs inside one journal group (`api/server.ts:646` `serveRequestInJournalGroup`,
-   opened at `:312`), and the group drains before the first byte of the response
-   (`api/router.ts:586` in `sendJson`, and the same gate in `sendText` `:625` / `sendHtml` `:662`),
+   HTTP request runs inside one journal group (`api/server.ts:649` `serveRequestInJournalGroup`,
+   opened at `:313`), and the group drains before the first byte of the response
+   (`api/router.ts:598` in `sendJson`, and the same gate in `sendText` `:644` / `sendHtml` `:681`),
    so the ledger row and the request's business rows commit in **one** `prisma.$transaction`.
    Consequences, both measured: a 200 response **does** prove the audit row landed, and the converse
    is the cost — with no reachable database a mutating request now answers 503

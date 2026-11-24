@@ -68,7 +68,7 @@ export function renderEpisodeMastersTableHtml(
     <div class="card" role="region" aria-label="${escapeHtml(heading)}">
  <div class="s-RbdLgOeBnZ">
  <h2 class="s-5yiBMOtiRi">${escapeHtml(heading)}</h2>
- <span class="s-37h9gF_4Xa">${escapeHtml(rows.length)} episode${rows.length === 1 ? "" : "s"} · canonical BroadcastEpisode → DAM registry chain</span>
+ <span class="s-37h9gF_4Xa">${escapeHtml(rows.length)} episode${rows.length === 1 ? "" : "s"} · verified episode to media asset linkage</span>
       </div>
  ${options.note ? `<p class="s-Bn4hJjdmcO">${escapeHtml(options.note)}</p>` : ""}
  <div class="s-0GmMSMP86s">

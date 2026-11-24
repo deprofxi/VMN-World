@@ -115,7 +115,7 @@ export function renderSearchResultsHtml(
  <span class="vmn-badge badge-info s-Dnmmv3HPR8" >Universal Search <span class="sr-only">&bull; UX-HUB-002</span></span>
  <h1 class="s-4hDFIYz_z0">Authorised Search</h1>
  <p class="s-74eGsJhV6B">
-          ${results.length} result(s) for <strong>“${query}”</strong> — scoped to ${user.email}'s roles${user.roles.length ? html` (${user.roles.join(", ")})` : ""} and tenant. Snippets respect field scope (CCPP §5.2).
+          ${results.length} result(s) for <strong>“${query}”</strong> — scoped to ${user.email}'s roles${user.roles.length ? html` (${user.roles.join(", ")})` : ""} and tenant. Results respect role-based field visibility <span class="sr-only">(CCPP §5.2)</span>.
         </p>
       </div>
  <div class="vmn-card s-bHj-dI3Drp" >

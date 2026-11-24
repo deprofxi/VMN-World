@@ -716,7 +716,7 @@ export function renderWorkspaceDeskHtml(deskKey: string): string {
           <span class="vmn-badge badge-ready">Declared Runbook</span>
         </div>
         <h4 class="font-bold text-sm mb-1">${escapeHtml(w)}</h4>
-        <p class="text-xs text-muted mb-3">Enterprise mission-critical procedure mapped to role <code>${escapeHtml(desk.primaryRole)}</code> per CCPP-001.</p>
+        <p class="text-xs text-muted mb-3">Enterprise operational procedure mapped to role <code>${escapeHtml(desk.primaryRole)}</code> <span class="sr-only">per CCPP-001</span>.</p>
       </div>
       <div class="flex items-center justify-between pt-2 border-t border-border">
         <span class="text-xs text-muted font-mono">DoA: Level 2</span>
@@ -803,7 +803,7 @@ export function renderWorkspaceDeskHtml(deskKey: string): string {
             ${escapeHtml(desk.primaryRole)}
           </div>
           <div class="vmn-kpi-meta">
-            <span class="vmn-kpi-trend-up">RBAC Scoped</span>
+            <span class="vmn-kpi-trend-up">Role-Protected</span>
           </div>
         </div>
         <div class="vmn-kpi-card">
@@ -873,7 +873,7 @@ export function renderWorkspaceDeskHtml(deskKey: string): string {
         <div class="vmn-tab-pane" id="tab-workflows" role="tabpanel" aria-labelledby="tab-btn-workflows">
           <div class="mb-4">
             <h3 class="font-bold text-base mb-1">Standard Operating Procedures &amp; Runbooks</h3>
-            <p class="text-xs text-muted mb-3">Audited procedural workflows mapped to this operational duty station per CCPP-001.</p>
+            <p class="text-xs text-muted mb-3">Audited procedural workflows mapped to this operational workstation <span class="sr-only">per CCPP-001</span>.</p>
             <div class="grid grid-2 gap-3 mb-4">
               ${workflowsGrid}
             </div>

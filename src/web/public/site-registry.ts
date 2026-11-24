@@ -38,10 +38,11 @@ export interface NavEntry {
 export const PRIMARY_NAV: readonly NavEntry[] = [
   { href: "/", label: "Overview", hint: "Enterprise proposition" },
   { href: "/media-and-audience-overview", label: "Channels", hint: "Nigezie Xtreme, Orisun, Isi Mbido" },
+  { href: "/schedule", label: "Schedule", hint: "Live TV programme schedule" },
   { href: "/creative-economy-hub-overview", label: "Hub", hint: "Talent, production, academy" },
-  { href: "/workspace", label: "Workspaces", hint: "Broadcast & hub operations" },
   { href: "/portal", label: "Portals", hint: "Counterparty & client gateways" },
-  { href: "/azeebo/gateway", label: "Azeebo+", hint: "Federated streaming gateway" },
+  { href: "/azeebo", label: "Azeebo+", hint: "Federated streaming home" },
+  { href: "/contact", label: "Contact", hint: "Commercial & public enquiries" },
 ];
 
 export const COMMAND_CATEGORIES = {
@@ -90,6 +91,12 @@ export interface SiteDestination {
  * promoting one of these into `PRIMARY_NAV` later cannot list it twice.
  */
 const EXTRA_DESTINATIONS: readonly SiteDestination[] = [
+  {
+    category: COMMAND_CATEGORIES.primary,
+    title: "Workspaces",
+    url: "/workspace",
+    hint: "Broadcast & hub operations",
+  },
   {
     category: COMMAND_CATEGORIES.primary,
     title: "Broadcast Executive Dashboard",
@@ -182,9 +189,9 @@ const EXTRA_DESTINATIONS: readonly SiteDestination[] = [
   },
   {
     category: COMMAND_CATEGORIES.primary,
-    title: "SCTE-35 DPI Playout Console",
+    title: "Commercial Ad Cue Playout Console",
     url: "/broadcast/scte35",
-    hint: "Live UDP splice cue generator (Port 1234), headend controller",
+    hint: "Live commercial break cue generator, headend controller",
   },
   {
     category: COMMAND_CATEGORIES.primary,
@@ -206,15 +213,15 @@ const EXTRA_DESTINATIONS: readonly SiteDestination[] = [
   },
   {
     category: COMMAND_CATEGORIES.primary,
-    title: "Enterprise User Identity & RBAC",
+    title: "Enterprise User Identity & Access Control",
     url: "/workspace/admin/users",
-    hint: "User provisioning, 28 canonical roles matrix, session management",
+    hint: "User provisioning, 28 standard roles matrix, session management",
   },
   {
     category: COMMAND_CATEGORIES.primary,
     title: "Cryptographic Audit Trail",
     url: "/workspace/admin/audit",
-    hint: "HMAC-SHA-256 hash chains, forensic mutations, verify API",
+    hint: "Cryptographically signed audit logs, change history, verification",
   },
   {
     category: COMMAND_CATEGORIES.primary,
@@ -257,6 +264,12 @@ const EXTRA_DESTINATIONS: readonly SiteDestination[] = [
     title: "Feature Flags & Releases",
     url: "/admin/feature-flags",
     hint: "Enterprise release flags, feature toggle overrides",
+  },
+  {
+    category: COMMAND_CATEGORIES.primary,
+    title: "System Configuration Console",
+    url: "/admin/system-config",
+    hint: "SuperAdmin platform identity, security policy, and broadcast configuration",
   },
 ];
 

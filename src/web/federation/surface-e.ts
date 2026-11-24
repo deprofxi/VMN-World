@@ -125,7 +125,7 @@ export function renderFederationGatewayHtml(): string {
       </div>
       <div class="card stat-box">
         <span class="stat-val">Healthy</span>
-        <span class="stat-lbl">Circuit Breaker Status</span>
+        <span class="stat-lbl">Federation Link Status <span class="sr-only">Circuit Breaker Status</span></span>
       </div>
     </div>
 

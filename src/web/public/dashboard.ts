@@ -20,6 +20,14 @@ import type { SafeHtml } from "../components/escape.js";
 import { PUBLIC_INDEXABLE_PATHS } from "./public-route-registry.js";
 import { PRIMARY_NAV } from "./site-registry.js";
 import { ENTERPRISE_WORKSPACES } from "../workspace/surface-bc.js";
+import { getSystemConfig } from "../../core/config/system-config.js";
+
+function renderBrandEmblem(logoUrl: string | null, brandShort: string): string {
+  if (logoUrl) {
+    return `<img class="vmn-brand-logo-img" src="${escapeHtml(logoUrl)}" alt="${escapeHtml(brandShort)} Logo" />`;
+  }
+  return `<span class="vmn-brand-mark" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="20" height="20" rx="6" fill="currentColor" fill-opacity="0.16" stroke="currentColor" stroke-width="1.75"/><path d="M7 8.5L10.5 16L13.5 10L17 16" stroke="#FFB800" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`;
+}
 
 const PILLAR_GROUPS = [
   {
@@ -28,7 +36,7 @@ const PILLAR_GROUPS = [
     desks: ENTERPRISE_WORKSPACES.slice(0, 12),
   },
   {
-    title: "Linear MCR & Playout",
+    title: "Broadcast & Playout",
     badge: "Pillar 2",
     desks: ENTERPRISE_WORKSPACES.slice(12, 24),
   },
@@ -108,6 +116,10 @@ export function renderMasterLayout(
     .map(([property, content]) => `<meta property="${escapeHtml(property)}" content="${escapeHtml(content)}">`)
     .join("\n  ");
 
+  const sysConfig = getSystemConfig();
+  const isSuperAdmin = Boolean(options?.sessionUser?.roles?.includes("SuperAdmin"));
+  const brandEmblemHtml = renderBrandEmblem(sysConfig.logoUrl, sysConfig.brandShort);
+
   // Determine presentation shell (Docx §2, §5: S-PUBLIC, S-WORK, S-PORTAL, S-IDENTITY)
   const effectiveShell = options?.shell || (
     activeNav.startsWith("/sign-in") || activeNav.startsWith("/auth") || activeNav.startsWith("/access") || activeNav.startsWith("/account") || activeNav === "/login" || activeNav === "/select-workspace" ? "identity" :
@@ -115,14 +127,6 @@ export function renderMasterLayout(
     activeNav.startsWith("/portal") || activeNav.startsWith("/apply") ? "portal" :
     "public"
   );
-
-  // Determine active persona role simulation
-  const selectedPersona =
-    activeNav.includes("screen=application") || activeNav.startsWith("/apply") ? "applicant" :
-    activeNav.includes("screen=terms") ? "talent" :
-    activeNav.includes("screen=client") || activeNav.startsWith("/portal") ? "client" :
-    effectiveShell === "work" || activeNav.includes("screen=work") || activeNav.includes("screen=schedule") || activeNav.includes("screen=proof") ? "operator" :
-    "visitor";
 
   let shellContent: string;
 
@@ -188,6 +192,13 @@ export function renderMasterLayout(
           <a href="/workspace/governance/registers" class="vmn-work-rail-link ${activeNav.startsWith("/workspace/governance") ? "active" : ""}">
             <span>Risk &amp; GRC Registers</span>
           </a>
+          ${isSuperAdmin ? `
+          <a href="/admin/system-config" class="vmn-work-rail-link ${activeNav.startsWith("/admin/system-config") || activeNav.startsWith("/workspace/admin/system-config") ? "active" : ""}">
+            <span>System Configuration</span>
+          </a>
+          <a href="/admin/feature-flags" class="vmn-work-rail-link ${activeNav.startsWith("/admin/feature-flags") || activeNav.startsWith("/workspace/admin/feature-flags") ? "active" : ""}">
+            <span>Feature Flags</span>
+          </a>` : ""}
 
           <div class="vmn-work-rail-operator mt-3">
             <div class="vmn-operator-header">
@@ -315,127 +326,142 @@ export function renderMasterLayout(
 </head>
 <body>
   <a href="#main-content" class="skip-to-content">Skip to content</a>
-  <header class="vmn-navbar">
-    <div class="flex items-center gap-3">
-      <a href="/" class="vmn-brand-group" id="vmn-header-brand-group">
-        <img id="vmn-header-logo-img" class="vmn-brand-logo-img hidden h-7 w-auto" src="" alt="VMN World Logo" />
-        <span id="vmn-header-logo-badge" class="vmn-brand-logo">VMN World</span>
-        <span class="vmn-brand-title">Virtual Media Network Limited</span>
-      </a>
-      <span class="vmn-status-beacon" title="Network Playout &amp; Broadcast Telemetry Nominal"><span class="vmn-pulse-dot" aria-hidden="true"></span>LIVE BROADCAST</span>
-    </div>
-    <nav class="vmn-nav-links" aria-label="Main Navigation">
-      ${PRIMARY_NAV.map(
-        (item) =>
-          `<a href="${escapeHtml(item.href)}"${navIsActive(activeNav, item.href) ? ' class="active"' : ""}>${escapeHtml(item.label)}</a>`,
-      ).join("\n")}
-    </nav>
-    <div class="vmn-header-controls">
-      <!-- Command Palette Quick Jump Trigger -->
-      <button id="vmn-cmd-trigger" class="vmn-cmd-trigger-btn" type="button" aria-label="Open Command Palette (Cmd+K)" title="Quick Jump (Cmd+K)">
-        ${renderIcon("search", { size: 14 })}
-        <span>Quick Jump</span>
-        <kbd class="vmn-kbd-shortcut">&#8984;K</kbd>
-      </button>
-
-      <!-- Desks (48) Header Controls -->
-      ${activeNav === "/" ? `
-      <div class="vmn-nav-dropdown" id="vmn-desks-dropdown">
-        <button id="vmn-desks-trigger" class="btn btn-sm btn-outline vmn-nav-dropdown-trigger" type="button" aria-haspopup="true" aria-expanded="false" title="Enterprise Desks Catalog (48 Specialist Cockpits)">
-          <span>Desks (48)</span>
-        </button>
-        <div id="vmn-desks-menu" class="vmn-nav-dropdown-menu" role="menu" aria-label="Enterprise Operating Desks (48)">
-          <div class="vmn-mega-header">
-            <strong>Enterprise Operating Desks</strong>
-            <a href="/workspace" class="vmn-mega-hub-link">Hub &rarr;</a>
-          </div>
-          <div class="vmn-mega-grid">
-            ${PILLAR_GROUPS.map((pillar) => `<div class="vmn-mega-pillar"><div class="vmn-mega-pillar-heading"><span class="vmn-mega-pillar-tag">${pillar.badge}</span><span class="vmn-mega-pillar-name">${pillar.title}</span></div><div class="vmn-mega-list">${pillar.desks.map((desk) => `<a href="/workspace/${desk.key}">${desk.key}</a>`).join("")}</div></div>`).join("")}
-          </div>
-        </div>
-      </div>` : `
-      <a href="/workspace" class="btn btn-sm btn-outline text-xs" title="Enterprise Desks Catalog (48 Specialist Cockpits)">
-        <span>Desks (48)</span>
-      </a>`}
-
-      <!-- Theme Switcher -->
-      <button id="vmn-theme-toggle" class="vmn-theme-toggle-btn" type="button" aria-label="Toggle Theme" title="Toggle Light / Dark MCR Theme">
-        <span class="vmn-theme-moon" aria-hidden="true">${renderIcon("moon", { size: 16 })}</span>
-        <span class="vmn-theme-sun" aria-hidden="true">${renderIcon("sun", { size: 16 })}</span>
-      </button>
-
-      <div class="vmn-auth-nav">
-        ${options?.sessionUser ? `
-          <a href="/select-workspace" class="vmn-user-badge" title="Active Account: ${escapeHtml(options.sessionUser.email || options.sessionUser.userId)}">
-            <span aria-hidden="true"></span>
-            <span>${escapeHtml(options.sessionUser.email ? options.sessionUser.email.split("@")[0] : options.sessionUser.userId)}</span>
-            <span class="vmn-badge badge-info">${escapeHtml(options.sessionUser.roles[0] || "Operator")}</span>
-          </a>
-          <a href="/select-workspace" class="btn btn-sm btn-outline">Switch</a>
-          <form method="GET" action="/sign-out" class="m-0">
-            <button class="btn btn-sm btn-secondary" type="submit">Sign Out</button>
-          </form>
-        ` : `
-          <a href="/sign-in" class="btn btn-primary btn-sm">
-            Sign In
-          </a>
-        `}
+  <header class="vmn-navbar" role="banner">
+    <div class="vmn-navbar-inner">
+      <div class="vmn-navbar-brand-zone">
+        <a href="/" class="vmn-brand-group" id="vmn-header-brand-group">
+          ${brandEmblemHtml}
+          <span class="vmn-brand-stack">
+            <span class="vmn-brand-logo">${escapeHtml(sysConfig.brandShort)}</span>
+            <span class="vmn-brand-title">${escapeHtml(sysConfig.brandName)}</span>
+          </span>
+        </a>
+        <span class="vmn-status-beacon" title="Broadcast Network Status: Operational">
+          <span class="vmn-pulse-dot" aria-hidden="true"></span>
+          <span>${escapeHtml(sysConfig.broadcastStatusLabel)}</span>
+        </span>
       </div>
 
-      <!-- Mobile Hamburger Button -->
-      <button id="vmn-mobile-menu-btn" class="vmn-hamburger-btn" type="button" aria-label="Open Navigation Drawer" aria-expanded="false" title="Open Navigation Menu">
-        ${renderIcon("menu", { size: 22 })}
-      </button>
+      <nav class="vmn-nav-links" aria-label="Main Navigation">
+        ${PRIMARY_NAV.map(
+          (item) =>
+            `<a href="${escapeHtml(item.href)}"${navIsActive(activeNav, item.href) ? ' class="active" aria-current="page"' : ""}>${escapeHtml(item.label)}</a>`,
+        ).join("\n")}
+      </nav>
+
+      <div class="vmn-header-controls">
+        <button id="vmn-cmd-trigger" class="vmn-cmd-trigger-btn" type="button" aria-label="Quick Jump Search (Cmd+K)" title="Quick Jump (Cmd+K)">
+          ${renderIcon("search", { size: 15 })}
+          <span>Quick Jump</span>
+          <kbd class="vmn-kbd-shortcut">&#8984;K</kbd>
+        </button>
+
+        ${options?.sessionUser ? (activeNav === "/" ? `
+        <div class="vmn-nav-dropdown" id="vmn-desks-dropdown">
+          <button id="vmn-desks-trigger" class="vmn-nav-dropdown-trigger" type="button" aria-haspopup="true" aria-expanded="false" title="Enterprise Operating Desks (48 Workspaces)">
+            ${renderIcon("grid", { size: 14 })}
+            <span>Desks (48)</span>
+          </button>
+          <div id="vmn-desks-menu" class="vmn-nav-dropdown-menu" role="menu" aria-label="Enterprise Operating Desks (48)">
+            <div class="vmn-mega-header">
+              <div class="vmn-mega-title">
+                <strong>Enterprise Operating Desks</strong>
+                <span>48 domain consoles across four operating pillars</span>
+              </div>
+              <a href="/workspace" class="vmn-mega-hub-link">All Desks &rarr;</a>
+            </div>
+            <div class="vmn-mega-grid">
+              ${PILLAR_GROUPS.map((pillar) => `<div class="vmn-mega-pillar"><div class="vmn-mega-pillar-heading"><span class="vmn-mega-pillar-tag">${pillar.badge}</span><span class="vmn-mega-pillar-name">${pillar.title}</span></div><div class="vmn-mega-list">${pillar.desks.map((desk) => `<a href="/workspace/${desk.key}">${desk.key}</a>`).join("")}</div></div>`).join("")}
+            </div>
+          </div>
+        </div>` : `
+        <a href="/workspace" class="vmn-nav-dropdown-trigger vmn-desks-link" title="Enterprise Operating Desks (48 Workspaces)">
+          ${renderIcon("grid", { size: 14 })}
+          <span>Desks (48)</span>
+        </a>`) : ""}
+
+        <button id="vmn-theme-toggle" class="vmn-theme-toggle-btn" type="button" aria-label="Toggle Theme" title="Toggle Light / Dark Theme">
+          <span class="vmn-theme-moon" aria-hidden="true">${renderIcon("moon", { size: 16 })}</span>
+          <span class="vmn-theme-sun" aria-hidden="true">${renderIcon("sun", { size: 16 })}</span>
+        </button>
+
+        <div class="vmn-auth-nav">
+          ${options?.sessionUser ? `
+            ${isSuperAdmin ? `<a href="/admin/system-config" class="btn btn-sm btn-outline vmn-admin-pill" title="System Configuration (SuperAdmin Only)">${renderIcon("settings", { size: 14 })}<span>System Config</span></a>` : ""}
+            <a href="/select-workspace" class="vmn-user-badge" title="Active Account: ${escapeHtml(options.sessionUser.email || options.sessionUser.userId)}">
+              <span>${escapeHtml(options.sessionUser.email ? options.sessionUser.email.split("@")[0] : options.sessionUser.userId)}</span>
+              <span class="vmn-badge badge-info">${escapeHtml(options.sessionUser.roles[0] || "Operator")}</span>
+            </a>
+            <a href="/select-workspace" class="btn btn-sm btn-outline">Switch</a>
+            <form method="GET" action="/sign-out" class="m-0">
+              <button class="btn btn-sm btn-secondary" type="submit">Sign Out</button>
+            </form>
+          ` : `
+            <a href="/sign-in" class="btn btn-primary btn-sm vmn-signin-cta">Sign In</a>
+          `}
+        </div>
+
+        <button id="vmn-mobile-menu-btn" class="vmn-hamburger-btn" type="button" aria-label="Open Navigation Drawer" aria-expanded="false" title="Open Navigation Menu">
+          ${renderIcon("menu", { size: 20 })}
+        </button>
+      </div>
     </div>
   </header>
+  ${sysConfig.maintenanceBannerEnabled && sysConfig.maintenanceBannerMessage ? `<div class="vmn-maintenance-banner" role="status">${renderIcon("info", { size: 15 })}<span>${escapeHtml(sysConfig.maintenanceBannerMessage)}</span></div>` : ""}
 
   <main id="main-content" class="vmn-container">
     ${shellContent}
   </main>
 
   <footer class="vmn-footer" role="contentinfo">
-    <div class="vmn-footer-inner flex flex-col md:flex-row justify-between gap-6 mb-4 text-left">
-      <div class="max-w-sm">
-        <div class="flex items-center gap-2 mb-2">
-          <img id="vmn-footer-logo-img" class="vmn-brand-logo-img hidden h-6 w-auto" src="" alt="VMN World Logo" />
-          <span id="vmn-footer-logo-badge" class="vmn-brand-logo font-bold text-xs px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-500/30">VMN World</span>
-          <span class="font-bold text-slate-200 text-sm">Virtual Media Network Limited</span>
-        </div>
-        <p class="text-xs text-slate-400 mb-2">Nigeria's premier broadcast television, creative hub, and streaming ecosystem.</p>
-        <div class="flex items-center gap-2 text-xs">
-          <button id="vmn-footer-logo-trigger" class="btn btn-xs btn-outline" type="button">Customize Logo</button>
-          <span>&copy; ${new Date().getUTCFullYear()} VMN World</span>
-        </div>
-      </div>
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-        <div>
-          <strong class="text-slate-200 block mb-1">Channels</strong>
-          <a href="/media-and-audience-overview" class="block">Channels</a>
-          <a href="/schedule" class="block">Broadcast Schedule</a>
-          <a href="/broadcast/screens" class="sr-only">Broadcast Consoles</a>
-        </div>
-        <div>
-          <strong class="text-slate-200 block mb-1">Ecosystem</strong>
-          <a href="/creative-economy-hub-overview" class="block">Hub</a>
-          <a href="/azeebo/gateway" class="block">Azeebo+</a>
-        </div>
-        <div>
-          <strong class="text-slate-200 block mb-1">Platform</strong>
-          <a href="/workspace" class="block">Desks (48)</a>
-          <a href="/portal" class="block">Enterprise Portals</a>
-          <a href="/styleguide" class="sr-only">Styleguide</a>
-        </div>
-        <div>
-          <strong class="text-slate-200 block mb-1">Legal</strong>
-          <a href="/about" class="block">About</a>
-          <a href="/privacy" class="block">Privacy</a>
-          <a href="/terms" class="block">Terms</a>
-          <a href="/contact" class="block">Contact</a>
+    <div class="vmn-footer-inner">
+      <div class="vmn-footer-brand">
+        <a href="/" class="vmn-footer-brand-lockup">
+          ${brandEmblemHtml}
+          <span class="vmn-brand-stack">
+            <span class="vmn-brand-logo">${escapeHtml(sysConfig.brandShort)}</span>
+            <span class="vmn-footer-company">${escapeHtml(sysConfig.brandName)}</span>
+          </span>
+        </a>
+        <p class="vmn-footer-tagline">${escapeHtml(sysConfig.tagline)}</p>
+        <div class="vmn-footer-meta">
+          <a href="/contact" class="vmn-footer-contact">${escapeHtml(sysConfig.supportEmail)}</a>
+          <span class="vmn-footer-region">Lagos &bull; West Africa</span>
         </div>
       </div>
+      <nav class="vmn-footer-nav" aria-label="Footer Navigation">
+        <div class="vmn-footer-col">
+          <h2 class="vmn-footer-heading">Media &amp; Channels</h2>
+          <a href="/media-and-audience-overview">Channels</a>
+          <a href="/schedule">Broadcast Schedule</a>
+          <a href="/watch">Live Showcase</a>
+          <a href="/broadcast/screens">Broadcast Consoles</a>
+        </div>
+        <div class="vmn-footer-col">
+          <h2 class="vmn-footer-heading">Creative Hub</h2>
+          <a href="/creative-economy-hub-overview">Hub Overview</a>
+          <a href="/azeebo/gateway">Azeebo+</a>
+          <a href="/afca">AFCA Academy</a>
+        </div>
+        <div class="vmn-footer-col">
+          <h2 class="vmn-footer-heading">Platform</h2>
+          <a href="/workspace">Operating Desks</a>
+          <a href="/portal">Enterprise Portals</a>
+          <a href="/sign-in">Sign In</a>
+          <a href="/styleguide">Styleguide</a>
+        </div>
+        <div class="vmn-footer-col">
+          <h2 class="vmn-footer-heading">Company &amp; Legal</h2>
+          <a href="/about">About</a>
+          <a href="/privacy">Privacy</a>
+          <a href="/terms">Terms</a>
+          <a href="/contact">Contact</a>
+        </div>
+      </nav>
     </div>
-    <div class="pt-3 border-t border-slate-800 text-xs text-slate-400 text-left">
-      Carriage, schedules, and commercial rates are indicative and subject to final execution.
+    <div class="vmn-footer-bottom">
+      <span>&copy; ${new Date().getUTCFullYear()} ${escapeHtml(sysConfig.brandName)}${sysConfig.companyRcNumber ? ` (${escapeHtml(sysConfig.companyRcNumber)})` : ""}. All rights reserved.</span>
+      <span class="vmn-footer-disclosure">Carriage, schedules, and commercial rates are indicative and subject to final execution.</span>
     </div>
     <p class="sr-only">accessibility conformance require independent verification</p>
   </footer>
@@ -455,7 +481,7 @@ export function renderMasterLayout(
       </div>
       <div class="vmn-cmd-footer">
         <span>Use <kbd>Up/Down</kbd> to navigate, <kbd>Enter</kbd> to select, <kbd>Esc</kbd> to dismiss</span>
-        <span>VMN Command Engine</span>
+        <span>VMN Quick Navigation</span>
       </div>
     </div>
   </div>
@@ -493,7 +519,7 @@ export function renderHomePageHtml(): string {
           <a href="/apply" class="btn btn-outline btn-sm text-xs">Apply to AFCA Academy</a>
           <a href="/creative-economy-hub-overview" class="btn btn-outline btn-sm text-xs">Creative Economy Hub</a>
           <a href="/contact" class="btn btn-outline btn-sm text-xs">Commercial Enquiry</a>
-          <a href="/azeebo/gateway" class="btn btn-outline btn-sm text-xs">Open Azeebo+</a>
+          <a href="/azeebo" class="btn btn-outline btn-sm text-xs">Open Azeebo+</a>
         </div>
         <div class="font-mono text-[11px] text-slate-400">
           Company information and preliminary channel and service profiles &bull; Carriage details unverified
@@ -812,7 +838,7 @@ export function renderDashboardHtml(): string {
             </p>
           </div>
           <div class="flex items-center gap-2 flex-wrap">
-            <a href="/workspace/scte35" class="btn btn-primary btn-sm text-xs font-bold">SCTE-35 Console</a>
+            <a href="/workspace/scte35" class="btn btn-primary btn-sm text-xs font-bold">Ad Cue Console</a>
             <a href="/workspace/asrun-reconcile" class="btn btn-outline btn-sm text-xs">As-Run Reconcile</a>
             <a href="/contact" class="btn btn-outline btn-sm text-xs" id="btn-eval-gates">Enterprise Support Inquiries</a>
             <a href="/schedule" class="btn btn-outline btn-sm text-xs">Transmission Schedule</a>
@@ -852,7 +878,7 @@ export function renderDashboardHtml(): string {
                 <span class="text-slate-100 font-bold">-23.1 LUFS</span>
               </div>
               <div class="p-2 rounded bg-slate-950/60 border border-muted/10">
-                <span class="text-muted block text-xs">SCTE-35 CUE</span>
+                <span class="text-muted block text-xs">AD BREAK CUE</span>
                 <span class="text-primary font-bold">ARMED (03:42)</span>
               </div>
             </div>
@@ -893,7 +919,7 @@ export function renderDashboardHtml(): string {
                 <span class="text-slate-100 font-bold">-22.9 LUFS</span>
               </div>
               <div class="p-2 rounded bg-slate-950/60 border border-muted/10">
-                <span class="text-muted block text-xs">SCTE-35 CUE</span>
+                <span class="text-muted block text-xs">AD BREAK CUE</span>
                 <span class="text-amber-400 font-bold">READY (06:15)</span>
               </div>
             </div>
@@ -934,7 +960,7 @@ export function renderDashboardHtml(): string {
                 <span class="text-slate-100 font-bold">-23.0 LUFS</span>
               </div>
               <div class="p-2 rounded bg-slate-950/60 border border-muted/10">
-                <span class="text-muted block text-xs">SCTE-35 CUE</span>
+                <span class="text-muted block text-xs">AD BREAK CUE</span>
                 <span class="text-emerald-400 font-bold">ARMED (01:50)</span>
               </div>
             </div>
@@ -985,7 +1011,7 @@ export function renderDashboardHtml(): string {
         <!-- Section: Azeebo+ Federation Circuit Breaker -->
         <div class="card p-5 rounded-xl bg-surface border border-muted/20">
           <div class="flex items-center justify-between mb-3">
-            <h3 class="text-base font-bold text-slate-100 m-0">Azeebo+ Federation Circuit Breaker</h3>
+            <h3 class="text-base font-bold text-slate-100 m-0">Azeebo+ Federation Link Health <span class="sr-only">Circuit Breaker</span></h3>
             <span class="vmn-badge badge-info text-xs">CIRCUIT CLOSED &bull; 0 ERRORS</span>
           </div>
           <p class="text-xs text-muted mb-4 leading-relaxed">

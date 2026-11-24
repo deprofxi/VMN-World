@@ -505,7 +505,7 @@ function renderSearchBody(query: string): string {
           <li class="card mb-4">
             <h2><a href="${escapeHtml(screen.route)}">${escapeHtml(screen.screenName)}</a></h2>
             <p>${escapeHtml(screen.primaryAction)}</p>
-            <p class="text-muted">${escapeHtml(screen.journeyCode)} · ${escapeHtml(screen.route)}</p>
+            <p class="text-muted">${escapeHtml(screen.journey)} · ${escapeHtml(screen.route)}</p>
           </li>`
           )
           .join("")}
@@ -516,7 +516,7 @@ function renderSearchBody(query: string): string {
       ${pageHeader(
         "PUB-013",
         "Search",
-        "Find a source-backed public page. Results come from the published sitemap, not from an enterprise index."
+        "Search public pages across channels, programmes, admissions, portals, and corporate information."
       )}
       ${renderSearchForm(query)}
       ${resultsHtml}
@@ -722,10 +722,8 @@ function renderSitemapBody(): string {
       "Discover a specific permitted route. This index is generated from the IA inventory, so it cannot list a page the authority does not define."
     )}
     <p>
-      ${escapeHtml(IA_PUBLIC_PAGES.length)} public pages and ${hostedTotal} public hosted states are listed from
-      <code>${escapeHtml(IA_REGISTRY_SOURCE.csvPath)}</code>
-      (${escapeHtml(IA_REGISTRY_SOURCE.rowCount)} records, sha256 ${escapeHtml(IA_REGISTRY_SOURCE.sha256.slice(0, 12))}…).
-      Each link targets that screen's canonical route; restricted surfaces are not listed.
+      Browse all ${escapeHtml(IA_PUBLIC_PAGES.length)} public pages and ${hostedTotal} public interactive states across Virtual Media Network Limited.
+      Each link opens the public destination directly.
     </p>
     <nav aria-label="Public pages by journey">
       ${groupHtml}
