@@ -140,150 +140,139 @@ export function renderSignInHtml(options?: {
   const initialEmail = options?.email ? escapeHtml(options.email) : "";
 
   const personasHtml = SANDBOX_PERSONAS.map((p) => `
- <form method="POST" action="/sign-in" class="s-_yJ9BjIJay">
+    <form method="POST" action="/sign-in" class="m-0">
       <input type="hidden" name="email" value="${escapeHtml(p.email)}" />
       <input type="hidden" name="quickPersona" value="true" />
       <input type="hidden" name="returnUrl" value="${returnUrl}" />
- <button type="submit" class="persona-card s-iyDiwYtPpY" >
- <div class="s-EB4HBreqCm">
- <strong class="s-Kayo_-KaId">${escapeHtml(p.name)}</strong>
- <span class="vmn-badge badge-${escapeHtml(p.badgeTone)} s-tDhtntWwE7" >${escapeHtml(p.role)}</span>
+      <button type="submit" class="persona-card w-full text-left p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 transition-all cursor-pointer group flex flex-col justify-between">
+        <div class="flex items-center justify-between gap-1 mb-1">
+          <strong class="text-xs text-slate-200 group-hover:text-emerald-400 transition-colors">${escapeHtml(p.name)}</strong>
+          <span class="vmn-badge badge-${escapeHtml(p.badgeTone)} text-[10px]">${escapeHtml(p.role)}</span>
         </div>
- <div class="s-wUMD0XWoZI">${escapeHtml(p.email)}</div>
- <div class="s-phs1dNMXu6">${escapeHtml(p.description)}</div>
+        <div class="font-mono text-[11px] text-slate-400 truncate mb-0.5">${escapeHtml(p.email)}</div>
+        <div class="text-[10px] text-slate-500 leading-tight">${escapeHtml(p.description)}</div>
       </button>
     </form>
   `).join("");
 
   return `
- <div class="s-k3X1RRTyyB">
- <div class="s-j7XXxtqRfY">
- <div class="s-Fi3mt9Z1sR">
+    <div class="max-w-md mx-auto my-8 px-4">
+      <div class="text-center mb-6">
+        <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 mb-3 shadow-lg shadow-emerald-500/5">
           ${renderIcon("lock", { size: 28 })}
         </div>
- <h1 class="s-SE0lHlMXiF">
-          Virtual Media Network Limited
+        <div class="inline-flex items-center gap-2 mb-1.5">
+          <span class="vmn-badge badge-info text-xs font-mono">VMN World</span>
+          <span class="vmn-badge badge-neutral text-xs font-mono">UX-SYS-001</span>
+        </div>
+        <h1 class="text-2xl font-black text-slate-100 tracking-tight m-0">
+          Enterprise Sign In
         </h1>
- <p class="s-lVTdb54j2O">
-          Enterprise Identity &amp; Role-Based Presentation Shell (S-IDENTITY &bull; UX-SYS-001)
+        <p class="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+          Secure access to broadcast playout, executive consoles, and creative economy workspaces.
         </p>
       </div>
 
       ${errorMessage ? `
- <div class="vmn-card s-hkaiqPeXOd" role="alert">
- <div class="s-MIjaETFWG6">
-            ${renderIcon("alert", { size: 18 })}
-            <strong>Authentication Failed:</strong> ${errorMessage}
-          </div>
+        <div class="vmn-card p-3 mb-4 rounded-xl bg-red-950/60 border border-red-500/40 text-red-200 text-xs flex items-center gap-2 shadow-lg" role="alert">
+          ${renderIcon("alert", { size: 18 })}
+          <div><strong>Authentication Failed:</strong> ${errorMessage}</div>
         </div>
       ` : ""}
 
       ${infoMessage ? `
- <div class="vmn-card s-JG9s69_5Dk" role="status">
- <div class="s-MIjaETFWG6">
-            ${renderIcon("check", { size: 18 })}
-            ${infoMessage}
-          </div>
+        <div class="vmn-card p-3 mb-4 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-200 text-xs flex items-center gap-2 shadow-lg" role="status">
+          ${renderIcon("check", { size: 18 })}
+          <div>${infoMessage}</div>
         </div>
       ` : ""}
 
- <div class="s-wK0SWra--n">
-        <!-- Left Column: Standard Password Authentication Form -->
- <div class="vmn-card s-nAKAyM5PRn" >
- <h2 class="s-S3p32dvRVr">
-            Enterprise Sign In
-          </h2>
- <p class="s-9fFtKI3haU">
-            Access linear broadcast operations, creative economy workspaces, or administrative tools.
-          </p>
+      <div class="vmn-card p-6 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-2xl backdrop-blur-sm">
+        <form method="POST" action="/sign-in" class="flex flex-col gap-4">
+          <input type="hidden" name="returnUrl" value="${returnUrl}" />
 
- <form method="POST" action="/sign-in" class="s-79hbkssy5K">
-            <input type="hidden" name="returnUrl" value="${returnUrl}" />
+          <div class="vmn-form-field">
+            <label for="signin-email" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+              Work Email Address <span class="text-emerald-400" aria-hidden="true">*</span>
+            </label>
+            <input
+              id="signin-email"
+              name="email"
+              type="email"
+              class="vmn-input w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors"
+              required
+              autocomplete="username"
+              value="${initialEmail}"
+              placeholder="operator@vmnl.ng"
+            />
+          </div>
 
-            <div class="vmn-form-field">
- <label for="signin-email" class="vmn-label s-eaTDM6C2JK" >
- Work Email Address <span class="s-4oFCuHkv7e" aria-hidden="true">*</span>
+          <div class="vmn-form-field">
+            <div class="flex items-center justify-between mb-1.5">
+              <label for="signin-password" class="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+                Password <span class="text-emerald-400" aria-hidden="true">*</span>
               </label>
-              <input
-                id="signin-email"
-                name="email"
-                type="email"
-                class="vmn-input"
-                required
-                autocomplete="username"
-                value="${initialEmail}"
-                placeholder="operator@vmnl.ng"
- class="s-gU5OdWRUd6"
-              />
+              <a href="/auth/recovery" class="text-xs text-emerald-400 hover:text-emerald-300 transition-colors no-underline font-medium">
+                Forgot password?
+              </a>
             </div>
-
-            <div class="vmn-form-field">
- <div class="s-KJjPTgLTC3">
- <label for="signin-password" class="vmn-label s-RvEwnh2gYk" >
- Password <span class="s-4oFCuHkv7e" aria-hidden="true">*</span>
-                </label>
- <a href="/auth/recovery" class="s-H8f23ZoyPI">
-                  Forgot password?
-                </a>
-              </div>
-              <input
-                id="signin-password"
-                name="password"
-                type="password"
-                class="vmn-input"
-                required
-                autocomplete="current-password"
-                placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;"
- class="s-gU5OdWRUd6"
-              />
-            </div>
-
- <div class="s-MIjaETFWG6">
- <input id="remember-me" name="rememberMe" type="checkbox" class="s-yKLLiYCFu6" checked />
- <label for="remember-me" class="s-jdg8Lt989E">
-                Keep session active for 24 hours on this secure terminal
-              </label>
-            </div>
-
-            <button
-              type="submit"
-              class="btn btn-primary"
- class="s-R8ms0ZPVVM"
-            >
-              ${renderIcon("lock", { size: 18 })}
-              Sign In to Workstation
-            </button>
-          </form>
-
- <div class="s-ltNfKTObCh">
-            <span>Authority: R1.2A &bull; NBC Code</span>
- <a href="/help/operator" class="s-JogQmEy8zI">Operator SOPs</a>
-          </div>
-        </div>
-
-        <!-- Right Column: Sandbox One-Click Role Selector -->
- <div class="vmn-card s-nAKAyM5PRn" >
- <div class="s-jXl2S6cRQl">
- <h2 class="s-fwPtWRW0y5">
-              Sandbox Role Switcher
-            </h2>
- <span class="vmn-badge badge-warning s-I74lVwfrDO" >DEVELOPER &amp; UAT</span>
-          </div>
- <p class="s-XNpPMhuOZZ">
-            Select any enterprise persona to instantly sign in and verify role-based presentation context and screen access rules:
-          </p>
-
- <div class="s-BKbud-vrG_">
-            ${personasHtml}
+            <input
+              id="signin-password"
+              name="password"
+              type="password"
+              class="vmn-input w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors"
+              required
+              autocomplete="current-password"
+              placeholder="••••••••••••"
+            />
           </div>
 
- <div class="s-_BvxilaZoT">
-            Tokens conform to salted bcrypt hashes loaded via <code>DEV_SEED_PASSWORD</code> (Zero plaintext in source).
+          <div class="flex items-center gap-2 pt-1">
+            <input id="remember-me" name="rememberMe" type="checkbox" class="rounded bg-slate-950 border-slate-700 text-emerald-500 focus:ring-emerald-500 cursor-pointer w-4 h-4" checked />
+            <label for="remember-me" class="text-xs text-slate-300 cursor-pointer select-none">
+              Keep session active on this secure terminal
+            </label>
           </div>
+
+          <button
+            type="submit"
+            class="btn btn-primary w-full py-3 px-4 rounded-xl font-bold text-sm text-white bg-emerald-600 hover:bg-emerald-500 flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 cursor-pointer transition-all mt-1"
+          >
+            ${renderIcon("lock", { size: 18 })}
+            Sign In to Workstation
+          </button>
+        </form>
+
+        <div class="flex items-center justify-between text-[11px] text-slate-400 border-t border-slate-800/80 pt-3.5 mt-5">
+          <span>Secured Broadcast Console</span>
+          <a href="/help/operator" class="text-slate-400 hover:text-slate-200 transition-colors no-underline">Operator SOPs</a>
         </div>
       </div>
 
-      ${options?.hostedStatesHtml ?? renderSignInHostedStates()}
+      <!-- Sandbox One-Click Role Selector -->
+      <details class="vmn-sandbox-drawer mt-6 text-center text-xs" id="sandbox-roles">
+        <summary class="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-slate-800 bg-slate-900/60 text-slate-300 hover:bg-slate-800 hover:text-white transition-colors select-none">
+          <span class="vmn-badge badge-warning text-[10px]">DEVELOPER &amp; UAT</span>
+          <span class="font-bold">Sandbox Role Switcher</span>
+          <span class="text-slate-400">(10 Personas)</span>
+        </summary>
+        <div class="mt-4 p-4 rounded-2xl border border-slate-800 bg-slate-950/90 text-left max-w-xl mx-auto shadow-2xl backdrop-blur-md">
+          <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
+            <div>
+              <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider m-0">Sandbox Role Switcher</h2>
+              <p class="text-[11px] text-slate-400 m-0">Click any persona to authenticate directly into its assigned operational workspace.</p>
+            </div>
+            <span class="vmn-badge badge-warning text-[10px]">TESTING TRAY</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[380px] overflow-y-auto pr-1">
+            ${personasHtml}
+          </div>
+        </div>
+      </details>
+
+      <div class="sr-only" aria-hidden="true">
+        ${options?.hostedStatesHtml ?? renderSignInHostedStates()}
+      </div>
     </div>
   `;
 }
@@ -303,59 +292,63 @@ export function renderMfaStepUpHtml(options?: {
   const email = options?.userEmail ? escapeHtml(options.userEmail) : "operator@vmnl.ng";
 
   return `
- <div class="s-MuIFkBo9jl">
- <div class="vmn-card s-ow-aFvSP5Z" >
- <div class="s-s49bAoIhR5">
+    <div class="max-w-md mx-auto my-8 px-4">
+      <div class="vmn-card p-6 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-2xl text-center backdrop-blur-sm">
+        <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 mb-3 shadow-lg">
           ${renderIcon("shield", { size: 28 })}
         </div>
- <h1 class="s-I0_s9EPCFi">
+        <div class="inline-flex items-center gap-2 mb-1.5">
+          <span class="vmn-badge badge-warning text-xs font-mono">STEP-UP MFA</span>
+          <span class="vmn-badge badge-neutral text-xs font-mono">UX-SYS-002</span>
+        </div>
+        <h1 class="text-2xl font-black text-slate-100 tracking-tight m-0 mb-1">
           Step-Up Authentication
         </h1>
- <p class="s-ii0Mk9RJuc">
-          The requested action requires elevated verification for <strong>${email}</strong>. Enter the 6-digit verification code from your authenticator app or hardware token (UX-SYS-002).
+        <p class="text-xs text-slate-400 mb-5 leading-relaxed">
+          The requested action requires elevated verification for <strong class="text-slate-200">${email}</strong>. Enter the 6-digit verification code from your authenticator app or hardware token (UX-SYS-002).
         </p>
 
         ${errorMessage ? `
- <div class="s-ye-3zUjxGH" role="alert">
-            ${errorMessage}
+          <div class="p-3 mb-4 rounded-xl bg-red-950/60 border border-red-500/40 text-red-200 text-xs flex items-center gap-2 text-left shadow-lg" role="alert">
+            ${renderIcon("alert", { size: 16 })}
+            <div>${errorMessage}</div>
           </div>
         ` : ""}
 
- <form method="POST" action="/auth/mfa" class="s-1DYWzYm43q">
+        <form method="POST" action="/auth/mfa" class="flex flex-col gap-4 text-left">
           <input type="hidden" name="csrfToken" value="${escapeHtml(options?.csrfToken)}" />
           <input type="hidden" name="returnUrl" value="${returnUrl}" />
           <input type="hidden" name="challenge" value="${escapeHtml(options?.challenge)}" />
 
           <div class="vmn-form-field">
- <label for="mfa-code" class="vmn-label s-d6tlFZezBi" >
- 6-Digit Security Code <span class="s-4oFCuHkv7e" aria-hidden="true">*</span>
+            <label for="mfa-code" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+              6-Digit Security Code <span class="text-amber-400" aria-hidden="true">*</span>
             </label>
             <input
               id="mfa-code"
               name="mfaCode"
               type="text"
-              class="vmn-input"
+              class="vmn-input w-full px-3.5 py-3 rounded-xl bg-slate-950 border border-slate-700 text-slate-100 text-center font-mono text-xl tracking-[0.3em] focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
               required
               maxlength="6"
               pattern="[0-9]{6}"
               inputmode="numeric"
               autocomplete="one-time-code"
               placeholder="123456"
- class="s-lHNcRtzhnP"
+              autofocus
             />
           </div>
 
           <button
             type="submit"
-            class="btn btn-primary"
- class="s-R8ms0ZPVVM"
+            class="btn btn-primary w-full py-3 px-4 rounded-xl font-bold text-sm text-white bg-amber-600 hover:bg-amber-500 flex items-center justify-center gap-2 shadow-lg shadow-amber-600/20 cursor-pointer transition-all mt-1"
           >
             Verify &amp; Elevate Access
           </button>
         </form>
 
- <div class="s-P7G1TYqGdC">
- Lost authenticator? <a href="/help/operator" class="s-fVK3IEyRNm">Contact MCR Supervisor</a>
+        <div class="text-xs text-slate-400 border-t border-slate-800/80 pt-4 mt-5">
+          Lost authenticator? <a href="/help/operator" class="text-amber-400 hover:text-amber-300 no-underline font-medium">Contact MCR Supervisor</a>
         </div>
       </div>
     </div>
@@ -375,64 +368,66 @@ export function renderAccountRecoveryHtml(options?: {
   const errorMessage = options?.error ? escapeHtml(options.error) : "";
 
   return `
- <div class="s-MuIFkBo9jl">
- <div class="vmn-card s-B939KN9-Au" >
- <div class="s-OXbXKNybuO">
- <div class="s-aB0n3QEMVL">
-            ${renderIcon("refresh", { size: 28 })}
-          </div>
- <h1 class="s-I0_s9EPCFi">
-            Account Recovery
-          </h1>
- <p class="s-jdg8Lt989E">
-            UX-SYS-003 &bull; Privacy-Safe Identity Recovery
-          </p>
+    <div class="max-w-md mx-auto my-8 px-4">
+      <div class="vmn-card p-6 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-2xl text-center backdrop-blur-sm">
+        <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-sky-500/10 border border-sky-500/30 text-sky-400 mb-3 shadow-lg">
+          ${renderIcon("refresh", { size: 28 })}
         </div>
+        <div class="inline-flex items-center gap-2 mb-1.5">
+          <span class="vmn-badge badge-info text-xs font-mono">RECOVERY</span>
+          <span class="vmn-badge badge-neutral text-xs font-mono">UX-SYS-003</span>
+        </div>
+        <h1 class="text-2xl font-black text-slate-100 tracking-tight m-0 mb-1">
+          Account Recovery
+        </h1>
+        <p class="text-xs text-slate-400 mb-5 leading-relaxed">
+          UX-SYS-003 &bull; Privacy-Safe Identity Recovery
+        </p>
 
         ${errorMessage ? `
- <div class="s-hMyC6wHubA" role="alert">
-            ${errorMessage}
+          <div class="p-3 mb-4 rounded-xl bg-red-950/60 border border-red-500/40 text-red-200 text-xs flex items-center gap-2 text-left shadow-lg" role="alert">
+            ${renderIcon("alert", { size: 16 })}
+            <div>${errorMessage}</div>
           </div>
         ` : ""}
 
         ${isSubmitted ? `
- <div class="s-gC9G9rkZsd">
- <strong class="s-RAanTA_4Vh">Recovery Instructions Dispatched</strong>
- <p class="s-y_IBg_q4Am">
+          <div class="p-4 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-left mb-4 shadow-lg">
+            <strong class="block text-emerald-300 text-sm mb-1">Recovery Instructions Dispatched</strong>
+            <p class="text-xs text-emerald-200/80 m-0 leading-relaxed">
               If a registered enterprise profile matches the address provided, a secure, time-bounded recovery token has been transmitted. In accordance with security policy §8.4, confirmation does not disclose account presence.
             </p>
           </div>
- <div class="s-cqaKw0SXaa">
- <a href="/sign-in" class="btn btn-outline s--YujMWsWZK" >
+          <div>
+            <a href="/sign-in" class="btn btn-outline w-full py-2.5 rounded-xl text-xs font-bold no-underline inline-block text-center">
               Return to Sign In
             </a>
           </div>
         ` : `
- <p class="s-C8GqDsn_wE">
+          <p class="text-xs text-slate-300 text-left mb-4 leading-relaxed">
             Enter your work email address below. We will send you instructions to securely reset your credentials and restore access to your assigned duty stations.
           </p>
- <form method="POST" action="/auth/recovery" class="s-79hbkssy5K">
+          <form method="POST" action="/auth/recovery" class="flex flex-col gap-4 text-left">
             <div class="vmn-form-field">
- <label for="recovery-email" class="vmn-label s-d6tlFZezBi" >
- Work Email Address <span class="s-4oFCuHkv7e" aria-hidden="true">*</span>
+              <label for="recovery-email" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                Work Email Address <span class="text-sky-400" aria-hidden="true">*</span>
               </label>
               <input
                 id="recovery-email"
                 name="email"
                 type="email"
-                class="vmn-input"
+                class="vmn-input w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-colors"
                 required
                 value="${email}"
                 placeholder="operator@vmnl.ng"
- class="s-BrpXIoKEhU"
               />
             </div>
- <button type="submit" class="btn btn-primary s-m6RWwvJwJT" >
+            <button type="submit" class="btn btn-primary w-full py-3 px-4 rounded-xl font-bold text-sm text-white bg-sky-600 hover:bg-sky-500 flex items-center justify-center gap-2 shadow-lg shadow-sky-600/20 cursor-pointer transition-all mt-1">
               Send Recovery Link
             </button>
- <div class="s-cqaKw0SXaa">
- <a href="/sign-in" class="s-ZGY1VIL4Bh">
-                Back to Sign In
+            <div class="text-center pt-2">
+              <a href="/sign-in" class="text-xs text-slate-400 hover:text-slate-200 transition-colors no-underline">
+                &larr; Back to Sign In
               </a>
             </div>
           </form>
@@ -627,33 +622,37 @@ export function renderAccessDeniedHtml(
   const url = attemptedUrl ? escapeHtml(attemptedUrl) : "/";
 
   return `
- <div class="s-spkv-g5ZY1">
- <div class="vmn-card s-yPXv9Csh09" >
- <div class="s-j4eoWH6vRA">
+    <div class="max-w-lg mx-auto my-8 px-4">
+      <div class="vmn-card p-6 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-2xl text-center backdrop-blur-sm">
+        <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-400 mb-3 shadow-lg">
           ${renderIcon("alert", { size: 28 })}
         </div>
- <h1 class="s-I0_s9EPCFi">
+        <div class="inline-flex items-center gap-2 mb-1.5">
+          <span class="vmn-badge badge-danger text-xs font-mono">AUTHORIZATION</span>
+          <span class="vmn-badge badge-neutral text-xs font-mono">UX-SYS-008</span>
+        </div>
+        <h1 class="text-2xl font-black text-slate-100 tracking-tight m-0 mb-1">
           403 Access Unavailable
         </h1>
- <p class="s-o8pz3UI_Ag">
+        <p class="text-xs text-slate-400 mb-4 leading-relaxed">
           Your current session context does not hold the authorization required to access <code>${url}</code>.
         </p>
 
- <div class="s-VEGxFoTNOe">
-          <div><strong>Authenticated As:</strong> ${email}</div>
-          <div><strong>Assigned Roles:</strong> <code>${roles}</code></div>
- <div><strong>Required Permission:</strong> <span class="s-2ZO5HQM_gX">${required}</span></div>
-          <div><strong>Governance Code:</strong> R1.2A &sect;48 &bull; Strict Principle of Least Privilege</div>
+        <div class="p-4 rounded-xl bg-slate-950/80 border border-slate-800 text-left text-xs text-slate-300 flex flex-col gap-1.5 mb-5 font-mono">
+          <div><strong class="text-slate-400">Authenticated As:</strong> ${email}</div>
+          <div><strong class="text-slate-400">Assigned Roles:</strong> <code class="text-slate-200">${roles}</code></div>
+          <div><strong class="text-slate-400">Required Permission:</strong> <span class="text-red-400 font-bold">${required}</span></div>
+          <div class="text-[11px] text-slate-500 pt-1 border-t border-slate-800/80">Governance Code: R1.2A &sect;48 &bull; Strict Principle of Least Privilege</div>
         </div>
 
- <div class="s-wt_QBGg-Bt">
- <a href="/select-workspace" class="btn btn-primary s-UAaZG8XMXO" >
+        <div class="flex flex-col sm:flex-row gap-2 justify-center">
+          <a href="/select-workspace" class="btn btn-primary py-2.5 px-4 rounded-xl text-xs font-bold no-underline">
             Switch Role / Workspace
           </a>
- <a href="/access-request?url=${encodeURIComponent(attemptedUrl || "")}" class="btn btn-outline s-UAaZG8XMXO" >
+          <a href="/access-request?url=${encodeURIComponent(attemptedUrl || "")}" class="btn btn-outline py-2.5 px-4 rounded-xl text-xs font-bold no-underline">
             Request Elevation
           </a>
- <a href="/" class="btn btn-secondary s-YHfPqfjV5E" >
+          <a href="/" class="btn btn-secondary py-2.5 px-4 rounded-xl text-xs font-bold no-underline">
             Return Home
           </a>
         </div>
@@ -675,33 +674,36 @@ export function renderAccessRequestHtml(
   const url = attemptedUrl ? escapeHtml(attemptedUrl) : "/broadcast/screens";
 
   return `
- <div class="s-JSm6mWQN6O">
- <div class="vmn-card s-ai-7dOPK39" >
- <div class="s-oBhcGevYkD">
- <div class="s-Wc0r1Ncztx">
+    <div class="max-w-xl mx-auto my-8 px-4">
+      <div class="vmn-card p-6 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-2xl backdrop-blur-sm">
+        <div class="flex items-center gap-3 mb-4 pb-3 border-b border-slate-800">
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 shadow-md">
             ${renderIcon("shield", { size: 24 })}
           </div>
           <div>
- <h1 class="s-6uQ0SGJI6l">
+            <div class="flex items-center gap-2 mb-0.5">
+              <span class="vmn-badge badge-warning text-[10px] font-mono">ELEVATION</span>
+              <span class="vmn-badge badge-neutral text-[10px] font-mono">UX-SYS-009</span>
+            </div>
+            <h1 class="text-xl font-bold text-slate-100 tracking-tight m-0">
               Operational Access Elevation
             </h1>
- <span class="s-Zda0APXQzv">UX-SYS-009 &bull; Delegated Authority Governance</span>
           </div>
         </div>
 
- <p class="s-R0StpXoHOj">
-          Submit a time-bounded role elevation or permission request for user <strong>${escapeHtml(user.email)}</strong>. All access elevations are cryptographically sealed in the audit log.
+        <p class="text-xs text-slate-400 mb-5 leading-relaxed">
+          Submit a time-bounded role elevation or permission request for user <strong class="text-slate-200">${escapeHtml(user.email)}</strong>. All access elevations are cryptographically sealed in the audit log.
         </p>
 
- <form method="POST" action="/access-request" class="s-agFP9ZFhL6">
+        <form method="POST" action="/access-request" class="flex flex-col gap-4">
           <input type="hidden" name="returnUrl" value="${url}" />
           ${csrfToken ? `<input type="hidden" name="csrfToken" value="${escapeHtml(csrfToken)}" />` : ""}
 
           <div class="vmn-form-field">
- <label for="req-role" class="vmn-label s-d6tlFZezBi" >
- Target Operational Role <span class="s-4oFCuHkv7e" aria-hidden="true">*</span>
+            <label for="req-role" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+              Target Operational Role <span class="text-emerald-400" aria-hidden="true">*</span>
             </label>
- <select id="req-role" name="role" class="vmn-input s-Zd9b-trn6f" >
+            <select id="req-role" name="role" class="vmn-input w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors">
               <option value="MCRSupervisor" ${role === "MCRSupervisor" ? "selected" : ""}>MCR Supervisor (Master Control Room)</option>
               <option value="BroadcastDirector" ${role === "BroadcastDirector" ? "selected" : ""}>Broadcast Director (Transmission Authority)</option>
               <option value="CommercialTrafficOfficer" ${role === "CommercialTrafficOfficer" ? "selected" : ""}>Commercial Traffic Officer</option>
@@ -713,10 +715,10 @@ export function renderAccessRequestHtml(
           </div>
 
           <div class="vmn-form-field">
- <label for="req-duration" class="vmn-label s-d6tlFZezBi" >
- Elevation Duration <span class="s-4oFCuHkv7e" aria-hidden="true">*</span>
+            <label for="req-duration" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+              Elevation Duration <span class="text-emerald-400" aria-hidden="true">*</span>
             </label>
- <select id="req-duration" name="duration" class="vmn-input s-Zd9b-trn6f" >
+            <select id="req-duration" name="duration" class="vmn-input w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors">
               <option value="SHIFT_8H">Single Shift (8 Hours)</option>
               <option value="EMERGENCY_24H">Emergency Outage Window (24 Hours)</option>
               <option value="PERMANENT">Permanent Duty Station Reassignment</option>
@@ -724,25 +726,24 @@ export function renderAccessRequestHtml(
           </div>
 
           <div class="vmn-form-field">
- <label for="req-justification" class="vmn-label s-d6tlFZezBi" >
- Business &amp; Operational Justification <span class="s-4oFCuHkv7e" aria-hidden="true">*</span>
+            <label for="req-justification" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+              Business &amp; Operational Justification <span class="text-emerald-400" aria-hidden="true">*</span>
             </label>
             <textarea
               id="req-justification"
               name="justification"
               required
               rows="4"
-              class="vmn-input"
+              class="vmn-input w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors"
               placeholder="Detail the broadcast duty, incident reference, or operational requirement..."
- class="s-USa2UeMSTs"
             ></textarea>
           </div>
 
- <div class="s-nJrpNO03gx">
- <button type="submit" class="btn btn-primary s-R6xXPxcVik" >
+          <div class="flex items-center gap-3 pt-2">
+            <button type="submit" class="btn btn-primary py-2.5 px-5 rounded-xl font-bold text-xs text-white bg-emerald-600 hover:bg-emerald-500 flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 cursor-pointer transition-all">
               Submit Access Request
             </button>
- <a href="/select-workspace" class="btn btn-secondary s-dPmDjbdu34" >
+            <a href="/select-workspace" class="btn btn-secondary py-2.5 px-4 rounded-xl text-xs font-bold no-underline">
               Cancel
             </a>
           </div>
@@ -1011,26 +1012,28 @@ export function renderFirstUseProfileHtml(user: SessionUser): string {
  */
 export function renderSessionExpiredHtml(returnUrl: string = "/"): string {
   return `
- <div class="s-nmNdURXkMb">
- <div class="vmn-card s-YZOIOv_JVW" >
- <div class="s-_ey9AnF9rR">
+    <div class="max-w-md mx-auto my-8 px-4">
+      <div class="vmn-card p-6 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-2xl text-center backdrop-blur-sm">
+        <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 mb-3 shadow-lg">
           ${renderIcon("warning", { size: 30 })}
         </div>
-
- <span class="vmn-badge badge-warning s-3CrzrsuCx5" >SECURITY TIMEOUT &bull; UX-SYS-007</span>
- <h1 class="s-IMY5Fbv7KN">
+        <div class="inline-flex items-center gap-2 mb-1.5">
+          <span class="vmn-badge badge-warning text-xs font-mono">SECURITY TIMEOUT</span>
+          <span class="vmn-badge badge-neutral text-xs font-mono">UX-SYS-007</span>
+        </div>
+        <h1 class="text-2xl font-black text-slate-100 tracking-tight m-0 mb-1">
           Operational Session Expired
         </h1>
- <p class="s-mkcIYZJflL">
+        <p class="text-xs text-slate-400 mb-6 leading-relaxed">
           Your broadcast security session timed out due to 15 minutes of station inactivity. Playout state and form drafts have been saved to local cache.
         </p>
 
- <a href="/sign-in?returnUrl=${encodeURIComponent(returnUrl)}" class="btn btn-primary s-fMlAy8xZwg" >
+        <a href="/sign-in?returnUrl=${encodeURIComponent(returnUrl)}" class="btn btn-primary w-full py-3 px-4 rounded-xl font-bold text-sm text-white bg-emerald-600 hover:bg-emerald-500 flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 cursor-pointer transition-all mb-3 no-underline">
           Sign In to Resume Session
         </a>
 
- <div class="s-0mWmubkRs3">
- <a href="/" class="s-UlgYnd-XGR">
+        <div class="pt-2">
+          <a href="/" class="text-xs text-slate-400 hover:text-slate-200 transition-colors no-underline">
             Return to Public Landing Page
           </a>
         </div>

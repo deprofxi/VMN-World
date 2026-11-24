@@ -39,7 +39,8 @@ COPY scripts ./scripts/
 # PR-19: the client is generated during the build and carried into the runtime
 # stage below. Without this the app cannot start from the image at all, because
 # `@prisma/client` is a thin loader around the generated directory.
-RUN pnpm exec prisma generate
+RUN pnpm exec prisma generate && \
+    node -e "const fs = require('fs'), path = require('path'); const src = path.resolve(path.dirname(require.resolve('@prisma/client')), '../../.prisma'); if (fs.existsSync(src)) fs.cpSync(src, '/app/node_modules/.prisma', { recursive: true });"
 
 RUN pnpm run build
 
@@ -69,6 +70,7 @@ COPY --from=builder /app/dist ./dist
 # PR-19: the generated client is a build artifact of the builder stage, and the
 # prod-only install above cannot regenerate it (the CLI is a devDependency).
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+RUN node -e "const fs = require('fs'), path = require('path'); try { const dest = path.resolve(path.dirname(require.resolve('@prisma/client')), '../../.prisma'); if (!fs.existsSync(dest)) fs.cpSync('/app/node_modules/.prisma', dest, { recursive: true }); } catch {}"
 
 # Set ownership to unprivileged user
 RUN chown -R vmnluser:vmnlgroup /app
