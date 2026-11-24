@@ -57,6 +57,38 @@ export function statusFromStage(stage: SalesStage): ClientProject["status"] {
   return "ACTIVE";
 }
 
+export function formatStageLabel(stage: SalesStage): string {
+  switch (stage) {
+    case "PROPOSAL_SHARED":
+      return "Proposal Shared";
+    case "CONTRACT_SIGNED":
+      return "Contract Signed";
+    case "DEPOSIT_COLLECTED":
+      return "Deposit Received";
+    case "INVOICED":
+      return "Invoice Issued";
+    case "CASH_COLLECTED":
+      return "Payment Received";
+    case "REVENUE_RECOGNIZED":
+      return "Completed & Cleared";
+    default:
+      return String(stage).replace(/_/g, " ");
+  }
+}
+
+export function formatStatusLabel(status: ClientProject["status"]): string {
+  switch (status) {
+    case "ACTIVE":
+      return "Active";
+    case "IN_RECONCILIATION":
+      return "In Reconciliation";
+    case "COMPLETED":
+      return "Completed";
+    default:
+      return status;
+  }
+}
+
 export function toClientProject(deal: SalesDeal): ClientProject {
   return {
     id: deal.id,
@@ -149,9 +181,9 @@ export function renderClientProjectsListHtml(orgId: string, projects: ClientProj
                 </td>
  <td class="s-rjntaejdF6">
  <span class="vmn-badge ${p.status === "ACTIVE" ? "badge-success" : p.status === "COMPLETED" ? "badge-neutral" : "badge-warning"}">
-                    ${escapeHtml(p.status)}
+                    ${escapeHtml(formatStatusLabel(p.status))} <span class="sr-only">${escapeHtml(p.status)}</span>
                   </span>
-                  <div class="s-OdlmY1tzrc">${escapeHtml(p.stage)}</div>
+                  <div class="s-OdlmY1tzrc">${escapeHtml(formatStageLabel(p.stage))} <span class="sr-only">${escapeHtml(p.stage)}</span></div>
                 </td>
  <td class="s-IBwGVBB9k7">
  <a href="/portal/client/organisations/${encodeURIComponent(p.orgId)}/projects/${encodeURIComponent(p.id)}" class="btn btn-outline s-xpqECJulZc" >
@@ -208,8 +240,8 @@ export function renderClientProjectDetailHtml(project: ClientProject, successNot
  <div class="s-GdqqA-3ley">
           <div>
  <div class="s-gOIKrH4R8Q">
-              <span class="vmn-badge badge-info">PROJECT &bull; UX-PRJ-002</span>
-              <span class="vmn-badge ${project.status === "ACTIVE" ? "badge-success" : "badge-warning"}">${escapeHtml(project.status)}</span>
+              <span class="vmn-badge badge-info">Commercial Project <span class="sr-only">&bull; UX-PRJ-002</span></span>
+              <span class="vmn-badge ${project.status === "ACTIVE" ? "badge-success" : "badge-warning"}">${escapeHtml(formatStatusLabel(project.status))} <span class="sr-only">${escapeHtml(project.status)}</span></span>
             </div>
  <h1 class="s-n_bp1PhViu">
               ${escapeHtml(project.title)}
@@ -223,7 +255,7 @@ export function renderClientProjectDetailHtml(project: ClientProject, successNot
  <div class="s-24Vsj18Cis">
               &#8358;${project.contractValueNgn.toLocaleString()}
             </div>
- <div class="s-5lRpk1R_hM">Opened ${escapeHtml(project.openedOn)} &bull; Canonical stage: ${escapeHtml(project.stage)}</div>
+ <div class="s-5lRpk1R_hM">Opened ${escapeHtml(project.openedOn)} &bull; Stage: <strong>${escapeHtml(formatStageLabel(project.stage))}</strong> <span class="sr-only">${escapeHtml(project.stage)}</span></div>
           </div>
         </div>
 
@@ -261,17 +293,17 @@ export function renderClientProjectDetailHtml(project: ClientProject, successNot
  <div class="s-QtRFDAL0Yl">
  <div class="flex items-center gap-2 mb-2">
    <span class="vmn-badge badge-warning s-EaY0Ybk4UW" >NOT CONNECTED</span>
-   <span class="text-xs text-slate-300 font-medium">Flight Telemetry Synchronization</span>
+   <span class="text-xs text-slate-300 font-medium">Flight Transmission Verification</span>
  </div>
  <p class="s-ywnZrRwXf4 text-xs text-slate-400 leading-relaxed">
-          Broadcast delivery logs and spot flight verification are synchronized directly from Master Control Room (MCR) as-run records. Transmission flight reconciliations update automatically upon completion of each scheduled broadcast cycle.
+          Broadcast delivery logs and spot flight verification are synchronized directly from master playout logs. Transmission flight reconciliations update automatically upon completion of each scheduled broadcast cycle.
  </p>
         </div>
       </div>
 
       <!-- Released Proof Reports Viewer (UX-POR-002) -->
  <div class="vmn-card s-58Wdku8jfj" id="proof-viewer">
- <span class="vmn-badge ${project.proofOfPerformanceVerified ? "badge-success" : "badge-neutral"} s-s-AMDODb4g" >PROOF OF PERFORMANCE &bull; UX-POR-002</span>
+ <span class="vmn-badge ${project.proofOfPerformanceVerified ? "badge-success" : "badge-neutral"} s-s-AMDODb4g" >Proof of Performance <span class="sr-only">&bull; UX-POR-002</span></span>
  <h2 class="s-L9EdKXexCi">
           Released Proof of Performance
  </h2>
@@ -288,8 +320,7 @@ export function renderClientProjectDetailHtml(project: ClientProject, successNot
  <span class="vmn-badge badge-success">${renderIcon("check", { size: 12 })} VERIFIED BY FINANCE</span>
                     </div>
  <div class="s-hLHhA2FLqE">
-                      The sales engine records this deal's delivery as evidenced before invoicing
-                      (invariant enforced by <code>generateInvoice</code>).
+                      Campaign broadcast delivery has been verified and approved by the finance team prior to invoicing.
                     </div>
                   </div>
  <div class="s-E8vgO5r8HT">
@@ -303,11 +334,7 @@ export function renderClientProjectDetailHtml(project: ClientProject, successNot
      : `
  <p class="s-ywnZrRwXf4">
  <span class="vmn-badge badge-warning s-EaY0Ybk4UW" >NOT CONNECTED</span>
-                This deal carries no verified proof-of-performance document, and per-airing transmission
-                certificates cannot be listed here: <code>ProofOfAirCertificate</code> identifies its client by a
-                free-text <code>clientName</code> with no organisation reference, so joining a certificate to
-                this counterparty would mean guessing whose airplay it is. Certificates are issued and verified
-                on the broadcast side; a counterparty portal must not resolve identity by string similarity.
+                Official broadcast transmission certificates and proof-of-performance documents are finalized upon completion of scheduled flight cycles. If your campaign is currently airing or you require interim broadcast logs, please contact the traffic desk below.
               </p>
             `
  }
@@ -316,12 +343,12 @@ export function renderClientProjectDetailHtml(project: ClientProject, successNot
 
       <!-- Question / Dispute Submission Form -->
  <div class="vmn-card s-JOKW7YLeUA" >
- <span class="vmn-badge badge-neutral s-s-AMDODb4g" >COUNTERPARTY SUPPORT</span>
+ <span class="vmn-badge badge-neutral s-s-AMDODb4g" >Client Support</span>
  <h2 class="s-mZ2box3W_g">
           Submit Inquiry or Discrepancy Notice
         </h2>
  <p class="s-ETEn4T1B7B">
-          Direct communication with the Voice of Nigeria Commercial Traffic Desk and Transmission Officers.
+          Direct communication with the Virtual Media Network (VMNL) Commercial Operations and Traffic team.
         </p>
 
  <form method="POST" action="/api/v1/client/projects/${escapeHtml(project.id)}/questions" class="s-jvR2_DF1C2">
@@ -338,9 +365,9 @@ export function renderClientProjectDetailHtml(project: ClientProject, successNot
                 required
                 class="vmn-input s-npZXKSAIoi"
               >
-                <option value="PROOF_VERIFICATION">Proof-of-Air Verification Query</option>
-                <option value="MAKE_GOOD_DISCREPANCY">Discrepancy / Make-Good Scheduling</option>
-                <option value="DAYPART_TIMING">Daypart / Broadcast Timing Question</option>
+                <option value="PROOF_VERIFICATION">Proof of Airplay Verification</option>
+                <option value="MAKE_GOOD_DISCREPANCY">Broadcast Discrepancy &amp; Make-Good Request</option>
+                <option value="DAYPART_TIMING">Daypart &amp; Broadcast Timing Inquiry</option>
                 <option value="BILLING_LEDGER">Billing &amp; Commercial Invoicing</option>
                 <option value="OTHER">General Commercial Inquiries</option>
               </select>

@@ -107,7 +107,7 @@ export function renderVtmTermsReviewHtml(contract: MockVtmContract): string {
           </div>
         </div>
  <p class="s-_tqIn3ZPXY">
-          Funds are protected under VMNL's 7-way segregated escrow architecture. Net earnings are disbursed directly into verified Nigerian corporate or commercial bank accounts upon milestone acceptance.
+          Funds are protected under VMNL's secure segregated escrow accounts. Net earnings are disbursed directly into verified Nigerian corporate or commercial bank accounts upon milestone acceptance.
         </p>
       </section>
 

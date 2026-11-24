@@ -9,6 +9,25 @@
 import { renderIcon, escapeHtml } from "../components/index.js";
 import { ApplicationSubmission } from "../../modules/hub/afca/admissions.js";
 
+export function formatCreativeTrackName(track: string): string {
+  switch (track) {
+    case "CINEMATOGRAPHY":
+      return "Cinematography & Lighting";
+    case "DIRECTING":
+      return "Film Directing & Storytelling";
+    case "SCREENWRITING":
+      return "Screenwriting & Narrative Dev";
+    case "SOUND_ENGINEERING":
+      return "Sound Design & Audio Post";
+    case "CREATIVE_PRODUCING":
+      return "Creative Producing & Finance";
+    case "ANIMATION_VFX":
+      return "3D Animation & Visual Effects";
+    default:
+      return track.replace(/_/g, " ");
+  }
+}
+
 /**
  * UX-APP-001 to 005: Multi-step Application Flow
  */
@@ -300,7 +319,7 @@ export function renderApplicationStatusHtml(app: ApplicationSubmission | null, q
           <dt class="s-F7gY5MEZDy s-4nbEsPap0-">Applicant:</dt>
           <dd class="s-DwKwdeUqE1 s-Sgct-1J-VD">${escapeHtml(app.fullName)}</dd>
           <dt class="s-F7gY5MEZDy s-4nbEsPap0-">Track:</dt>
-          <dd class="s-tR1NYl3ZY2 s-FC76NXBlkl">${escapeHtml(app.creativeTrack)}</dd>
+          <dd class="s-tR1NYl3ZY2 s-FC76NXBlkl">${escapeHtml(formatCreativeTrackName(app.creativeTrack))} <span class="sr-only">${escapeHtml(app.creativeTrack)}</span></dd>
           <dt class="s-F7gY5MEZDy s-4nbEsPap0-">Email:</dt>
           <dd class="s-DwKwdeUqE1 s-Sgct-1J-VD">${escapeHtml(app.email)}</dd>
           <dt class="s-F7gY5MEZDy s-4nbEsPap0-">Financial Aid:</dt>
@@ -344,7 +363,7 @@ export function renderAdmissionsQueueHtml(applications: ApplicationSubmission[])
           </a>
         </td>
         <td class="s-sXA7D6oVHL s-ATcc5XOiuD">${escapeHtml(a.fullName)}</td>
-        <td class="s-gL0G9B66bL s-yWPwnH-BpZ">${escapeHtml(a.creativeTrack)}</td>
+        <td class="s-gL0G9B66bL s-yWPwnH-BpZ">${escapeHtml(formatCreativeTrackName(a.creativeTrack))} <span class="sr-only">${escapeHtml(a.creativeTrack)}</span></td>
         <td class="s-6FCnPHXEyo s-SZqnVTz2pE">
           <span class="vmn-badge ${a.status === "ACCEPTED" ? "badge-ready" : a.status === "REJECTED" ? "badge-danger" : "badge-live"}">
             ${escapeHtml(a.status)}
