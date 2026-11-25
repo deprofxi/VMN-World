@@ -81,7 +81,7 @@ const configSchema = z.object({
   SESSION_COOKIE_NAME: z.string().default("vmnl_session"),
 
   // Storage
-  STORAGE_DRIVER: z.enum(["local", "minio", "s3"]).default("minio"),
+  STORAGE_DRIVER: z.enum(["local", "minio", "s3"]).default("local"),
   STORAGE_ENDPOINT: z.string().default("http://localhost:9000"),
   STORAGE_BUCKET: z.string().default("vmnl-assets"),
   STORAGE_ACCESS_KEY: z.string().default("minioadmin"),

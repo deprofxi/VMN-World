@@ -15,7 +15,7 @@ describe("Configuration Loader & Validator (TASK-P0-03)", () => {
     expect(config.NODE_ENV).toBe("test");
     expect(config.PORT).toBe(5000);
     expect(config.DATABASE_URL).toBe("postgresql://user:pass@localhost:5432/vmnl_test");
-    expect(config.STORAGE_DRIVER).toBe("minio"); // default
+    expect(config.STORAGE_DRIVER).toBe("local"); // default
   });
 
   it("should fail fast when required DATABASE_URL is missing", () => {

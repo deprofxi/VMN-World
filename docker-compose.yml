@@ -46,6 +46,8 @@ services:
     read_only: true
     tmpfs:
       - /tmp
+    volumes:
+      - appdata:/app/data
     deploy:
       resources:
         limits:
@@ -82,8 +84,8 @@ services:
       - REDIS_PORT=${REDIS_PORT:-6379}
       - REDIS_PASSWORD=${REDIS_PASSWORD:?REDIS_PASSWORD is required (see .env.example)}
       - REDIS_URL=${REDIS_URL:-redis://:${REDIS_PASSWORD:?REDIS_PASSWORD is required (see .env.example)}@${REDIS_HOST:-redis}:${REDIS_PORT:-6379}}
-      # Object Storage: strictly required, no explicit credentials
-      - STORAGE_DRIVER=${STORAGE_DRIVER:-minio}
+      # Object Storage: defaults to local filesystem, credentials required for optional MinIO service
+      - STORAGE_DRIVER=${STORAGE_DRIVER:-local}
       - STORAGE_ENDPOINT=${STORAGE_ENDPOINT:-http://minio:9000}
       - STORAGE_BUCKET=${STORAGE_BUCKET:-vmnl-assets}
       - STORAGE_REGION=${STORAGE_REGION:-us-east-1}
@@ -125,7 +127,8 @@ services:
     ports:
       - "${POSTGRES_HOST_PORT:-127.0.0.1:5432}:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      # Postgres 18+ stores data under /var/lib/postgresql/<major>/docker
+      - pgdata:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 10s
@@ -167,7 +170,8 @@ services:
       - vmnl-network
 
   minio:
-    image: minio/minio:${MINIO_VERSION:-RELEASE.2025-09-07T16-19-51Z}
+    # Upstream minio/minio was removed from Docker Hub; pgsty/silo is a drop-in compatible fork.
+    image: ${MINIO_IMAGE:-pgsty/silo:latest}
     container_name: vmnl-minio
     restart: unless-stopped
     <<: *hardening-init
@@ -272,6 +276,7 @@ networks:
     driver: bridge
 
 volumes:
+  appdata:
   pgdata:
   pgbackups:
   miniodata:

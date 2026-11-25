@@ -77,8 +77,8 @@ RUN node -e "const fs = require('fs'), path = require('path'); try { const dest 
 COPY scripts/docker-entrypoint.sh ./docker-entrypoint.sh
 RUN chmod +x ./docker-entrypoint.sh
 
-# Set ownership to unprivileged user
-RUN chown -R vmnluser:vmnlgroup /app
+# Create persistent data directory and set ownership to unprivileged user
+RUN mkdir -p /app/data && chown -R vmnluser:vmnlgroup /app
 
 USER vmnluser
 
