@@ -132,7 +132,15 @@ describe("PR-21: the shipped alert rules are real, mounted and readable", () => 
     expect(prometheus).toMatch(/^\s*-\s*\/etc\/prometheus\/prometheus\.rules\.yml/m);
     const prometheusService = composeServices().find((s) => s.name === "prometheus");
     expect(prometheusService, "the prometheus service must exist in compose").toBeDefined();
-    expect(prometheusService?.body).toMatch(/\.\/prometheus\.rules\.yml:\/etc\/prometheus\/prometheus\.rules\.yml:ro/);
+    const usesBindMount = /\.\/prometheus\.rules\.yml:\/etc\/prometheus\/prometheus\.rules\.yml:ro/.test(
+      prometheusService?.body ?? "",
+    );
+    const usesImageBuild =
+      /docker\/prometheus\/Dockerfile/.test(prometheusService?.body ?? "") &&
+      /COPY\s+prometheus\.rules\.yml\s+\/etc\/prometheus\/prometheus\.rules\.yml/.test(
+        read("docker/prometheus/Dockerfile"),
+      );
+    expect(usesBindMount || usesImageBuild, "prometheus must include /etc/prometheus/prometheus.rules.yml").toBe(true);
   });
 
   it("does not label the local sandbox stack as production", () => {

@@ -205,7 +205,9 @@ services:
   # remains TARGET-state — see docs/runbooks/disaster-recovery.md and
   # docs/audit/backup-restore-drill.md for the drill evidence protocol.
   postgres-backup:
-    image: postgres:${POSTGRES_VERSION:-18-alpine}
+    build:
+      context: .
+      dockerfile: docker/backups/Dockerfile
     container_name: vmnl-postgres-backup
     restart: unless-stopped
     <<: *hardening-init
@@ -232,7 +234,6 @@ services:
       - VMNL_BACKUP_RETENTION_DAYS=${VMNL_BACKUP_RETENTION_DAYS:-14}
       - TZ=${TZ:-Africa/Lagos}
     volumes:
-      - ./docker/backups/backup.sh:/usr/local/bin/backup.sh:ro
       - pgbackups:/var/lib/postgresql/backups
     entrypoint: ["/bin/sh", "-c"]
     # AUD-20: crond-based scheduler (replaces drift-prone sleep loop).
@@ -249,7 +250,9 @@ services:
       - vmnl-network
 
   prometheus:
-    image: prom/prometheus:${PROMETHEUS_VERSION:-v2.53.0}
+    build:
+      context: .
+      dockerfile: docker/prometheus/Dockerfile
     container_name: vmnl-prometheus
     restart: unless-stopped
     <<: *hardening-full
@@ -259,10 +262,6 @@ services:
           cpus: "1.0"
           memory: 512m
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      # PR-21: the alert rules are shipped as a real file and mounted, so the
-      # rules the runbook documents are the rules Prometheus evaluates.
-      - ./prometheus.rules.yml:/etc/prometheus/prometheus.rules.yml:ro
       - promdata:/prometheus
     ports:
       - "${PROMETHEUS_PORT:-127.0.0.1:9090}:9090"
