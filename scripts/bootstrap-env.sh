@@ -96,4 +96,16 @@ set_if_missing "AZEEBO_CLIENT_ID" "vmnl_enterprise_hub"
 set_if_missing "AZEEBO_WEBHOOK_SECRET" "$(rand_hex 24)"
 set_if_missing "AZEEBO_FEDERATION_SECRET" "$(rand_hex 24)"
 
+# Coolify-compatible SERVICE_* aliases for local docker compose parity
+set_if_missing "SERVICE_USER_POSTGRES" "$PG_USER"
+set_if_missing "SERVICE_PASSWORD_POSTGRES" "$PG_PASS"
+set_if_missing "SERVICE_PASSWORD_REDIS" "$RD_PASS"
+set_if_missing "SERVICE_USER_MINIO" "$(get_existing STORAGE_ACCESS_KEY)"
+set_if_missing "SERVICE_PASSWORD_MINIO" "$(get_existing STORAGE_SECRET_KEY)"
+set_if_missing "SERVICE_PASSWORD_64_JWT" "$(get_existing JWT_SECRET)"
+set_if_missing "SERVICE_PASSWORD_64_SESSION" "$(get_existing SESSION_SECRET)"
+set_if_missing "SERVICE_PASSWORD_64_PII" "$(get_existing PII_ENCRYPTION_KEY)"
+set_if_missing "SERVICE_PASSWORD_64_FUSION" "$(get_existing FUSION_EVENTS_HMAC_SECRET)"
+set_if_missing "SERVICE_PASSWORD_64_AZEEBO" "$(get_existing AZEEBO_WEBHOOK_SECRET)"
+
 echo "[bootstrap-env] Verified/populated ${ENV_FILE}."

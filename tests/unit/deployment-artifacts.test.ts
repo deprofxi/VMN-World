@@ -211,9 +211,9 @@ describe("PR-20: compose applies a hardening baseline to every service", () => {
     // `STORAGE_SECRET_KEY:?` siblings defaulting to `minioadmin_secure_key`,
     // while .env.example shipped `minioadmin` — three sources, two answers.
     expect(compose).not.toMatch(/minioadmin/);
-    expect(compose).toMatch(/MINIO_ROOT_USER=\$\{STORAGE_ACCESS_KEY:\?/);
-    expect(compose).toMatch(/MINIO_ROOT_PASSWORD=\$\{STORAGE_SECRET_KEY:\?/);
-    expect(compose).toMatch(/STORAGE_SECRET_KEY=\$\{STORAGE_SECRET_KEY:\?/);
+    expect(compose).toMatch(/MINIO_ROOT_USER=\$\{(?:STORAGE_ACCESS_KEY:\?|SERVICE_USER_MINIO)/);
+    expect(compose).toMatch(/MINIO_ROOT_PASSWORD=\$\{(?:STORAGE_SECRET_KEY:\?|SERVICE_PASSWORD_MINIO)/);
+    expect(compose).toMatch(/STORAGE_SECRET_KEY=\$\{(?:STORAGE_SECRET_KEY:\?|SERVICE_PASSWORD_MINIO)/);
   });
 
   it("keeps the sandbox credentials documented in .env.example", () => {
