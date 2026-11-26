@@ -174,6 +174,7 @@ export async function seedAllBrandsToDatabase(): Promise<BrandRecord[]> {
 export async function hydrateBrandsFromDatabase(): Promise<void> {
   const prisma = getPrismaClient();
   try {
+    await ensureBrandTable();
     interface DbBrandRow {
       id: string;
       code: string;
