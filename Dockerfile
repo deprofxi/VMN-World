@@ -59,18 +59,18 @@ RUN apk add --no-cache dumb-init curl
 RUN addgroup -g 1001 -S vmnlgroup && \
     adduser -u 1001 -S vmnluser -G vmnlgroup
 
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml prisma.config.ts ./
 COPY prisma ./prisma/
 
 RUN corepack enable && \
-    pnpm install --prod --frozen-lockfile
+    pnpm install --prod --frozen-lockfile && \
+    npm install --prefix /opt/prisma --no-save --no-audit --no-fund prisma@7.10.0
 
 COPY --from=builder /app/dist ./dist
 
 # PR-19: the generated client is a build artifact of the builder stage, and the
 # prod-only install above cannot regenerate it (the CLI is a devDependency).
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
 RUN node -e "const fs = require('fs'), path = require('path'); try { const dest = path.resolve(path.dirname(require.resolve('@prisma/client')), '../../.prisma'); if (!fs.existsSync(dest)) fs.cpSync('/app/node_modules/.prisma', dest, { recursive: true }); } catch {}"
 
 # Automatic startup entrypoint for zero-terminal database migrations and seeding

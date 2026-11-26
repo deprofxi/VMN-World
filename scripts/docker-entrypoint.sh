@@ -21,7 +21,9 @@ fi
 
 if [ "$AUTO_MIGRATE" != "false" ]; then
   echo "[VMNL-BOOT] Checking and applying database migrations..."
-  if [ -f "./node_modules/prisma/build/index.js" ]; then
+  if [ -f "/opt/prisma/node_modules/prisma/build/index.js" ]; then
+    NODE_PATH=/opt/prisma/node_modules node /opt/prisma/node_modules/prisma/build/index.js migrate deploy
+  elif [ -f "./node_modules/prisma/build/index.js" ]; then
     node ./node_modules/prisma/build/index.js migrate deploy
   elif command -v pnpm >/dev/null 2>&1; then
     pnpm exec prisma migrate deploy
