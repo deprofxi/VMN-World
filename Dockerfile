@@ -17,7 +17,7 @@
 # docs/runbooks/rollback-runbook.md.
 
 # Stage 1: Build & Compile
-FROM node:22-alpine AS builder
+FROM node:26-alpine AS builder
 
 WORKDIR /app
 
@@ -45,7 +45,7 @@ RUN pnpm exec prisma generate && \
 RUN pnpm run build
 
 # Stage 2: Production Runtime
-FROM node:22-alpine AS runner
+FROM node:26-alpine AS runner
 
 WORKDIR /app
 
