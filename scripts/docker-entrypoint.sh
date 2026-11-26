@@ -35,28 +35,64 @@ fi
 
 if [ -z "${VMNL_SEED_USERS_JSON:-}" ]; then
   SEED_FILE="/app/data/bootstrap-admin.json"
-  if [ ! -f "$SEED_FILE" ]; then
-    echo "[VMNL-BOOT] Generating initial SuperAdmin credentials in $SEED_FILE..."
-    VMNL_SEED_USERS_JSON="$(node -e '
-      const fs = require("node:fs");
-      const crypto = require("node:crypto");
-      const bcrypt = require("bcryptjs");
-      const email = process.env.BOOTSTRAP_ADMIN_EMAIL || "admin@vmnl.ng";
-      const password = process.env.BOOTSTRAP_ADMIN_PASSWORD || crypto.randomBytes(15).toString("base64url");
-      const passwordHash = bcrypt.hashSync(password, 12);
-      const records = [{ email, roles: ["SuperAdmin"], passwordHash }];
+  VMNL_SEED_USERS_JSON="$(node -e '
+    const fs = require("node:fs");
+    const crypto = require("node:crypto");
+    const bcrypt = require("bcryptjs");
+    const seedFile = process.argv[1];
+    const accounts = [
+      { email: process.env.BOOTSTRAP_ADMIN_EMAIL || "admin@vmnl.ng", roles: ["SuperAdmin"] },
+      { email: "director@vmnl.ng", roles: ["BroadcastDirector"] },
+      { email: "finance.controller@vmnl.ng", roles: ["FinanceController"] },
+      { email: "finance@vmnl.ng", roles: ["FinanceController"] },
+      { email: "traffic@vmnl.ng", roles: ["CommercialTrafficOfficer", "TrafficManager"] },
+      { email: "scheduler@vmnl.ng", roles: ["ProgrammeScheduler"] },
+      { email: "rights@vmnl.ng", roles: ["RightsManager"] },
+      { email: "operator@vmnl.ng", roles: ["Operator"] },
+      { email: "auditor@vmnl.ng", roles: ["Auditor"] },
+      { email: "mcr@vmnl.ng", roles: ["MCRSupervisor"] },
+      { email: "talent@vmnl.ng", roles: ["TalentManager"] },
+    ];
+
+    let existing = [];
+    if (fs.existsSync(seedFile)) {
+      try { existing = JSON.parse(fs.readFileSync(seedFile, "utf8")); } catch {}
+    }
+
+    let passwordHash;
+    let generatedPassword = null;
+    if (process.env.BOOTSTRAP_ADMIN_PASSWORD) {
+      passwordHash = bcrypt.hashSync(process.env.BOOTSTRAP_ADMIN_PASSWORD, 12);
+    } else if (Array.isArray(existing) && existing.length > 0 && existing[0]?.passwordHash) {
+      passwordHash = existing[0].passwordHash;
+    } else {
+      generatedPassword = crypto.randomBytes(15).toString("base64url");
+      passwordHash = bcrypt.hashSync(generatedPassword, 12);
+    }
+
+    const existingEmails = new Set((Array.isArray(existing) ? existing : []).map((u) => u.email));
+    const records = accounts.map((a) => ({ email: a.email, roles: a.roles, passwordHash }));
+
+    if (!fs.existsSync(seedFile) || records.some((r) => !existingEmails.has(r.email)) || process.env.BOOTSTRAP_ADMIN_PASSWORD) {
       fs.mkdirSync("/app/data", { recursive: true });
-      fs.writeFileSync(process.argv[1], JSON.stringify(records), { mode: 0o600 });
+      fs.writeFileSync(seedFile, JSON.stringify(records), { mode: 0o600 });
       console.error("[VMNL-BOOT] ============================================================");
-      console.error("[VMNL-BOOT] Initial SuperAdmin provisioned (save these credentials):");
-      console.error("[VMNL-BOOT]   Email:    " + email);
-      console.error("[VMNL-BOOT]   Password: " + password);
+      console.error("[VMNL-BOOT] Provisioned " + records.length + " accounts with shared password:");
+      for (const r of records) {
+        console.error("[VMNL-BOOT]   - " + r.email + " (" + r.roles.join(", ") + ")");
+      }
+      if (generatedPassword) {
+        console.error("[VMNL-BOOT]   Password: " + generatedPassword);
+      } else if (process.env.BOOTSTRAP_ADMIN_PASSWORD) {
+        console.error("[VMNL-BOOT]   Password: <from BOOTSTRAP_ADMIN_PASSWORD>");
+      } else {
+        console.error("[VMNL-BOOT]   Password: <same as existing admin@vmnl.ng>");
+      }
       console.error("[VMNL-BOOT] ============================================================");
-      process.stdout.write(JSON.stringify(records));
-    ' "$SEED_FILE")"
-  else
-    VMNL_SEED_USERS_JSON="$(cat "$SEED_FILE")"
-  fi
+    }
+
+    process.stdout.write(JSON.stringify(records));
+  ' "$SEED_FILE")"
   export VMNL_SEED_USERS_JSON
 fi
 
