@@ -143,7 +143,10 @@ const configSchema = z.object({
   RELEASE_SIGNING_KEY: z.string().min(16, "a release signing key must be at least 16 characters").optional(),
 
   // Observability
-  LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
+  LOG_LEVEL: z.preprocess(
+    (v) => (typeof v === "string" ? v.trim().toLowerCase() : v),
+    z.enum(["debug", "info", "warn", "error"])
+  ).default("info"),
   OTEL_EXPORTER_OTLP_ENDPOINT: z.string().default("http://localhost:4318"),
   PROMETHEUS_METRICS_ENABLED: booleanish(true),
 

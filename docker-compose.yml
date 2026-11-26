@@ -97,7 +97,7 @@ services:
       - AZEEBO_CLIENT_ID=${AZEEBO_CLIENT_ID:-vmnl_enterprise_hub}
       - AZEEBO_WEBHOOK_SECRET=${SERVICE_PASSWORD_64_AZEEBO}
       # Observability & Metrics
-      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
       - PROMETHEUS_METRICS_ENABLED=${PROMETHEUS_METRICS_ENABLED:-true}
     depends_on:
       postgres:
