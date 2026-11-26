@@ -33,11 +33,6 @@ if [ "$AUTO_MIGRATE" != "false" ]; then
   fi
 fi
 
-if [ "$AUTO_SEED" = "true" ]; then
-  echo "[VMNL-BOOT] AUTO_SEED=true: Populating database records..."
-  node dist/src/db/migrate-and-seed.js
-fi
-
 if [ -z "${VMNL_SEED_USERS_JSON:-}" ]; then
   SEED_FILE="/app/data/bootstrap-admin.json"
   if [ ! -f "$SEED_FILE" ]; then
@@ -63,6 +58,16 @@ if [ -z "${VMNL_SEED_USERS_JSON:-}" ]; then
     VMNL_SEED_USERS_JSON="$(cat "$SEED_FILE")"
   fi
   export VMNL_SEED_USERS_JSON
+fi
+
+if [ "$AUTO_SEED" = "true" ]; then
+  SEED_MARKER="/app/data/.seeded"
+  if [ ! -f "$SEED_MARKER" ] || [ "${FORCE_SEED:-false}" = "true" ]; then
+    echo "[VMNL-BOOT] AUTO_SEED=true: Populating Golden Master demo records..."
+    node dist/src/db/migrate-and-seed.js && touch "$SEED_MARKER"
+  else
+    echo "[VMNL-BOOT] Demo data already seeded ($SEED_MARKER present); skipping."
+  fi
 fi
 
 if command -v dumb-init >/dev/null 2>&1; then

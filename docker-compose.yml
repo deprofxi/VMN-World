@@ -70,7 +70,7 @@ services:
       - DATABASE_STATEMENT_TIMEOUT_MS=${DATABASE_STATEMENT_TIMEOUT_MS:-15000}
       # Automated Migrations and Seeding from Environment
       - AUTO_MIGRATE=${AUTO_MIGRATE:-true}
-      - AUTO_SEED=${AUTO_SEED:-false}
+      - AUTO_SEED=${AUTO_SEED:-true}
       # Authentication, Security & Sessions: auto-generated 64-char secrets in Coolify
       - JWT_SECRET=${SERVICE_PASSWORD_64_JWT}
       - JWT_EXPIRATION_SECONDS=${JWT_EXPIRATION_SECONDS:-86400}
