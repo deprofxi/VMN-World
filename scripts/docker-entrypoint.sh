@@ -38,6 +38,33 @@ if [ "$AUTO_SEED" = "true" ]; then
   node dist/src/db/migrate-and-seed.js
 fi
 
+if [ -z "${VMNL_SEED_USERS_JSON:-}" ]; then
+  SEED_FILE="/app/data/bootstrap-admin.json"
+  if [ ! -f "$SEED_FILE" ]; then
+    echo "[VMNL-BOOT] Generating initial SuperAdmin credentials in $SEED_FILE..."
+    VMNL_SEED_USERS_JSON="$(node -e '
+      const fs = require("node:fs");
+      const crypto = require("node:crypto");
+      const bcrypt = require("bcryptjs");
+      const email = process.env.BOOTSTRAP_ADMIN_EMAIL || "admin@vmnl.ng";
+      const password = process.env.BOOTSTRAP_ADMIN_PASSWORD || crypto.randomBytes(15).toString("base64url");
+      const passwordHash = bcrypt.hashSync(password, 12);
+      const records = [{ email, roles: ["SuperAdmin"], passwordHash }];
+      fs.mkdirSync("/app/data", { recursive: true });
+      fs.writeFileSync(process.argv[1], JSON.stringify(records), { mode: 0o600 });
+      console.error("[VMNL-BOOT] ============================================================");
+      console.error("[VMNL-BOOT] Initial SuperAdmin provisioned (save these credentials):");
+      console.error("[VMNL-BOOT]   Email:    " + email);
+      console.error("[VMNL-BOOT]   Password: " + password);
+      console.error("[VMNL-BOOT] ============================================================");
+      process.stdout.write(JSON.stringify(records));
+    ' "$SEED_FILE")"
+  else
+    VMNL_SEED_USERS_JSON="$(cat "$SEED_FILE")"
+  fi
+  export VMNL_SEED_USERS_JSON
+fi
+
 if command -v dumb-init >/dev/null 2>&1; then
   exec dumb-init -- "$@"
 else
